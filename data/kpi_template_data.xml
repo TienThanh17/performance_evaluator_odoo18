@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="kpi_template_it_odoo_dev" model="hr.kpi">
+            <field name="name">KPI Lập trình viên Odoo - Phòng IT</field>
+            <!--            <field name="description">Bộ tiêu chuẩn đánh giá năng lực và thái độ cho Odoo Developer (Thang điểm 10)</field>-->
+        </record>
+
+        <record id="kpi_line_quantitative" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Định lượng</field>
+            <field name="display_type">line_section</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="kpi_line_it_task_on_time" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Tỷ lệ hoàn thành Task đúng hạn</field>
+            <field name="description" type="html">
+                <p>Hệ thống tự động tính dựa trên dữ liệu dự án:</p>
+                <p>
+                    <strong>Điểm = (Số task hoàn thành đúng hạn / Tổng số task được giao) * 10</strong>
+                </p>
+            </field>
+            <field name="kpi_type">quantitative</field>
+            <field name="target_type">percentage</field>
+            <field name="direction">higher_better</field>
+            <field name="target">100.0</field>
+            <field name="weight">15.0</field>
+            <field name="is_monthly">True</field>
+            <field name="is_auto">True</field>
+            <field name="data_source">task_on_time</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="kpi_line_it_attendance" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Đi làm đúng giờ</field>
+            <field name="description" type="html">
+                <p>Đánh giá dựa trên <strong>dữ liệu chấm công thực tế</strong> từ module Attendance
+                    <br/>
+                    (sai số tối đa 5
+                    phút/lần):
+                </p>
+                <ul>
+                    <li>
+                        <strong>10 điểm:</strong>
+                        Hoàn thành xuất sắc, <strong>không vi phạm</strong> đi muộn hoặc về sớm.
+                    </li>
+                    <li>
+                        <strong>Trừ 2 điểm:</strong>
+                        Cho mỗi lần phát hiện vi phạm quy định giờ giấc làm việc.
+                    </li>
+                    <li>
+                        <strong>0 điểm:</strong>
+                        Trường hợp tổng số lần vi phạm trong tháng <strong>vượt quá 5 lần</strong>.
+                    </li>
+                </ul>
+            </field>
+            <field name="kpi_type">quantitative</field>
+            <field name="target_type">value</field>
+            <field name="direction">lower_better</field>
+            <field name="target">0.0</field>
+            <field name="weight">10.0</field>
+            <field name="is_monthly">True</field>
+            <field name="is_auto">True</field>
+            <field name="data_source">late_days</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="kpi_line_attendance_full" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Đi làm đầy đủ</field>
+            <field name="description" type="html">
+                <p>Đánh giá dựa trên số ngày nghỉ trong tháng (Dữ liệu từ đơn xin nghỉ phép):</p>
+                <ul>
+                    <li>
+                        <strong>Nghỉ 0 ngày có phép:</strong>
+                        10đ
+                    </li>
+                    <li>
+                        <strong>Nghỉ 1 ngày có phép:</strong>
+                        9đ
+                    </li>
+                    <li>
+                        <strong>Nghỉ 2 ngày có phép:</strong>
+                        8đ
+                    </li>
+                    <li>
+                        <strong>Nghỉ 3 ngày có phép:</strong>
+                        7đ
+                    </li>
+                    <li>
+                        <strong>Nghỉ 4 ngày có phép:</strong>
+                        6đ
+                    </li>
+                    <li>
+                        <strong>Nghỉ 5 ngày có phép:</strong>
+                        5đ
+                    </li>
+                    <li>
+                        <strong>Nghỉ > 5 ngày có phép hoặc 1 ngày không phép:</strong>
+                        0đ
+                    </li>
+                </ul>
+            </field>
+            <field name="kpi_type">quantitative</field>
+            <field name="target_type">value</field>
+            <field name="direction">lower_better</field>
+            <field name="target">0.0</field>
+            <field name="weight">10.0</field>
+            <field name="is_monthly">True</field>
+            <field name="is_auto">True</field>
+            <field name="data_source">attendance_full</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="kpi_line_qualitative" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Định tính</field>
+            <field name="display_type">line_section</field>
+            <field name="sequence">45</field>
+        </record>
+
+        <record id="kpi_line_it_skill" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Tay nghề &amp; Kỹ năng lập trình Odoo</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong>
+                        Xuất sắc - Tự giải quyết task khó, tối ưu performance.
+                    </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong>
+                        Tốt - Hoàn thành đúng quy trình, code sạch, ít lỗi.
+                    </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong>
+                        Khá - Đáp ứng cơ bản, đôi khi cần hỗ trợ nhẹ.
+                    </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong>
+                        Trung bình - Còn thiếu sót, cần giám sát chặt chẽ.
+                    </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong>
+                        Yếu - Không hoàn thành, kỹ năng code kém.
+                    </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="target_type">value</field>
+            <field name="direction">higher_better</field>
+            <field name="target">10.0</field>
+            <field name="weight">20.0</field>
+            <field name="is_monthly">True</field>
+            <field name="is_auto">False</field>
+            <field name="data_source">manual</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="kpi_line_it_quality" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Chất lượng Code &amp; Tuân thủ Quy trình</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong>
+                        Tuyệt đối tuân thủ coding convention, không có bug logic.
+                    </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong>
+                        Tuân thủ quy trình, lỗi nhẹ không đáng kể.
+                    </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong>
+                        Có lỗi convention hoặc logic nhẹ cần fix lại.
+                    </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong>
+                        Thường xuyên phải rework do không đọc kỹ yêu cầu.
+                    </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong>
+                        Vi phạm nghiêm trọng quy trình phát triển.
+                    </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="target_type">percentage</field>
+            <field name="direction">higher_better</field>
+            <field name="target">100.0</field>
+            <field name="weight">15.0</field>
+            <field name="is_monthly">True</field>
+            <field name="is_auto">False</field>
+            <field name="data_source">manual</field>
+            <field name="sequence">60</field>
+        </record>
+
+        <record id="kpi_line_it_teamwork" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Làm việc nhóm &amp; Hỗ trợ đồng nghiệp</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong>
+                        Chủ động hỗ trợ, review code và chia sẻ kiến thức.
+                    </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong>
+                        Phối hợp tốt, phản hồi nhanh các yêu cầu hỗ trợ.
+                    </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong>
+                        Hoàn thành phần việc cá nhân, phối hợp ở mức vừa đủ.
+                    </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong>
+                        Ít tương tác, phản hồi chậm gây ảnh hưởng tiến độ chung.
+                    </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong>
+                        Thiếu tinh thần hợp tác, gây mất đoàn kết.
+                    </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="target_type">value</field>
+            <field name="direction">higher_better</field>
+            <field name="target">10.0</field>
+            <field name="weight">10.0</field>
+            <field name="is_monthly">True</field>
+            <field name="is_auto">False</field>
+            <field name="data_source">manual</field>
+            <field name="sequence">70</field>
+        </record>
+
+        <record id="kpi_line_it_asset" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Ý thức bảo vệ tài sản &amp; Tiết kiệm</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong>
+                        Giữ gìn máy móc, bảo mật dữ liệu tuyệt đối, tiết kiệm điện nước.
+                    </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong>
+                        Có ý thức tốt trong việc sử dụng tài sản công ty.
+                    </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong>
+                        Đôi khi còn lãng phí văn phòng phẩm hoặc quên tắt thiết bị.
+                    </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong>
+                        Sử dụng thiết bị cẩu thả, không tuân thủ quy định bảo mật.
+                    </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong>
+                        Gây hư hỏng hoặc làm mất mát tài sản do thiếu trách nhiệm.
+                    </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="target_type">value</field>
+            <field name="direction">higher_better</field>
+            <field name="target">10.0</field>
+            <field name="weight">10.0</field>
+            <field name="is_monthly">True</field>
+            <field name="is_auto">False</field>
+            <field name="data_source">manual</field>
+            <field name="sequence">80</field>
+        </record>
+
+        <record id="kpi_line_it_discipline" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Chấp hành nội quy &amp; Giờ giấc</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong>
+                        Không vi phạm bất kỳ nội quy nào (giờ giấc, trang phục).
+                    </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong>
+                        Vi phạm tối đa 1 lần lỗi nhẹ trong tháng.
+                    </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong>
+                        Vi phạm 2-3 lần lỗi nhẹ.
+                    </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong>
+                        Vi phạm thường xuyên (trên 4 lần).
+                    </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong>
+                        Vi phạm nghiêm trọng quy định của công ty.
+                    </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="target_type">value</field>
+            <field name="direction">higher_better</field>
+            <field name="target">10.0</field>
+            <field name="weight">10.0</field>
+            <field name="is_monthly">True</field>
+            <field name="is_auto">False</field>
+            <field name="data_source">manual</field>
+            <field name="sequence">90</field>
+        </record>
+
+
+<!--        <record id="kpi_line_it_learning" model="hr.kpi.line">-->
+<!--            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>-->
+<!--            <field name="key_performance_area">Đóng góp giải pháp/thư viện dùng chung</field>-->
+<!--            <field name="description" type="html">-->
+<!--                <p>Đánh giá dựa trên sự đóng góp thực tế vào kho tài nguyên chung:</p>-->
+<!--                <ul>-->
+<!--                    <li>-->
+<!--                        <strong>Đạt (10đ):</strong>-->
+<!--                        Có ít nhất 1 đóng góp hữu ích (Module, Script, Doc).-->
+<!--                    </li>-->
+<!--                    <li>-->
+<!--                        <strong>Không đạt (0đ):</strong>-->
+<!--                        Không có đóng góp nào.-->
+<!--                    </li>-->
+<!--                </ul>-->
+<!--            </field>-->
+<!--            <field name="kpi_type">binary</field>-->
+<!--            <field name="target_type">value</field>-->
+<!--            <field name="direction">higher_better</field>-->
+<!--            <field name="target">1.0</field>-->
+<!--            <field name="weight">10.0</field>-->
+<!--            <field name="is_monthly">True</field>-->
+<!--            <field name="is_auto">False</field>-->
+<!--            <field name="data_source">manual</field>-->
+<!--            <field name="sequence">100</field>-->
+<!--        </record>-->
+    </data>
+</odoo>

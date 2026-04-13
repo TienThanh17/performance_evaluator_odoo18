@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="res_config_settings_view_form_inherit_kpi_thresholds" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.kpi.thresholds</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <app string="Performance Evaluation" name="custom_adecsol_hr_performance_evaluator"
+                         logo="/custom_adecsol_hr_performance_evaluator/static/description/icon.png">
+                        <block title="KPI Performance Thresholds">
+                            <setting string="KPI thresholds"
+                                     help="Define score thresholds to classify evaluation results.">
+                                <div class="row mt16 o_settings_container">
+                                    <div>
+                                        <label for="kpi_threshold_excellent"/>
+                                        <div class="text-muted">Score ≥ this value is considered <b>Excellent</b>.
+                                        </div>
+                                        <field name="kpi_threshold_excellent" class="w-100"/>
+                                    </div>
+                                    <div class="mt-3">
+                                        <label for="kpi_threshold_pass"/>
+                                        <div class="text-muted">Score ≥ this value (and &lt; Excellent) is
+                                            considered <b>Pass</b>.
+                                        </div>
+                                        <field name="kpi_threshold_pass" class="w-100"/>
+                                    </div>
+                                </div>
+                                <div class="text-muted">
+                                    Example: Excellent ≥ 9, Pass ≥ 5, otherwise Fail.
+                                </div>
+                            </setting>
+                        </block>
+                    </app>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- 1. Action để mở trang cấu hình -->
+        <record id="action_performance_evaluator_config" model="ir.actions.act_window">
+            <field name="name">Settings</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <!-- Context giúp Odoo tự động tìm đến tab 'Performance Evaluation' đã định nghĩa ở source -->
+            <field name="context">{'module': 'custom_adecsol_hr_performance_evaluator'}</field>
+        </record>
+
+        <!-- Menu Configuration (Con của Performance Evaluation) -->
+        <menuitem id="menu_performance_evaluator_config"
+                  name="Configuration"
+                  parent="performance_evaluator"
+                  sequence="100"/>
+
+        <!-- Menu Item Settings (Dẫn đến Action cấu hình) -->
+        <menuitem id="menu_performance_evaluator_settings"
+                  name="Settings"
+                  parent="menu_performance_evaluator_config"
+                  action="action_performance_evaluator_config"
+                  sequence="1"/>
+    </data>
+</odoo>
+

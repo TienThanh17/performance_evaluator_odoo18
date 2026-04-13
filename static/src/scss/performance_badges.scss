@@ -1,0 +1,78 @@
+// KPI threshold based colors
+// excellent: #00BFFF
+// pass:      #dfffc5
+// fail:      #ffb9b9
+
+.o_web_client {
+
+    // 2) Performance summary box under evaluation lines
+    .o_perf_summary {
+        border-radius: 10px;
+        padding: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: #f8f9fa;
+        display: flex;
+        justify-content: flex-end;
+
+        .o_perf_summary_title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .o_perf_summary_body {
+            gap: 24px;
+            align-items: baseline;
+            width: 20%;
+        }
+
+        .o_perf_label {
+            color: #495057;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+
+        .o_perf_value {
+            font-weight: 800;
+            font-size: 20px;
+            line-height: 1.1;
+        }
+
+        .o_perf_suffix {
+            color: #6c757d;
+            margin-left: 10px;
+            font-size: 20px;
+        }
+
+        &.o_kpi_badge_excellent {
+            background-color: rgba(0, 191, 255, 0.12);
+            border-color: rgba(0, 191, 255, 0.35);
+            .o_perf_value { color: #0077a3; }
+        }
+        &.o_kpi_badge_pass {
+            background-color: #dfffc5;
+            border-color: rgba(76, 175, 80, 0.25);
+            .o_perf_value { color: #1f6b00; }
+        }
+        &.o_kpi_badge_fail {
+            background-color: #ffb9b9;
+            border-color: rgba(244, 67, 54, 0.25);
+            .o_perf_value { color: #8a0000; }
+        }
+    }
+
+    // 3) KPI template: section/note one2many styling
+    // Make section titles bold (scoped to the hr.kpi form).
+    .o_form_view.o_form_editable {
+        &[data-res-model="hr.kpi"],
+        .o_form_renderer[data-res-model="hr.kpi"] {
+            .o_section_and_note_one2many {
+                tr.o_is_section,
+                tr.o_is_section td {
+                    font-weight: 700;
+                }
+            }
+        }
+    }
+}
+

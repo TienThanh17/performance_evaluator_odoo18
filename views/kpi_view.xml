@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <!-- Dedicated form view for KPI Line used in popup (Add KPI) -->
+        <record id="view_hr_kpi_line_form_popup" model="ir.ui.view">
+            <field name="name">hr.kpi.line.form.popup</field>
+            <field name="model">hr.kpi.line</field>
+            <field name="arch" type="xml">
+                <form string="KPI Line">
+                    <sheet>
+                        <div class="oe_title">
+                            <h2 class="mb-1">
+                                <field name="key_performance_area" placeholder="Key Performance Area"/>
+                            </h2>
+                        </div>
+
+                        <field name="is_section" invisible="1"/>
+
+                        <group invisible="is_section">
+                            <group string="KPI Info">
+                                <field name="kpi_id" invisible="1"/>
+                                <field name="kpi_type"/>
+                                <field name="target_type" invisible="kpi_type != 'quantitative'"/>
+                                <field name="direction" invisible="kpi_type != 'quantitative'"/>
+                                <field name="weight"/>
+                            </group>
+                            <group string="Auto Compute">
+                                <field name="is_auto"/>
+                                <field name="data_source" invisible="not is_auto"/>
+                            </group>
+                        </group>
+
+                        <group invisible="is_section">
+                            <group string="Target" invisible="kpi_type != 'quantitative'">
+                                <field name="target"/>
+                            </group>
+                            <group string="Frequency">
+                                <field name="is_monthly"/>
+                                <field name="is_quarterly"/>
+                                <field name="is_half_yearly"/>
+                                <field name="is_yearly"/>
+                            </group>
+                        </group>
+
+                        <div class="text-muted" style="width: 100%;">
+                            <field name="description" placeholder="KPI Description"
+                                   style="width: 100%; min-width: 400px;" colspan="4"/>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- list View for KPI (List View) -->
+        <record id="view_hr_kpi_list" model="ir.ui.view">
+            <field name="name">hr kpi</field>
+            <field name="model">hr.kpi</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="job_id"/>
+                    <field name="department_id"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Form View for KPI -->
+        <record id="view_hr_kpi_form" model="ir.ui.view">
+            <field name="name">hr.kpi.form</field>
+            <field name="model">hr.kpi</field>
+            <field name="arch" type="xml">
+                <form string="KPI">
+                    <sheet>
+                        <!--                        <group class="space-y-6">-->
+                        <!--                            &lt;!&ndash; Name Field &ndash;&gt;-->
+                        <!--                            <group class="flex flex-col space-y-2">-->
+                        <!--                                <field name="name"-->
+                        <!--                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>-->
+                        <!--                            </group>-->
+
+                        <!--                            &lt;!&ndash; Job Position Field &ndash;&gt;-->
+                        <!--                            <group class="flex flex-col space-y-2">-->
+                        <!--                                <field name="job_id"-->
+                        <!--                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>-->
+                        <!--                            </group>-->
+
+                        <!--                            &lt;!&ndash; Department Field &ndash;&gt;-->
+                        <!--                            <group class="flex flex-col space-y-2">-->
+                        <!--                                <field name="department_id"-->
+                        <!--                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>-->
+                        <!--                            </group>-->
+                        <!--                        </group>-->
+
+                        <!-- Use Odoo native grid to keep labels/fields aligned consistently -->
+                        <group col="2">
+                            <field name="name"/>
+<!--                            <field name="job_id"/>-->
+                            <field name="department_id"/>
+                        </group>
+
+                        <notebook>
+                            <page string="Key Performance">
+                                <field name="kpi_line_ids" widget="kpi_one2many"
+                                       context="{'default_kpi_id': id, 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup'}">
+                                    <list editable="bottom" decoration-bf="is_section">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="is_section" column_invisible="True"/>
+
+                                        <field name="key_performance_area" string="Title"/>
+
+                                        <field name="serial_number" column_invisible="1"/>
+                                        <field name="description" invisible="is_section"/>
+
+                                        <field name="kpi_type" invisible="is_section"/>
+                                        <field name="target_type" invisible="is_section or kpi_type != 'quantitative'"/>
+                                        <field name="direction" invisible="is_section or kpi_type != 'quantitative'"/>
+                                        <field name="target_display" string="Target"
+                                               invisible="is_section or kpi_type != 'quantitative'"/>
+
+                                        <field name="is_auto" invisible="is_section"/>
+                                        <field name="data_source" invisible="is_section or not is_auto"/>
+
+                                        <field name="is_monthly" optional="hide" invisible="is_section"/>
+                                        <field name="is_quarterly" optional="hide" invisible="is_section"/>
+                                        <field name="is_half_yearly" optional="hide" invisible="is_section"/>
+                                        <field name="is_yearly" optional="hide" invisible="is_section"/>
+
+                                        <field name="weight" invisible="is_section"/>
+                                        <control>
+                                            <create name="add_section" string="Add Section"
+                                                    context="{'default_is_section': True, 'default_display_type': 'line_section'}"
+                                            />
+                                            <create name="add_kpi" string="Add KPI"/>
+                                        </control>
+                                    </list>
+                                    <!--                                    <form string="KPI Line">-->
+                                    <!--                                        <sheet>-->
+                                    <!--                                            &lt;!&ndash; Title-like header for Key Performance Area &ndash;&gt;-->
+                                    <!--                                            <div class="oe_title">-->
+                                    <!--                                                <h2 class="mb-1">-->
+                                    <!--                                                    <field name="key_performance_area"-->
+                                    <!--                                                           placeholder="Key Performance Area"/>-->
+                                    <!--                                                </h2>-->
+                                    <!--                                            </div>-->
+
+                                    <!--                                            <field name="is_section" invisible="1"/>-->
+
+                                    <!--                                            <group invisible="is_section">-->
+                                    <!--                                                <group string="KPI Info">-->
+                                    <!--                                                    <field name="kpi_type"/>-->
+                                    <!--                                                    <field name="target_type" invisible="kpi_type != 'quantitative'"/>-->
+                                    <!--                                                    <field name="direction" invisible="kpi_type != 'quantitative'"/>-->
+                                    <!--                                                    <field name="weight"/>-->
+                                    <!--                                                </group>-->
+
+                                    <!--                                                <group string="Auto Compute">-->
+                                    <!--                                                    <field name="is_auto"/>-->
+                                    <!--                                                    <field name="data_source" invisible="not is_auto"/>-->
+                                    <!--                                                </group>-->
+                                    <!--                                            </group>-->
+
+                                    <!--                                            <group invisible="is_section">-->
+                                    <!--                                                <group string="Target" invisible="kpi_type != 'quantitative'">-->
+                                    <!--                                                    <field name="target"/>-->
+                                    <!--                                                </group>-->
+
+                                    <!--                                                <group string="Frequency">-->
+                                    <!--                                                    <field name="is_monthly"/>-->
+                                    <!--                                                    <field name="is_quarterly"/>-->
+                                    <!--                                                    <field name="is_half_yearly"/>-->
+                                    <!--                                                    <field name="is_yearly"/>-->
+                                    <!--                                                </group>-->
+                                    <!--                                            </group>-->
+
+                                    <!--                                            <div class="text-muted" style="width: 100%;">-->
+                                    <!--                                                <field name="description" placeholder="KPI Description"-->
+                                    <!--                                                       style="width: 100%; min-width: 400px;" colspan="4"/>-->
+                                    <!--                                            </div>-->
+                                    <!--                                        </sheet>-->
+                                    <!--                                    </form>-->
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action to Open KPI Form and List View -->
+        <record id="hr_kpi_action" model="ir.actions.act_window">
+            <field name="name">KPI</field>
+            <field name="res_model">hr.kpi</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- Menu Item to Access KPI Form and List View -->
+        <menuitem id="performance_evaluator" name="Performance Evaluator" sequence="1"/>
+        <menuitem id="menu_kpi_form" name="KPI" parent="performance_evaluator" sequence="20" action="hr_kpi_action"/>
+    </data>
+</odoo>

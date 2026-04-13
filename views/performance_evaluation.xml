@@ -1,0 +1,484 @@
+<odoo>
+    <data>
+        <!-- Dedicated form view for Evaluation Line used in popup (Add KPI) -->
+        <record id="view_hr_performance_evaluation_line_form_popup" model="ir.ui.view">
+            <field name="name">hr.performance.evaluation.line.form.popup</field>
+            <field name="model">hr.performance.evaluation.line</field>
+            <field name="arch" type="xml">
+                <form string="Evaluation Line">
+                    <sheet>
+                        <div class="oe_title">
+                            <h2 class="mb-1">
+                                <field name="key_performance_area" placeholder="Key Performance Area"/>
+                            </h2>
+                        </div>
+
+                        <field name="is_section" invisible="1"/>
+                        <field name="is_evaluation_manager" invisible="1"/>
+                        <field name="evaluation_state" invisible="1"/>
+                        <field name="is_special_scoring" invisible="1"/>
+
+
+                        <!-- ============================
+                             ASSESSMENT (2 columns)
+                             ============================ -->
+                        <group string="Assessment" invisible="is_section or kpi_type == 'quantitative'">
+                            <group>
+                                <label for="employee_rating_binary" string="Employee Rating"
+                                       invisible="kpi_type != 'binary'"/>
+                                <field name="employee_rating_binary" nolabel="1" invisible="kpi_type != 'binary'"
+                                       widget="radio"
+                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' or is_evaluation_manager"/>
+
+                                <label for="employee_rating_selection" string="Employee Rating (0-5)"
+                                       invisible="kpi_type != 'rating'"/>
+                                <field name="employee_rating_selection" nolabel="1" invisible="kpi_type != 'rating'"
+                                       widget="priority_onchange"
+                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' or is_evaluation_manager"/>
+
+                                <label for="employee_rating_score" string="Employee Score"
+                                       invisible="kpi_type != 'score'"/>
+                                <field name="employee_rating_score" nolabel="1" invisible="kpi_type != 'score'"
+                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' or is_evaluation_manager"/>
+                            </group>
+
+                            <group>
+                                <label for="manager_rating_binary" string="Manager Rating"
+                                       invisible="kpi_type != 'binary'"/>
+                                <field name="manager_rating_binary" nolabel="1" invisible="kpi_type != 'binary'"
+                                       widget="radio"
+                                       readonly="not is_evaluation_manager or evaluation_state == 'cancel'"/>
+
+                                <label for="manager_rating_selection" string="Manager Rating (0-5)"
+                                       invisible="kpi_type != 'rating'"/>
+                                <field name="manager_rating_selection" nolabel="1" invisible="kpi_type != 'rating'"
+                                       widget="priority_onchange"
+                                       readonly="not is_evaluation_manager or evaluation_state == 'cancel'"/>
+
+                                <label for="manager_rating_score" string="Manager Score"
+                                       invisible="kpi_type != 'score'"/>
+                                <field name="manager_rating_score" nolabel="1" invisible="kpi_type != 'score'"
+                                       readonly="not is_evaluation_manager or evaluation_state == 'cancel'"/>
+                            </group>
+                        </group>
+
+                        <group string="Target / Actual"
+                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring">
+                            <group>
+                                <field name="target"/>
+                                <field name="target_type" invisible="kpi_type != 'quantitative'"/>
+                                <field name="direction" invisible="kpi_type != 'quantitative'"/>
+
+                            </group>
+                            <group>
+                                <field name="actual" placeholder="Actual value"/>
+                            </group>
+                        </group>
+
+                        <!-- ============================
+                             SCORING
+                             ============================ -->
+                        <group string="Scoring" invisible="is_section">
+                            <field name="final_rating_badge_class" invisible="1"/>
+                            <field name="final_rating_badge_text" string="Final Rating" widget="badge" readonly="1"
+                                   decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
+                                   decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
+                                   decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'"/>
+                        </group>
+
+                        <!-- ============================
+                             KPI INFO
+                             ============================ -->
+                        <group string="KPI Info" invisible="is_section">
+                            <group>
+                                <field name="kpi_type"/>
+                                <field name="weight"/>
+                                <field name="actual" readonly="1" invisible="not is_special_scoring"/>
+                            </group>
+                            <group invisible="kpi_type != 'quantitative'">
+                                <field name="is_auto"/>
+                                <field name="data_source" invisible="not is_auto"/>
+                                <!-- ============================
+                                 ATTENDANCE FULL (AUTO KPI METRICS)
+                                ============================ -->
+                                <field name="attendance_expected_days" readonly="1"
+                                       invisible="data_source != 'attendance_full'"/>
+                                <field name="attendance_worked_days" readonly="1"
+                                       invisible="data_source != 'attendance_full'"/>
+                                <field name="attendance_leave_days" readonly="1"
+                                       invisible="data_source != 'attendance_full'"/>
+                                <field name="attendance_approved_leave_days" readonly="1"
+                                       invisible="data_source != 'attendance_full'"/>
+                                <field name="attendance_has_unpaid_leave" readonly="1"
+                                       invisible="data_source != 'attendance_full'"/>
+                            </group>
+                        </group>
+
+                        <!-- ============================
+                             COMMENTS
+                             ============================ -->
+                        <group string="Comments" invisible="is_section">
+                            <group>
+                                <field name="employee_comment" widget="html"
+                                       readonly="evaluation_state == 'cancel' or is_evaluation_manager"
+                                       options="{'resizable': false}"
+                                       style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                            </group>
+                            <group>
+                                <field name="manager_comment" widget="html"
+                                       readonly="not is_evaluation_manager or evaluation_state == 'cancel'"
+                                       options="{'resizable': false}"
+                                       style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                            </group>
+                        </group>
+
+                        <!-- ============================
+                             KPI DESCRIPTION
+                             ============================ -->
+                        <group string="KPI Description" invisible="is_section">
+                            <field name="description" widget="html" placeholder="KPI Description"
+                                   readonly="evaluation_state == 'cancel' or not is_evaluation_manager"
+                                   options="{'resizable': false}"
+                                   style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- list View for Performance Evaluation -->
+        <record id="view_performance_evaluation_list" model="ir.ui.view">
+            <field name="name">hr.performance.evaluation.list</field>
+            <field name="model">hr.performance.evaluation</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+
+                    <field name="employee_id"/>
+                    <field name="manager_id"/>
+                    <field name="job_id"/>
+                    <field name="kpi_id"/>
+                    <field name="period"/>
+                    <field name="performance_score"/>
+                    <field name="performance_level"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="deadline"/>
+
+                </list>
+            </field>
+        </record>
+
+        <!--        kanban view start-->
+        <record id="view_performance_evaluation_kanban" model="ir.ui.view">
+            <field name="name">hr.performance.evaluation.kanban</field>
+            <field name="model">hr.performance.evaluation</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="performance_score"/>
+                    <field name="job_id"/>
+                    <field name="department_id"/>
+                    <field name="kpi_id"/>
+                    <field name="period"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click" style="display: flex; flex-direction: row;">
+
+                                <!-- Green background for performance score >= 7.5 -->
+                                <div t-if="record.performance_score.raw_value &gt;= 7.5"
+                                     style="flex: 2; background-color: #dfffc5; color: gray; text-align: center; padding: 10px;">
+
+                                    <div>
+                                        <strong style="font-size: 15px; margin-top: 10px;">
+                                            <field name="employee_id"/>
+                                        </strong>
+                                        <div style="margin-top: 20%; display: flex; align-items: center; flex-direction: column;">
+                                            <div style="width: 65px; height: 65px; border-radius: 50%; background-color: #b9c0ff; display: flex; justify-content: center; align-items: center;">
+                                                <i class="fa fa-trophy" title="Performance score"
+                                                   style="font-size: 40px; color: #fff;"></i>
+                                            </div>
+                                            <strong style="font-size: 30px; margin-top: 10px;">
+                                                <field name="performance_score"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Yellow background for performance score between 5 and 7.5 -->
+                                <div t-elif="record.performance_score.raw_value &gt; 5 and record.performance_score.raw_value &lt; 7.5"
+                                     style="flex: 2; background-color: #fff5b9; color: gray; text-align: center; padding: 10px;">
+                                    <div>
+                                        <strong style="font-size: 15px; margin-top: 10px;">
+                                            <field name="employee_id"/>
+                                        </strong>
+                                        <div style="margin-top: 20%; display: flex; align-items: center; flex-direction: column;">
+                                            <div style="width: 65px; height: 65px; border-radius: 50%; background-color: #b9c0ff; display: flex; justify-content: center; align-items: center;">
+                                                <i class="fa fa-trophy" title="Performance score"
+                                                   style="font-size: 40px; color: #fff;"></i>
+                                            </div>
+                                            <strong style="font-size: 30px; margin-top: 10px;">
+                                                <field name="performance_score"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Red background for performance score <= 5 -->
+                                <div t-else="record.performance_score.raw_value &lt;= 5"
+                                     style="flex: 2; background-color: #ffb9b9; color: gray; text-align: center; padding: 10px;">
+                                    <div>
+                                        <strong style="font-size: 15px; margin-top: 10px;">
+                                            <field name="employee_id"/>
+                                        </strong>
+                                        <div style="margin-top: 20%; display: flex; align-items: center; flex-direction: column;">
+                                            <div style="width: 65px; height: 65px; border-radius: 50%; background-color: #b9c0ff; display: flex; justify-content: center; align-items: center;">
+                                                <i class="fa fa-trophy" title="Performance score"
+                                                   style="font-size: 40px; color: #fff;"></i>
+                                            </div>
+                                            <strong style="font-size: 30px; margin-top: 10px;">
+                                                <field name="performance_score"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Right column with other fields -->
+                                <div style="width: 60%; padding: 10px; display: flex; flex-direction: column;">
+                                    <h3 style="margin-bottom: 10px;">
+                                        <field name="name"/>
+                                    </h3>
+                                    <div style="font-size: 14px; margin-bottom: 5px;">
+                                        <field name="job_id"/>
+                                    </div>
+                                    <div style="font-size: 14px; margin-bottom: 5px;">
+                                        <field name="department_id"/>
+                                    </div>
+
+                                    <div style="font-size: 14px; margin-bottom: 5px;">
+                                        <field name="kpi_id"/>
+                                    </div>
+                                    <div style="font-size: 14px; margin-bottom: 5px;">
+                                        <field name="period"/>
+                                    </div>
+                                    <div style="font-size: 14px; margin-bottom: 5px;">
+                                        <field name="start_date"/>
+                                    </div>
+                                    <div style="font-size: 14px; margin-bottom: 5px;">
+                                        <field name="end_date"/>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+        <!--        kanban view end-->
+
+        <!-- Form View for Performance Evaluation -->
+        <record id="view_performance_evaluation_form" model="ir.ui.view">
+            <field name="name">hr.performance.evaluation.form</field>
+            <field name="model">hr.performance.evaluation</field>
+            <field name="arch" type="xml">
+                <form string="Performance Evaluation">
+                    <!-- Other form fields here -->
+                    <header>
+                        <!-- State field to show the current state -->
+                        <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,cancel"/>
+
+                        <!-- Submit button -->
+                        <button name="action_submit" type="object" string="Submit"
+                                groups="custom_adecsol_hr_performance_evaluator.group_evaluation_user"
+                                invisible="state != 'draft'"
+                                class="oe_highlight"/>
+                        <!-- Approve button -->
+                        <button name="action_approve" type="object" string="Approve"
+                                groups="custom_adecsol_hr_performance_evaluator.group_evaluation_manager"
+                                invisible="state != 'submitted'"
+                                class="oe_highlight"/>
+
+                        <button name="action_cancel" type="object" string="Cancel"
+                                groups="custom_adecsol_hr_performance_evaluator.group_evaluation_manager"
+                                class="btn-danger"
+                                invisible="state == 'cancel'"/>
+
+                    </header>
+                    <sheet>
+
+                        <group>
+                            <group>
+                                <field name="user_id" invisible="1"/>
+
+                                <field name="name"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <field name="employee_id"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
+                                <field name="job_id" readonly="1"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <field name="period"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <field name="kpi_id"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </group>
+                            <group>
+                                <field name="manager_id" readonly="1"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <field name="department_id" readonly="1"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <field name="start_date"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <field name="end_date"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <field name="deadline"
+                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                <field name="performance_score" invisible="1"/>
+                                <field name="performance_level" invisible="1"/>
+                                <field name="performance_badge_class" invisible="1"/>
+                                <!--                                <div class="o_row" style="display: inline-flex; align-items: center; gap: 4px">-->
+                                <!--                                    <field name="performance_score" string="Average Score" options="{'max_value': 10}" style="min-width: 0; margin-bottom: 0px"/>-->
+                                <!--                                    <span style="white-space: nowrap;">/ 10</span>-->
+                                <!--                                </div>-->
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Evaluation Lines">
+                                <button name="action_compute_auto_kpi"
+                                        type="object"
+                                        string="Compute KPI"
+                                        class="btn-secondary"/>
+                                <button name="action_recompute_performance_score"
+                                        type="object"
+                                        string="Refresh Score"
+                                        class="btn-secondary ms-2"
+                                />
+                                <field name="evaluation_line_ids" widget="evaluation_one2many"
+                                       context="{'default_evaluation_id': id, 'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup'}">
+                                    <list editable="bottom" decoration-danger="manager_edited"
+                                          decoration-bf="is_section">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="is_section" column_invisible="1"/>
+                                        <field name="is_auto" column_invisible="1"/>
+
+                                        <field name="key_performance_area" string="Title"/>
+                                        <field name="description" invisible="is_section"/>
+
+                                        <field name="kpi_type" invisible="is_section"/>
+                                        <field name="target_type" optional="hide"
+                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                        <field name="data_source" optional="hide"
+                                               invisible="is_section or not is_auto"/>
+                                        <field name="direction" optional="hide"
+                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                        <field name="employee_comment" optional="hide" invisible="is_section"/>
+                                        <field name="manager_comment" optional="hide" invisible="is_section"/>
+
+                                        <field name="target" column_invisible="1" force_save="1"/>
+                                        <field name="target_display" string="Target"
+                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                        <field name="actual_display" string="Actual"
+                                               invisible="is_section or kpi_type != 'quantitative'"/>
+
+                                        <field name="weight" invisible="is_section"/>
+                                        <field name="manager_edited" column_invisible="1"/>
+                                        <field name="final_rating_badge_class" column_invisible="1"/>
+                                        <field name="final_rating_badge_text" readonly="1" widget="badge"
+                                               decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
+                                               decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
+                                               decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'"/>
+
+                                        <control>
+                                            <create name="add_section" string="Add Section"
+                                                    context="{'default_is_section': True, 'default_display_type': 'line_section'}"/>
+                                            <create name="add_kpi" string="Add KPI"/>
+                                        </control>
+                                    </list>
+                                </field>
+
+                                <!-- Performance summary: keep position, but right-align the CONTENT -->
+                                <!--                                #{performance_badge_class} không thể sử dụng trong form view-->
+                                <div class="o_perf_summary mt-3"
+                                     t-attf-class="o_perf_summary #{performance_badge_class}">
+                                    <div class="o_perf_summary_body o_perf_summary_body_right">
+
+                                        <div class="o_perf_summary_title">Evaluation results</div>
+
+                                        <div>
+                                            <div class="o_perf_summary_score">
+                                                <span class="o_perf_label">Average Score:</span>
+                                                <span class="o_perf_value">
+                                                    <field name="performance_score"/>
+                                                </span>
+                                                <span class="o_perf_suffix">/ 10</span>
+                                            </div>
+                                            <div class="o_perf_summary_level">
+                                                <span class="o_perf_label">Result:</span>
+                                                <span class="o_perf_value">
+                                                    <field name="performance_level"/>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_performance_evaluation_search" model="ir.ui.view">
+            <field name="name">hr.performance.evaluation.search</field>
+            <field name="model">hr.performance.evaluation</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+
+                    <field name="employee_id"/>
+                    <field name="manager_id"/>
+                    <field name="job_id"/>
+                    <field name="kpi_id"/>
+                    <field name="period"/>
+                    <field name="performance_score"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="deadline"/>
+
+
+                    <filter string="Monthly" name="monthly" domain="[('period', '=', 'monthly')]"/>
+                    <filter string="Quarterly" name="quarterly" domain="[('period', '=', 'quarterly')]"/>
+                    <filter string="Half-Yearly" name="half_yearly" domain="[('period', '=', 'half_yearly')]"/>
+                    <filter string="Yearly" name="yearly" domain="[('period', '=', 'yearly')]"/>
+
+                    <filter string="Score &lt;5" name="Bad" domain="[('performance_score', '&lt;', 5)]"/>
+                    <filter string="Score between 5 and 7.5" name="Good"
+                            domain="[('performance_score', '&gt;=', 5), ('performance_score', '&lt;=', 7.5)]"/>
+                    <filter string="Score &gt; 7.5" name="Better" domain="[('performance_score', '&gt;', 7.5)]"/>
+
+
+                </search>
+            </field>
+        </record>
+
+        <!-- Action to Open Performance Evaluation List -->
+        <record id="action_performance_evaluation" model="ir.actions.act_window">
+            <field name="name">Performance Evaluation</field>
+            <field name="res_model">hr.performance.evaluation</field>
+            <field name="view_mode">kanban,list,form</field>
+        </record>
+
+
+        <!-- Menu Item to Access Performance Evaluation -->
+        <menuitem id="performance_evaluation_menu" name="Performance Evaluation" sequence="10"
+                  parent="performance_evaluator" action="action_performance_evaluation"/>
+    </data>
+</odoo>
