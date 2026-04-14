@@ -303,7 +303,7 @@
                                     <div class="score_value text-primary font-weight-bold" style="font-size: 32px;">
                                         <field name="performance_score" readonly="1"/>
                                     </div>
-                                    <div class="score_label text-uppercase small text-muted">Overall Performance</div>
+                                    <div class="text-uppercase small fw-bold">Overall Performance</div>
                                 </div>
                             </group>
 
