@@ -34,6 +34,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
     'assets': {
         'web.assets_backend': [
             'custom_adecsol_hr_performance_evaluator/static/src/scss/performance_badges.scss',
+            'custom_adecsol_hr_performance_evaluator/static/src/scss/performance_evaluation.scss',
             'custom_adecsol_hr_performance_evaluator/static/src/js/kpi_one2many.js',
             'custom_adecsol_hr_performance_evaluator/static/src/js/evaluation_one2many.js',
             'custom_adecsol_hr_performance_evaluator/static/src/js/priority_with_onchange.js',

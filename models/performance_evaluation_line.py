@@ -134,10 +134,10 @@ class PerformanceEvaluationLine(models.Model):
         default=0.0,
         help="Attendance Full metric: expected work days from working schedule.",
     )
-    attendance_leave_days = fields.Float(
-        string="Leave Days",
+    attendance_unpaid_leave_days = fields.Float(
+        string="Unpaid Leave Days",
         default=0.0,
-        help="Attendance Full metric: expected days minus worked days (clamped at 0).",
+        help="Attendance Full metric: expected days minus worked days.",
     )
     attendance_approved_leave_days = fields.Float(
         string="Approved Leave Days",
@@ -320,14 +320,14 @@ class PerformanceEvaluationLine(models.Model):
         for line in self:
             if line.kpi_type == 'binary':
                 line.manager_edited = bool(line.manager_rating_binary) and (
-                            line.manager_rating_binary != line.employee_rating_binary)
+                        line.manager_rating_binary != line.employee_rating_binary)
             elif line.kpi_type == 'rating':
                 line.manager_edited = bool(line.manager_rating_selection) and (
-                            line.manager_rating_selection != line.employee_rating_selection)
+                        line.manager_rating_selection != line.employee_rating_selection)
             elif line.kpi_type == 'score':
                 # If employee score is 0/default but manager changed it to something else, this becomes True.
                 line.manager_edited = (line.manager_rating_score is not None) and (
-                            line.manager_rating_score != (line.employee_rating_score or 0))
+                        line.manager_rating_score != (line.employee_rating_score or 0))
             else:
                 # quantitative: manager doesn't rate in current logic
                 line.manager_edited = False
@@ -362,7 +362,7 @@ class PerformanceEvaluationLine(models.Model):
         'employee_rating_binary', 'employee_rating_selection', 'employee_rating_score',
         'manager_rating_binary', 'manager_rating_selection', 'manager_rating_score',
         'data_source',
-        'attendance_has_unpaid_leave', 'attendance_leave_days',
+        'attendance_has_unpaid_leave', 'attendance_unpaid_leave_days',
     )
     def _compute_system_score(self):
         """
@@ -388,15 +388,11 @@ class PerformanceEvaluationLine(models.Model):
             if line.kpi_type == 'quantitative':
                 # Special case: attendance late days KPI uses a penalty-based scoring.
                 # - 0 late days -> 10
-                # - each late day -> -2
-                # - >5 late days -> 0
+                # - each late day -> -1
                 if (line.data_source or 'manual') == 'late_days':
                     late_days = int(round(actual)) if actual else 0
-                    if late_days > 5:
-                        score = 0.0
-                    else:
-                        score = 10.0 - (late_days * 2.0)
-                        score = max(0.0, score)
+                    score = 10.0 - (late_days * 1.0)
+                    score = max(0.0, score)
                     line.system_score = round(max(0.0, min(score, 10.0)), 2)
                     continue
 
@@ -409,7 +405,7 @@ class PerformanceEvaluationLine(models.Model):
                     if line.attendance_has_unpaid_leave:
                         score = 0.0
                     else:
-                        leave_days = int(round(line.attendance_leave_days or 0.0))
+                        leave_days = int(round(line.attendance_unpaid_leave_days or 0.0))
                         if leave_days <= 0:
                             score = 10.0
                         elif leave_days == 1:
@@ -424,8 +420,8 @@ class PerformanceEvaluationLine(models.Model):
                             score = 5.0
                         else:
                             score = 0.0
-                    line.system_score = round(max(0.0, min(score, 10.0)), 2)
-                    continue
+                        line.system_score = round(max(0.0, min(score, 10.0)), 2)
+                        continue
 
                 # Target vs Actual scoring, works for both value and percentage (same unit).
                 if target <= 0:
@@ -440,22 +436,23 @@ class PerformanceEvaluationLine(models.Model):
                 score = min(score_ratio * 10.0, 10.0)
 
             elif line.kpi_type == 'rating':
-                # ✅ Ưu tiên manager nếu đã có, fallback về employee
+                # Ưu tiên manager nếu đã có, fallback về employee
                 raw = line.manager_rating_selection or line.employee_rating_selection or '0'
                 rating = float(raw)
                 score = (rating / 5.0) * 10.0
 
             elif line.kpi_type == 'binary':
-                # ✅ Tương tự cho binary
+                # Tương tự cho binary
                 val = line.manager_rating_binary or line.employee_rating_binary
                 score = 10.0 if val == 'yes' else 0.0
 
             elif line.kpi_type == 'score':
-                # ✅ Tương tự cho score
+                # Tương tự cho score
                 val = line.manager_rating_score or line.employee_rating_score or 0
                 score = float(val)
 
             line.system_score = round(max(0.0, min(score, 10.0)), 2)
+
 
     # ------------------------------------------------------------------
     # COMPUTE final_rating depends on kpi_type
@@ -475,6 +472,7 @@ class PerformanceEvaluationLine(models.Model):
                 # score (and any future non-quantitative types): fallback to system_score
                 line.final_rating = round(max(0.0, min(line.system_score or 0.0, 10.0)), 2)
 
+
     def _get_thresholds(self):
         """Fetch KPI thresholds from system parameters."""
         icp = self.env['ir.config_parameter'].sudo()
@@ -482,6 +480,7 @@ class PerformanceEvaluationLine(models.Model):
             icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent', default='9') or 9.0)
         passed = float(icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_pass', default='5') or 5.0)
         return excellent, passed
+
 
     @api.depends('final_rating')
     def _compute_final_rating_badge_class(self):
@@ -495,11 +494,13 @@ class PerformanceEvaluationLine(models.Model):
             else:
                 line.final_rating_badge_class = 'o_kpi_badge_fail'
 
+
     @api.depends('final_rating')
     def _compute_final_rating_badge_text(self):
         for line in self:
             # Always show a value, including 0.0, with exactly 1 decimal.
             line.final_rating_badge_text = f"{(line.final_rating or 0.0):.1f}"
+
 
     # ------------------------------------------------------------------
     # onchange
@@ -542,6 +543,7 @@ class PerformanceEvaluationLine(models.Model):
             elif line.kpi_type == 'score' and line.employee_rating_score is not None:
                 line.manager_rating_score = line.employee_rating_score
 
+
     # ------------------------------------------------------------------
     # Constraints
     # ------------------------------------------------------------------
@@ -552,12 +554,14 @@ class PerformanceEvaluationLine(models.Model):
                 if (rec.actual or 0.0) < 0 or (rec.actual or 0.0) > 100:
                     raise ValidationError("Actual must be between 0 and 100 for percentage KPIs")
 
+
     @api.constrains('manager_rating_selection', 'kpi_type')
     def _check_manager_rating_selection_range(self):
         for rec in self:
             if rec.kpi_type == 'rating':
                 if rec.manager_rating_selection and rec.manager_rating_selection not in dict(self._RATING_0_5):
                     raise ValidationError("Manager rating selection must be between 0 and 5.")
+
 
     @api.constrains('employee_rating_score', 'manager_rating_score', 'kpi_type')
     def _check_score_range(self):
@@ -568,6 +572,7 @@ class PerformanceEvaluationLine(models.Model):
                 if not 0 <= (rec.manager_rating_score or 0) <= 10:
                     raise ValidationError("Manager score must be between 0 and 10.")
 
+
     @api.constrains('employee_rating_value', 'manager_rating_value')
     def _check_value_ratings_range(self):
         for rec in self:
@@ -575,6 +580,7 @@ class PerformanceEvaluationLine(models.Model):
                 raise ValidationError("Employee rating value must be between 0 and 10.")
             if rec.manager_rating_value is not None and not 0.0 <= rec.manager_rating_value <= 10.0:
                 raise ValidationError("Manager rating value must be between 0 and 10.")
+
 
     def _mirror_employee_to_manager_vals(self, vals, vals_before=None):
         """Mirror employee self-rating into manager rating on draft evaluations.
@@ -593,6 +599,7 @@ class PerformanceEvaluationLine(models.Model):
             elif line.kpi_type == 'score' and 'employee_rating_score' in vals_before:
                 vals.setdefault('manager_rating_score', vals_before.get('employee_rating_score'))
         return vals
+
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -634,6 +641,7 @@ class PerformanceEvaluationLine(models.Model):
                 vals.setdefault('manager_rating_score', vals.get('employee_rating_score'))
 
         return super().create(vals_list)
+
 
     def write(self, vals):
         # Keep section consistency

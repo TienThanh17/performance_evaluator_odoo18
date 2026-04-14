@@ -72,7 +72,7 @@ class PerformanceEvaluation(models.Model):
         ],
         string="Result",
         compute='_compute_performance_level',
-        store=False,
+        store=True,
         help="Result level derived from the Average Score and the KPI thresholds configured in Settings.",
     )
 
@@ -109,6 +109,30 @@ class PerformanceEvaluation(models.Model):
         readonly=True,
         help="The employee's job position (filled automatically).",
     )
+
+    performance_visual = fields.Html(compute='_compute_performance_visual')
+
+    @api.depends('performance_score', 'employee_id')
+    def _compute_performance_visual(self):
+        for rec in self:
+            # Giả sử điểm tối đa là 10, quy đổi ra % (1-100)
+            score_pct = (rec.performance_score or 0) * 10
+
+            # Lấy URL ảnh nhân viên
+            img_url = f"/web/image/hr.employee/{rec.employee_id.id}/image_128" if rec.employee_id else "/web/static/img/placeholder.png"
+
+            # Tạo HTML string với CSS inline động
+            rec.performance_visual = f"""
+                    <div class="d-flex flex-column align-items-center justify-content-center p-3">
+                        <div style="width: 180px; height: 180px; border-radius: 50%; 
+                                    background: conic-gradient(#0056b3 {score_pct}%, #e9ecef 0); 
+                                    display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 160px; height: 160px; background: white; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                <img src="{img_url}" style="width: 100%; height: 100%; object-fit: cover;"/>
+                            </div>
+                        </div>
+                    </div>
+                """
 
     @api.constrains('period', 'evaluation_alert_id')
     def _check_period_active(self):
@@ -351,7 +375,7 @@ class PerformanceEvaluation(models.Model):
                     vals.update({
                         'attendance_worked_days': metrics.get('worked_days', 0.0),
                         'attendance_expected_days': metrics.get('expected_work_days', 0.0),
-                        'attendance_leave_days': metrics.get('leave_days', 0.0),
+                        'attendance_unpaid_leave_days': metrics.get('unpaid_leave_days', 0.0),
                         'attendance_approved_leave_days': metrics.get('approved_leave_days', 0.0),
                         'attendance_has_unpaid_leave': metrics.get('has_unpaid_leave', False),
                     })

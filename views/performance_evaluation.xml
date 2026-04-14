@@ -105,12 +105,12 @@
                                        invisible="data_source != 'attendance_full'"/>
                                 <field name="attendance_worked_days" readonly="1"
                                        invisible="data_source != 'attendance_full'"/>
-                                <field name="attendance_leave_days" readonly="1"
+                                <field name="attendance_unpaid_leave_days" readonly="1"
                                        invisible="data_source != 'attendance_full'"/>
                                 <field name="attendance_approved_leave_days" readonly="1"
                                        invisible="data_source != 'attendance_full'"/>
-                                <field name="attendance_has_unpaid_leave" readonly="1"
-                                       invisible="data_source != 'attendance_full'"/>
+                                <field name="attendance_has_unpaid_leave" class="text-danger"
+                                       invisible="1"/>
                             </group>
                         </group>
 
@@ -169,12 +169,12 @@
             </field>
         </record>
 
-        <!--        kanban view start-->
+        <!-- kanban view-->
         <record id="view_performance_evaluation_kanban" model="ir.ui.view">
             <field name="name">hr.performance.evaluation.kanban</field>
             <field name="model">hr.performance.evaluation</field>
             <field name="arch" type="xml">
-                <kanban>
+                <kanban class="custom_eval_kanban">
                     <field name="name"/>
                     <field name="employee_id"/>
                     <field name="performance_score"/>
@@ -184,97 +184,78 @@
                     <field name="period"/>
                     <field name="start_date"/>
                     <field name="end_date"/>
+                    <field name="performance_level"/>
 
                     <templates>
                         <t t-name="kanban-box">
-                            <div class="oe_kanban_global_click" style="display: flex; flex-direction: row;">
+                            <div t-attf-class="oe_kanban_global_click oe_kanban_card d-flex p-0 mb-3"
+                                 style="border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); background: white; min-height: 240px;position: relative;">
 
-                                <!-- Green background for performance score >= 7.5 -->
-                                <div t-if="record.performance_score.raw_value &gt;= 7.5"
-                                     style="flex: 2; background-color: #dfffc5; color: gray; text-align: center; padding: 10px;">
+                                <t t-set="bg_sidebar"
+                                   t-value="record.performance_level.raw_value == 'excellent' ? '#00BFFF' : (record.performance_level.raw_value == 'pass' ? '#dfffc5' : '#ffb9b9')"/>
+                                <t t-set="main_blue" t-value="'#517ca4'"/>
+                                <t t-set="score_pct" t-value="record.performance_score.raw_value * 10"/>
 
-                                    <div>
-                                        <strong style="font-size: 15px; margin-top: 10px;">
-                                            <field name="employee_id"/>
-                                        </strong>
-                                        <div style="margin-top: 20%; display: flex; align-items: center; flex-direction: column;">
-                                            <div style="width: 65px; height: 65px; border-radius: 50%; background-color: #b9c0ff; display: flex; justify-content: center; align-items: center;">
-                                                <i class="fa fa-trophy" title="Performance score"
-                                                   style="font-size: 40px; color: #fff;"></i>
-                                            </div>
-                                            <strong style="font-size: 30px; margin-top: 10px;">
+                                <aside t-attf-style="width: 35%; display: flex; flex-direction: column; align-items: center; padding: 30px 10px; background-color: #{bg_sidebar};">
+
+                                    <img t-att-src="record.employee_id.raw_value ? '/web/image/hr.employee/' + record.employee_id.raw_value + '/image_128' : '/custom_adecsol_hr_performance_evaluator/static/description/default-avatar.png'"
+                                         style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"/>
+
+                                    <strong style="font-size: 16px; color: #333; text-align: center; margin-bottom: 20px;">
+                                        <field name="employee_id"/>
+                                    </strong>
+
+                                    <div t-attf-style="position: relative; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(#8ab9e6 #{score_pct}%, #cedee9 0);">
+                                        <div t-attf-style="position: absolute; width: 80px; height: 80px; border-radius: 50%; background-color: #{bg_sidebar}; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                            <i class="fa fa-trophy"
+                                               style="position: absolute; font-size: 50px; color: rgba(255,255,255,0.4); z-index: 1;"></i>
+                                            <strong t-attf-style="font-size: 32px; font-weight: 800; color: #517ca4; z-index: 2;">
                                                 <field name="performance_score"/>
                                             </strong>
                                         </div>
                                     </div>
-                                </div>
+                                </aside>
 
-                                <!-- Yellow background for performance score between 5 and 7.5 -->
-                                <div t-elif="record.performance_score.raw_value &gt; 5 and record.performance_score.raw_value &lt; 7.5"
-                                     style="flex: 2; background-color: #fff5b9; color: gray; text-align: center; padding: 10px;">
-                                    <div>
-                                        <strong style="font-size: 15px; margin-top: 10px;">
-                                            <field name="employee_id"/>
-                                        </strong>
-                                        <div style="margin-top: 20%; display: flex; align-items: center; flex-direction: column;">
-                                            <div style="width: 65px; height: 65px; border-radius: 50%; background-color: #b9c0ff; display: flex; justify-content: center; align-items: center;">
-                                                <i class="fa fa-trophy" title="Performance score"
-                                                   style="font-size: 40px; color: #fff;"></i>
-                                            </div>
-                                            <strong style="font-size: 30px; margin-top: 10px;">
-                                                <field name="performance_score"/>
-                                            </strong>
-                                        </div>
-                                    </div>
-                                </div>
+                                <main class="flex-grow-1 p-4 d-flex flex-column justify-content-center">
 
-                                <!-- Red background for performance score <= 5 -->
-                                <div t-else="record.performance_score.raw_value &lt;= 5"
-                                     style="flex: 2; background-color: #ffb9b9; color: gray; text-align: center; padding: 10px;">
-                                    <div>
-                                        <strong style="font-size: 15px; margin-top: 10px;">
-                                            <field name="employee_id"/>
-                                        </strong>
-                                        <div style="margin-top: 20%; display: flex; align-items: center; flex-direction: column;">
-                                            <div style="width: 65px; height: 65px; border-radius: 50%; background-color: #b9c0ff; display: flex; justify-content: center; align-items: center;">
-                                                <i class="fa fa-trophy" title="Performance score"
-                                                   style="font-size: 40px; color: #fff;"></i>
-                                            </div>
-                                            <strong style="font-size: 30px; margin-top: 10px;">
-                                                <field name="performance_score"/>
-                                            </strong>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <!-- Right column with other fields -->
-                                <div style="width: 60%; padding: 10px; display: flex; flex-direction: column;">
-                                    <h3 style="margin-bottom: 10px;">
+                                    <!--                                    <div style="font-size: 12px; color: #888; font-weight: 600;">Performance ID</div>-->
+                                    <h2 t-attf-style="font-size: 28px; color: #{main_blue}; font-weight: 700; margin: 0 0 20px 0; letter-spacing: -0.5px;">
                                         <field name="name"/>
-                                    </h3>
-                                    <div style="font-size: 14px; margin-bottom: 5px;">
+                                    </h2>
+
+                                    <div class="d-flex align-items-center mb-2" style="font-size: 14px; color: #444;">
+                                        <i class="fa fa-briefcase me-3"
+                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
                                         <field name="job_id"/>
                                     </div>
-                                    <div style="font-size: 14px; margin-bottom: 5px;">
+                                    <div class="d-flex align-items-center mb-2" style="font-size: 14px; color: #444;">
+                                        <i class="fa fa-building-o me-3"
+                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
                                         <field name="department_id"/>
                                     </div>
-
-                                    <div style="font-size: 14px; margin-bottom: 5px;">
+                                    <div class="d-flex align-items-center mb-2" style="font-size: 14px; color: #444;">
+                                        <i class="fa fa-bullseye me-3"
+                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
                                         <field name="kpi_id"/>
                                     </div>
-                                    <div style="font-size: 14px; margin-bottom: 5px;">
-                                        <field name="period"/>
+                                    <div class="d-flex align-items-center mb-2" style="font-size: 14px; color: #444;">
+                                        <i class="fa fa-calendar-o me-3"
+                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
+                                        <span class="text-capitalize">
+                                            <field name="period"/>
+                                        </span>
                                     </div>
-                                    <div style="font-size: 14px; margin-bottom: 5px;">
-                                        <field name="start_date"/>
-                                    </div>
-                                    <div style="font-size: 14px; margin-bottom: 5px;">
-                                        <field name="end_date"/>
+                                    <div class="d-flex align-items-center" style="font-size: 14px; color: #444;">
+                                        <i class="fa fa-clock-o me-3"
+                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
+                                        <span>
+                                            <field name="start_date"/>
+                                            -
+                                            <field name="end_date"/>
+                                        </span>
                                     </div>
 
-                                </div>
-
+                                </main>
                             </div>
                         </t>
                     </templates>
@@ -312,9 +293,21 @@
 
                     </header>
                     <sheet>
+                        <group col="12">
+                            <group colspan="2" class="custom_performance_col">
+                                <field name="performance_visual" nolabel="1" readonly="1"/>
+                                <!--                                <h3 class="mt-2 text-dark font-weight-bold text-center">-->
+                                <!--                                    <field name="employee_id" readonly="1" options="{'no_open': True}"/>-->
+                                <!--                                </h3>-->
+                                <div class="overall_score_box text-center p-3">
+                                    <div class="score_value text-primary font-weight-bold" style="font-size: 32px;">
+                                        <field name="performance_score" readonly="1"/>
+                                    </div>
+                                    <div class="score_label text-uppercase small text-muted">Overall Performance</div>
+                                </div>
+                            </group>
 
-                        <group>
-                            <group>
+                            <group colspan="5">
                                 <field name="user_id" invisible="1"/>
 
                                 <field name="name"
@@ -329,7 +322,7 @@
                                 <field name="kpi_id"
                                        class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </group>
-                            <group>
+                            <group colspan="5">
                                 <field name="manager_id" readonly="1"
                                        class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                                 <field name="department_id" readonly="1"
@@ -383,7 +376,7 @@
 
                                         <field name="target" column_invisible="1" force_save="1"/>
                                         <field name="target_display" string="Target"
-                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
                                         <field name="actual_display" string="Actual"
                                                invisible="is_section or kpi_type != 'quantitative'"/>
 
@@ -413,7 +406,7 @@
 
                                         <div>
                                             <div class="o_perf_summary_score">
-                                                <span class="o_perf_label">Average Score:</span>
+                                                <span class="o_perf_label">Overall Performance:</span>
                                                 <span class="o_perf_value">
                                                     <field name="performance_score"/>
                                                 </span>
@@ -445,26 +438,27 @@
 
                     <field name="employee_id"/>
                     <field name="manager_id"/>
+                    <field name="department_id"/>
                     <field name="job_id"/>
                     <field name="kpi_id"/>
                     <field name="period"/>
                     <field name="performance_score"/>
+                    <field name="performance_level"/>
                     <field name="start_date"/>
                     <field name="end_date"/>
                     <field name="deadline"/>
-
 
                     <filter string="Monthly" name="monthly" domain="[('period', '=', 'monthly')]"/>
                     <filter string="Quarterly" name="quarterly" domain="[('period', '=', 'quarterly')]"/>
                     <filter string="Half-Yearly" name="half_yearly" domain="[('period', '=', 'half_yearly')]"/>
                     <filter string="Yearly" name="yearly" domain="[('period', '=', 'yearly')]"/>
 
-                    <filter string="Score &lt;5" name="Bad" domain="[('performance_score', '&lt;', 5)]"/>
-                    <filter string="Score between 5 and 7.5" name="Good"
-                            domain="[('performance_score', '&gt;=', 5), ('performance_score', '&lt;=', 7.5)]"/>
-                    <filter string="Score &gt; 7.5" name="Better" domain="[('performance_score', '&gt;', 7.5)]"/>
-
-
+                    <filter string="Excellent" name="excellent" domain="[('performance_level', '=', 'excellent')]"/>
+                    <filter string="Pass" name="pass" domain="[('performance_level', '=', 'pass')]"/>
+                    <filter string="Fail" name="fail" domain="[('performance_level', '=', 'fail')]"/>
+                    <group expand="1" string="Group By">
+                        <filter string="Department" name="group_by_department" context="{'group_by':'department_id'}"/>
+                    </group>
                 </search>
             </field>
         </record>
@@ -474,8 +468,8 @@
             <field name="name">Performance Evaluation</field>
             <field name="res_model">hr.performance.evaluation</field>
             <field name="view_mode">kanban,list,form</field>
+            <field name="context">{'group_by': 'department_id'}</field>
         </record>
-
 
         <!-- Menu Item to Access Performance Evaluation -->
         <menuitem id="performance_evaluation_menu" name="Performance Evaluation" sequence="10"

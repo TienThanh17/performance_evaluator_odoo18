@@ -37,24 +37,20 @@
             <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
             <field name="key_performance_area">Đi làm đúng giờ</field>
             <field name="description" type="html">
-                <p>Đánh giá dựa trên <strong>dữ liệu chấm công thực tế</strong> từ module Attendance
-                    <br/>
-                    (sai số tối đa 5
-                    phút/lần):
-                </p>
+                <p>Đánh giá dựa trên <strong>dữ liệu chấm công thực tế</strong> từ module Attendance</p>
                 <ul>
                     <li>
                         <strong>10 điểm:</strong>
                         Hoàn thành xuất sắc, <strong>không vi phạm</strong> đi muộn hoặc về sớm.
                     </li>
                     <li>
-                        <strong>Trừ 2 điểm:</strong>
+                        <strong>Trừ 1 điểm:</strong>
                         Cho mỗi lần phát hiện vi phạm quy định giờ giấc làm việc.
                     </li>
-                    <li>
-                        <strong>0 điểm:</strong>
-                        Trường hợp tổng số lần vi phạm trong tháng <strong>vượt quá 5 lần</strong>.
-                    </li>
+<!--                    <li>-->
+<!--                        <strong>0 điểm:</strong>-->
+<!--                        Trường hợp tổng số lần vi phạm trong tháng <strong>vượt quá 5 lần</strong>.-->
+<!--                    </li>-->
                 </ul>
             </field>
             <field name="kpi_type">quantitative</field>
@@ -313,31 +309,31 @@
         </record>
 
 
-<!--        <record id="kpi_line_it_learning" model="hr.kpi.line">-->
-<!--            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>-->
-<!--            <field name="key_performance_area">Đóng góp giải pháp/thư viện dùng chung</field>-->
-<!--            <field name="description" type="html">-->
-<!--                <p>Đánh giá dựa trên sự đóng góp thực tế vào kho tài nguyên chung:</p>-->
-<!--                <ul>-->
-<!--                    <li>-->
-<!--                        <strong>Đạt (10đ):</strong>-->
-<!--                        Có ít nhất 1 đóng góp hữu ích (Module, Script, Doc).-->
-<!--                    </li>-->
-<!--                    <li>-->
-<!--                        <strong>Không đạt (0đ):</strong>-->
-<!--                        Không có đóng góp nào.-->
-<!--                    </li>-->
-<!--                </ul>-->
-<!--            </field>-->
-<!--            <field name="kpi_type">binary</field>-->
-<!--            <field name="target_type">value</field>-->
-<!--            <field name="direction">higher_better</field>-->
-<!--            <field name="target">1.0</field>-->
-<!--            <field name="weight">10.0</field>-->
-<!--            <field name="is_monthly">True</field>-->
-<!--            <field name="is_auto">False</field>-->
-<!--            <field name="data_source">manual</field>-->
-<!--            <field name="sequence">100</field>-->
-<!--        </record>-->
+        <!--        <record id="kpi_line_it_learning" model="hr.kpi.line">-->
+        <!--            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>-->
+        <!--            <field name="key_performance_area">Đóng góp giải pháp/thư viện dùng chung</field>-->
+        <!--            <field name="description" type="html">-->
+        <!--                <p>Đánh giá dựa trên sự đóng góp thực tế vào kho tài nguyên chung:</p>-->
+        <!--                <ul>-->
+        <!--                    <li>-->
+        <!--                        <strong>Đạt (10đ):</strong>-->
+        <!--                        Có ít nhất 1 đóng góp hữu ích (Module, Script, Doc).-->
+        <!--                    </li>-->
+        <!--                    <li>-->
+        <!--                        <strong>Không đạt (0đ):</strong>-->
+        <!--                        Không có đóng góp nào.-->
+        <!--                    </li>-->
+        <!--                </ul>-->
+        <!--            </field>-->
+        <!--            <field name="kpi_type">binary</field>-->
+        <!--            <field name="target_type">value</field>-->
+        <!--            <field name="direction">higher_better</field>-->
+        <!--            <field name="target">1.0</field>-->
+        <!--            <field name="weight">10.0</field>-->
+        <!--            <field name="is_monthly">True</field>-->
+        <!--            <field name="is_auto">False</field>-->
+        <!--            <field name="data_source">manual</field>-->
+        <!--            <field name="sequence">100</field>-->
+        <!--        </record>-->
     </data>
 </odoo>

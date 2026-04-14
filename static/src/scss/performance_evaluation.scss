@@ -1,0 +1,39 @@
+.custom_eval_kanban {
+    // 1. Phải mở rộng độ rộng của cột (Group)
+    .o_kanban_group {
+        width: 30rem !important; /* Phải lớn hơn width của record */
+        flex: 0 0 30rem !important; /* Ép cột không bị co lại */
+    }
+
+    .o_kanban_record {
+        width: 28rem !important; /* Đặt chiều rộng thẻ */
+        margin-bottom: 10px !important; /* Đảm bảo có khoảng cách dọc */
+    }
+
+    .o_kanban_renderer {
+        --KanbanRecord-width: 28rem !important; /* Đặt chiều rộng thẻ */
+    }
+}
+
+.custom_performance_col {
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+
+    .performance_card_container {
+        // Biến số để tính % vòng tròn (Giả sử điểm/10)
+        --score-pct: 82; // Bạn có thể dùng t-set để truyền score * 10 vào đây
+
+        .overall_score_box {
+            background-color: #f0f7ff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 220px;
+
+            .score_value {
+                font-size: 42px;
+                line-height: 1;
+            }
+        }
+    }
+}
