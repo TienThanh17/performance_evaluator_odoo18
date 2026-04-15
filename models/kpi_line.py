@@ -57,7 +57,7 @@ class KPIline(models.Model):
             ('percentage', 'Percentage'),
         ],
         string='Target Type',
-        required=True,
+        required=False,
         default='value',
         help="Controls the unit for Target/Actual in evaluations. If Percentage, values are 0–100.",
     )
@@ -68,7 +68,7 @@ class KPIline(models.Model):
         ],
         string='Direction',
         default='higher_better',
-        required=True,
+        required=False,
         help="For Quantitative KPIs: choose whether a higher actual value is better or a lower actual value is better.",
     )
     target = fields.Float(
@@ -109,13 +109,19 @@ class KPIline(models.Model):
         ],
         string='Data Source',
         default='manual',
-        required=True,
+        required=False,
         help="Where the system gets the Actual value from when Auto Compute is enabled.",
     )
     is_auto = fields.Boolean(
         string='Auto Compute',
         default=False,
         help="Enable to let the system automatically compute Actual values from the selected Data Source.",
+    )
+    is_special_scoring = fields.Boolean(
+        string="Special Scoring",
+        compute="_compute_is_special_scoring",
+        store=False,
+        help="Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).",
     )
 
     is_monthly = fields.Boolean(
@@ -138,6 +144,14 @@ class KPIline(models.Model):
         default=False,
         help="Include this KPI line when generating Yearly evaluations.",
     )
+
+    @api.depends('kpi_type', 'data_source')
+    def _compute_is_special_scoring(self):
+        special_sources = {'late_days', 'attendance_full'}
+        for rec in self:
+            rec.is_special_scoring = bool(
+                rec.kpi_type == 'quantitative' and (rec.data_source in special_sources)
+            )
 
     @api.depends('target', 'target_type', 'kpi_type')
     def _compute_display(self):

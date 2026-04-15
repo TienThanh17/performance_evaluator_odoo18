@@ -20,18 +20,19 @@
                             <group string="KPI Info">
                                 <field name="kpi_id" invisible="1"/>
                                 <field name="kpi_type"/>
-                                <field name="target_type" invisible="kpi_type != 'quantitative'"/>
-                                <field name="direction" invisible="kpi_type != 'quantitative'"/>
+                                <field name="target_type" invisible="kpi_type != 'quantitative' or is_special_scoring"/>
+                                <field name="direction" invisible="kpi_type != 'quantitative' or is_special_scoring"/>
                                 <field name="weight"/>
                             </group>
                             <group string="Auto Compute">
                                 <field name="is_auto"/>
                                 <field name="data_source" invisible="not is_auto"/>
+                                <field name="is_special_scoring" invisible="not is_special_scoring"/>
                             </group>
                         </group>
 
                         <group invisible="is_section">
-                            <group string="Target" invisible="kpi_type != 'quantitative'">
+                            <group string="Target" invisible="kpi_type != 'quantitative' or is_special_scoring">
                                 <field name="target"/>
                             </group>
                             <group string="Frequency">
@@ -42,10 +43,10 @@
                             </group>
                         </group>
 
-                        <div class="text-muted" style="width: 100%;">
-                            <field name="description" placeholder="KPI Description"
-                                   style="width: 100%; min-width: 400px;" colspan="4"/>
-                        </div>
+                        <group string="Description">
+                            <field name="description" string="" placeholder="KPI Description"
+                                   style="width: 100%; min-width: 400px;"/>
+                        </group>
                     </sheet>
                 </form>
             </field>
@@ -57,8 +58,14 @@
             <field name="model">hr.kpi</field>
             <field name="arch" type="xml">
                 <list>
+                    <!--                    <header>-->
+                    <!--                        <button name="%(custom_adecsol_hr_performance_evaluator.action_hr_kpi_generate_wizard)d"-->
+                    <!--                                type="action"-->
+                    <!--                                string="Generate Evaluations"-->
+                    <!--                                class="btn-primary"-->
+                    <!--                                groups="custom_adecsol_hr_performance_evaluator.group_hr,custom_adecsol_hr_performance_evaluator.group_manager"/>-->
+                    <!--                    </header>-->
                     <field name="name"/>
-                    <field name="job_id"/>
                     <field name="department_id"/>
                 </list>
             </field>
@@ -70,31 +77,18 @@
             <field name="model">hr.kpi</field>
             <field name="arch" type="xml">
                 <form string="KPI">
+                    <header>
+                        <button name="%(custom_adecsol_hr_performance_evaluator.action_hr_kpi_generate_wizard)d"
+                                type="action"
+                                string="Generate Evaluations"
+                                class="btn-primary"
+                                groups="custom_adecsol_hr_performance_evaluator.group_hr"
+                                context="{'default_kpi_id': id, 'default_department_id': department_id}"/>
+                    </header>
                     <sheet>
-                        <!--                        <group class="space-y-6">-->
-                        <!--                            &lt;!&ndash; Name Field &ndash;&gt;-->
-                        <!--                            <group class="flex flex-col space-y-2">-->
-                        <!--                                <field name="name"-->
-                        <!--                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>-->
-                        <!--                            </group>-->
-
-                        <!--                            &lt;!&ndash; Job Position Field &ndash;&gt;-->
-                        <!--                            <group class="flex flex-col space-y-2">-->
-                        <!--                                <field name="job_id"-->
-                        <!--                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>-->
-                        <!--                            </group>-->
-
-                        <!--                            &lt;!&ndash; Department Field &ndash;&gt;-->
-                        <!--                            <group class="flex flex-col space-y-2">-->
-                        <!--                                <field name="department_id"-->
-                        <!--                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>-->
-                        <!--                            </group>-->
-                        <!--                        </group>-->
-
                         <!-- Use Odoo native grid to keep labels/fields aligned consistently -->
-                        <group col="2">
+                        <group>
                             <field name="name"/>
-<!--                            <field name="job_id"/>-->
                             <field name="department_id"/>
                         </group>
 
@@ -112,12 +106,14 @@
                                         <field name="description" invisible="is_section"/>
 
                                         <field name="kpi_type" invisible="is_section"/>
-                                        <field name="target_type" invisible="is_section or kpi_type != 'quantitative'"/>
-                                        <field name="direction" invisible="is_section or kpi_type != 'quantitative'"/>
+                                        <field name="target_type"
+                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
                                         <field name="target_display" string="Target"
-                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
+                                        <field name="direction"
+                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
 
-                                        <field name="is_auto" invisible="is_section"/>
+                                        <field name="is_auto" column_invisible="1"/>
                                         <field name="data_source" invisible="is_section or not is_auto"/>
 
                                         <field name="is_monthly" optional="hide" invisible="is_section"/>
@@ -133,51 +129,6 @@
                                             <create name="add_kpi" string="Add KPI"/>
                                         </control>
                                     </list>
-                                    <!--                                    <form string="KPI Line">-->
-                                    <!--                                        <sheet>-->
-                                    <!--                                            &lt;!&ndash; Title-like header for Key Performance Area &ndash;&gt;-->
-                                    <!--                                            <div class="oe_title">-->
-                                    <!--                                                <h2 class="mb-1">-->
-                                    <!--                                                    <field name="key_performance_area"-->
-                                    <!--                                                           placeholder="Key Performance Area"/>-->
-                                    <!--                                                </h2>-->
-                                    <!--                                            </div>-->
-
-                                    <!--                                            <field name="is_section" invisible="1"/>-->
-
-                                    <!--                                            <group invisible="is_section">-->
-                                    <!--                                                <group string="KPI Info">-->
-                                    <!--                                                    <field name="kpi_type"/>-->
-                                    <!--                                                    <field name="target_type" invisible="kpi_type != 'quantitative'"/>-->
-                                    <!--                                                    <field name="direction" invisible="kpi_type != 'quantitative'"/>-->
-                                    <!--                                                    <field name="weight"/>-->
-                                    <!--                                                </group>-->
-
-                                    <!--                                                <group string="Auto Compute">-->
-                                    <!--                                                    <field name="is_auto"/>-->
-                                    <!--                                                    <field name="data_source" invisible="not is_auto"/>-->
-                                    <!--                                                </group>-->
-                                    <!--                                            </group>-->
-
-                                    <!--                                            <group invisible="is_section">-->
-                                    <!--                                                <group string="Target" invisible="kpi_type != 'quantitative'">-->
-                                    <!--                                                    <field name="target"/>-->
-                                    <!--                                                </group>-->
-
-                                    <!--                                                <group string="Frequency">-->
-                                    <!--                                                    <field name="is_monthly"/>-->
-                                    <!--                                                    <field name="is_quarterly"/>-->
-                                    <!--                                                    <field name="is_half_yearly"/>-->
-                                    <!--                                                    <field name="is_yearly"/>-->
-                                    <!--                                                </group>-->
-                                    <!--                                            </group>-->
-
-                                    <!--                                            <div class="text-muted" style="width: 100%;">-->
-                                    <!--                                                <field name="description" placeholder="KPI Description"-->
-                                    <!--                                                       style="width: 100%; min-width: 400px;" colspan="4"/>-->
-                                    <!--                                            </div>-->
-                                    <!--                                        </sheet>-->
-                                    <!--                                    </form>-->
                                 </field>
                             </page>
                         </notebook>

@@ -46,11 +46,11 @@ File: `__manifest__.py`
 ## 1) Business flow (end-user workflow)
 
 ### Actors & roles
-- **Employee** (group: `group_evaluation_user`)
+- **Employee** (group: `group_employee`)
   - fills self assessment for non-quantitative manual KPIs
   - can edit `actual` only for manual quantitative KPIs (when allowed by view + backend write rules)
   - cannot approve
-- **Manager** (group: `group_evaluation_manager`)
+- **Manager** (group: `group_manager`)
   - reviews/edits manager rating fields
   - approves / cancels
 

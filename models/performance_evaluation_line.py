@@ -7,9 +7,6 @@ class PerformanceEvaluationLine(models.Model):
     _description = 'Performance Evaluation Line'
     _order = 'sequence, id'
 
-    # ------------------------------------------------------------
-    # Section / ordering (to work with kpi_one2many widget)
-    # ------------------------------------------------------------
     is_section = fields.Boolean(
         string="Is Section",
         default=False,
@@ -221,11 +218,13 @@ class PerformanceEvaluationLine(models.Model):
         selection=_RATING_0_5,
         string="Employee Rating (0-5)",
         help="Employee self-assessment for Rating KPIs (0–5).",
+        default='0',
     )
     manager_rating_selection = fields.Selection(
         selection=_RATING_0_5,
         string="Manager Rating (0-5)",
         help="Manager assessment for Rating KPIs (0–5).",
+        default='0',
     )
 
     # Score KPI: employee self score and manager final score (0..10)
@@ -285,18 +284,37 @@ class PerformanceEvaluationLine(models.Model):
     # ------------------------------------------------------------
     # UX helper: identify current user's role (manager group)
     # ------------------------------------------------------------
-    is_evaluation_manager = fields.Boolean(
-        string="Is Evaluation Manager",
-        compute="_compute_is_evaluation_manager",
+    is_manager = fields.Boolean(
+        string="Is Manager",
+        compute="_compute_role",
+        store=False,
+        help="Technical helper used by the UI to apply role-based readonly rules.",
+    )
+
+    is_hr = fields.Boolean(
+        string="Is HR",
+        compute="_compute_role",
+        store=False,
+        help="Technical helper used by the UI to apply role-based readonly rules.",
+    )
+
+    is_employee = fields.Boolean(
+        string="Is Employee",
+        compute="_compute_role",
         store=False,
         help="Technical helper used by the UI to apply role-based readonly rules.",
     )
 
     @api.depends_context('uid')
-    def _compute_is_evaluation_manager(self):
-        is_manager = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_evaluation_manager')
+    def _compute_role(self):
+        is_manager = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_manager')
+        is_hr = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_hr')
+        is_employee = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_employee')
+
         for rec in self:
-            rec.is_evaluation_manager = is_manager
+            rec.is_manager = is_manager
+            rec.is_hr = is_hr
+            rec.is_employee = is_employee
 
     @api.depends('kpi_type', 'data_source')
     def _compute_is_special_scoring(self):
@@ -420,8 +438,8 @@ class PerformanceEvaluationLine(models.Model):
                             score = 5.0
                         else:
                             score = 0.0
-                        line.system_score = round(max(0.0, min(score, 10.0)), 2)
-                        continue
+                    line.system_score = round(max(0.0, min(score, 10.0)), 2)
+                    continue
 
                 # Target vs Actual scoring, works for both value and percentage (same unit).
                 if target <= 0:
@@ -453,7 +471,6 @@ class PerformanceEvaluationLine(models.Model):
 
             line.system_score = round(max(0.0, min(score, 10.0)), 2)
 
-
     # ------------------------------------------------------------------
     # COMPUTE final_rating depends on kpi_type
     # ------------------------------------------------------------------
@@ -472,7 +489,6 @@ class PerformanceEvaluationLine(models.Model):
                 # score (and any future non-quantitative types): fallback to system_score
                 line.final_rating = round(max(0.0, min(line.system_score or 0.0, 10.0)), 2)
 
-
     def _get_thresholds(self):
         """Fetch KPI thresholds from system parameters."""
         icp = self.env['ir.config_parameter'].sudo()
@@ -480,7 +496,6 @@ class PerformanceEvaluationLine(models.Model):
             icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent', default='9') or 9.0)
         passed = float(icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_pass', default='5') or 5.0)
         return excellent, passed
-
 
     @api.depends('final_rating')
     def _compute_final_rating_badge_class(self):
@@ -494,13 +509,11 @@ class PerformanceEvaluationLine(models.Model):
             else:
                 line.final_rating_badge_class = 'o_kpi_badge_fail'
 
-
     @api.depends('final_rating')
     def _compute_final_rating_badge_text(self):
         for line in self:
             # Always show a value, including 0.0, with exactly 1 decimal.
             line.final_rating_badge_text = f"{(line.final_rating or 0.0):.1f}"
-
 
     # ------------------------------------------------------------------
     # onchange
@@ -543,7 +556,6 @@ class PerformanceEvaluationLine(models.Model):
             elif line.kpi_type == 'score' and line.employee_rating_score is not None:
                 line.manager_rating_score = line.employee_rating_score
 
-
     # ------------------------------------------------------------------
     # Constraints
     # ------------------------------------------------------------------
@@ -554,14 +566,12 @@ class PerformanceEvaluationLine(models.Model):
                 if (rec.actual or 0.0) < 0 or (rec.actual or 0.0) > 100:
                     raise ValidationError("Actual must be between 0 and 100 for percentage KPIs")
 
-
     @api.constrains('manager_rating_selection', 'kpi_type')
     def _check_manager_rating_selection_range(self):
         for rec in self:
             if rec.kpi_type == 'rating':
                 if rec.manager_rating_selection and rec.manager_rating_selection not in dict(self._RATING_0_5):
                     raise ValidationError("Manager rating selection must be between 0 and 5.")
-
 
     @api.constrains('employee_rating_score', 'manager_rating_score', 'kpi_type')
     def _check_score_range(self):
@@ -572,7 +582,6 @@ class PerformanceEvaluationLine(models.Model):
                 if not 0 <= (rec.manager_rating_score or 0) <= 10:
                     raise ValidationError("Manager score must be between 0 and 10.")
 
-
     @api.constrains('employee_rating_value', 'manager_rating_value')
     def _check_value_ratings_range(self):
         for rec in self:
@@ -580,7 +589,6 @@ class PerformanceEvaluationLine(models.Model):
                 raise ValidationError("Employee rating value must be between 0 and 10.")
             if rec.manager_rating_value is not None and not 0.0 <= rec.manager_rating_value <= 10.0:
                 raise ValidationError("Manager rating value must be between 0 and 10.")
-
 
     def _mirror_employee_to_manager_vals(self, vals, vals_before=None):
         """Mirror employee self-rating into manager rating on draft evaluations.
@@ -599,7 +607,6 @@ class PerformanceEvaluationLine(models.Model):
             elif line.kpi_type == 'score' and 'employee_rating_score' in vals_before:
                 vals.setdefault('manager_rating_score', vals_before.get('employee_rating_score'))
         return vals
-
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -642,7 +649,6 @@ class PerformanceEvaluationLine(models.Model):
 
         return super().create(vals_list)
 
-
     def write(self, vals):
         # Keep section consistency
         if vals.get('display_type') and 'is_section' not in vals:
@@ -661,8 +667,8 @@ class PerformanceEvaluationLine(models.Model):
         if any(line.evaluation_id.state == 'cancel' for line in self):
             raise UserError("You cannot modify lines of a canceled evaluation.")
 
-        is_manager = user.has_group('custom_adecsol_hr_performance_evaluator.group_evaluation_manager')
-        is_employee = user.has_group('custom_adecsol_hr_performance_evaluator.group_evaluation_user')
+        is_manager = user.has_group('custom_adecsol_hr_performance_evaluator.group_manager')
+        is_employee = user.has_group('custom_adecsol_hr_performance_evaluator.group_employee')
 
         # Employee cannot edit manager fields (except mirrored ones in draft).
         if is_employee and not is_manager:

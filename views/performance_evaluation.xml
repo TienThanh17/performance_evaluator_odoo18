@@ -7,18 +7,18 @@
             <field name="arch" type="xml">
                 <form string="Evaluation Line">
                     <sheet>
-                        <div class="oe_title">
-                            <h2 class="mb-1">
-                                <field name="key_performance_area" placeholder="Key Performance Area"/>
-                            </h2>
-                        </div>
-
                         <field name="is_section" invisible="1"/>
-                        <field name="is_evaluation_manager" invisible="1"/>
+                        <field name="is_manager" invisible="1"/>
+                        <field name="is_hr" invisible="1"/>
+                        <field name="is_employee" invisible="1"/>
                         <field name="evaluation_state" invisible="1"/>
                         <field name="is_special_scoring" invisible="1"/>
 
-
+                        <div class="oe_title">
+                            <h2 class="mb-1">
+                                <field name="key_performance_area" placeholder="Key Performance Area" readonly="is_employee"/>
+                            </h2>
+                        </div>
                         <!-- ============================
                              ASSESSMENT (2 columns)
                              ============================ -->
@@ -28,18 +28,18 @@
                                        invisible="kpi_type != 'binary'"/>
                                 <field name="employee_rating_binary" nolabel="1" invisible="kpi_type != 'binary'"
                                        widget="radio"
-                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' or is_evaluation_manager"/>
+                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' or is_manager"/>
 
                                 <label for="employee_rating_selection" string="Employee Rating (0-5)"
                                        invisible="kpi_type != 'rating'"/>
                                 <field name="employee_rating_selection" nolabel="1" invisible="kpi_type != 'rating'"
                                        widget="priority_onchange"
-                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' or is_evaluation_manager"/>
+                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' or is_manager"/>
 
                                 <label for="employee_rating_score" string="Employee Score"
                                        invisible="kpi_type != 'score'"/>
                                 <field name="employee_rating_score" nolabel="1" invisible="kpi_type != 'score'"
-                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' or is_evaluation_manager"/>
+                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' or is_manager"/>
                             </group>
 
                             <group>
@@ -47,31 +47,31 @@
                                        invisible="kpi_type != 'binary'"/>
                                 <field name="manager_rating_binary" nolabel="1" invisible="kpi_type != 'binary'"
                                        widget="radio"
-                                       readonly="not is_evaluation_manager or evaluation_state == 'cancel'"/>
+                                       readonly="not is_manager or evaluation_state == 'cancel'"/>
 
                                 <label for="manager_rating_selection" string="Manager Rating (0-5)"
                                        invisible="kpi_type != 'rating'"/>
                                 <field name="manager_rating_selection" nolabel="1" invisible="kpi_type != 'rating'"
                                        widget="priority_onchange"
-                                       readonly="not is_evaluation_manager or evaluation_state == 'cancel'"/>
+                                       readonly="not is_manager or evaluation_state == 'cancel'"/>
 
                                 <label for="manager_rating_score" string="Manager Score"
                                        invisible="kpi_type != 'score'"/>
                                 <field name="manager_rating_score" nolabel="1" invisible="kpi_type != 'score'"
-                                       readonly="not is_evaluation_manager or evaluation_state == 'cancel'"/>
+                                       readonly="not is_manager or evaluation_state == 'cancel'"/>
                             </group>
                         </group>
 
                         <group string="Target / Actual"
                                invisible="is_section or kpi_type != 'quantitative' or is_special_scoring">
                             <group>
-                                <field name="target"/>
-                                <field name="target_type" invisible="kpi_type != 'quantitative'"/>
-                                <field name="direction" invisible="kpi_type != 'quantitative'"/>
+                                <field name="target" readonly="is_employee"/>
+                                <field name="target_type" invisible="kpi_type != 'quantitative'" readonly="is_employee"/>
+                                <field name="direction" invisible="kpi_type != 'quantitative'" readonly="is_employee"/>
 
                             </group>
                             <group>
-                                <field name="actual" placeholder="Actual value"/>
+                                <field name="actual" placeholder="Actual value" readonly="is_employee"/>
                             </group>
                         </group>
 
@@ -91,13 +91,13 @@
                              ============================ -->
                         <group string="KPI Info" invisible="is_section">
                             <group>
-                                <field name="kpi_type"/>
-                                <field name="weight"/>
+                                <field name="kpi_type" readonly="is_employee"/>
+                                <field name="weight" readonly="is_employee"/>
                                 <field name="actual" readonly="1" invisible="not is_special_scoring"/>
                             </group>
                             <group invisible="kpi_type != 'quantitative'">
-                                <field name="is_auto"/>
-                                <field name="data_source" invisible="not is_auto"/>
+                                <field name="is_auto" readonly="is_employee"/>
+                                <field name="data_source" invisible="not is_auto" readonly="is_employee"/>
                                 <!-- ============================
                                  ATTENDANCE FULL (AUTO KPI METRICS)
                                 ============================ -->
@@ -120,13 +120,13 @@
                         <group string="Comments" invisible="is_section">
                             <group>
                                 <field name="employee_comment" widget="html"
-                                       readonly="evaluation_state == 'cancel' or is_evaluation_manager"
+                                       readonly="evaluation_state != 'draft' or not is_employee"
                                        options="{'resizable': false}"
                                        style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
                             </group>
                             <group>
                                 <field name="manager_comment" widget="html"
-                                       readonly="not is_evaluation_manager or evaluation_state == 'cancel'"
+                                       readonly="not is_manager or evaluation_state == 'draft'"
                                        options="{'resizable': false}"
                                        style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
                             </group>
@@ -137,7 +137,7 @@
                              ============================ -->
                         <group string="KPI Description" invisible="is_section">
                             <field name="description" widget="html" placeholder="KPI Description"
-                                   readonly="evaluation_state == 'cancel' or not is_evaluation_manager"
+                                   readonly="evaluation_state == 'cancel' or not is_manager"
                                    options="{'resizable': false}"
                                    style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
                         </group>
@@ -185,6 +185,7 @@
                     <field name="start_date"/>
                     <field name="end_date"/>
                     <field name="performance_level"/>
+                    <field name="state"/>
 
                     <templates>
                         <t t-name="kanban-box">
@@ -192,7 +193,7 @@
                                  style="border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); background: white; min-height: 240px;position: relative;">
 
                                 <t t-set="bg_sidebar"
-                                   t-value="record.performance_level.raw_value == 'excellent' ? '#00BFFF' : (record.performance_level.raw_value == 'pass' ? '#dfffc5' : '#ffb9b9')"/>
+                                   t-value="record.performance_level.raw_value == 'excellent' ? '#d1e7fd' : (record.performance_level.raw_value == 'pass' ? '#dfffc5' : '#ffb9b9')"/>
                                 <t t-set="main_blue" t-value="'#517ca4'"/>
                                 <t t-set="score_pct" t-value="record.performance_score.raw_value * 10"/>
 
@@ -255,6 +256,14 @@
                                         </span>
                                     </div>
 
+                                    <div class="d-flex align-items-center mt-3">
+                                        <field name="state" widget="badge"
+                                               decoration-secondary="state == 'draft'"
+                                               decoration-warning="state == 'submitted'"
+                                               decoration-success="state == 'approved'"
+                                               decoration-danger="state == 'cancel'"/>
+                                    </div>
+
                                 </main>
                             </div>
                         </t>
@@ -277,17 +286,17 @@
 
                         <!-- Submit button -->
                         <button name="action_submit" type="object" string="Submit"
-                                groups="custom_adecsol_hr_performance_evaluator.group_evaluation_user"
+                                groups="custom_adecsol_hr_performance_evaluator.group_employee"
                                 invisible="state != 'draft'"
                                 class="oe_highlight"/>
                         <!-- Approve button -->
                         <button name="action_approve" type="object" string="Approve"
-                                groups="custom_adecsol_hr_performance_evaluator.group_evaluation_manager"
+                                groups="custom_adecsol_hr_performance_evaluator.group_manager"
                                 invisible="state != 'submitted'"
                                 class="oe_highlight"/>
 
                         <button name="action_cancel" type="object" string="Cancel"
-                                groups="custom_adecsol_hr_performance_evaluator.group_evaluation_manager"
+                                groups="custom_adecsol_hr_performance_evaluator.group_manager"
                                 class="btn-danger"
                                 invisible="state == 'cancel'"/>
 
@@ -355,7 +364,7 @@
                                 />
                                 <field name="evaluation_line_ids" widget="evaluation_one2many"
                                        context="{'default_evaluation_id': id, 'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup'}">
-                                    <list editable="bottom" decoration-danger="manager_edited"
+                                    <list editable="bottom" decoration-warning="manager_edited"
                                           decoration-bf="is_section">
                                         <field name="sequence" widget="handle"/>
                                         <field name="is_section" column_invisible="1"/>

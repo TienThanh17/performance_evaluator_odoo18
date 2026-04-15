@@ -47,7 +47,7 @@
                   sequence="60"
                   parent="performance_evaluator"
                   action="action_performance_evaluation_report"
-                  groups="custom_adecsol_hr_performance_evaluator.group_evaluation_manager"
+                  groups="custom_adecsol_hr_performance_evaluator.group_manager"
         />
     </data>
 </odoo>

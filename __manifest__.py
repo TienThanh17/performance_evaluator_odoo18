@@ -15,15 +15,16 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
     """,
 
     'data': [
-        'data/data.xml',
-        'data/kpi.xml',
+        'data/kpi_sequence.xml',
         'data/email_template_evaluation_alert.xml',
         'data/ir_config_parameter_data.xml',
+        'data/ir_cron_data.xml',
         'data/kpi_template_data.xml',
 
         'security/security.xml',
         'security/ir.model.access.csv',
 
+        'views/hr_kpi_generate_wizard_views.xml',
         'views/kpi_view.xml',
         'views/performance_evaluation.xml',
         'views/hr_score.xml',

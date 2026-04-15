@@ -54,8 +54,8 @@
                 </ul>
             </field>
             <field name="kpi_type">quantitative</field>
-            <field name="target_type">value</field>
-            <field name="direction">lower_better</field>
+<!--            <field name="target_type">value</field>-->
+<!--            <field name="direction">lower_better</field>-->
             <field name="target">0.0</field>
             <field name="weight">10.0</field>
             <field name="is_monthly">True</field>

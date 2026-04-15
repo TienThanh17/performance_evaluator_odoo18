@@ -3,7 +3,7 @@ from odoo.exceptions import ValidationError
 
 class KPI(models.Model):
     _name = 'hr.kpi'
-    _description = 'KPI for Job Position'
+    _description = 'KPI for Department'
 
     name = fields.Char(string='KPI Template', required=True)
     kpi_line_ids = fields.One2many(
