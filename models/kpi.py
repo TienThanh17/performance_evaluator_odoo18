@@ -21,6 +21,18 @@ class KPI(models.Model):
         string='Department',
         help="Apply this KPI template to employees in the selected department.",
     )
+    period = fields.Selection(
+        [
+            ("monthly", "Monthly"),
+            ("quarterly", "Quarterly"),
+            ("half_yearly", "Half-Yearly"),
+            ("yearly", "Yearly"),
+        ],
+        string="Evaluation Period",
+        required=True,
+        default="monthly",
+        help="The evaluation cycle for this KPI template.",
+    )
 
     @api.onchange('job_id')
     def _onchange_job_id(self):

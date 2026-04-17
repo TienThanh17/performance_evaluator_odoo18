@@ -35,12 +35,6 @@
                             <group string="Target" invisible="kpi_type != 'quantitative' or is_special_scoring">
                                 <field name="target"/>
                             </group>
-                            <group string="Frequency">
-                                <field name="is_monthly"/>
-                                <field name="is_quarterly"/>
-                                <field name="is_half_yearly"/>
-                                <field name="is_yearly"/>
-                            </group>
                         </group>
 
                         <group string="Description">
@@ -88,8 +82,13 @@
                     <sheet>
                         <!-- Use Odoo native grid to keep labels/fields aligned consistently -->
                         <group>
-                            <field name="name"/>
-                            <field name="department_id"/>
+                            <group>
+                                <field name="name"/>
+                                <field name="period"/>
+                            </group>
+                            <group>
+                                <field name="department_id"/>
+                            </group>
                         </group>
 
                         <notebook>
@@ -115,11 +114,6 @@
 
                                         <field name="is_auto" column_invisible="1"/>
                                         <field name="data_source" invisible="is_section or not is_auto"/>
-
-                                        <field name="is_monthly" optional="hide" invisible="is_section"/>
-                                        <field name="is_quarterly" optional="hide" invisible="is_section"/>
-                                        <field name="is_half_yearly" optional="hide" invisible="is_section"/>
-                                        <field name="is_yearly" optional="hide" invisible="is_section"/>
 
                                         <field name="weight" invisible="is_section"/>
                                         <control>

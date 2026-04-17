@@ -366,12 +366,6 @@ class PerformanceEvaluationLine(models.Model):
                 rec.target_display = f"{(rec.target or 0.0):g}"
                 rec.actual_display = f"{(rec.actual or 0.0):g}"
 
-    # @api.onchange('target_type')
-    # def _onchange_target_type(self):
-    #     for rec in self:
-    #         if rec._origin.target_type and rec._origin.target_type != rec.target_type:
-    #             rec.target = 0.0
-
     # ------------------------------------------------------------------
     # COMPUTE system_score: depends vào actual + các field liên quan
     # ------------------------------------------------------------------

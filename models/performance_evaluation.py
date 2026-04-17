@@ -26,7 +26,8 @@ class PerformanceEvaluation(models.Model):
     kpi_id = fields.Many2one(
         "hr.kpi",
         string="KPI",
-        required=True,
+        required=False,
+        domain="[('period', '=', period), ('department_id', '=', department_id)]",
         help="KPI template used to generate evaluation lines.",
     )
     period = fields.Selection(
@@ -139,14 +140,12 @@ class PerformanceEvaluation(models.Model):
                 else "/custom_adecsol_hr_performance_evaluator/static/description/default-avatar.png"
             )
 
-            # Tạo HTML string với CSS inline động
+            # Tạo HTML string với các class CSS mới để hỗ trợ responsive thay vì fixed width
             rec.performance_visual = f"""
-                    <div class="d-flex flex-column align-items-center justify-content-center p-3">
-                        <div style="width: 180px; height: 180px; border-radius: 50%; 
-                                    background: conic-gradient(#0056b3 {score_pct}%, #e9ecef 0); 
-                                    display: flex; align-items: center; justify-content: center;">
-                            <div style="width: 160px; height: 160px; background: white; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                                <img src="{img_url}" style="width: 100%; height: 100%; object-fit: cover;"/>
+                    <div class="d-flex flex-column align-items-center justify-content-center p-3 w-100">
+                        <div class="o_performance_visual_wrapper" style="background: conic-gradient(#0056b3 {score_pct}%, #e9ecef 0);">
+                            <div class="o_performance_visual_inner">
+                                <img src="{img_url}" alt="Employee Avatar"/>
                             </div>
                         </div>
                     </div>
@@ -327,35 +326,45 @@ class PerformanceEvaluation(models.Model):
                 record.manager_id = False
                 record.department_id = False
 
+    @api.onchange("employee_id", "period")
+    def _onchange_employee_or_period_clear_kpi(self):
+        """Xóa KPI đã chọn nếu nó không còn phù hợp với Nhân viên (Phòng ban) hoặc Chu kỳ mới."""
+        if self.kpi_id:
+            # Kiểm tra xem KPI hiện tại có khớp với Period và Department mới không
+            if (self.kpi_id.period != self.period) or (
+                self.kpi_id.department_id
+                and self.kpi_id.department_id != self.department_id
+            ):
+                self.kpi_id = False
+
     # ------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------
-    def _prepare_evaluation_line_commands_from_template(self, kpi, period):
+    def _prepare_evaluation_line_commands_from_template(self, kpi):
         """Build one2many commands for evaluation_line_ids from KPI template lines.
 
-        - Filters template lines by selected period (e.g. is_monthly).
         - Preserves ordering via sequence.
         - Preserves section/note lines.
         """
         self.ensure_one()
-        if not kpi or not period:
+        if not kpi:
             return []
 
-        template_lines = kpi.kpi_line_ids.filtered(
-            lambda l: getattr(l, f"is_{period}", False)
-        ).sorted(lambda l: (l.sequence or 0, l._origin.id or 0, l.id or 0))
+        template_lines = kpi.kpi_line_ids.sorted(lambda l: (l.sequence or 0, l._origin.id or 0, l.id or 0))
 
-        commands = [(5, 0, 0)]
+        # Sử dụng : list[tuple] để Type Checker không hiểu lầm là danh sách chỉ chứa tuple 3 số nguyên.
+        # fields.Command.clear() tương đương với lệnh (5, 0, 0) để xóa sạch các dòng cũ trước khi thêm mới.
+        commands: list[tuple] = [fields.Command.clear()]
         for line in template_lines:
+            # Kiểm tra nếu dòng hiện tại là một Section (tiêu đề nhóm) dựa trên thuộc tính hoặc display_type.
             is_section = bool(
                 getattr(line, "is_section", False)
                 or getattr(line, "display_type", False)
             )
             if is_section:
+                # fields.Command.create({...}) tương đương với lệnh (0, 0, {...}) để tạo mới một dòng.
                 commands.append(
-                    (
-                        0,
-                        0,
+                    fields.Command.create(
                         {
                             "kpi_line_id": line.id,
                             "sequence": line.sequence,
@@ -371,15 +380,13 @@ class PerformanceEvaluation(models.Model):
                             "weight": 0.0,
                             "is_auto": False,
                             "data_source": "manual",
-                        },
+                        }
                     )
                 )
                 continue
 
             commands.append(
-                (
-                    0,
-                    0,
+                fields.Command.create(
                     {
                         "kpi_line_id": line.id,
                         "sequence": line.sequence,
@@ -392,7 +399,7 @@ class PerformanceEvaluation(models.Model):
                         "weight": line.weight,
                         "is_auto": bool(line.is_auto),
                         "data_source": line.data_source,
-                    },
+                    }
                 )
             )
         return commands
@@ -411,7 +418,7 @@ class PerformanceEvaluation(models.Model):
         if self.kpi_id:
             self.evaluation_line_ids = (
                 self._prepare_evaluation_line_commands_from_template(
-                    self.kpi_id, self.period
+                    self.kpi_id
                 )
             )
 

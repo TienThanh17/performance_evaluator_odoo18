@@ -124,26 +124,7 @@ class KPIline(models.Model):
         help="Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).",
     )
 
-    is_monthly = fields.Boolean(
-        string="Monthly",
-        default=True,
-        help="Include this KPI line when generating Monthly evaluations.",
-    )
-    is_quarterly = fields.Boolean(
-        string="Quarterly",
-        default=False,
-        help="Include this KPI line when generating Quarterly evaluations.",
-    )
-    is_half_yearly = fields.Boolean(
-        string="Half-Yearly",
-        default=False,
-        help="Include this KPI line when generating Half-Yearly evaluations.",
-    )
-    is_yearly = fields.Boolean(
-        string="Yearly",
-        default=False,
-        help="Include this KPI line when generating Yearly evaluations.",
-    )
+
 
     @api.depends('kpi_type', 'data_source')
     def _compute_is_special_scoring(self):

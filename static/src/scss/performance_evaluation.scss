@@ -28,12 +28,127 @@
             background-color: #f0f7ff;
             border-radius: 20px;
             width: 100%;
-            max-width: 220px;
+            max-width: 240px;
 
             .score_value {
                 font-size: 42px;
                 line-height: 1;
             }
         }
+    }
+}
+
+// Class dành cho các field trong form để đảm bảo chiều cao luôn bằng nhau và không bị co lại khi trống
+.o_custom_input_field {
+    min-height: 42px !important;
+}
+
+// Classes giúp định dạng biểu đồ hình tròn (avartar viên nhân viên) responsive trên màn hình nhỏ
+.o_performance_visual_wrapper {
+    width: 100%;
+    max-width: 180px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.o_performance_visual_inner {
+    width: 90%;
+    height: 90%;
+    background: white;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+// Custom Badge Styling cho Performance Level
+.o_custom_level_badge {
+    span.badge {
+        padding: 5px 12px;
+        border-radius: 50px !important;
+        font-size: 12px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+
+        // Custom style for 'Pass'
+        &.text-bg-success {
+            background-color: #dcfce7 !important; // Màu nền xanh nhạt
+            color: #008162 !important; // Chữ màu xanh đậm
+            border: 1px solid #bbf7d0 !important;
+            
+            &::before {
+                content: "\f058"; // FontAwesome fa-check-circle
+                font-family: FontAwesome;
+                font-weight: normal;
+                font-size: 16px;
+            }
+        }
+        
+        // Custom style for 'Excellent' (giả định theo concept)
+        &.text-bg-info {
+            background-color: #e0f2fe !important; 
+            color: #0284c7 !important;
+            border: 1px solid #bae6fd !important;
+            
+            &::before {
+                content: "\f005"; // FontAwesome fa-star
+                font-family: FontAwesome;
+                font-weight: normal;
+                font-size: 16px;
+            }
+        }
+        
+        // Custom style for 'Fail' (giả định theo concept)
+        &.text-bg-danger {
+            background-color: #fee2e2 !important;
+            color: #dc2626 !important;
+            border: 1px solid #fecaca !important;
+            
+            &::before {
+                content: "\f06a"; // FontAwesome fa-exclamation-circle
+                font-family: FontAwesome;
+                font-weight: normal;
+                font-size: 16px;
+            }
+        }
+    }
+}
+
+// Responsive cho màn hình nhỏ
+@media (max-width: 767.98px) {
+    .o_custom_level_badge {
+        span.badge {
+            padding: 3px 8px !important; 
+            font-size: 10px !important;    
+            gap: 3px !important;           
+
+            &::before {
+                font-size: 12px !important; 
+            }
+        }
+    }
+
+    .overall_score_box {
+        max-width: 100% !important; // Mở rộng hết chiều ngang trên mobile
+        margin-bottom: 20px;
+    }
+
+    .score_value {
+        font-size: 28px !important; // Thu nhỏ điểm số trên màn hình hẹp
     }
 }

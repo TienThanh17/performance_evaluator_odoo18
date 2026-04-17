@@ -20,15 +20,10 @@ class HrKpiGenerateWizard(models.TransientModel):
     all_departments = fields.Boolean(string='All Departments', default=False)
 
     period = fields.Selection(
-        selection=[
-            ('monthly', 'Monthly'),
-            ('quarterly', 'Quarterly'),
-            ('half_yearly', 'Half-Yearly'),
-            ('yearly', 'Yearly'),
-        ],
+        related='kpi_id.period',
         string='Period',
-        required=True,
-        default='monthly',
+        store=True,
+        readonly=True,
     )
     start_date = fields.Date(string='Start Date', required=True)
     end_date = fields.Date(string='End Date', required=True)
@@ -84,9 +79,9 @@ class HrKpiGenerateWizard(models.TransientModel):
             # Build evaluation lines from template filtered by period.
             # Use a scratch record to reuse the helper (no DB write yet).
             scratch = Evaluation.new({'kpi_id': self.kpi_id.id, 'period': self.period})
-            line_cmds = scratch._prepare_evaluation_line_commands_from_template(self.kpi_id, self.period)
+            line_cmds = scratch._prepare_evaluation_line_commands_from_template(self.kpi_id)
 
-            Evaluation.create({
+            evaluation = Evaluation.create({
                 'employee_id': emp.id,
                 'kpi_id': self.kpi_id.id,
                 'period': self.period,
@@ -94,5 +89,37 @@ class HrKpiGenerateWizard(models.TransientModel):
                 'end_date': self.end_date,
                 'evaluation_line_ids': line_cmds,
             })
+
+            # Tự động gửi thông báo đến Inbox trong Odoo của Nhân viên
+            if emp.user_id and emp.user_id.partner_id:
+                periods_vi = {
+                    'monthly': 'Hàng tháng',
+                    'quarterly': 'Hàng quý',
+                    'half_yearly': 'Bán niên',
+                    'yearly': 'Hàng năm'
+                }
+                period_str = periods_vi.get(self.period, self.period)
+                start_str = self.start_date.strftime('%d/%m/%Y')
+                end_str = self.end_date.strftime('%d/%m/%Y')
+
+                msg_body = f"""
+                <div style="margin: 0; padding: 0;">
+                    <p>Xin chào <b>{emp.name}</b>,</p>
+                    <p>Bạn vừa có một bảng đánh giá KPI mới được tạo trên hệ thống.</p>
+                    <ul>
+                        <li><b>Kỳ đánh giá:</b> {period_str}</li>
+                        <li><b>Thời gian chuẩn:</b> Từ {start_str} đến {end_str}</li>
+                    </ul>
+                    <p>Vui lòng đăng nhập vào hệ thống, truy cập menu <b>Performance Evaluation</b> để xem chi tiết và hoàn thành phần tự đánh giá (nếu có).</p>
+                </div>
+                """
+                
+                emp.message_post(
+                    body=msg_body,
+                    subject="[Thông báo] Bạn có bảng đánh giá KPI mới",
+                    partner_ids=[emp.user_id.partner_id.id],
+                    message_type='comment',
+                    subtype_xmlid='mail.mt_comment'
+                )
 
         return {'type': 'ir.actions.act_window_close'}

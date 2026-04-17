@@ -312,7 +312,14 @@
                                     <div class="score_value text-primary font-weight-bold" style="font-size: 32px;">
                                         <field name="performance_score" readonly="1"/>
                                     </div>
-                                    <div class="text-uppercase small fw-bold">Overall Performance</div>
+                                    <div class="text-uppercase small fw-bold mb-4">Overall Performance</div>
+                                    <div class="d-flex justify-content-center">
+                                        <field name="performance_level" widget="badge" 
+                                               decoration-info="performance_level == 'excellent'"
+                                               decoration-success="performance_level == 'pass'"
+                                               decoration-danger="performance_level == 'fail'"
+                                               class="o_custom_level_badge"/>
+                                    </div>
                                 </div>
                             </group>
 
@@ -320,30 +327,31 @@
                                 <field name="user_id" invisible="1"/>
 
                                 <field name="name"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="employee_id"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
 
                                 <field name="job_id" readonly="1"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="period"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                                <field name="kpi_id"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                <field name="kpi_id" 
+                                       readonly="not employee_id"
+                                       domain="[('period', '=', period), ('department_id', '=', department_id)]"
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md "/>
                             </group>
                             <group colspan="5">
                                 <field name="manager_id" readonly="1"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="department_id" readonly="1"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="start_date"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="end_date"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="deadline"
-                                       class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="performance_score" invisible="1"/>
-                                <field name="performance_level" invisible="1"/>
                                 <field name="performance_badge_class" invisible="1"/>
                                 <!--                                <div class="o_row" style="display: inline-flex; align-items: center; gap: 4px">-->
                                 <!--                                    <field name="performance_score" string="Average Score" options="{'max_value': 10}" style="min-width: 0; margin-bottom: 0px"/>-->
