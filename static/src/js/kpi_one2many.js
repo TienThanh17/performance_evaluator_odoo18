@@ -165,5 +165,3 @@ registry.category("fields").add("kpi_one2many", {
     component: KPIOne2ManyField,
     additionalClasses: [...(x2ManyField.additionalClasses || []), "o_field_one2many"],
 });
-
-

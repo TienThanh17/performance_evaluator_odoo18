@@ -17,6 +17,7 @@
                             <field name="period" required="1"/>
                             <field name="start_date" required="1"/>
                             <field name="end_date" required="1"/>
+                            <field name="deadline" required="1"/>
                         </group>
                     </sheet>
                     <footer>

@@ -1,9 +1,9 @@
 from odoo import fields, models, api
 
 
-class EvaluationAlert(models.Model):
-    _name = 'evaluation.alert'
-    _description = 'Evaluation Alert'
+class HrPerformanceReport(models.Model):
+    _name = 'hr.performance.report'
+    _description = 'Performance Report'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     # Fields
@@ -18,7 +18,9 @@ class EvaluationAlert(models.Model):
     end_date = fields.Date(string="End Date", required=True)
     deadline = fields.Date(string="Deadline", required=True)
     active = fields.Boolean(string="Active", default=True)
-    evaluation_id = fields.Many2one('hr.performance.evaluation', string="Performance Evaluation", readonly=True)
+    evaluation_ids = fields.One2many('hr.performance.evaluation', 'performance_report_id', string="Performance Evaluations", readonly=True)
+    department_id = fields.Many2one('hr.department', string="Department")
+    department_name = fields.Char(related='department_id.name')
     employee_id = fields.Many2many('hr.employee', string="Employees", required=True,
                                    default=lambda self: self._default_employees())
     company_id = fields.Many2one('res.company', string="Company", required=True,
@@ -35,7 +37,7 @@ class EvaluationAlert(models.Model):
             for employee in self.employee_id:
                 # Create a specific context for the employee
                 ctx = {
-                    'default_model': 'evaluation.alert',
+                    'default_model': 'hr.performance.report',
                     'default_res_id': self.id,
                     'default_use_template': True,
                     'default_template_id': mail_template.id,
@@ -64,3 +66,10 @@ class EvaluationAlert(models.Model):
         for record in self:
             names = [e.name for e in record.employee_id if e.name]
             record.employee_name = ', '.join(names)
+
+    def write(self, vals):
+        res = super(HrPerformanceReport, self).write(vals)
+        if 'active' in vals:
+            for record in self:
+                record.evaluation_ids.with_context(active_test=False).write({'active': vals['active']})
+        return res

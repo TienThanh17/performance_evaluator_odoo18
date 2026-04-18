@@ -151,8 +151,8 @@ Key fields:
 - `performance_badge_class`: UI helper class for summary coloring
 
 #### Defaulting the evaluation window
-- `default_get()` loads the first active `evaluation.alert` and sets:
-  - `evaluation_alert_id`, `start_date`, `end_date`, `deadline`, `period`
+- `default_get()` loads the first active `hr.performance.report` and sets:
+  - `performance_report_id`, `start_date`, `end_date`, `deadline`, `period`
 
 #### Mapping KPI template → evaluation lines
 Triggered by: `@api.onchange('kpi_id')` → `_onchange_kpi_id()`

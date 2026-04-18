@@ -31,7 +31,7 @@ Tức là module đóng vai trò “**lớp nghiệp vụ đánh giá**” nằm
 
 ### 3.2. Tạo Performance Evaluation (phiếu đánh giá theo kỳ)
 Model chính: `hr.performance.evaluation`.
-- Khi tạo phiếu, module tự lấy **khoảng thời gian (start/end)** và **deadline** từ `evaluation.alert` đang active.
+- Khi tạo phiếu, module tự lấy **khoảng thời gian (start/end)** và **deadline** từ `hr.performance.report` đang active.
 - Khi user chọn `kpi_id` (template), hệ thống tự **generate evaluation lines**:
   - lọc template lines theo cờ chu kỳ tương ứng (`is_{period}`)
   - giữ thứ tự theo `sequence`
@@ -58,7 +58,7 @@ Các model cốt lõi:
 - `hr.kpi.line`: dòng KPI/section trong template.
 - `hr.performance.evaluation`: phiếu đánh giá theo kỳ cho 1 nhân viên.
 - `hr.performance.evaluation.line`: snapshot KPI line tại thời điểm đánh giá (chứa target/weight/type/actual và các rating).
-- `evaluation.alert`: định nghĩa kỳ đánh giá đang active (period + start/end/deadline).
+- `hr.performance.report`: định nghĩa kỳ đánh giá đang active (period + start/end/deadline).
 - `hr.kpi.engine` (AbstractModel): engine tính toán `actual` từ các hệ thống liên quan.
 
 Quan hệ:
@@ -103,7 +103,7 @@ UI dùng `performance_badge_class` để tô màu badge theo level.
 6. Hệ thống tính `performance_score` theo weighted average và xếp loại Excellent/Pass/Fail.
 
 ## 8) Gợi ý câu hỏi phỏng vấn hay gặp + câu trả lời ngắn
-**Q: Vì sao cần `evaluation.alert`?**  
+**Q: Vì sao cần `hr.performance.report`?**  
 A: Để “đóng khung” kỳ đánh giá (period + start/end/deadline) và đảm bảo mọi phiếu dùng cùng mốc thời gian, tránh user tự chọn sai kỳ.
 
 **Q: Muốn thêm KPI tự động mới thì làm như nào?**  

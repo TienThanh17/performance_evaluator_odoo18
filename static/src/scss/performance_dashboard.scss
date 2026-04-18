@@ -1,0 +1,371 @@
+//=============================================================================
+// performance_dashboard.scss
+// Styles for the hr.performance.report dashboard form (js_class="performance_dashboard_form")
+//=============================================================================
+
+.performance_dashboard_form {
+    background-color: #f5f5f5;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+
+    // ── Hide standard Odoo breadcrumb pager clutter ──
+    .o_form_sheet_bg {
+        background-color: #f5f5f5;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // DASHBOARD WRAPPER
+    // ═══════════════════════════════════════════════════════════
+    .pd-wrapper {
+        padding: 24px 28px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // HEADER SECTION
+    // ═══════════════════════════════════════════════════════════
+    .pd-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 16px;
+
+        .pd-header-left {
+            h1.pd-title {
+                font-size: 28px;
+                font-weight: 700;
+                color: #1a1a2e;
+                margin: 0 0 4px 0;
+                line-height: 1.2;
+            }
+
+            p.pd-subtitle {
+                font-size: 13px;
+                color: #6b7280;
+                margin: 0;
+                font-weight: 400;
+            }
+        }
+
+        .pd-header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+
+            .pd-filter-pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 16px;
+                background: #fff;
+                border: 1.5px solid #e5e7eb;
+                border-radius: 24px;
+                font-size: 13px;
+                font-weight: 500;
+                color: #374151;
+                cursor: pointer;
+                transition: border-color 0.2s, box-shadow 0.2s;
+                user-select: none;
+
+                &:hover {
+                    border-color: #3b5bdb;
+                    box-shadow: 0 2px 8px rgba(59, 91, 219, 0.15);
+                }
+
+                i {
+                    font-size: 12px;
+                    color: #6b7280;
+                }
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // KPI CARDS
+    // ═══════════════════════════════════════════════════════════
+    .pd-kpi-section {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+
+        @media (max-width: 1024px) and (min-width: 769px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .pd-kpi-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid #f0f0f0;
+        transition: box-shadow 0.25s, transform 0.2s;
+        position: relative;
+        overflow: hidden;
+
+        &:hover {
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .pd-kpi-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
+
+            .pd-kpi-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+
+                &.icon-score  { background: #eff6ff; color: #3b82f6; }
+                &.icon-pass   { background: #f0fdf4; color: #22c55e; }
+                &.icon-people { background: #f0f9ff; color: #0ea5e9; }
+            }
+        }
+
+        .pd-kpi-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1;
+
+            span.pd-kpi-suffix {
+                font-size: 18px;
+                font-weight: 500;
+                color: #6b7280;
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TEAM ROSTER TABLE
+    // ═══════════════════════════════════════════════════════════
+    .pd-roster-section {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid #f0f0f0;
+        overflow: hidden;
+
+        .pd-roster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f3f4f6;
+
+            h2 {
+                font-size: 17px;
+                font-weight: 700;
+                color: #111827;
+                margin: 0;
+            }
+
+            .pd-view-all {
+                font-size: 13px;
+                font-weight: 600;
+                color: #3b5bdb;
+                cursor: pointer;
+                text-decoration: none;
+
+                &:hover { text-decoration: underline; }
+            }
+        }
+
+        table.pd-table {
+            width: 100%;
+            border-collapse: collapse;
+
+            thead th {
+                padding: 10px 24px;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.7px;
+                color: #9ca3af;
+                background: #fafafa;
+                border-bottom: 1px solid #f3f4f6;
+                text-align: left;
+            }
+
+            tbody tr {
+                border-bottom: 1px solid #f9fafb;
+                transition: background-color 0.15s;
+
+                &:last-child { border-bottom: none; }
+                &:hover { background-color: #f9fafb; }
+
+                td {
+                    padding: 14px 24px;
+                    vertical-align: middle;
+                    font-size: 14px;
+                    color: #374151;
+                }
+            }
+
+            // Employee cell with avatar
+            .pd-employee-cell {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                .pd-avatar {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    flex-shrink: 0;
+                    border: 2px solid #f0f0f0;
+                }
+
+                .pd-avatar-initials {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: #e0e7ff;
+                    color: #3730a3;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 13px;
+                    font-weight: 700;
+                    flex-shrink: 0;
+                }
+
+                .pd-emp-name {
+                    font-weight: 600;
+                    color: #111827;
+                    font-size: 14px;
+                }
+            }
+
+            // ID & Role column
+            .pd-role-cell {
+                .pd-emp-id {
+                    font-weight: 600;
+                    color: #374151;
+                    font-size: 13px;
+                }
+                .pd-emp-role {
+                    font-size: 12px;
+                    color: #9ca3af;
+                    margin-top: 2px;
+                }
+            }
+
+            // Score + progress bar
+            .pd-score-cell {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                .pd-score-num {
+                    font-weight: 700;
+                    font-size: 15px;
+                    color: #111827;
+                    min-width: 32px;
+                }
+
+                .pd-progress-bar-wrap {
+                    flex: 1;
+                    height: 8px;
+                    background: #e5e7eb;
+                    border-radius: 99px;
+                    overflow: hidden;
+                    min-width: 80px;
+                    max-width: 120px;
+
+                    .pd-progress-bar-fill {
+                        height: 100%;
+                        border-radius: 99px;
+                        background: linear-gradient(90deg, #3b5bdb, #4dabf7);
+                        transition: width 0.6s ease;
+                    }
+                }
+            }
+
+            // Status badges
+            .pd-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 4px 12px;
+                border-radius: 99px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+
+                &.badge-pass {
+                    background: #f0fdf4;
+                    color: #16a34a;
+                    border: 1.5px solid #bbf7d0;
+                }
+                &.badge-excellent {
+                    background: #eff6ff;
+                    color: #1d4ed8;
+                    border: 1.5px solid #bfdbfe;
+                }
+                &.badge-fail {
+                    background: #fff1f2;
+                    color: #be123c;
+                    border: 1.5px solid #fecdd3;
+                }
+            }
+
+            // Action column
+            .pd-action-btn {
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: #f3f4f6;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #6b7280;
+                font-size: 16px;
+                transition: background 0.2s, color 0.2s;
+
+                &:hover {
+                    background: #e0e7ff;
+                    color: #3b5bdb;
+                }
+            }
+        }
+
+        // empty state
+        .pd-empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #9ca3af;
+            font-size: 14px;
+
+            i {
+                font-size: 40px;
+                margin-bottom: 12px;
+                display: block;
+            }
+        }
+    }
+}

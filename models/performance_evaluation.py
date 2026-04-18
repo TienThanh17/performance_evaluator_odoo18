@@ -10,6 +10,7 @@ _logger = logging.getLogger(__name__)
 class PerformanceEvaluation(models.Model):
     _name = "hr.performance.evaluation"
     _description = "Performance Evaluation"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
 
     user_id = fields.Many2one(
         "res.users",
@@ -52,6 +53,11 @@ class PerformanceEvaluation(models.Model):
         string="State",
         help="Workflow stage of the evaluation (Draft → Submitted → Approved). Canceled evaluations are locked.",
     )
+    active = fields.Boolean(
+        string="Active",
+        default=True,
+        help="Set to false to archive the evaluation.",
+    )
     start_date = fields.Date(
         string="Start Date", help="Start date of the evaluation period."
     )
@@ -93,11 +99,11 @@ class PerformanceEvaluation(models.Model):
         store=False,
         help="Technical field used by the UI to colorize the performance score/level.",
     )
-    evaluation_alert_id = fields.Many2one(
-        "evaluation.alert",
-        string="Evaluation Alert",
+    performance_report_id = fields.Many2one(
+        "hr.performance.report",
+        string="Performance Report",
         domain=[("active", "=", True)],
-        required=True,
+        required=False,
         help="Defines the active evaluation window (start/end/deadline) for the selected period.",
     )
     department_id = fields.Many2one(
@@ -151,35 +157,35 @@ class PerformanceEvaluation(models.Model):
                     </div>
                 """
 
-    @api.constrains("period", "evaluation_alert_id")
-    def _check_period_active(self):
-        for record in self:
-            matching_alerts = self.env["evaluation.alert"].search(
-                [("active", "=", True), ("period", "=", record.period)]
-            )
-            if not matching_alerts:
-                raise ValidationError(
-                    f"The selected period '{record.period}' is not valid for any active evaluation alert. "
-                    f"Please ensure there is at least one active alert with this period."
-                )
+    # @api.constrains("period", "performance_report_id")
+    # def _check_period_active(self):
+    #     for record in self:
+    #         matching_alerts = self.env["hr.performance.report"].search(
+    #             [("active", "=", True), ("period", "=", record.period)]
+    #         )
+    #         if not matching_alerts:
+    #             raise ValidationError(
+    #                 f"The selected period '{record.period}' is not valid for any active evaluation alert. "
+    #                 f"Please ensure there is at least one active alert with this period."
+    #             )
 
-    @api.model
-    def default_get(self, fields_list):
-        defaults = super().default_get(fields_list)
-        active_alert = self.env["evaluation.alert"].search(
-            [("active", "=", True)], limit=1
-        )
-        if active_alert:
-            defaults.update(
-                {
-                    "evaluation_alert_id": active_alert.id,
-                    "start_date": active_alert.start_date,
-                    "end_date": active_alert.end_date,
-                    "deadline": active_alert.deadline,
-                    "period": active_alert.period,
-                }
-            )
-        return defaults
+    # @api.model
+    # def default_get(self, fields_list):
+    #     defaults = super().default_get(fields_list)
+    #     active_alert = self.env["hr.performance.report"].search(
+    #         [("active", "=", True)], limit=1
+    #     )
+    #     if active_alert:
+    #         defaults.update(
+    #             {
+    #                 "evaluation_alert_id": active_alert.id,
+    #                 "start_date": active_alert.start_date,
+    #                 "end_date": active_alert.end_date,
+    #                 "deadline": active_alert.deadline,
+    #                 "period": active_alert.period,
+    #             }
+    #         )
+    #     return defaults
 
     def action_submit(self):
         for record in self:

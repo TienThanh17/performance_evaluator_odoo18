@@ -8,8 +8,8 @@ This document describes the **current functional flow and main business logic** 
 
 ## 1) High-level User Flow
 
-### A. Configure evaluation cycle (Evaluation Alert)
-1. Admin configures an **Evaluation Alert** (`evaluation.alert`) with:
+### A. Configure evaluation cycle (Performance Report)
+1. Admin configures an **Performance Report** (`hr.performance.report`) with:
    - `period` (monthly/quarterly/half_yearly/yearly)
    - `start_date`, `end_date`, `deadline`
    - `active = True`
@@ -30,7 +30,7 @@ This document describes the **current functional flow and main business logic** 
    - `employee_id`
    - `kpi_id` (KPI Template)
    - `period`
-2. Default dates (`start_date`, `end_date`, `deadline`, `period`) are auto-filled from an active `evaluation.alert` via `default_get()`.
+2. Default dates (`start_date`, `end_date`, `deadline`, `period`) are auto-filled from an active `hr.performance.report` via `default_get()`.
 3. When the user selects `kpi_id`, the system auto-generates **Evaluation Lines** (`hr.performance.evaluation.line`) from matching KPI template lines (filtered by period flags).
 
 ### D. Fill actuals & compute score
@@ -51,7 +51,7 @@ Evaluation state transitions:
 
 ## 2) Core Models & Responsibilities
 
-### 2.1 `evaluation.alert`
+### 2.1 `hr.performance.report`
 **Purpose:** Defines the active evaluation window and default period.
 
 Key behaviors:
@@ -102,7 +102,7 @@ Thresholds:
 Key methods:
 
 #### (1) `default_get()`
-- Pulls the first active `evaluation.alert` and sets dates/period.
+- Pulls the first active `hr.performance.report` and sets dates/period.
 
 #### (2) `_onchange_kpi_id()` — generate evaluation lines
 When `kpi_id` is selected:

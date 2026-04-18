@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             Dashboard Form View – sử dụng js_class OWL tùy chỉnh
+             Đây là form chính để xem Performance Report theo phòng ban
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_hr_performance_report_form" model="ir.ui.view">
+            <field name="name">hr.performance.report.form</field>
+            <field name="model">hr.performance.report</field>
+            <field name="arch" type="xml">
+                <!--
+                    js_class="performance_dashboard_form" kích hoạt OWL renderer tùy chỉnh.
+                    Vẫn cần khai báo các field để server đưa chúng vào response data.
+                -->
+                <form js_class="performance_dashboard_form">
+                    <sheet>
+                        <field name="department_id" invisible="1"/>
+                        <field name="department_name" invisible="1"/>
+                        <field name="period" invisible="1"/>
+                        <field name="start_date" invisible="1"/>
+                        <field name="end_date" invisible="1"/>
+                        <field name="deadline" invisible="1"/>
+                        <field name="active" invisible="1"/>
+                        <!-- evaluation_ids với các sub-field cần cho dashboard -->
+                        <field name="evaluation_ids" invisible="1">
+                            <list>
+                                <field name="employee_id"/>
+                                <field name="job_id"/>
+                                <field name="performance_score"/>
+                                <field name="performance_level"/>
+                                <field name="state"/>
+                            </list>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             Edit Form View – dùng để chỉnh sửa record trực tiếp
+             (priority cao hơn để tránh conflict với dashboard form)
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_hr_performance_report_edit_form" model="ir.ui.view">
+            <field name="name">hr.performance.report.edit.form</field>
+            <field name="model">hr.performance.report</field>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+                <form string="Performance Report">
+                    <sheet>
+                        <group>
+                            <group string="Period Info">
+                                <field name="period"/>
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                                <field name="deadline"/>
+                            </group>
+                            <group string="Scope">
+                                <field name="department_id"/>
+                                <field name="company_id"/>
+                                <field name="active" widget="boolean_toggle"/>
+                            </group>
+                        </group>
+                        <group string="Employees">
+                            <field name="employee_id" widget="many2many_tags" nolabel="1"/>
+                        </group>
+                        <group string="Email Notification">
+                            <field name="subject"/>
+                            <field name="body" widget="html"/>
+                        </group>
+                        <notebook>
+                            <page string="Evaluations" name="evaluations">
+                                <field name="evaluation_ids" readonly="1">
+                                    <list>
+                                        <field name="employee_id"/>
+                                        <field name="period"/>
+                                        <field name="performance_score"/>
+                                        <field name="performance_level" widget="badge"
+                                               decoration-success="performance_level == 'pass'"
+                                               decoration-info="performance_level == 'excellent'"
+                                               decoration-danger="performance_level == 'fail'"/>
+                                        <field name="state" widget="badge"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                        <div style="text-align:center; margin-top:16px;">
+                            <button name="action_send_email" type="object"
+                                    string="Send Email Notification" class="btn-primary"/>
+                        </div>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             List View
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_hr_performance_report_list" model="ir.ui.view">
+            <field name="name">hr.performance.report.list</field>
+            <field name="model">hr.performance.report</field>
+            <field name="arch" type="xml">
+                <list string="Performance Reports">
+                    <field name="department_id"/>
+                    <field name="period"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="deadline"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             Action &amp; Menu
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="action_hr_performance_report" model="ir.actions.act_window">
+            <field name="name">Performance Reports</field>
+            <field name="res_model">hr.performance.report</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{'active_test': False}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to create a new Performance Report.
+                </p>
+            </field>
+        </record>
+
+        <menuitem
+            id="menu_hr_performance_report"
+            parent="performance_evaluator"
+            name="Performance Reports"
+            sequence="50"
+            action="action_hr_performance_report"/>
+
+    </data>
+</odoo>

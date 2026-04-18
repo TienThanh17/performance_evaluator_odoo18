@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        QWeb template cho Performance Dashboard
+        Sử dụng bởi: PerformanceDashboardForm (js_class="performance_dashboard_form")
+    -->
+    <t t-name="custom_adecsol_hr_performance_evaluator.PerformanceDashboard">
+        <div class="performance_dashboard_form">
+            <div class="pd-wrapper">
+
+                <!-- ── HEADER ── -->
+                <div class="pd-header">
+                    <div class="pd-header-left">
+                        <h1 class="pd-title">
+                            <t t-esc="state.departmentName"/>
+                        </h1>
+                        <p class="pd-subtitle">Departmental Performance Overview</p>
+                    </div>
+                    <div class="pd-header-right">
+                        <!-- Department pill -->
+                        <span class="pd-filter-pill">
+                            <i class="fa fa-building-o"/>
+                            <t t-esc="state.departmentName or 'Departments'"/>
+                            <!-- <i class="fa fa-chevron-down"/> -->
+                        </span>
+                        <!-- Period pill -->
+                        <span class="pd-filter-pill">
+                            <i class="fa fa-calendar"/>
+                            <t t-esc="state.periodLabel"/>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ── KPI CARDS ── -->
+                <div class="pd-kpi-section">
+
+                    <!-- Card 1: Average Score -->
+                    <div class="pd-kpi-card">
+                        <div class="pd-kpi-label">
+                            <span class="pd-kpi-icon icon-score">
+                                <i class="fa fa-tachometer" title="Average Score"/>
+                            </span>
+                            AVERAGE SCORE
+                        </div>
+                        <div class="pd-kpi-value">
+                            <t t-esc="state.avgScore"/>
+                            <span class="pd-kpi-suffix">/10</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Pass Rate -->
+                    <div class="pd-kpi-card">
+                        <div class="pd-kpi-label">
+                            <span class="pd-kpi-icon icon-pass">
+                                <i class="fa fa-check-circle" title="Pass Rate"/>
+                            </span>
+                            PASS RATE
+                        </div>
+                        <div class="pd-kpi-value">
+                            <t t-esc="state.passRate"/>
+                            <span class="pd-kpi-suffix">%</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Total Employees -->
+                    <div class="pd-kpi-card">
+                        <div class="pd-kpi-label">
+                            <span class="pd-kpi-icon icon-people">
+                                <i class="fa fa-users" title="Total Employees"/>
+                            </span>
+                            TOTAL EMPLOYEES
+                        </div>
+                        <div class="pd-kpi-value">
+                            <t t-esc="state.totalEmployees"/>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ── TEAM ROSTER TABLE ── -->
+                <div class="pd-roster-section">
+                    <div class="pd-roster-header">
+                        <h2>Team Roster</h2>
+                        <!-- <span class="pd-view-all" t-on-click="viewAll">
+                            View All →
+                        </span> -->
+                    </div>
+
+                    <!-- Table -->
+                    <t t-if="state.evaluations.length > 0">
+                        <table class="pd-table">
+                            <thead>
+                                <tr>
+                                    <th>EMPLOYEE</th>
+                                    <th>ID &amp; ROLE</th>
+                                    <th>PERFORMANCE SCORE</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.evaluations" t-as="ev" t-key="ev.id">
+                                    <tr>
+                                        <!-- Employee -->
+                                        <td>
+                                            <div class="pd-employee-cell">
+                                                <t t-if="ev.employee_id">
+                                                    <img
+                                                        class="pd-avatar"
+                                                        t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'"
+                                                        t-att-alt="ev.employee_id[1]"
+                                                        loading="lazy"
+                                                    />
+                                                </t>
+                                                <span class="pd-emp-name">
+                                                    <t t-esc="ev.employee_id ? ev.employee_id[1] : ''"/>
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <!-- ID &amp; Role -->
+                                        <td>
+                                            <div class="pd-role-cell">
+                                                <div class="pd-emp-id">
+                                                    <t t-esc="ev.employee_registration_number or '-'"/>
+                                                </div>
+                                                <div class="pd-emp-role">
+                                                    <t t-esc="ev.job_id ? ev.job_id[1] : ''"/>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Score + progress bar -->
+                                        <td>
+                                            <div class="pd-score-cell">
+                                                <span class="pd-score-num">
+                                                    <t t-esc="ev.performance_score ? ev.performance_score.toFixed(1) : '0.0'"/>
+                                                </span>
+                                                <div class="pd-progress-bar-wrap">
+                                                    <div
+                                                        class="pd-progress-bar-fill"
+                                                        t-att-style="'width:' + ((ev.performance_score || 0) * 10) + '%'"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Status badge -->
+                                        <td>
+                                            <t t-if="ev.performance_level === 'excellent'">
+                                                <span class="pd-badge badge-excellent">
+                                                    <i class="fa fa-star" title="Excellent"/> EXCELLENT
+                                                </span>
+                                            </t>
+                                            <t t-elif="ev.performance_level === 'pass'">
+                                                <span class="pd-badge badge-pass">
+                                                    <i class="fa fa-check" title="Pass"/> PASS
+                                                </span>
+                                            </t>
+                                            <t t-elif="ev.performance_level === 'fail'">
+                                                <span class="pd-badge badge-fail">
+                                                    <i class="fa fa-times" title="Fail"/> FAIL
+                                                </span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="pd-badge" style="background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;">
+                                                    — N/A
+                                                </span>
+                                            </t>
+                                        </td>
+
+                                        <!-- Action: open evaluation form -->
+                                        <td>
+                                            <button
+                                                class="pd-action-btn"
+                                                title="Open evaluation"
+                                                t-on-click="() => this.openEvaluation(ev.id)"
+                                            >
+                                                <i class="fa fa-chevron-right" title="Open"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <!-- Empty state -->
+                    <t t-else="">
+                        <div class="pd-empty-state">
+                            <i class="fa fa-users" title="No evaluations"/>
+                            <p>No evaluations found for this period.</p>
+                        </div>
+                    </t>
+                </div>
+
+            </div><!-- /pd-wrapper -->
+        </div>
+    </t>
+
+</templates>
