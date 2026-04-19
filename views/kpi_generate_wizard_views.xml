@@ -10,7 +10,6 @@
                     <sheet>
                         <group>
                             <field name="kpi_id" required="1"/>
-<!--                            <field name="all_departments"/>-->
                             <field name="department_id" required="1"/>
                         </group>
                         <group>
@@ -38,4 +37,3 @@
 
     </data>
 </odoo>
-

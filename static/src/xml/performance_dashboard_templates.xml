@@ -19,16 +19,83 @@
                     </div>
                     <div class="pd-header-right">
                         <!-- Department pill -->
-                        <span class="pd-filter-pill">
+                        <!-- <span class="pd-filter-pill">
                             <i class="fa fa-building-o"/>
                             <t t-esc="state.departmentName or 'Departments'"/>
-                            <!-- <i class="fa fa-chevron-down"/> -->
-                        </span>
+                            <i class="fa fa-chevron-down"/>
+                        </span> -->
                         <!-- Period pill -->
-                        <span class="pd-filter-pill">
+                        <!-- <span class="pd-filter-pill">
                             <i class="fa fa-calendar"/>
                             <t t-esc="state.periodLabel"/>
-                        </span>
+                        </span> -->
+                    </div>
+                </div>
+
+                <!-- ── EVALUATION CONFIGURATION ── -->
+                <div class="pd-eval-config">
+                    <div class="pd-eval-config-header">
+                        <div class="pd-eval-config-title">
+                            <i class="fa fa-sliders" title="Configuration"/>
+                            <span>Evaluation Configuration</span>
+                        </div>
+                        <div class="pd-eval-config-active">
+                            <span class="pd-active-label">ACTIVE STATUS</span>
+                            <label class="pd-toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    id="pd-active-toggle"
+                                    t-att-checked="state.active ? 'checked' : undefined"
+                                    t-on-change="onActiveChange"
+                                />
+                                <span class="pd-toggle-slider"/>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="pd-eval-config-fields">
+                        <!-- Evaluation Period -->
+                        <div class="pd-config-field">
+                            <label class="pd-config-label">EVALUATION PERIOD</label>
+                            <select class="pd-config-select" id="pd-period-select" t-on-change="onPeriodChange">
+                                <option value="monthly" t-att-selected="state.period === 'monthly' ? 'selected' : undefined">Monthly</option>
+                                <option value="quarterly" t-att-selected="state.period === 'quarterly' ? 'selected' : undefined">Quarterly</option>
+                                <option value="half_yearly" t-att-selected="state.period === 'half_yearly' ? 'selected' : undefined">Half-Yearly</option>
+                                <option value="yearly" t-att-selected="state.period === 'yearly' ? 'selected' : undefined">Yearly</option>
+                            </select>
+                        </div>
+                        <!-- Start Date -->
+                        <div class="pd-config-field">
+                            <label class="pd-config-label">START DATE</label>
+                            <input
+                                type="date"
+                                class="pd-config-date"
+                                id="pd-start-date"
+                                t-att-value="state.startDate"
+                                t-on-change="onStartDateChange"
+                            />
+                        </div>
+                        <!-- End Date -->
+                        <div class="pd-config-field">
+                            <label class="pd-config-label">END DATE</label>
+                            <input
+                                type="date"
+                                class="pd-config-date"
+                                id="pd-end-date"
+                                t-att-value="state.endDate"
+                                t-on-change="onEndDateChange"
+                            />
+                        </div>
+                        <!-- Deadline -->
+                        <div class="pd-config-field">
+                            <label class="pd-config-label">DEADLINE</label>
+                            <input
+                                type="date"
+                                class="pd-config-date"
+                                id="pd-deadline"
+                                t-att-value="state.deadline"
+                                t-on-change="onDeadlineChange"
+                            />
+                        </div>
                     </div>
                 </div>
 

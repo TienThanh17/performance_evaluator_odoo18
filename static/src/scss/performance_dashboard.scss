@@ -66,7 +66,6 @@
                 font-size: 13px;
                 font-weight: 500;
                 color: #374151;
-                cursor: pointer;
                 transition: border-color 0.2s, box-shadow 0.2s;
                 user-select: none;
 
@@ -80,6 +79,163 @@
                     color: #6b7280;
                 }
             }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // EVALUATION CONFIGURATION SECTION
+    // ═══════════════════════════════════════════════════════════
+    .pd-eval-config {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid #f0f0f0;
+        padding: 20px 24px 24px;
+        margin-bottom: 20px;
+
+        .pd-eval-config-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+
+            .pd-eval-config-title {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 15px;
+                font-weight: 700;
+                color: #1a1a2e;
+
+                i {
+                    font-size: 16px;
+                    color: #3b5bdb;
+                }
+            }
+
+            .pd-eval-config-active {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+
+                .pd-active-label {
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 0.8px;
+                    color: #9ca3af;
+                    text-transform: uppercase;
+                }
+
+                // iOS-style toggle switch
+                .pd-toggle-switch {
+                    position: relative;
+                    display: inline-block;
+                    width: 48px;
+                    height: 26px;
+                    margin: 0;
+                    cursor: pointer;
+
+                    input {
+                        opacity: 0;
+                        width: 0;
+                        height: 0;
+                        position: absolute;
+
+                        &:checked + .pd-toggle-slider {
+                            background: #3b5bdb;
+                        }
+
+                        &:checked + .pd-toggle-slider::before {
+                            transform: translateX(22px);
+                        }
+                    }
+
+                    .pd-toggle-slider {
+                        position: absolute;
+                        inset: 0;
+                        background: #d1d5db;
+                        border-radius: 99px;
+                        transition: background 0.25s;
+
+                        &::before {
+                            content: '';
+                            position: absolute;
+                            width: 20px;
+                            height: 20px;
+                            left: 3px;
+                            top: 3px;
+                            background: #fff;
+                            border-radius: 50%;
+                            transition: transform 0.25s;
+                            box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Row of 4 config fields
+        .pd-eval-config-fields {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+
+            @media (max-width: 900px) {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            @media (max-width: 480px) {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pd-config-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .pd-config-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: #9ca3af;
+            text-transform: uppercase;
+        }
+
+        .pd-config-select,
+        .pd-config-date {
+            height: 38px;
+            padding: 0 12px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            color: #374151;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+
+            &:focus, &:hover {
+                border-color: #3b5bdb;
+                box-shadow: 0 0 0 2px rgba(59, 91, 219, 0.12);
+            }
+        }
+
+        .pd-config-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+
+        .pd-config-date {
+            padding-right: 8px;
         }
     }
 

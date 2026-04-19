@@ -13,6 +13,10 @@
     .o_kanban_renderer {
         --KanbanRecord-width: 28rem !important; /* Đặt chiều rộng thẻ */
     }
+
+    .o_kanban_header {
+        z-index: 3 !important;
+    }
 }
 
 .custom_performance_col {

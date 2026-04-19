@@ -76,7 +76,7 @@
                                 type="action"
                                 string="Generate Evaluations"
                                 class="btn-primary"
-                                groups="custom_adecsol_hr_performance_evaluator.group_hr"
+                                groups="custom_adecsol_hr_performance_evaluator.group_hr,custom_adecsol_hr_performance_evaluator.group_manager"
                                 context="{'default_kpi_id': id, 'default_department_id': department_id}"/>
                     </header>
                     <sheet>

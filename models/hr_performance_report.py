@@ -21,6 +21,7 @@ class HrPerformanceReport(models.Model):
     evaluation_ids = fields.One2many('hr.performance.evaluation', 'performance_report_id', string="Performance Evaluations", readonly=True)
     department_id = fields.Many2one('hr.department', string="Department")
     department_name = fields.Char(related='department_id.name')
+    
     employee_id = fields.Many2many('hr.employee', string="Employees", required=True,
                                    default=lambda self: self._default_employees())
     company_id = fields.Many2one('res.company', string="Company", required=True,
@@ -69,7 +70,10 @@ class HrPerformanceReport(models.Model):
 
     def write(self, vals):
         res = super(HrPerformanceReport, self).write(vals)
-        if 'active' in vals:
+        # Fields to sync down to each linked hr.performance.evaluation
+        sync_fields = {'active', 'period', 'start_date', 'end_date', 'deadline'}
+        sync_vals = {k: vals[k] for k in sync_fields if k in vals}
+        if sync_vals:
             for record in self:
-                record.evaluation_ids.with_context(active_test=False).write({'active': vals['active']})
+                record.evaluation_ids.with_context(active_test=False).write(sync_vals)
         return res

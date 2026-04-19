@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
 
         <!-- Security category -->
         <record id="module_hr_performance_evaluation" model="ir.module.category">
@@ -47,7 +48,7 @@
         <record id="rule_eval_manager_team" model="ir.rule">
             <field name="name">Evaluation: Manager - Team Records</field>
             <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_performance_evaluation"/>
-            <field name="domain_force">[('employee_id.parent_id.user_id', '=', user.id)]</field>
+            <field name="domain_force">[('employee_id.department_id.manager_id.user_id', '=', user.id)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_manager'))]"/>
         </record>
 
@@ -83,7 +84,7 @@
         <record id="rule_eval_line_manager_team" model="ir.rule">
             <field name="name">Evaluation Line: Manager - Team Records</field>
             <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_performance_evaluation_line"/>
-            <field name="domain_force">[('evaluation_id.employee_id.parent_id.user_id', '=', user.id)]</field>
+            <field name="domain_force">[('evaluation_id.employee_id.department_id.manager_id.user_id', '=', user.id)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_manager'))]"/>
         </record>
 
@@ -99,6 +100,61 @@
         <record id="rule_eval_line_admin_all" model="ir.rule">
             <field name="name">Evaluation Line: Admin - Bypass</field>
             <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_performance_evaluation_line"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_admin'))]"/>
+        </record>
+
+
+        <!-- ================================= -->
+        <!-- Record Rules: Perfomance Report -->
+        <!-- ================================= -->
+        <!-- Manager: report for direct reports -->
+        <record id="rule_performance_report_manager_team" model="ir.rule">
+            <field name="name">Performance Report: Manager - Team Records</field>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_performance_report"/>
+            <field name="domain_force">[('department_id.manager_id.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_manager'))]"/>
+        </record>
+
+        <!-- HR: see all -->
+        <record id="rule_performance_report_hr_all" model="ir.rule">
+            <field name="name">Performance Report: HR - All Records</field>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_performance_report"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_hr'))]"/>
+        </record>
+
+        <!-- Admin: bypass -->
+        <record id="rule_performance_report_admin_all" model="ir.rule">
+            <field name="name">Performance Report: Admin - Bypass</field>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_performance_report"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_admin'))]"/>
+        </record>
+
+        <!-- ================================= -->
+        <!-- Record Rules: KPI Template -->
+        <!-- ================================= -->
+        <!-- Manager: kpi for direct reports -->
+        <record id="rule_hr_kpi_manager_team" model="ir.rule">
+            <field name="name">HR KPI: Manager - Team Records</field>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_kpi"/>
+            <field name="domain_force">[('department_id.manager_id.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_manager'))]"/>
+        </record>
+
+        <!-- HR: see all -->
+        <record id="rule_hr_kpi_hr_all" model="ir.rule">
+            <field name="name">HR KPI: HR - All Records</field>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_kpi"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_hr'))]"/>
+        </record>
+
+        <!-- Admin: bypass -->
+        <record id="rule_hr_kpi_admin_all" model="ir.rule">
+            <field name="name">HR KPI: Admin - Bypass</field>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_kpi"/>
             <field name="domain_force">[(1,'=',1)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_admin'))]"/>
         </record>
