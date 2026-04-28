@@ -18,6 +18,13 @@ class EvaluationListRenderer extends ListRenderer {
         this.titleField = "key_performance_area";
     }
 
+    onClickSortColumn(column) {
+        // Chặn hoàn toàn hành vi sort khi click vào header
+        // Nếu bạn muốn linh hoạt, có thể kiểm tra if(this.props.list...) nhưng 
+        // để fix cứng cho widget này, chỉ cần return là đủ.
+        return;
+    }
+
     add(params) {
         // Make section creation inline editable
         let editable = false;
@@ -35,7 +42,7 @@ class EvaluationListRenderer extends ListRenderer {
     }
 
     isInlineEditable(record) {
-        return this.isSection(record) && this.props.editable;
+        return this.props.editable;
     }
 
     getRowClass(record) {
@@ -125,7 +132,7 @@ class EvaluationOne2ManyField extends X2ManyField {
             // (Mapped lines from template will explicitly provide is_auto.)
             default_is_auto: evaluatedContext.default_is_auto ?? false,
             default_data_source: evaluatedContext.default_data_source ?? "manual",
-//            default_target: evaluatedContext.default_target ?? 100,
+            //            default_target: evaluatedContext.default_target ?? 100,
         };
 
         const formViewRef = additionalContext.form_view_ref;
@@ -165,4 +172,3 @@ registry.category("fields").add("evaluation_one2many", {
     component: EvaluationOne2ManyField,
     additionalClasses: [...(x2ManyField.additionalClasses || []), "o_field_one2many"],
 });
-

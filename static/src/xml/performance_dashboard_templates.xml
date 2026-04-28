@@ -18,6 +18,9 @@
                         <p class="pd-subtitle">Departmental Performance Overview</p>
                     </div>
                     <div class="pd-header-right">
+                        <button class="btn btn-secondary" t-on-click="exportExcelReport" style="margin-right: 8px;">
+                            <i class="fa fa-file-excel-o"/> Export Excel
+                        </button>
                         <!-- Department pill -->
                         <!-- <span class="pd-filter-pill">
                             <i class="fa fa-building-o"/>

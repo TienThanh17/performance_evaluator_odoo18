@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
         <!-- Dedicated form view for KPI Line used in popup (Add KPI) -->
@@ -10,36 +10,40 @@
                     <sheet>
                         <div class="oe_title">
                             <h2 class="mb-1">
-                                <field name="key_performance_area" placeholder="Key Performance Area"/>
+                                <field name="key_performance_area"
+                                    placeholder="Key Performance Area" />
                             </h2>
                         </div>
 
-                        <field name="is_section" invisible="1"/>
+                        <field name="is_section" invisible="1" />
 
                         <group invisible="is_section">
                             <group string="KPI Info">
-                                <field name="kpi_id" invisible="1"/>
-                                <field name="kpi_type"/>
-                                <field name="target_type" invisible="kpi_type != 'quantitative' or is_special_scoring"/>
-                                <field name="direction" invisible="kpi_type != 'quantitative' or is_special_scoring"/>
-                                <field name="weight"/>
+                                <field name="kpi_id" invisible="1" />
+                                <field name="kpi_type" />
+                                <field name="target_type"
+                                    invisible="kpi_type != 'quantitative' or is_special_scoring" />
+                                <field name="direction"
+                                    invisible="kpi_type != 'quantitative' or is_special_scoring" />
+                                <field name="weight" />
                             </group>
                             <group string="Auto Compute">
-                                <field name="is_auto"/>
-                                <field name="data_source" invisible="not is_auto"/>
-                                <field name="is_special_scoring" invisible="not is_special_scoring"/>
+                                <field name="is_auto" />
+                                <field name="data_source" invisible="not is_auto" />
+                                <field name="is_special_scoring" invisible="not is_special_scoring" />
                             </group>
                         </group>
 
                         <group invisible="is_section">
-                            <group string="Target" invisible="kpi_type != 'quantitative' or is_special_scoring">
-                                <field name="target"/>
+                            <group string="Target"
+                                invisible="kpi_type != 'quantitative' or is_special_scoring">
+                                <field name="target" />
                             </group>
                         </group>
 
                         <group string="Description">
                             <field name="description" string="" placeholder="KPI Description"
-                                   style="width: 100%; min-width: 400px;"/>
+                                style="width: 100%; min-width: 400px;" />
                         </group>
                     </sheet>
                 </form>
@@ -53,14 +57,16 @@
             <field name="arch" type="xml">
                 <list>
                     <!--                    <header>-->
-                    <!--                        <button name="%(custom_adecsol_hr_performance_evaluator.action_hr_kpi_generate_wizard)d"-->
+                    <!--                        <button
+                    name="%(custom_adecsol_hr_performance_evaluator.action_hr_kpi_generate_wizard)d"-->
                     <!--                                type="action"-->
                     <!--                                string="Generate Evaluations"-->
                     <!--                                class="btn-primary"-->
-                    <!--                                groups="custom_adecsol_hr_performance_evaluator.group_hr,custom_adecsol_hr_performance_evaluator.group_manager"/>-->
+                    <!--
+                    groups="custom_adecsol_hr_performance_evaluator.group_hr,custom_adecsol_hr_performance_evaluator.group_manager"/>-->
                     <!--                    </header>-->
-                    <field name="name"/>
-                    <field name="department_id"/>
+                    <field name="name" />
+                    <field name="department_id" />
                 </list>
             </field>
         </record>
@@ -72,55 +78,60 @@
             <field name="arch" type="xml">
                 <form string="KPI">
                     <header>
-                        <button name="%(custom_adecsol_hr_performance_evaluator.action_hr_kpi_generate_wizard)d"
-                                type="action"
-                                string="Generate Evaluations"
-                                class="btn-primary"
-                                groups="custom_adecsol_hr_performance_evaluator.group_hr,custom_adecsol_hr_performance_evaluator.group_manager"
-                                context="{'default_kpi_id': id, 'default_department_id': department_id}"/>
+                        <button
+                            name="%(custom_adecsol_hr_performance_evaluator.action_hr_kpi_generate_wizard)d"
+                            type="action"
+                            string="Generate Evaluations"
+                            class="btn-primary"
+                            groups="custom_adecsol_hr_performance_evaluator.group_hr,custom_adecsol_hr_performance_evaluator.group_manager"
+                            context="{'default_kpi_id': id, 'default_department_id': department_id}" />
                     </header>
                     <sheet>
                         <!-- Use Odoo native grid to keep labels/fields aligned consistently -->
                         <group>
                             <group>
-                                <field name="name"/>
-                                <field name="period"/>
+                                <field name="name" />
+                                <field name="period" />
                             </group>
                             <group>
-                                <field name="department_id"/>
+                                <field name="department_id" />
                             </group>
                         </group>
 
                         <notebook>
                             <page string="Key Performance">
                                 <field name="kpi_line_ids" widget="kpi_one2many"
-                                       context="{'default_kpi_id': id, 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup'}">
+                                    context="{'default_kpi_id': id, 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup'}">
                                     <list editable="bottom" decoration-bf="is_section">
-                                        <field name="sequence" widget="handle"/>
-                                        <field name="is_section" column_invisible="True"/>
+                                        <field name="sequence" widget="handle" />
+                                        <field name="is_section" column_invisible="True" />
 
-                                        <field name="key_performance_area" string="Title"/>
+                                        <field name="key_performance_area" string="Title" />
 
-                                        <field name="serial_number" column_invisible="1"/>
-                                        <field name="description" invisible="is_section"/>
+                                        <field name="description"
+                                            string="Info"
+                                            widget="kpi_description_icon"
+                                            invisible="is_section"
+                                            optional="show"/>
 
-                                        <field name="kpi_type" invisible="is_section"/>
+                                        <field name="kpi_type" invisible="is_section" />
                                         <field name="target_type"
-                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
+                                            invisible="is_section or kpi_type != 'quantitative' or is_special_scoring" />
                                         <field name="target_display" string="Target"
-                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
+                                            invisible="is_section or kpi_type != 'quantitative' or is_special_scoring" />
                                         <field name="direction"
-                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
+                                            invisible="is_section or kpi_type != 'quantitative' or is_special_scoring" />
 
-                                        <field name="is_auto" column_invisible="1"/>
-                                        <field name="data_source" invisible="is_section or not is_auto"/>
+                                        <field name="is_auto" column_invisible="1" />
+                                        <field name="data_source"
+                                            invisible="is_section or not is_auto" />
 
-                                        <field name="weight" invisible="is_section"/>
+                                        <field name="weight" invisible="is_section" />
                                         <control>
                                             <create name="add_section" string="Add Section"
-                                                    context="{'default_is_section': True, 'default_display_type': 'line_section'}"
+                                                context="{'default_is_section': True, 'default_display_type': 'line_section'}"
                                             />
-                                            <create name="add_kpi" string="Add KPI"/>
+                                            <create name="add_kpi" string="Add KPI" />
                                         </control>
                                     </list>
                                 </field>
@@ -139,7 +150,8 @@
         </record>
 
         <!-- Menu Item to Access KPI Form and List View -->
-        <menuitem id="performance_evaluator" name="Performance Evaluator" sequence="1"/>
-        <menuitem id="menu_kpi_form" name="KPI" parent="performance_evaluator" sequence="20" action="hr_kpi_action"/>
+        <menuitem id="performance_evaluator" name="Performance Evaluator" sequence="1" />
+        <menuitem id="menu_kpi_form" name="KPI" parent="performance_evaluator" sequence="20"
+            action="hr_kpi_action" />
     </data>
 </odoo>

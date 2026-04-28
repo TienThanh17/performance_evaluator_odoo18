@@ -15,15 +15,18 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
     """,
 
     'data': [
+        # ============================== DATA =============================
         'data/kpi_sequence.xml',
         'data/email_template_evaluation_alert.xml',
         'data/ir_config_parameter_data.xml',
         'data/ir_cron_data.xml',
         'data/kpi_template_data.xml',
 
+        # ============================== SECURITY =============================
         'security/security.xml',
         'security/ir.model.access.csv',
 
+        # ============================== VIEWS =============================
         'views/kpi_generate_wizard_views.xml',
         'views/kpi_view.xml',
         'views/performance_evaluation.xml',
@@ -41,6 +44,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
             'custom_adecsol_hr_performance_evaluator/static/src/js/evaluation_one2many.js',
             'custom_adecsol_hr_performance_evaluator/static/src/js/priority_with_onchange.js',
             'custom_adecsol_hr_performance_evaluator/static/src/js/performance_dashboard_form.js',
+            'custom_adecsol_hr_performance_evaluator/static/src/js/kpi_description_custom_widget.js',
             'custom_adecsol_hr_performance_evaluator/static/src/xml/performance_dashboard_templates.xml',
         ],
     },

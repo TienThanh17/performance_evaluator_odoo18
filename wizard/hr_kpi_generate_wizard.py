@@ -112,7 +112,6 @@ class HrKpiGenerateWizard(models.TransientModel):
             }
 
         Evaluation = self.env['hr.performance.evaluation']
-        # created_evaluations = self.env['hr.performance.evaluation']
         
         # 1. Prepare list of applicable employees
         valid_employees = self.env['hr.employee']
@@ -169,7 +168,6 @@ class HrKpiGenerateWizard(models.TransientModel):
             })
             self.send_notification(emp, evaluation)
             count += 1
-            # created_evaluations |= evaluation
 
         return {
             'type': 'ir.actions.client',

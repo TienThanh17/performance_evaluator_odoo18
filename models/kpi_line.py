@@ -88,12 +88,6 @@ class KPIline(models.Model):
         required=True,
         help="The KPI template that this line belongs to.",
     )
-    serial_number = fields.Char(
-        "SN",
-        compute='_compute_serial_number',
-        store=True,
-        help="Auto-generated row number for display (does not affect scoring).",
-    )
     description = fields.Html(
         string="Description",
         sanitize=True,
@@ -125,7 +119,6 @@ class KPIline(models.Model):
     )
 
 
-
     @api.depends('kpi_type', 'data_source')
     def _compute_is_special_scoring(self):
         special_sources = {'late_days', 'attendance_full'}
@@ -149,36 +142,6 @@ class KPIline(models.Model):
                 rec.target_display = f"{(rec.target or 0.0):g}%"
             else:
                 rec.target_display = f"{(rec.target or 0.0):g}"
-
-    @api.depends('kpi_id', 'kpi_id.kpi_line_ids')
-    def _compute_serial_number(self):
-        """Display a stable row number per KPI template.
-
-        Odoo requires compute methods to exist; older versions might have tolerated
-        missing compute targets in some situations, but Odoo 18 will fail hard.
-        """
-        for line in self:
-            if not line.kpi_id:
-                line.serial_number = False
-                continue
-            if line.display_type or line.is_section:
-                line.serial_number = False
-                continue
-
-            # Order by sequence and a stable, comparable tiebreaker.
-            # Note: during onchanges, records may be NewId() objects (unsaved) -> not comparable.
-            ordered = line.kpi_id.kpi_line_ids.filtered(lambda l: not l.display_type and not l.is_section)
-            ordered = ordered.sorted(lambda l: (l.sequence or 0, l._origin.id or 0, l.id or 0))
-
-            # Find index by record identity (works for new records too)
-            idx = 1
-            for rec in ordered:
-                if rec == line:
-                    line.serial_number = str(idx)
-                    break
-                idx += 1
-            else:
-                line.serial_number = False
 
     @api.constrains('kpi_type', 'target')
     def _check_numeric_target(self):

@@ -704,3 +704,14 @@ class PerformanceEvaluationLine(models.Model):
                     raise UserError("Manager rating is only editable in Submitted state.")
 
         return super().write(vals)
+
+    def action_open_popup(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'hr.performance.evaluation.line',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup').id,
+            'target': 'new',
+        }

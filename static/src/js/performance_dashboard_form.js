@@ -294,6 +294,25 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     }
 
     // ──────────────────────────────────────────────────────
+    // Export Excel Report
+    // ──────────────────────────────────────────────────────
+    async exportExcelReport() {
+        const record = this.props.record;
+        const reportId = record.resId;
+        if (!reportId) return;
+
+        const action = await this.orm.call(
+            "hr.performance.report",
+            "action_export_excel_report",
+            [reportId]
+        );
+
+        if (action) {
+            this.actionService.doAction(action);
+        }
+    }
+
+    // ──────────────────────────────────────────────────────
     // Mở form record hr.performance.evaluation theo id
     // ──────────────────────────────────────────────────────
     openEvaluation(evalId) {

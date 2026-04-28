@@ -18,6 +18,10 @@ class KPIListRenderer extends ListRenderer {
         this.titleField = "key_performance_area";
     }
 
+    onClickSortColumn(column) {
+        return;
+    }
+
     add(params) {
         // Make section creation inline editable (like slide_category_one2many)
         let editable = false;

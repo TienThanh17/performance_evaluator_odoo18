@@ -6,7 +6,8 @@
     }
 
     .o_kanban_record {
-        width: 28rem !important; /* Đặt chiều rộng thẻ */
+        min-width: 28rem !important; /* Đặt chiều rộng thẻ */
+        height: 20rem;
         margin-bottom: 10px !important; /* Đảm bảo có khoảng cách dọc */
     }
 

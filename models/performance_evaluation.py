@@ -131,7 +131,19 @@ class PerformanceEvaluation(models.Model):
         help="The employee's job position (filled automatically).",
     )
 
+    has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_rating_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_score_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+
     performance_visual = fields.Html(compute="_compute_performance_visual")
+
+    @api.depends("evaluation_line_ids.kpi_type")
+    def _compute_kpi_types(self):
+        for rec in self:
+            kpi_types = rec.evaluation_line_ids.mapped('kpi_type')
+            rec.has_binary_kpi = 'binary' in kpi_types
+            rec.has_rating_kpi = 'rating' in kpi_types
+            rec.has_score_kpi = 'score' in kpi_types
 
     @api.depends("performance_score", "employee_id")
     def _compute_performance_visual(self):
