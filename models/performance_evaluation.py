@@ -105,6 +105,7 @@ class PerformanceEvaluation(models.Model):
         domain=[("active", "=", True)],
         required=False,
         help="Defines the active evaluation window (start/end/deadline) for the selected period.",
+        ondelete="cascade",
     )
     department_id = fields.Many2one(
         "hr.department",
@@ -329,7 +330,7 @@ class PerformanceEvaluation(models.Model):
                 self.env["ir.sequence"].next_by_code("performance.evaluation.sequence")
                 or "0001"
             )
-            vals["name"] = f"PE/{sequence}/{year}"
+            vals["name"] = f"KPI/{sequence}/{year}"
         return super().create(vals_list)
 
     @api.depends("employee_id")

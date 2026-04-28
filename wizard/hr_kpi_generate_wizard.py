@@ -1,6 +1,6 @@
 from markupsafe import Markup
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -104,8 +104,8 @@ class HrKpiGenerateWizard(models.TransientModel):
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': 'Thông báo',
-                    'message': 'Không tìm thấy nhân viên nào thuộc phòng ban đã chọn hoặc nhân viên không còn hoạt động.',
+                    'title': 'Warning',
+                    'message': 'No employees were found in the selected department, or the employee is no longer active.',
                     'type': 'warning',
                     'sticky': False,
                 }
@@ -133,8 +133,8 @@ class HrKpiGenerateWizard(models.TransientModel):
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': 'Không có dữ liệu mới',
-                    'message': 'Tất cả nhân viên được chọn đều đã có bản đánh giá cho kỳ này',
+                    'title': 'No new data',
+                    'message': 'All selected employees have already received their performance reviews for this period.',
                     'type': 'danger',
                     'sticky': False,
                 }
@@ -201,29 +201,30 @@ class HrKpiGenerateWizard(models.TransientModel):
 
 
             # 2. Xây dựng nội dung HTML (Thêm nút bấm Action Button)
-            msg_body = f"""
+            msg_body = _(
+                """
                 <div style="margin: 0; padding: 0;">
-                    <p>Xin chào <b>{emp.name}</b>,</p>
-                    <p>Bạn vừa có một bảng đánh giá KPI mới được tạo trên hệ thống.</p>
+                    <p>Hello <b>%s</b>,</p>
+                    <p>A new KPI evaluation has been created for you in the system.</p>
                     <ul>
-                        <li><b>Kỳ đánh giá:</b> {period_str}</li>
-                        <li><b>Thời gian chuẩn:</b> Từ {start_str} đến {end_str}</li>
+                        <li><b>Evaluation Period:</b> %s</li>
+                        <li><b>Standard Time:</b> From %s to %s</li>
                     </ul>
-                    <p>Vui lòng click vào nút bên dưới để xem chi tiết và hoàn thành phần tự đánh giá của bạn (nếu có).</p>
-                    
+                    <p>Please click the button below to view details and complete your self-assessment (if applicable).</p>
+
                     <div style="margin-top: 20px; margin-bottom: 20px;">
-                        <a href="{record_url}" 
+                        <a href="%s" 
                            style="background-color: #714B67; padding: 10px 20px; color: #FFFFFF; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-                            Xem Bảng Đánh Giá
+                            View Evaluation
                         </a>
                     </div>
                 </div>
-            """
+                """
+            ) % (emp.name, period_str, start_str, end_str, record_url)
 
-            # 3. Sử dụng Markup() để Odoo render đúng HTML
             emp.message_post(
                 body=Markup(msg_body),
-                subject="[Thông báo] Bạn có bảng đánh giá KPI mới",
+                subject=_("[Notification] You have a new KPI evaluation"),
                 partner_ids=[emp.user_id.partner_id.id],
                 message_type='comment',
                 subtype_xmlid='mail.mt_comment'

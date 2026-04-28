@@ -114,6 +114,7 @@ class HrKpiEngine(models.AbstractModel):
         # percentage (ratio)
         return (numerator / denominator) * 100 if denominator > 0 else 0.0
 
+    @api.model
     def _get_late_grace_minutes(self):
         param_obj = self.env['ir.config_parameter'].sudo()
         res = param_obj.get_param('custom_adecsol_hr_performance_evaluator.late_grace_minutes', default=30)
@@ -131,7 +132,7 @@ class HrKpiEngine(models.AbstractModel):
 
         Definition:
         - Task is assigned to employee user (project.task.user_ids)
-        - Completed: task.stage_id.fold = True
+        - Completed: task.stage_id.is_done_stage = True
         - Date range: use task.date_deadline within [date_from, date_to]
         - On time: done_date <= date_deadline
 
@@ -149,6 +150,7 @@ class HrKpiEngine(models.AbstractModel):
             ('stage_id.is_done_stage', '=', True),
             ('date_deadline', '>=', date_from),
             ('date_deadline', '<=', date_to),
+            ('project_id', '!=', False),
         ]
         tasks = Task.search(domain)
         if not tasks:

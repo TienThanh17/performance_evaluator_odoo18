@@ -1,10 +1,11 @@
 import io
 import base64
 import pytz
-from datetime import datetime, time, timedelta
 import xlsxwriter
+from markupsafe import Markup
+from datetime import datetime, time, timedelta
 
-from odoo import fields, models, api
+from odoo import fields, models, api, _
 
 
 class HrPerformanceReport(models.Model):
@@ -24,12 +25,12 @@ class HrPerformanceReport(models.Model):
     end_date = fields.Date(string="End Date", required=True)
     deadline = fields.Date(string="Deadline", required=True)
     active = fields.Boolean(string="Active", default=True)
-    evaluation_ids = fields.One2many('hr.performance.evaluation', 'performance_report_id', string="Performance Evaluations", readonly=True)
+    evaluation_ids = fields.One2many('hr.performance.evaluation', 'performance_report_id',
+                                     string="Performance Evaluations", readonly=True)
     department_id = fields.Many2one('hr.department', string="Department")
     department_name = fields.Char(related='department_id.name')
-    
-    employee_id = fields.Many2many('hr.employee', string="Employees", required=True,
-                                   default=lambda self: self._default_employees())
+
+    employee_id = fields.Many2many('hr.employee', string="Employees", required=True)
     company_id = fields.Many2one('res.company', string="Company", required=True,
                                  default=lambda self: self.env.company)
     body = fields.Html(string="Body of Email")
@@ -39,7 +40,8 @@ class HrPerformanceReport(models.Model):
 
     def action_send_email(self):
         # Ensure the template exists
-        mail_template = self.env.ref('custom_adecsol_hr_performance_evaluator.email_template_evaluation_alert', raise_if_not_found=False)
+        mail_template = self.env.ref('custom_adecsol_hr_performance_evaluator.email_template_evaluation_alert',
+                                     raise_if_not_found=False)
         if mail_template:
             for employee in self.employee_id:
                 # Create a specific context for the employee
@@ -55,11 +57,6 @@ class HrPerformanceReport(models.Model):
                 # Send the email with the specific context
                 mail_template.with_context(ctx).send_mail(self.id, force_send=True)
 
-    @api.model
-    def _default_employees(self):
-        """Get all employees in the user's company."""
-        return self.env['hr.employee'].search([('company_id', '=', self.env.company.id)])
-
     @api.depends('employee_id')
     def _compute_email_to(self):
         """Compute a comma-separated list of emails for the employees."""
@@ -73,6 +70,70 @@ class HrPerformanceReport(models.Model):
         for record in self:
             names = [e.name for e in record.employee_id if e.name]
             record.employee_name = ', '.join(names)
+
+    @api.model
+    def _cron_send_deadline_reminder(self):
+        """Send a reminder to employees before the deadline."""
+        today = fields.Date.context_today(self)
+        
+        # 1. Deactivate reports where the deadline has passed
+        expired_reports = self.search([
+            ('active', '=', True),
+            ('deadline', '<', today)
+        ])
+        expired_reports.write({'active': False})
+
+        # 2. Send reminders for upcoming deadlines
+        reminder_days_str = self.env['ir.config_parameter'].sudo().get_param(
+            'custom_adecsol_hr_performance_evaluator.deadline_reminder_days', 3)
+        try:
+            reminder_days = int(reminder_days_str)
+        except ValueError:
+            reminder_days = 3
+
+        target_date = today + timedelta(days=reminder_days)
+        reports = self.search([
+            ('active', '=', True),
+            ('deadline', '=', target_date)
+        ])
+
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+        for report in reports:
+            # Send email
+            # report.action_send_email()
+
+            # Iterate through each evaluation to send individual links
+            for evaluation in report.evaluation_ids:
+                partner = evaluation.employee_id.user_id.partner_id
+                if not partner:
+                    continue
+
+                record_url = f"{base_url}/web#id={evaluation.id}&model=hr.performance.evaluation&view_type=form"
+                msg_body = _(
+                    """
+                    <strong>Announcement:</strong> The deadline for this evaluation report will end in %s days (%s). Please complete it on time.
+
+                    <div style="margin-top: 20px; margin-bottom: 20px;">
+                        <a href="%s" 
+                            style="background-color: #714B67; padding: 10px 20px; color: #FFFFFF; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                            View Your Evaluation
+                        </a>
+                    </div>
+                    """
+                ) % (
+                               reminder_days,
+                               report.deadline.strftime('%d/%m/%Y'),
+                               record_url
+                           )
+
+                evaluation.message_post(
+                    body=Markup(msg_body),
+                    subject="Review deadline reminder",
+                    message_type='notification',
+                    subtype_xmlid='mail.mt_note',
+                    partner_ids=[partner.id],
+                )
 
     def write(self, vals):
         res = super(HrPerformanceReport, self).write(vals)

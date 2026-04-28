@@ -150,8 +150,8 @@
         </record>
 
         <!-- Menu Item to Access KPI Form and List View -->
-        <menuitem id="performance_evaluator" name="Performance Evaluator" sequence="1" />
-        <menuitem id="menu_kpi_form" name="KPI" parent="performance_evaluator" sequence="20"
+        <menuitem id="performance_evaluator" name="KPI Performance Evaluator" sequence="1" />
+        <menuitem id="menu_kpi_form" name="KPI template" parent="performance_evaluator" sequence="20"
             action="hr_kpi_action" />
     </data>
 </odoo>

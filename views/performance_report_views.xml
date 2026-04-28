@@ -131,9 +131,9 @@
 
         <menuitem
             id="menu_hr_performance_report"
-            parent="performance_evaluator"
-            name="Performance Reports"
-            sequence="50"
+            parent="kpi_employee_menu"
+            name="KPI Employee Reports"
+            sequence="20"
             action="action_hr_performance_report"/>
 
     </data>

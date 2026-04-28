@@ -35,15 +35,12 @@
 
                             <setting string="Attendance Grace Period"
                                      help="Configure the tolerance for late arrivals.">
-                                <div class="row mt16 o_settings_container">
-                                    <div>
-                                        <label for="late_grace_minutes"/>
-                                        <div class="text-muted">
-                                            Number of minutes allowed for late arrival without penalty.
-                                        </div>
-                                        <field name="late_grace_minutes" class="w-100"/>
-                                    </div>
-                                </div>
+                                <field name="late_grace_minutes"/>
+                            </setting>
+
+                            <setting string="Evaluation Report Deadline Reminder"
+                                     help="Set the number of days before the deadline to notify employees.">
+                                <field name="deadline_reminder_days"/>
                             </setting>
                         </block>
                     </app>
