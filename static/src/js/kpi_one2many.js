@@ -5,6 +5,7 @@ import { makeContext } from "@web/core/context";
 import { X2ManyField, x2ManyField } from "@web/views/fields/x2many/x2many_field";
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { useService } from "@web/core/utils/hooks";
+import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 
 /**
  * KPI list renderer:
@@ -14,8 +15,16 @@ import { useService } from "@web/core/utils/hooks";
 class KPIListRenderer extends ListRenderer {
     setup() {
         super.setup();
-        this.discriminant = "is_section";
-        this.titleField = "key_performance_area";
+
+        // Lấy context từ list hiện tại (đã được Odoo parse từ XML)
+        const context = this.props.list?.context || {};
+        console.log("class KPIListRenderer this.props:", this.props);
+        // Đọc tên field từ context, nếu không có thì dùng mặc định
+        this.discriminant = context.section_field || "is_section";
+        this.titleField = context.title_field || "name"; // Mặc định của Odoo thường là 'name'
+
+        console.log("KPIListRenderer setup 1:", { section_field: context.section_field, title_field: context.title_field });
+        console.log("KPIListRenderer setup 2:", { discriminant: this.discriminant, titleField: this.titleField });
     }
 
     onClickSortColumn(column) {
@@ -40,7 +49,7 @@ class KPIListRenderer extends ListRenderer {
 
     isInlineEditable(record) {
         // Only sections are inline editable
-        return this.isSection(record) && this.props.editable;
+        return this.props.editable;
     }
 
     getRowClass(record) {
@@ -110,10 +119,11 @@ class KPIOne2ManyField extends X2ManyField {
         }
 
         const parentId = this.props.record.resId;
+        const parentField = this.props.context.parent_field || this.props.record.data[this.props.name]?.config?.relationField;
         const additionalContext = {
             ...(this.props.context || {}),
             ...context,
-            default_kpi_id: parentId,
+            [`default_${parentField}`]: parentId,
         };
 
         // If the XML context provides a form view xmlid, use it.
@@ -124,7 +134,7 @@ class KPIOne2ManyField extends X2ManyField {
         // Passing an xmlid (string) triggers a server crash: "Expected singleton" on ir.ui.view.
         let formViewId = false;
         if (formViewRef) {
-            try {
+             try {
                 // Odoo 18: public method is _xmlid_to_res_id (xmlid_to_res_id was removed).
                 // Returns 0/false when not found (depending on server).
                 formViewId = await this.orm.call(
@@ -141,9 +151,13 @@ class KPIOne2ManyField extends X2ManyField {
             }
         }
 
+        console.log('this.props', this.props)
+
+        const model = additionalContext.resModel || this.props.record.data[this.props.name]?.resModel;
         const action = {
             type: "ir.actions.act_window",
-            res_model: "hr.kpi.line",
+            name: "Add KPI",
+            res_model: model,
             views: [[formViewId || false, "form"]],
             target: "new",
             context: additionalContext,
@@ -158,6 +172,50 @@ class KPIOne2ManyField extends X2ManyField {
                 }
             },
         });
+
+//        // ==========================================
+//        // FIX ODOO 18: Lấy list object từ widget
+//        // ==========================================
+//        const list = this.list || this.props.record.data[this.props.name];
+//
+//        // 2. Tạo record ảo trong bộ nhớ của list
+//        const record = await list.addNewRecord({ context: additionalContext });
+//
+//        let isSaved = false;
+//
+//        // 3. Mở Dialog với record ảo vừa tạo
+//        this.env.services.dialog.add(FormViewDialog, {
+//            resModel: list.resModel,
+//            resId: false,
+//            record: record, // Ép Dialog dùng record ảo
+//            context: additionalContext,
+//            viewId: formViewId || false,
+//            onRecordSaved: async () => {
+//                isSaved = true;
+//            },
+//        }, {
+//            onClose: async () => {
+//                // Nếu đóng form mà chưa save, dọn dẹp record ảo để không bị dòng trống
+//                if (!isSaved) {
+//                    try {
+//                        // Odoo 18 Data Model xử lý xóa record chưa lưu
+//                        if (typeof record.discard === 'function') {
+//                            await record.discard();
+//                        } else if (typeof list.removeRecord === 'function') {
+//                            await list.removeRecord(record);
+//                        } else {
+//                            // Fallback thủ công
+//                            const index = list.records.indexOf(record);
+//                            if (index > -1) {
+//                                list.records.splice(index, 1);
+//                            }
+//                        }
+//                    } catch (e) {
+//                        console.warn("Could not remove the empty record");
+//                    }
+//                }
+//            }
+//        });
     }
 }
 

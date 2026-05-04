@@ -7,27 +7,6 @@ class PerformanceEvaluationLine(models.Model):
     _description = 'Performance Evaluation Line'
     _order = 'sequence, id'
 
-    is_section = fields.Boolean(
-        string="Is Section",
-        default=False,
-        help="Enable this to make the line a Section header. Sections are used for grouping and do not affect scoring.",
-    )
-    display_type = fields.Selection(
-        selection=[
-            ('line_section', 'Section'),
-            ('line_note', 'Note'),
-        ],
-        default=False,
-        compute="_compute_display_type",
-        store=True,
-        readonly=False,
-        help="Technical field for section/note lines. Derived from is_section.",
-    )
-    sequence = fields.Integer(
-        default=10,
-        help="Controls the order of lines in the evaluation (drag & drop).",
-    )
-
     # Optional: keep a backlink to the KPI template line that generated this evaluation line.
     # This makes the mapping explicit and allows future sync/update.
     kpi_line_id = fields.Many2one(
@@ -175,12 +154,11 @@ class PerformanceEvaluationLine(models.Model):
         digits=(16, 1),
         help="System-calculated score (0–10) based on rules for the selected KPI type.",
     )
-
+    # Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).
     is_special_scoring = fields.Boolean(
         string="Special Scoring",
         compute="_compute_is_special_scoring",
         store=False,
-        help="Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).",
     )
 
     # ------------------------------------------------------------
@@ -303,6 +281,23 @@ class PerformanceEvaluationLine(models.Model):
         compute="_compute_role",
         store=False,
         help="Technical helper used by the UI to apply role-based readonly rules.",
+    )
+
+    is_section = fields.Boolean(default=False)
+    display_type = fields.Selection(
+        selection=[
+            ('line_section', 'Section'),
+            ('line_note', 'Note'),
+        ],
+        default=False,
+        compute="_compute_display_type",
+        store=True,
+        readonly=False,
+        help="Technical field for section/note lines. Derived from is_section.",
+    )
+    sequence = fields.Integer(
+        default=10,
+        help="Controls the order of lines in the evaluation (drag & drop).",
     )
 
     @api.depends_context('uid')

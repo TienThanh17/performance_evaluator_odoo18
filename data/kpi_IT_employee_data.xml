@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <record id="kpi_template_it_odoo_dev" model="hr.kpi">
             <field name="name">KPI Lập trình viên Odoo - Phòng IT</field>
-            <!--            <field name="description">Bộ tiêu chuẩn đánh giá năng lực và thái độ cho Odoo Developer (Thang điểm 10)</field>-->
         </record>
 
         <record id="kpi_line_quantitative" model="hr.kpi.line">

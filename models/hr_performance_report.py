@@ -38,6 +38,55 @@ class HrPerformanceReport(models.Model):
     email_to = fields.Char(compute='_compute_email_to', string="Email To", store=True)
     employee_name = fields.Char(string="Employee Name", compute="_compute_employee_name")
 
+    dept_evaluation_ids = fields.One2many(
+        'hr.department.performance.evaluation', 'performance_report_id',
+        string='Department Evaluations'
+    )
+
+    def action_generate_department_evaluations(self):
+        for report in self:
+            kpis = self.env['hr.department.kpi'].search([('period', '=', report.period)])
+            for kpi in kpis:
+                # 1. Kiểm tra đã tồn tại
+                existing = self.env['hr.department.performance.evaluation'].search([
+                    ('department_id', '=', kpi.department_id.id),
+                    ('performance_report_id', '=', report.id)
+                ], limit=1)
+                
+                if existing:
+                    continue
+                
+                # 2. Tạo evaluation
+                eval_vals = {
+                    'department_id': kpi.department_id.id,
+                    'department_kpi_id': kpi.id,
+                    'performance_report_id': report.id,
+                    'start_date': report.start_date,
+                    'end_date': report.end_date,
+                    'deadline': report.deadline,
+                }
+                new_eval = self.env['hr.department.performance.evaluation'].create(eval_vals)
+                
+                # 3. Populate lines
+                if kpi.department_id and new_eval:
+                    for line in kpi.kpi_line_ids:
+                        self.env['hr.department.evaluation.line'].create({
+                            'evaluation_id': new_eval.id,
+                            'department_kpi_line_id': line.id,
+                            'name': line.name,
+                            'kpi_type': line.kpi_type,
+                            'target': line.target,
+                            'target_type': line.target_type,
+                            'direction': line.direction,
+                            'weight': line.weight,
+                            'is_auto': line.is_auto,
+                            'data_source': line.data_source,
+                            'is_section': line.is_section,
+                        })
+                        
+                    # 4. Compute if auto
+                    new_eval.action_compute_auto_kpi()
+
     def action_send_email(self):
         # Ensure the template exists
         mail_template = self.env.ref('custom_adecsol_hr_performance_evaluator.email_template_evaluation_alert',

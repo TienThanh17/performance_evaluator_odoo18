@@ -15,25 +15,27 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
     """,
 
     'data': [
-        # ============================== DATA =============================
-        'data/kpi_sequence.xml',
-        'data/email_template_evaluation_alert.xml',
-        'data/ir_config_parameter_data.xml',
-        'data/ir_cron_data.xml',
-        'data/kpi_template_data.xml',
-
         # ============================== SECURITY =============================
         'security/security.xml',
         'security/ir.model.access.csv',
 
+        # ============================== DATA =============================
+        'data/ir_config_parameter_data.xml',
+        'data/ir_cron_data.xml',
+        'data/email_template_evaluation_alert.xml',
+        'data/kpi_sequence.xml',
+        'data/kpi_IT_employee_data.xml',
+        'data/kpi_IT_department_data.xml',
+
         # ============================== VIEWS =============================
-        'views/kpi_generate_wizard_views.xml',
-        'views/kpi_view.xml',
-        'views/performance_evaluation.xml',
-        'views/hr_score.xml',
-        'views/performance_report_views.xml',
-        # 'views/performance_evaluation_report.xml',
         'views/res_config_settings_views.xml',
+        'views/kpi_view.xml',
+        'views/hr_department_kpi_views.xml',
+        'views/hr_department_performance_views.xml',
+        'views/performance_evaluation.xml',
+        'views/performance_report_views.xml',
+        'views/hr_score.xml',
+        'views/kpi_generate_wizard_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

@@ -7,83 +7,83 @@
             <field name="arch" type="xml">
                 <form string="Evaluation Line">
                     <sheet>
-                        <field name="is_section" invisible="1"/>
-                        <field name="is_manager" invisible="1"/>
-                        <field name="is_hr" invisible="1"/>
-                        <field name="is_employee" invisible="1"/>
-                        <field name="evaluation_state" invisible="1"/>
-                        <field name="is_special_scoring" invisible="1"/>
+                        <field name="is_section" invisible="1" />
+                        <field name="is_manager" invisible="1" />
+                        <field name="is_hr" invisible="1" />
+                        <field name="is_employee" invisible="1" />
+                        <field name="evaluation_state" invisible="1" />
+                        <field name="is_special_scoring" invisible="1" />
 
                         <div class="oe_title">
                             <h2 class="mb-1">
                                 <field name="key_performance_area"
-                                       placeholder="Key Performance Area" readonly="is_employee"/>
+                                    placeholder="Key Performance Area" readonly="is_employee" />
                             </h2>
                         </div>
                         <!-- ============================
                              ASSESSMENT (2 columns)
                              ============================ -->
                         <group string="Assessment"
-                               invisible="is_section or kpi_type == 'quantitative'">
+                            invisible="is_section or kpi_type == 'quantitative'">
                             <group>
                                 <label for="employee_rating_binary" string="Employee Rating"
-                                       invisible="kpi_type != 'binary'"/>
+                                    invisible="kpi_type != 'binary'" />
                                 <field name="employee_rating_binary" nolabel="1"
-                                       invisible="kpi_type != 'binary'"
-                                       widget="radio"
-                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' "/>
+                                    invisible="kpi_type != 'binary'"
+                                    widget="radio"
+                                    readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' " />
 
                                 <label for="employee_rating_selection"
-                                       string="Employee Rating (0-5)"
-                                       invisible="kpi_type != 'rating'"/>
+                                    string="Employee Rating (0-5)"
+                                    invisible="kpi_type != 'rating'" />
                                 <field name="employee_rating_selection" nolabel="1"
-                                       invisible="kpi_type != 'rating'"
-                                       widget="priority_onchange"
-                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' "/>
+                                    invisible="kpi_type != 'rating'"
+                                    widget="priority_onchange"
+                                    readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' " />
 
                                 <label for="employee_rating_score" string="Employee Score"
-                                       invisible="kpi_type != 'score'"/>
+                                    invisible="kpi_type != 'score'" />
                                 <field name="employee_rating_score" nolabel="1"
-                                       invisible="kpi_type != 'score'"
-                                       readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' "/>
+                                    invisible="kpi_type != 'score'"
+                                    readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' " />
                             </group>
 
                             <group>
                                 <label for="manager_rating_binary" string="Manager Rating"
-                                       invisible="kpi_type != 'binary'"/>
+                                    invisible="kpi_type != 'binary'" />
                                 <field name="manager_rating_binary" nolabel="1"
-                                       invisible="kpi_type != 'binary'"
-                                       widget="radio"
-                                       readonly="not is_manager or evaluation_state == 'cancel'"/>
+                                    invisible="kpi_type != 'binary'"
+                                    widget="radio"
+                                    readonly="not is_manager or evaluation_state == 'cancel'" />
 
                                 <label for="manager_rating_selection" string="Manager Rating (0-5)"
-                                       invisible="kpi_type != 'rating'"/>
+                                    invisible="kpi_type != 'rating'" />
                                 <field name="manager_rating_selection" nolabel="1"
-                                       invisible="kpi_type != 'rating'"
-                                       widget="priority_onchange"
-                                       readonly="not is_manager or evaluation_state == 'cancel'"/>
+                                    invisible="kpi_type != 'rating'"
+                                    widget="priority_onchange"
+                                    readonly="not is_manager or evaluation_state == 'cancel'" />
 
                                 <label for="manager_rating_score" string="Manager Score"
-                                       invisible="kpi_type != 'score'"/>
+                                    invisible="kpi_type != 'score'" />
                                 <field name="manager_rating_score" nolabel="1"
-                                       invisible="kpi_type != 'score'"
-                                       readonly="not is_manager or evaluation_state == 'cancel'"/>
+                                    invisible="kpi_type != 'score'"
+                                    readonly="not is_manager or evaluation_state == 'cancel'" />
                             </group>
                         </group>
 
                         <group string="Target / Actual"
-                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring">
+                            invisible="is_section or kpi_type != 'quantitative' or is_special_scoring">
                             <group>
-                                <field name="target" readonly="is_employee"/>
+                                <field name="target" readonly="is_employee" />
                                 <field name="target_type" invisible="kpi_type != 'quantitative'"
-                                       readonly="is_employee"/>
+                                    readonly="is_employee" />
                                 <field name="direction" invisible="kpi_type != 'quantitative'"
-                                       readonly="is_employee"/>
+                                    readonly="is_employee" />
 
                             </group>
                             <group>
                                 <field name="actual" placeholder="Actual value"
-                                       readonly="is_employee"/>
+                                    readonly="is_employee" />
                             </group>
                         </group>
 
@@ -91,12 +91,12 @@
                              SCORING
                              ============================ -->
                         <group string="Scoring" invisible="is_section">
-                            <field name="final_rating_badge_class" invisible="1"/>
+                            <field name="final_rating_badge_class" invisible="1" />
                             <field name="final_rating_badge_text" string="Final Rating"
-                                   widget="badge" readonly="1"
-                                   decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
-                                   decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
-                                   decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'"/>
+                                widget="badge" readonly="1"
+                                decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
+                                decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
+                                decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" />
                         </group>
 
                         <!-- ============================
@@ -104,27 +104,27 @@
                              ============================ -->
                         <group string="KPI Info" invisible="is_section">
                             <group>
-                                <field name="kpi_type" readonly="is_employee"/>
-                                <field name="weight" readonly="is_employee"/>
-                                <field name="actual" readonly="1" invisible="not is_special_scoring"/>
+                                <field name="kpi_type" readonly="is_employee" />
+                                <field name="weight" readonly="is_employee" />
+                                <field name="actual" readonly="1" invisible="not is_special_scoring" />
                             </group>
                             <group invisible="kpi_type != 'quantitative'">
-                                <field name="is_auto" readonly="is_employee"/>
+                                <field name="is_auto" readonly="is_employee" />
                                 <field name="data_source" invisible="not is_auto"
-                                       readonly="is_employee"/>
+                                    readonly="is_employee" />
                                 <!-- ============================
                                  ATTENDANCE FULL (AUTO KPI METRICS)
                                 ============================ -->
                                 <field name="attendance_expected_days" readonly="1"
-                                       invisible="data_source != 'attendance_full'"/>
+                                    invisible="data_source != 'attendance_full'" />
                                 <field name="attendance_worked_days" readonly="1"
-                                       invisible="data_source != 'attendance_full'"/>
+                                    invisible="data_source != 'attendance_full'" />
                                 <field name="attendance_unpaid_leave_days" readonly="1"
-                                       invisible="data_source != 'attendance_full'"/>
+                                    invisible="data_source != 'attendance_full'" />
                                 <field name="attendance_approved_leave_days" readonly="1"
-                                       invisible="data_source != 'attendance_full'"/>
+                                    invisible="data_source != 'attendance_full'" />
                                 <field name="attendance_has_unpaid_leave" class="text-danger"
-                                       invisible="1"/>
+                                    invisible="1" />
                             </group>
                         </group>
 
@@ -134,15 +134,15 @@
                         <group string="Comments" invisible="is_section">
                             <group>
                                 <field name="employee_comment" widget="html"
-                                       readonly="evaluation_state != 'draft' or not is_employee"
-                                       options="{'resizable': false}"
-                                       style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                                    readonly="evaluation_state != 'draft' or not is_employee"
+                                    options="{'resizable': false}"
+                                    style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                             </group>
                             <group>
                                 <field name="manager_comment" widget="html"
-                                       readonly="not is_manager or evaluation_state == 'draft'"
-                                       options="{'resizable': false}"
-                                       style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                                    readonly="not is_manager or evaluation_state == 'draft'"
+                                    options="{'resizable': false}"
+                                    style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                             </group>
                         </group>
 
@@ -151,9 +151,9 @@
                              ============================ -->
                         <group string="KPI Description" invisible="is_section">
                             <field name="description" widget="html" placeholder="KPI Description"
-                                   readonly="evaluation_state == 'cancel' or not is_manager"
-                                   options="{'resizable': false}"
-                                   style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                                readonly="evaluation_state == 'cancel' or not is_manager"
+                                options="{'resizable': false}"
+                                style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                         </group>
                     </sheet>
                 </form>
@@ -166,19 +166,17 @@
             <field name="model">hr.performance.evaluation</field>
             <field name="arch" type="xml">
                 <list>
-                    <field name="name"/>
-
-                    <field name="employee_id"/>
-                    <field name="manager_id"/>
-                    <field name="job_id"/>
-                    <field name="kpi_id"/>
-                    <field name="period"/>
-                    <field name="performance_score"/>
-                    <field name="performance_level"/>
-                    <field name="start_date"/>
-                    <field name="end_date"/>
-                    <field name="deadline"/>
-
+                    <field name="name" />
+                    <field name="employee_id" />
+                    <field name="manager_id" />
+                    <field name="job_id" />
+                    <field name="kpi_id" />
+                    <field name="period" />
+                    <field name="performance_score" />
+                    <field name="performance_level" />
+                    <field name="start_date" />
+                    <field name="end_date" />
+                    <field name="deadline" />
                 </list>
             </field>
         </record>
@@ -189,106 +187,104 @@
             <field name="model">hr.performance.evaluation</field>
             <field name="arch" type="xml">
                 <kanban class="custom_eval_kanban">
-                    <field name="name"/>
-                    <field name="employee_id"/>
-                    <field name="performance_score"/>
-                    <field name="job_id"/>
-                    <field name="department_id"/>
-                    <field name="kpi_id"/>
-                    <field name="period"/>
-                    <field name="start_date"/>
-                    <field name="end_date"/>
-                    <field name="performance_level"/>
-                    <field name="state"/>
+                    <field name="name" />
+                    <field name="employee_id" />
+                    <field name="performance_score" />
+                    <field name="job_id" />
+                    <field name="department_id" />
+                    <field name="kpi_id" />
+                    <field name="period" />
+                    <field name="start_date" />
+                    <field name="end_date" />
+                    <field name="performance_level" />
+                    <field name="state" />
 
                     <templates>
                         <t t-name="kanban-box">
                             <div
-                                    t-attf-class="oe_kanban_global_click oe_kanban_card d-flex p-0 mb-3"
-                                    style="border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); background: white; min-height: 240px;position: relative;">
+                                t-attf-class="oe_kanban_global_click oe_kanban_card d-flex p-0 mb-3"
+                                style="border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); background: white; min-height: 240px;position: relative;">
 
                                 <t t-set="bg_sidebar"
-                                   t-value="record.performance_level.raw_value == 'excellent' ? '#d1e7fd' : (record.performance_level.raw_value == 'pass' ? '#dfffc5' : '#ffb9b9')"/>
-                                <t t-set="main_blue" t-value="'#517ca4'"/>
+                                    t-value="record.performance_level.raw_value == 'excellent' ? '#d1e7fd' : (record.performance_level.raw_value == 'pass' ? '#dfffc5' : '#ffb9b9')" />
+                                <t t-set="main_blue" t-value="'#517ca4'" />
                                 <t t-set="score_pct"
-                                   t-value="record.performance_score.raw_value * 10"/>
+                                    t-value="record.performance_score.raw_value * 10" />
 
                                 <aside
-                                        t-attf-style="width: 35%; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #{bg_sidebar};">
+                                    t-attf-style="width: 35%; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #{bg_sidebar};">
 
                                     <img
-                                            t-att-src="record.employee_id.raw_value ? '/web/image/hr.employee/' + record.employee_id.raw_value + '/image_128' : '/custom_adecsol_hr_performance_evaluator/static/description/default-avatar.png'"
-                                            style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"/>
+                                        t-att-src="record.employee_id.raw_value ? '/web/image/hr.employee/' + record.employee_id.raw_value + '/image_128' : '/custom_adecsol_hr_performance_evaluator/static/description/default-avatar.png'"
+                                        style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
 
                                     <strong
-                                            style="font-size: 16px; color: #333; text-align: center; margin-bottom: 20px;">
-                                        <field name="employee_id"/>
+                                        style="font-size: 16px; color: #333; text-align: center; margin-bottom: 20px;">
+                                        <field name="employee_id" />
                                     </strong>
 
                                     <div
-                                            t-attf-style="position: relative; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(#8ab9e6 #{score_pct}%, #cedee9 0);">
+                                        t-attf-style="position: relative; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(#8ab9e6 #{score_pct}%, #cedee9 0);">
                                         <div
-                                                t-attf-style="position: absolute; width: 80px; height: 80px; border-radius: 50%; background-color: #{bg_sidebar}; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                            t-attf-style="position: absolute; width: 80px; height: 80px; border-radius: 50%; background-color: #{bg_sidebar}; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                             <i class="fa fa-trophy"
-                                               style="position: absolute; font-size: 50px; color: rgba(255,255,255,0.4); z-index: 1;"></i>
+                                                style="position: absolute; font-size: 50px; color: rgba(255,255,255,0.4); z-index: 1;"></i>
                                             <strong
-                                                    t-attf-style="font-size: 32px; font-weight: 800; color: #517ca4; z-index: 2;">
-                                                <field name="performance_score"/>
+                                                t-attf-style="font-size: 32px; font-weight: 800; color: #517ca4; z-index: 2;">
+                                                <field name="performance_score" />
                                             </strong>
                                         </div>
                                     </div>
                                 </aside>
 
                                 <main
-                                        class="flex-grow-1 ps-3 pe-2 d-flex flex-column justify-content-center">
+                                    class="flex-grow-1 ps-3 pe-2 d-flex flex-column justify-content-center">
                                     <h2
-                                            t-attf-style="font-size: 28px; color: #{main_blue}; font-weight: 700; margin: 0 0 20px 0; letter-spacing: -0.5px;">
-                                        <field name="name"/>
+                                        t-attf-style="font-size: 28px; color: #{main_blue}; font-weight: 700; margin: 0 0 20px 0; letter-spacing: -0.5px;">
+                                        <field name="name" />
                                     </h2>
 
                                     <div class="d-flex align-items-center mb-2"
-                                         style="font-size: 14px; color: #444;">
+                                        style="font-size: 14px; color: #444;">
                                         <i class="fa fa-briefcase me-3"
-                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
-                                        <field name="job_id"/>
+                                            t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;" />
+                                        <field name="job_id" />
                                     </div>
                                     <div class="d-flex align-items-center mb-2"
-                                         style="font-size: 14px; color: #444;">
+                                        style="font-size: 14px; color: #444;">
                                         <i class="fa fa-building-o me-3"
-                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
-                                        <field name="department_id"/>
+                                            t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;" />
+                                        <field name="department_id" />
                                     </div>
                                     <div class="d-flex align-items-center mb-2"
-                                         style="font-size: 14px; color: #444;">
+                                        style="font-size: 14px; color: #444;">
                                         <i class="fa fa-bullseye me-3"
-                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
-                                        <field name="kpi_id"/>
+                                            t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;" />
+                                        <field name="kpi_id" />
                                     </div>
                                     <div class="d-flex align-items-center mb-2"
-                                         style="font-size: 14px; color: #444;">
+                                        style="font-size: 14px; color: #444;">
                                         <i class="fa fa-calendar-o me-3"
-                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
+                                            t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;" />
                                         <span class="text-capitalize">
-                                            <field name="period"/>
+                                            <field name="period" />
                                         </span>
                                     </div>
                                     <div class="d-flex align-items-center"
-                                         style="font-size: 14px; color: #444;">
+                                        style="font-size: 14px; color: #444;">
                                         <i class="fa fa-clock-o me-3"
-                                           t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;"/>
+                                            t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;" />
                                         <span>
-                                            <field name="start_date"/>
-                                            -
-                                            <field name="end_date"/>
+                                            <field name="start_date" /> - <field name="end_date" />
                                         </span>
                                     </div>
 
                                     <div class="d-flex align-items-center mt-3">
                                         <field name="state" widget="badge"
-                                               decoration-secondary="state == 'draft'"
-                                               decoration-warning="state == 'submitted'"
-                                               decoration-success="state == 'approved'"
-                                               decoration-danger="state == 'cancel'"/>
+                                            decoration-secondary="state == 'draft'"
+                                            decoration-warning="state == 'submitted'"
+                                            decoration-success="state == 'approved'"
+                                            decoration-danger="state == 'cancel'" />
                                     </div>
 
                                 </main>
@@ -309,178 +305,178 @@
                     <header>
                         <!-- State field to show the current state -->
                         <field name="state" widget="statusbar"
-                               statusbar_visible="draft,submitted,approved,cancel"/>
+                            statusbar_visible="draft,submitted,approved,cancel" />
 
                         <!-- Submit button -->
                         <button name="action_submit" type="object" string="Submit"
-                                groups="custom_adecsol_hr_performance_evaluator.group_employee"
-                                invisible="state != 'draft'"
-                                class="oe_highlight"/>
+                            groups="custom_adecsol_hr_performance_evaluator.group_employee"
+                            invisible="state != 'draft'"
+                            class="oe_highlight" />
                         <!-- Approve button -->
                         <button name="action_approve" type="object" string="Approve"
-                                groups="custom_adecsol_hr_performance_evaluator.group_manager"
-                                invisible="state != 'submitted'"
-                                class="oe_highlight"/>
+                            groups="custom_adecsol_hr_performance_evaluator.group_manager"
+                            invisible="state != 'submitted'"
+                            class="oe_highlight" />
 
                         <button name="action_cancel" type="object" string="Cancel"
-                                groups="custom_adecsol_hr_performance_evaluator.group_manager"
-                                class="btn-danger"
-                                invisible="state == 'cancel'"/>
+                            groups="custom_adecsol_hr_performance_evaluator.group_manager"
+                            class="btn-danger"
+                            invisible="state == 'cancel'" />
 
                     </header>
                     <sheet>
                         <group col="12">
                             <group colspan="2" class="custom_performance_col">
-                                <field name="performance_visual" nolabel="1" readonly="1"/>
+                                <field name="performance_visual" nolabel="1" readonly="1" />
                                 <div class="overall_score_box text-center">
                                     <div class="score_value text-primary font-weight-bold"
-                                         style="font-size: 32px;">
-                                        <field name="performance_score" readonly="1"/>
+                                        style="font-size: 32px;">
+                                        <field name="performance_score" readonly="1" />
                                     </div>
                                     <div class="text-uppercase small fw-bold mb-4">Overall
                                         Performance
                                     </div>
                                     <div class="d-flex justify-content-center">
                                         <field name="performance_level" widget="badge"
-                                               decoration-info="performance_level == 'excellent'"
-                                               decoration-success="performance_level == 'pass'"
-                                               decoration-danger="performance_level == 'fail'"
-                                               class="o_custom_level_badge"/>
+                                            decoration-info="performance_level == 'excellent'"
+                                            decoration-success="performance_level == 'pass'"
+                                            decoration-danger="performance_level == 'fail'"
+                                            class="o_custom_level_badge" />
                                     </div>
                                 </div>
                             </group>
 
                             <group colspan="5">
-                                <field name="user_id" invisible="1"/>
+                                <field name="user_id" invisible="1" />
 
                                 <field name="name"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="employee_id"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
 
                                 <field name="job_id" readonly="1"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="period"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="kpi_id"
-                                       readonly="not employee_id"
-                                       domain="[('period', '=', period), ('department_id', '=', department_id)]"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md "/>
+                                    readonly="not employee_id"
+                                    domain="[('period', '=', period), ('department_id', '=', department_id)]"
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md " />
                             </group>
                             <group colspan="5">
                                 <field name="manager_id" readonly="1"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="department_id" readonly="1"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="start_date"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="end_date"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="deadline"
-                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
-                                <field name="performance_score" invisible="1"/>
-                                <field name="performance_badge_class" invisible="1"/>
-                                <field name="has_binary_kpi" invisible="1"/>
-                                <field name="has_rating_kpi" invisible="1"/>
-                                <field name="has_score_kpi" invisible="1"/>
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
+                                <field name="performance_score" invisible="1" />
+                                <field name="performance_badge_class" invisible="1" />
+                                <field name="has_binary_kpi" invisible="1" />
+                                <field name="has_rating_kpi" invisible="1" />
+                                <field name="has_score_kpi" invisible="1" />
                             </group>
                         </group>
                         <notebook>
                             <page string="Evaluation Lines">
                                 <button name="action_compute_auto_kpi"
-                                        type="object"
-                                        string="Compute KPI"
-                                        class="btn-secondary"/>
+                                    type="object"
+                                    string="Compute KPI"
+                                    class="btn-secondary" />
                                 <button name="action_recompute_performance_score"
-                                        type="object"
-                                        string="Refresh Score"
-                                        class="btn-secondary ms-2"
+                                    type="object"
+                                    string="Refresh Score"
+                                    class="btn-secondary ms-2"
                                 />
-                                <field name="evaluation_line_ids" widget="evaluation_one2many"
-                                       context="{'default_evaluation_id': id, 'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup'}">
+                                <field name="evaluation_line_ids" widget="kpi_one2many"
+                                    context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
-                                          decoration-bf="is_section">
-                                        <field name="sequence" widget="handle"/>
-                                        <field name="is_section" column_invisible="1"/>
-                                        <field name="is_auto" column_invisible="1"/>
+                                        decoration-bf="is_section">
+                                        <field name="sequence" widget="handle" />
+                                        <field name="is_section" column_invisible="1" />
+                                        <field name="is_auto" column_invisible="1" />
 
-                                        <field name="key_performance_area" string="Title"/>
+                                        <field name="key_performance_area" string="Title" />
                                         <field name="description"
-                                               string="Info"
-                                               widget="kpi_description_icon"
-                                               invisible="is_section"
-                                               optional="show"/>
+                                            string="Info"
+                                            widget="kpi_description_icon"
+                                            invisible="is_section"
+                                            optional="show" />
 
-                                        <field name="kpi_type" invisible="is_section"/>
+                                        <field name="kpi_type" invisible="is_section" />
                                         <field name="target_type" optional="hide"
-                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                            invisible="is_section or kpi_type != 'quantitative'" />
                                         <field name="data_source" optional="hide"
-                                               invisible="is_section or not is_auto"/>
+                                            invisible="is_section or not is_auto" />
                                         <field name="direction" optional="hide"
-                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                            invisible="is_section or kpi_type != 'quantitative'" />
                                         <field name="employee_comment" optional="hide"
-                                               invisible="is_section"/>
+                                            invisible="is_section" />
                                         <field name="manager_comment" optional="hide"
-                                               invisible="is_section"/>
+                                            invisible="is_section" />
 
-                                        <field name="target" column_invisible="1" force_save="1"/>
+                                        <field name="target" column_invisible="1" force_save="1" />
                                         <field name="target_display" string="Target"
-                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
+                                            invisible="is_section or kpi_type != 'quantitative' or is_special_scoring" />
                                         <field name="actual_display" string="Actual"
-                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                            invisible="is_section or kpi_type != 'quantitative'" />
 
                                         <field name="employee_rating_binary"
-                                               string="Self Rating (Y/N)"
-                                               column_invisible="not parent.has_binary_kpi"
-                                               invisible="is_section or kpi_type != 'binary'"
-                                               readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' "/>
+                                            string="Self Rating (Y/N)"
+                                            column_invisible="not parent.has_binary_kpi"
+                                            invisible="is_section or kpi_type != 'binary'"
+                                            readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' " />
                                         <field name="employee_rating_selection"
-                                               string="Self Rating (0-5)" widget="priority"
-                                               column_invisible="not parent.has_rating_kpi"
-                                               invisible="is_section or kpi_type != 'rating'"
-                                               readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' "/>
+                                            string="Self Rating (0-5)" widget="priority"
+                                            column_invisible="not parent.has_rating_kpi"
+                                            invisible="is_section or kpi_type != 'rating'"
+                                            readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' " />
                                         <field name="employee_rating_score" string="Self Score"
-                                               column_invisible="not parent.has_score_kpi"
-                                               invisible="is_section or kpi_type != 'score'"
-                                               readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' "/>
+                                            column_invisible="not parent.has_score_kpi"
+                                            invisible="is_section or kpi_type != 'score'"
+                                            readonly="evaluation_state != 'draft' or evaluation_state == 'cancel' " />
 
                                         <field name="manager_rating_binary"
-                                               string="Manager Rating (Y/N)"
-                                               column_invisible="not parent.has_binary_kpi"
-                                               invisible="is_section or kpi_type != 'binary'"
-                                               readonly="evaluation_state != 'draft' or evaluation_state == 'cancel'"/>
+                                            string="Manager Rating (Y/N)"
+                                            column_invisible="not parent.has_binary_kpi"
+                                            invisible="is_section or kpi_type != 'binary'"
+                                            readonly="evaluation_state != 'draft' or evaluation_state == 'cancel'" />
                                         <field name="manager_rating_selection"
-                                               string="Manager Rating (0-5)" widget="priority"
-                                               column_invisible="not parent.has_rating_kpi"
-                                               invisible="is_section or kpi_type != 'rating'"
-                                               readonly="evaluation_state != 'draft' or evaluation_state == 'cancel'"/>
+                                            string="Manager Rating (0-5)" widget="priority"
+                                            column_invisible="not parent.has_rating_kpi"
+                                            invisible="is_section or kpi_type != 'rating'"
+                                            readonly="evaluation_state != 'draft' or evaluation_state == 'cancel'" />
                                         <field name="manager_rating_score" string="Manager Score"
-                                               column_invisible="not parent.has_score_kpi"
-                                               invisible="is_section or kpi_type != 'score'"
-                                               readonly="evaluation_state != 'draft' or evaluation_state == 'cancel'"/>
+                                            column_invisible="not parent.has_score_kpi"
+                                            invisible="is_section or kpi_type != 'score'"
+                                            readonly="evaluation_state != 'draft' or evaluation_state == 'cancel'" />
 
-                                        <field name="weight" invisible="is_section"/>
-                                        <field name="manager_edited" column_invisible="1"/>
-                                        <field name="final_rating_badge_class" column_invisible="1"/>
+                                        <field name="weight" invisible="is_section" />
+                                        <field name="manager_edited" column_invisible="1" />
+                                        <field name="final_rating_badge_class" column_invisible="1" />
                                         <field name="final_rating_badge_text" readonly="1"
-                                               widget="badge"
-                                               decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
-                                               decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
-                                               decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'"/>
+                                            widget="badge"
+                                            decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
+                                            decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
+                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" />
                                         <button name="action_open_popup" type="object"
-                                                icon="fa-pencil" title="Open Details"
-                                                invisible="is_section"/>
+                                            icon="fa-pencil" title="Open Details"
+                                            invisible="is_section" />
 
                                         <control>
                                             <create name="add_section" string="Add Section"
-                                                    context="{'default_is_section': True, 'default_display_type': 'line_section'}"/>
-                                            <create name="add_kpi" string="Add KPI"/>
+                                                context="{'default_is_section': True, 'default_display_type': 'line_section'}" />
+                                            <create name="add_kpi" string="Add KPI" />
                                         </control>
                                     </list>
                                 </field>
 
                                 <div class="o_perf_summary mt-3"
-                                     t-attf-class="o_perf_summary #{performance_badge_class}">
+                                    t-attf-class="o_perf_summary #{performance_badge_class}">
                                     <div class="o_perf_summary_body o_perf_summary_body_right">
 
                                         <div class="o_perf_summary_title">Evaluation results</div>
@@ -489,14 +485,14 @@
                                             <div class="o_perf_summary_score">
                                                 <span class="o_perf_label">Overall Performance:</span>
                                                 <span class="o_perf_value">
-                                                    <field name="performance_score"/>
+                                                    <field name="performance_score" />
                                                 </span>
                                                 <span class="o_perf_suffix">/ 10</span>
                                             </div>
                                             <div class="o_perf_summary_level">
                                                 <span class="o_perf_label">Result:</span>
                                                 <span class="o_perf_value">
-                                                    <field name="performance_level"/>
+                                                    <field name="performance_level" />
                                                 </span>
                                             </div>
                                         </div>
@@ -506,7 +502,7 @@
                             </page>
                         </notebook>
                     </sheet>
-<!--                                        <chatter/>-->
+                    <!--                                        <chatter/>-->
                 </form>
             </field>
         </record>
@@ -516,34 +512,34 @@
             <field name="model">hr.performance.evaluation</field>
             <field name="arch" type="xml">
                 <search>
-                    <field name="name"/>
+                    <field name="name" />
 
-                    <field name="employee_id"/>
-                    <field name="manager_id"/>
-                    <field name="department_id"/>
-                    <field name="job_id"/>
-                    <field name="kpi_id"/>
-                    <field name="period"/>
-                    <field name="performance_score"/>
-                    <field name="performance_level"/>
-                    <field name="start_date"/>
-                    <field name="end_date"/>
-                    <field name="deadline"/>
+                    <field name="employee_id" />
+                    <field name="manager_id" />
+                    <field name="department_id" />
+                    <field name="job_id" />
+                    <field name="kpi_id" />
+                    <field name="period" />
+                    <field name="performance_score" />
+                    <field name="performance_level" />
+                    <field name="start_date" />
+                    <field name="end_date" />
+                    <field name="deadline" />
 
-                    <filter string="Monthly" name="monthly" domain="[('period', '=', 'monthly')]"/>
+                    <filter string="Monthly" name="monthly" domain="[('period', '=', 'monthly')]" />
                     <filter string="Quarterly" name="quarterly"
-                            domain="[('period', '=', 'quarterly')]"/>
+                        domain="[('period', '=', 'quarterly')]" />
                     <filter string="Half-Yearly" name="half_yearly"
-                            domain="[('period', '=', 'half_yearly')]"/>
-                    <filter string="Yearly" name="yearly" domain="[('period', '=', 'yearly')]"/>
+                        domain="[('period', '=', 'half_yearly')]" />
+                    <filter string="Yearly" name="yearly" domain="[('period', '=', 'yearly')]" />
 
                     <filter string="Excellent" name="excellent"
-                            domain="[('performance_level', '=', 'excellent')]"/>
-                    <filter string="Pass" name="pass" domain="[('performance_level', '=', 'pass')]"/>
-                    <filter string="Fail" name="fail" domain="[('performance_level', '=', 'fail')]"/>
+                        domain="[('performance_level', '=', 'excellent')]" />
+                    <filter string="Pass" name="pass" domain="[('performance_level', '=', 'pass')]" />
+                    <filter string="Fail" name="fail" domain="[('performance_level', '=', 'fail')]" />
                     <group expand="1" string="Group By">
                         <filter string="Department" name="group_by_department"
-                                context="{'group_by':'department_id'}"/>
+                            context="{'group_by':'department_id'}" />
                     </group>
                 </search>
             </field>
@@ -559,8 +555,8 @@
 
         <!-- Menu Item to Access Performance Evaluation -->
         <menuitem id="kpi_employee_menu" name="KPI Employee" sequence="10"
-                  parent="performance_evaluator"/>
+            parent="performance_evaluator" />
         <menuitem id="performance_evaluation_menu" name="KPI Employee" sequence="10"
-                  parent="kpi_employee_menu" action="action_performance_evaluation"/>
+            parent="kpi_employee_menu" action="action_performance_evaluation" />
     </data>
 </odoo>

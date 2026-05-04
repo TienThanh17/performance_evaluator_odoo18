@@ -6,32 +6,7 @@ class KPIline(models.Model):
     _name = 'hr.kpi.line'
     _description = 'KPI Line for Job Position'
     _order = 'sequence, id'
-
-    # New simplified section flag (requested).
-    is_section = fields.Boolean(
-        string="Is Section",
-        default=False,
-        help="Enable this to make the line a Section header (used to group KPI lines). Sections do not affect scoring.",
-    )
-
-    # Backward-compatible technical field used by section_and_note_one2many.
-    # We keep it so existing views/widgets can still work.
-    display_type = fields.Selection(
-        selection=[
-            ('line_section', 'Section'),
-            ('line_note', 'Note'),
-        ],
-        default=False,
-        compute="_compute_display_type",
-        # inverse="_inverse_display_type",
-        store=True,
-        readonly=False,
-        help="Technical field for section/note lines. Derived from is_section.",
-    )
-    sequence = fields.Integer(
-        default=10,
-        help="Controls the order of lines in the KPI template (drag & drop).",
-    )
+    _rec_name = 'key_performance_area'
 
     key_performance_area = fields.Char(
         string="Key Performance Area",
@@ -86,7 +61,7 @@ class KPIline(models.Model):
         'hr.kpi',
         string='KPI',
         required=True,
-        help="The KPI template that this line belongs to.",
+        ondelete='cascade',
     )
     description = fields.Html(
         string="Description",
@@ -118,6 +93,20 @@ class KPIline(models.Model):
         help="Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).",
     )
 
+    is_section = fields.Boolean(default=False)
+    display_type = fields.Selection(
+        selection=[
+            ('line_section', 'Section'),
+            ('line_note', 'Note'),
+        ],
+        default=False,
+        compute="_compute_display_type",
+        store=True,
+        readonly=False,
+        help="Technical field for section/note lines. Derived from is_section.",
+    )
+    sequence = fields.Integer(default=10)
+
 
     @api.depends('kpi_type', 'data_source')
     def _compute_is_special_scoring(self):
@@ -143,6 +132,11 @@ class KPIline(models.Model):
             else:
                 rec.target_display = f"{(rec.target or 0.0):g}"
 
+    @api.depends('is_section')
+    def _compute_display_type(self):
+        for rec in self:
+            rec.display_type = 'line_section' if rec.is_section else False
+
     @api.constrains('kpi_type', 'target')
     def _check_numeric_target(self):
         for rec in self:
@@ -151,53 +145,8 @@ class KPIline(models.Model):
             if rec.kpi_type == 'quantitative' and (rec.target or 0.0) < 0.0:
                 raise ValidationError("For Quantitative KPI type, Target must be greater than or equal 0.")
 
-    @api.depends('is_section')
-    def _compute_display_type(self):
-        for rec in self:
-            rec.display_type = 'line_section' if rec.is_section else False
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        # Ensure section rows remain sections even if clients only send display_type.
-        # Also append new lines to the end by setting sequence to max(sequence)+10
-        # for the given KPI template when sequence is not explicitly provided.
-        seq_step = 10
-
-        # Pre-group by kpi_id to minimize queries
-        kpi_ids = {vals.get('kpi_id') for vals in vals_list if vals.get('kpi_id')}
-        max_seq_by_kpi = {}
-        if kpi_ids:
-            lines = self.search_read(
-                [('kpi_id', 'in', list(kpi_ids))],
-                ['kpi_id', 'sequence'],
-                order='sequence desc',
-            )
-            for l in lines:
-                kid = l['kpi_id'][0] if l.get('kpi_id') else False
-                if kid and kid not in max_seq_by_kpi:
-                    max_seq_by_kpi[kid] = l.get('sequence') or 0
-
-        for vals in vals_list:
-            if vals.get('display_type') and 'is_section' not in vals:
-                vals['is_section'] = True
-
-            kpi_id = vals.get('kpi_id')
-            if kpi_id and not vals.get('sequence'):
-                current_max = max_seq_by_kpi.get(kpi_id)
-                if current_max is None:
-                    current_max = 0
-                vals['sequence'] = current_max + seq_step
-                max_seq_by_kpi[kpi_id] = vals['sequence']
-
-        return super().create(vals_list)
-
     def write(self, vals):
         # Keep consistency for section rows on update.
         if vals.get('display_type') and 'is_section' not in vals:
             vals = dict(vals, is_section=True)
         return super().write(vals)
-
-    def _inverse_display_type(self):
-        for rec in self:
-            # Any display_type means it's a section/note
-            rec.is_section = bool(rec.display_type)

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dedicated form view for KPI Line used in popup (Add KPI) -->
+    <record id="view_hr_kpi_department_line_form_popup" model="ir.ui.view">
+        <field name="name">hr.kpi.department.line.form.popup</field>
+        <field name="model">hr.department.kpi.line</field>
+        <field name="arch" type="xml">
+            <form string="KPI Line">
+                <sheet>
+                    <div class="oe_title">
+                        <h2 class="mb-1">
+                            <field name="name"
+                                   placeholder="Title KPI"/>
+                        </h2>
+                    </div>
+
+                    <field name="is_section" invisible="1"/>
+                    <group invisible="is_section">
+                        <group string="KPI Info">
+                            <field name="department_kpi_id" invisible="1"/>
+                            <field name="kpi_type"/>
+                            <field name="target_type"
+                                   invisible="kpi_type != 'quantitative'"/>
+                            <field name="direction"
+                                   invisible="kpi_type != 'quantitative'"/>
+                            <field name="weight"/>
+                        </group>
+                        <group string="Auto Compute">
+                            <field name="is_auto"/>
+                            <field name="data_source" invisible="not is_auto"/>
+                        </group>
+                    </group>
+
+                    <group invisible="is_section">
+                        <group string="Target"
+                               invisible="kpi_type != 'quantitative'">
+                            <field name="target"/>
+                        </group>
+                    </group>
+
+                    <group string="Description">
+                        <field name="description" placeholder="KPI Description"
+                               style="width: 100%; min-width: 400px;"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_department_kpi_form" model="ir.ui.view">
+        <field name="name">hr.department.kpi.form</field>
+        <field name="model">hr.department.kpi</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="department_id"/>
+                            <field name="period"/>
+                        </group>
+                        <group>
+                            <field name="alpha"/>
+                            <field name="beta"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="KPI Lines">
+                            <field name="kpi_line_ids" widget="kpi_one2many"
+                                   context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_department_line_form_popup'}">
+                                <list editable="bottom" decoration-bf="is_section">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="is_section" column_invisible="True"/>
+
+                                    <field name="name" string="Title"/>
+                                    <field name="description"
+                                           string="Info"
+                                           widget="kpi_description_icon"
+                                           invisible="is_section"
+                                           optional="show"/>
+
+                                    <field name="kpi_type" invisible="is_section"/>
+                                    <field name="target_type"
+                                           invisible="is_section or kpi_type != 'quantitative'"/>
+                                    <field name="target_display" string="Target"
+                                           invisible="is_section or kpi_type != 'quantitative'"/>
+                                    <field name="direction"
+                                           invisible="is_section or kpi_type != 'quantitative'"/>
+
+                                    <field name="is_auto" column_invisible="1"/>
+                                    <field name="data_source"
+                                           invisible="is_section or not is_auto"/>
+
+                                    <field name="weight" invisible="is_section"/>
+                                    <control>
+                                        <create name="add_section" string="Add Section"
+                                                context="{'default_is_section': True}"
+                                        />
+                                        <create name="add_kpi" string="Add KPI"/>
+                                    </control>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_department_kpi_list" model="ir.ui.view">
+        <field name="name">hr.department.kpi.list</field>
+        <field name="model">hr.department.kpi</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="department_id"/>
+                <field name="period"/>
+                <field name="alpha"/>
+                <field name="beta"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_hr_department_kpi" model="ir.actions.act_window">
+        <field name="name">Department KPIs</field>
+        <field name="res_model">hr.department.kpi</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_kpi_department_form" name="KPI Department Template" parent="menu_kpi_template" sequence="20"
+              action="action_hr_department_kpi"/>
+</odoo>

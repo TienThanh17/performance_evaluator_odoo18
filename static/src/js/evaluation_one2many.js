@@ -14,8 +14,13 @@ import { useService } from "@web/core/utils/hooks";
 class EvaluationListRenderer extends ListRenderer {
     setup() {
         super.setup();
-        this.discriminant = "is_section";
-        this.titleField = "key_performance_area";
+
+        // Lấy context từ list hiện tại (đã được Odoo parse từ XML)
+        const context = this.props.list?.context || {};
+
+        // Đọc tên field từ context, nếu không có thì dùng mặc định
+        this.discriminant = context.section_field || "is_section";
+        this.titleField = context.title_field || "name"; // Mặc định của Odoo thường là 'name'
     }
 
     onClickSortColumn(column) {

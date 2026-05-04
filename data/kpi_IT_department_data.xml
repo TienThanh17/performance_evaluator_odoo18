@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="kpi_template_it_dept_total" model="hr.department.kpi">
+            <field name="name">KPI Tổng quát Phòng IT - Hệ thống 2026</field>
+            <field name="period">monthly</field>
+        </record>
+
+        <record id="section_it_safety" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">TC1: AN TOÀN</field>
+            <field name="is_section">True</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="line_it_ppe" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Trang bị bảo hộ lao động đầy đủ</field>
+            <field name="description">Kiểm tra 2 lần/ngày. Mục tiêu: 0 lần vi phạm/tháng.</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">10.0</field>
+            <field name="sequence">11</field>
+        </record>
+
+        <record id="kpi_section_quality" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">TC2: CHẤT LƯỢNG</field>
+            <field name="is_section">True</field>
+            <field name="sequence">15</field>
+        </record>
+
+        <record id="kpi_line_it_uptime" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Tỷ lệ hoạt động ổn định của hệ thống (Uptime)</field>
+            <field name="description">Đảm bảo các server và dịch vụ hoạt động liên tục. Mục tiêu: 99.9%.</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">10.0</field>
+            <field name="sequence">16</field>
+        </record>
+
+        <record id="kpi_section_service" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">TC3: PHỤC VỤ</field>
+            <field name="is_section">True</field>
+            <field name="sequence">18</field>
+        </record>
+
+        <record id="kpi_line_it_sla" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Thời gian phản hồi và xử lý sự cố (SLA)</field>
+            <field name="description">Xử lý yêu cầu từ các phòng ban khác đúng thời hạn cam kết.</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">10.0</field>
+            <field name="sequence">19</field>
+        </record>
+
+        <record id="section_it_progress" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">TC4: TIẾN ĐỘ</field>
+            <field name="is_section">True</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="line_it_task_deadline" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Thực hiện công việc kịp tiến độ</field>
+            <field name="description">Số lần trễ tiến độ dự án/đầu việc. Mục tiêu: 0 lần.</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">20.0</field>
+            <field name="sequence">21</field>
+        </record>
+
+        <record id="line_it_report_quality" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Báo cáo đúng hạn và đầy đủ thông tin</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">10.0</field>
+            <field name="sequence">22</field>
+        </record>
+
+        <record id="section_it_cost" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">TC5: CHI PHÍ</field>
+            <field name="is_section">True</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="line_it_budget_variance" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Giảm thất thoát vật tư trong lập dự toán</field>
+            <field name="description">Giới hạn sai lệch chi phí +/- 2%.</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">15.0</field>
+            <field name="sequence">31</field>
+        </record>
+
+        <record id="line_it_design_survey" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Khảo sát, thiết kế bản vẽ thực tế 100%</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">10.0</field>
+            <field name="sequence">32</field>
+        </record>
+
+        <record id="section_it_hr_quality" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">TC6: ĐÀO TẠO &amp; PHẨM CHẤT</field>
+            <field name="is_section">True</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="line_it_training_plan" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Đào tạo nhân viên theo kế hoạch</field>
+            <field name="description">% số khóa đào tạo thực hiện. Mục tiêu > 80%.</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">15.0</field>
+            <field name="sequence">41</field>
+        </record>
+
+        <record id="line_it_staff_capability" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Chất lượng nhân sự đáp ứng nhu cầu</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">10.0</field>
+            <field name="sequence">42</field>
+        </record>
+
+        <record id="kpi_section_kaizen" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">TC7: CẢI TIẾN &amp; KAIZEN</field>
+            <field name="is_section">True</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="kpi_line_it_kaizen_ideas" model="hr.department.kpi.line">
+            <field name="department_kpi_id" ref="kpi_template_it_dept_total"/>
+            <field name="name">Số lượng sáng kiến, cải tiến kỹ thuật</field>
+            <field name="description">Áp dụng công nghệ mới hoặc tối ưu quy trình giúp tăng hiệu suất phòng ban.</field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">10.0</field>
+            <field name="sequence">51</field>
+        </record>
+    </data>
+</odoo>
