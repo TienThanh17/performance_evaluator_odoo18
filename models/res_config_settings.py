@@ -28,3 +28,11 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='custom_adecsol_hr_performance_evaluator.deadline_reminder_days',
         help="Number of days before the deadline to send a reminder notification to employees.",
     )
+
+    def get_thresholds(self):
+        """Fetch KPI thresholds from system parameters."""
+        icp = self.env['ir.config_parameter'].sudo()
+        excellent = float(
+            icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent', default='9') or 9.0)
+        passed = float(icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_pass', default='5') or 5.0)
+        return excellent, passed

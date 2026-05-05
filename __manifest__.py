@@ -28,6 +28,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         'data/kpi_IT_department_data.xml',
 
         # ============================== VIEWS =============================
+        'views/hr_department_kpi_generate_wizard_views.xml',
         'views/res_config_settings_views.xml',
         'views/kpi_view.xml',
         'views/hr_department_kpi_views.xml',

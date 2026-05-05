@@ -12,6 +12,7 @@ class HrPerformanceReport(models.Model):
     _name = 'hr.performance.report'
     _description = 'Performance Report'
     _inherit = ['mail.thread', 'mail.activity.mixin']
+    # _rec_name = 'department_name'
 
     # Fields
     period = fields.Selection([
@@ -42,6 +43,18 @@ class HrPerformanceReport(models.Model):
         'hr.department.performance.evaluation', 'performance_report_id',
         string='Department Evaluations'
     )
+
+    @api.depends('department_id.name', 'start_date', 'end_date')
+    def _compute_display_name(self):
+        for rec in self:
+            # Lấy tên phòng ban hoặc mặc định nếu chưa chọn
+            name = rec.department_name or "Performance Report"
+
+            if rec.start_date and rec.end_date:
+                # Định dạng: Department Name (2026-01-01 - 2026-01-31)
+                rec.display_name = f"{name} ({rec.start_date} - {rec.end_date})"
+            else:
+                rec.display_name = name
 
     def action_generate_department_evaluations(self):
         for report in self:

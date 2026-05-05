@@ -478,17 +478,9 @@ class PerformanceEvaluationLine(models.Model):
                 # score (and any future non-quantitative types): fallback to system_score
                 line.final_rating = round(max(0.0, min(line.system_score or 0.0, 10.0)), 2)
 
-    def _get_thresholds(self):
-        """Fetch KPI thresholds from system parameters."""
-        icp = self.env['ir.config_parameter'].sudo()
-        excellent = float(
-            icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent', default='9') or 9.0)
-        passed = float(icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_pass', default='5') or 5.0)
-        return excellent, passed
-
     @api.depends('final_rating')
     def _compute_final_rating_badge_class(self):
-        excellent, passed = self._get_thresholds()
+        excellent, passed = self.env['res.config.settings'].get_thresholds()
         for line in self:
             score = line.final_rating or 0.0
             if score >= excellent:
@@ -501,8 +493,13 @@ class PerformanceEvaluationLine(models.Model):
     @api.depends('final_rating')
     def _compute_final_rating_badge_text(self):
         for line in self:
-            # Always show a value, including 0.0, with exactly 1 decimal.
-            line.final_rating_badge_text = f"{(line.final_rating or 0.0):.1f}"
+            rating = line.final_rating
+            if rating == 0:
+                line.final_rating_badge_text = '0'
+            elif rating == 10 or rating % 1 == 0:
+                line.final_rating_badge_text = f"{int(rating)}"
+            else:
+                line.final_rating_badge_text = f"{rating:.1f}"
 
     # ------------------------------------------------------------------
     # onchange

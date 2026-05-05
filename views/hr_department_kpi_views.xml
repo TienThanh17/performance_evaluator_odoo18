@@ -52,6 +52,10 @@
         <field name="model">hr.department.kpi</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="%(custom_adecsol_hr_performance_evaluator.action_hr_department_kpi_generate_wizard)d" 
+                            string="Generate Evaluations" type="action" class="btn-primary"/>
+                </header>
                 <sheet>
                     <group>
                         <group>

@@ -98,7 +98,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     async _loadDashboardData() {
         const record = this.props.record;
         const data = record.data;
-        console.log('data', data)
+        console.log('this.props.record.data', data)
 
         // Tên phòng ban
         this.state.departmentName = data.department_name;
@@ -195,7 +195,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
         this.state.totalEmployees = total;
         this.state.avgScore = total
-            ? (scoreSum / total).toFixed(1)
+            ? (scoreSum / total).toFixed(2)
             : "0.0";
         this.state.passRate = total
             ? Math.round((passCount / total) * 100).toString()

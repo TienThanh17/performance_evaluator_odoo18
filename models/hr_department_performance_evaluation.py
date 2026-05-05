@@ -8,7 +8,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
     name = fields.Char(compute='_compute_name', store=True)
     department_id = fields.Many2one('hr.department', required=True)
-    department_kpi_id = fields.Many2one('hr.department.kpi', required=True)
+    department_kpi_id = fields.Many2one('hr.department.kpi', required=True, string='Department KPI')
     performance_report_id = fields.Many2one('hr.performance.report', ondelete='cascade')
 
     start_date = fields.Date(required=True)
@@ -34,17 +34,35 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         compute='_compute_avg_individual_score', store=True,
         help='TB performance_score của nhân sự đã approved trong kỳ'
     )
+    # avg_individual_score = fields.Float(
+    #     related='performance_report_id.individual_score',
+    #     help='TB performance_score của nhân sự đã approved trong kỳ',
+    # )
+    alpha = fields.Float(related='department_kpi_id.alpha')
+    beta = fields.Float(related='department_kpi_id.beta')
 
     department_score = fields.Float(
         compute='_compute_department_score', store=True,
         help='α × dept_kpi_score + β × avg_individual_score'
     )
-    
+
     department_level = fields.Selection([
         ('excellent', 'Excellent'),
         ('pass', 'Pass'),
         ('fail', 'Fail'),
     ], compute='_compute_department_level', store=True)
+
+    has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_rating_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_score_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+
+    @api.depends("evaluation_line_ids.kpi_type")
+    def _compute_kpi_types(self):
+        for rec in self:
+            kpi_types = rec.evaluation_line_ids.mapped('kpi_type')
+            rec.has_binary_kpi = 'binary' in kpi_types
+            rec.has_rating_kpi = 'rating' in kpi_types
+            rec.has_score_kpi = 'score' in kpi_types
 
     @api.depends('department_id', 'start_date', 'end_date')
     def _compute_name(self):
@@ -64,13 +82,13 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             else:
                 rec.dept_kpi_score = 0.0
 
-    @api.depends('department_id', 'start_date', 'end_date')
+    @api.depends('department_id', 'start_date', 'end_date', 'performance_report_id')
     def _compute_avg_individual_score(self):
         for rec in self:
             if not rec.department_id or not rec.start_date or not rec.end_date:
                 rec.avg_individual_score = 0.0
                 continue
-            
+
             evals = self.env['hr.performance.evaluation'].search([
                 ('state', '=', 'approved'),
                 ('employee_id.department_id', '=', rec.department_id.id),
@@ -93,7 +111,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     def _compute_department_level(self):
         # Giả sử thresholds 9 = Excellent, 5 = Pass giống như cá nhân
         icp = self.env['ir.config_parameter'].sudo()
-        excellent = float(icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent', default='9') or 9.0)
+        excellent = float(
+            icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent', default='9') or 9.0)
         passed = float(icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_pass', default='5') or 5.0)
 
         for rec in self:
@@ -103,7 +122,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 rec.department_level = 'pass'
             else:
                 rec.department_level = 'fail'
-                
+
     def action_compute_auto_kpi(self):
         engine = self.env['hr.kpi.engine']
         for evaluation in self:
@@ -113,19 +132,19 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 if not line.is_auto or line.is_section:
                     continue
                 actual = engine.compute_for_department(
-                    evaluation.department_id, 
-                    line.department_kpi_line_id, 
-                    evaluation.start_date, 
+                    evaluation.department_id,
+                    line.department_kpi_line_id,
+                    evaluation.start_date,
                     evaluation.end_date
                 )
                 line.actual = actual
-                
+
     def action_submit(self):
         self.write({'state': 'submitted'})
-        
+
     def action_approve(self):
         self.write({'state': 'approved'})
-        
+
     def action_cancel(self):
         self.write({'state': 'cancel'})
 

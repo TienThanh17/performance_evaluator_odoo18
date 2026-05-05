@@ -16,14 +16,14 @@ class HrDepartmentKpi(models.Model):
     ], required=True)
 
     alpha = fields.Float(
-        string='Trọng số KPI riêng (α)',
+        string='Department KPI Weight (α)',
         default=0.5,
-        help='Trọng số cho điểm KPI riêng phòng ban. α + β phải = 1.0'
+        help='Weight applied to the department’s specific KPI score. The sum of α + β must be 1.0.'
     )
     beta = fields.Float(
-        string='Trọng số TB cá nhân (β)',
+        string='Average Individual Weight (β)',
         default=0.5,
-        help='Trọng số cho trung bình điểm cá nhân. α + β phải = 1.0'
+        help='Weight applied to the average performance score of all employees. The sum of α + β must be 1.0.'
     )
 
     kpi_line_ids = fields.One2many('hr.department.kpi.line', 'department_kpi_id')
@@ -32,7 +32,7 @@ class HrDepartmentKpi(models.Model):
     def _check_weights(self):
         for rec in self:
             if abs(rec.alpha + rec.beta - 1.0) > 1e-6:
-                raise ValidationError('α + β phải bằng 1.0 (Ví dụ: 0.5 và 0.5)')
+                raise ValidationError('α + β must equal 1.0 (For example: 0.5 and 0.5)')
 
     def copy(self, default=None):
         # 1. Initialize default dictionary

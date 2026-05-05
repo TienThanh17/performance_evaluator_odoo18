@@ -26,13 +26,28 @@
                         </group>
                     </group>
 
+                    <group string="Assessment" invisible="is_section or kpi_type == 'quantitative'">
+                        <group>
+                            <label for="manager_rating_binary" string="Manager Rating"
+                                   invisible="kpi_type != 'binary'"/>
+                            <field name="manager_rating_binary" nolabel="1" widget="radio"
+                                   invisible="kpi_type != 'binary'"/>
+
+                            <label for="manager_rating_selection" string="Manager Rating (0-5)"
+                                   invisible="kpi_type != 'rating'"/>
+                            <field name="manager_rating_selection" nolabel="1" widget="priority_onchange"
+                                   invisible="kpi_type != 'rating'"/>
+
+                            <label for="manager_rating_score" string="Manager Score" invisible="kpi_type != 'score'"/>
+                            <field name="manager_rating_score" nolabel="1" invisible="kpi_type != 'score'"/>
+                        </group>
+                    </group>
+
                     <group string="Scoring" invisible="is_section">
                         <group>
                             <field name="system_score" readonly="1"/>
-                            <field name="use_override"/>
                         </group>
                         <group>
-                            <field name="manager_score_override" invisible="use_override == False"/>
                             <field name="final_score" readonly="1"/>
                         </group>
                     </group>
@@ -99,10 +114,19 @@
                     </group>
                     <group>
                         <group string="Scores">
-                            <field name="dept_kpi_score" readonly="1"/>
-                            <field name="avg_individual_score" readonly="1"/>
-                            <field name="department_score" readonly="1"/>
-                            <field name="department_level" readonly="1"/>
+                            <group>
+                                <field name="dept_kpi_score" string="Department KPI Score" readonly="1"/>
+                                <field name="avg_individual_score" string="Average Individual Score" readonly="1"/>
+                                <field name="department_score" string="Overall Score" readonly="1"/>
+                                <field name="department_level" widget="badge" string="Performance Level"
+                                       decoration-success="department_level == 'pass'"
+                                       decoration-info="department_level == 'excellent'"
+                                       decoration-danger="department_level == 'fail'" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="alpha" string="KPI Weight (α)" readonly="1"/>
+                                <field name="beta" string="Individual Weight (β)" readonly="1"/>
+                            </group>
                         </group>
                     </group>
                     <notebook>
@@ -113,7 +137,7 @@
                             <field name="evaluation_line_ids" widget="kpi_one2many"
                                    readonly="state in ('approved', 'cancel')"
                                    context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_department_evaluation_line_form_popup', 'title_field': 'name'}">
-                                <list editable="bottom" decoration-warning="use_override"
+                                <list editable="bottom"
                                       decoration-bf="is_section">
                                     <field name="sequence" widget="handle"/>
                                     <field name="is_section" column_invisible="1"/>
@@ -143,11 +167,28 @@
                                     <field name="actual_display" string="Actual"
                                            invisible="is_section or kpi_type != 'quantitative'"/>
 
-                                    <field name="system_score" readonly="1" invisible="is_section"/>
-                                    <field name="use_override" invisible="is_section"/>
-                                    <field name="manager_score_override"
-                                           invisible="use_override == False"/>
-                                    <field name="final_score" readonly="1" invisible="is_section"/>
+                                    <field name="manager_rating_binary"
+                                           string="Manager Rating (Y/N)"
+                                           invisible="is_section or kpi_type != 'binary'"
+                                           column_invisible="not parent.has_binary_kpi"
+                                    />
+                                    <field name="manager_rating_selection"
+                                           string="Manager Rating (0-5)" widget="priority_onchange"
+                                           invisible="is_section or kpi_type != 'rating'"
+                                           column_invisible="not parent.has_rating_kpi"
+                                    />
+                                    <field name="manager_rating_score" string="Manager Score"
+                                           invisible="is_section or kpi_type != 'score'"
+                                           column_invisible="not parent.has_score_kpi"
+                                    />
+                                    <field name="weight" invisible="is_section"/>
+
+                                    <field name="final_score_badge_class" column_invisible="1"/>
+                                    <field name="final_score_badge_text" readonly="1"
+                                           widget="badge"
+                                           decoration-info="final_score_badge_class == 'o_kpi_badge_excellent'"
+                                           decoration-success="final_score_badge_class == 'o_kpi_badge_pass'"
+                                           decoration-danger="final_score_badge_class == 'o_kpi_badge_fail'"/>
 
                                     <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
