@@ -132,7 +132,7 @@
         <menuitem
             id="menu_hr_performance_report"
             parent="kpi_employee_menu"
-            name="KPI Employee Reports"
+            name="Manage KPI Employee"
             sequence="20"
             action="action_hr_performance_report"/>
 

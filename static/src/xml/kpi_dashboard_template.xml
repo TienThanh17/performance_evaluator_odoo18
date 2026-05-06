@@ -8,7 +8,7 @@
   <div class="o_kpi_selector_bar">
     <div class="o_kpi_selector_left">
       <i class="fa fa-tachometer o_kpi_selector_icon"/>
-      <span class="o_kpi_selector_title">My Performance Dashboard</span>
+      <span class="o_kpi_selector_title">Performance Dashboard</span>
     </div>
     <div class="o_kpi_selector_right">
           <!-- Bộ lọc Department & Employee (Chỉ dành cho Manager) -->
@@ -132,7 +132,7 @@
       <!-- Competency Spider Web -->
       <div class="o_kpi_card o_kpi_spider_card" t-if="state.data.spider_web.labels.length">
         <div class="o_kpi_card_header">
-          <span class="o_kpi_card_title"><i class="fa fa-bullseye"/> Competency Spider Web</span>
+          <span class="o_kpi_card_title"><i class="fa fa-bullseye"/> Competency Chart</span>
         </div>
         <div class="o_kpi_spider_body">
           <div class="o_kpi_chart_container o_kpi_chart_radar">

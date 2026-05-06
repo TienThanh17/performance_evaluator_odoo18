@@ -791,32 +791,42 @@ class HrKpiEngine(models.AbstractModel):
 
         return result
 
-    @api.model
     def get_task_on_time_by_day(self, employee, kpi_line, date_from, date_to):
-        """Trả về list per-day on-time rate, dùng chung logic với _compute_task_on_time."""
+        """Trả về list per-day on-time rate so với tổng task cả kỳ, dùng chung logic với _compute_task_on_time."""
         user = employee.user_id
-        if not user:
+        if not user or not date_from or not date_to:
             return []
 
         Task = self.env["project.task"].sudo()
-        d, d_end = fields.Date.to_date(date_from), fields.Date.to_date(date_to)
+        d_start = fields.Date.to_date(date_from)
+        d_end = fields.Date.to_date(date_to)
+
+        # 1. Tối ưu: Lấy TOÀN BỘ tasks từ from_date đến end_date bằng 1 câu query duy nhất
+        all_tasks = Task.search([
+            ("user_ids", "in", user.id),
+            # ("stage_id.is_done_stage", "=", True),
+            ("date_deadline", ">=", d_start),
+            ("date_deadline", "<=", d_end),
+            ("project_id", "!=", False),
+        ])
+
+        # 2. Gán total = len của TẤT CẢ tasks trong kỳ
+        total_all_tasks = len(all_tasks)
+        on_time = 0
+
         result = []
-        day = d
+        day = d_start
+
         while day <= d_end:
-            tasks = Task.search(
-                [
-                    ("user_ids", "in", user.id),
-                    ("stage_id.is_done_stage", "=", True),
-                    ("date_deadline", ">=", day),
-                    ("date_deadline", "<=", day),
-                    ("project_id", "!=", False),
-                ]
+            # Lọc ra các tasks có done_date rơi vào 'day' đang xét từ tập all_tasks đã query ở trên
+            tasks_of_day = all_tasks.filtered(
+                lambda t: t.done_date and fields.Date.to_date(t.done_date) == day
             )
-            if not tasks:
+
+            if not tasks_of_day:
                 result.append(None)
             else:
-                on_time, total = 0, 0
-                for t in tasks:
+                for t in tasks_of_day:
                     done_dt = (
                         fields.Datetime.to_datetime(t.done_date)
                         if t.done_date
@@ -827,62 +837,24 @@ class HrKpiEngine(models.AbstractModel):
                         if t.date_deadline
                         else False
                     )
+
                     if not done_dt or not deadline_dt:
                         continue
-                    total += 1
+
                     # Dùng CÙNG logic với _compute_task_on_time
                     done_local = fields.Datetime.context_timestamp(self, done_dt)
-                    deadline_local = fields.Datetime.context_timestamp(
-                        self, deadline_dt
-                    )
+                    deadline_local = fields.Datetime.context_timestamp(self, deadline_dt)
+
                     if done_local <= deadline_local:
                         on_time += 1
-                result.append(round(on_time / total * 100, 1) if total > 0 else 0.0)
+
+                # Chia on_time của ngày cho tổng số lượng task của CẢ KỲ
+                rate = round((on_time / total_all_tasks) * 100, 1) if total_all_tasks > 0 else 0.0
+                result.append(rate)
+
             day = fields.Date.add(day, days=1)
+
         return result
-
-    # @api.model
-    # def get_late_days_by_day(self, employee, kpi_line, date_from, date_to):
-    #     """Trả về per-day check-in hour (decimal), dùng chung logic với _compute_late_days."""
-    #     if not employee:
-    #         return []
-
-    #     calendar = employee.resource_calendar_id
-    #     tz = self._get_tz(employee)
-    #     d, d_end = fields.Date.to_date(date_from), fields.Date.to_date(date_to)
-
-    #     dt_start = datetime.datetime.combine(d, datetime.time.min)
-    #     dt_end = datetime.datetime.combine(
-    #         d_end + datetime.timedelta(days=1), datetime.time.min
-    #     )
-    #     attendances = (
-    #         self.env["hr.attendance"]
-    #         .sudo()
-    #         .search(
-    #             [
-    #                 ("employee_id", "=", employee.id),
-    #                 ("check_in", ">=", dt_start),
-    #                 ("check_in", "<", dt_end),
-    #             ],
-    #             order="check_in asc",
-    #         )
-    #     )
-
-    #     first_ci_by_date = {}
-    #     for att in attendances:
-    #         if not att.check_in:
-    #             continue
-    #         ci_local = att.check_in.replace(tzinfo=pytz.UTC).astimezone(tz)
-    #         day = ci_local.date()
-    #         if day not in first_ci_by_date:
-    #             first_ci_by_date[day] = round(ci_local.hour + ci_local.minute / 60.0, 2)
-
-    #     result = []
-    #     day = d
-    #     while day <= d_end:
-    #         result.append(first_ci_by_date.get(day))
-    #         day = fields.Date.add(day, days=1)
-    #     return result
 
     # ------------------------------------------------------------
     # Calendar helpers

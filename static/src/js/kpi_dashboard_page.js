@@ -352,7 +352,7 @@ export class KpiDashboard extends Component {
                             data: d.task_completion.data,
                             borderColor: COLOR_BLUE,
                             backgroundColor: "rgba(59,130,246,0.15)",
-                            fill: true, tension: 0.4, pointRadius: 3, spanGaps: true,
+                            fill: true, tension: 0.4, pointRadius: 5, spanGaps: true,
                         },
                         {
                             label: "Target",
@@ -385,7 +385,7 @@ export class KpiDashboard extends Component {
         if (puncEl && d.punctuality_log.labels.length) {
             const expectedH = d.punctuality_log.expected_hour || 8;
             const yMin = Math.max(0, Math.floor(expectedH) - 1);
-            const yMax = Math.ceil(expectedH) + 4;
+            const yMax = Math.ceil(expectedH) + 1.5;
             this._charts.punctuality = new Chart(puncEl, {
                 type: "line",
                 data: {
@@ -396,7 +396,7 @@ export class KpiDashboard extends Component {
                             data: d.punctuality_log.data,
                             borderColor: COLOR_GREEN,
                             backgroundColor: "rgba(34,197,94,0.12)",
-                            fill: true, tension: 0.3, pointRadius: 3, spanGaps: true,
+                            fill: true, tension: 0.3, pointRadius: 5, spanGaps: true,
                         },
                         {
                             label: "Start time",
@@ -423,9 +423,12 @@ export class KpiDashboard extends Component {
                         x: { ticks: { maxTicksLimit: 10, font: { size: 10 } }, grid: { display: false } },
                         y: {
                             min: yMin, max: yMax,
-                            ticks: { stepSize: 1, callback: (v) => v + "h" },
+                            ticks: {
+                                stepSize: 0.25,
+                                callback: (v) => formatHour(v) // Tái sử dụng luôn hàm đã có
+                            },
                             grid: { color: "rgba(0,0,0,0.05)" },
-                        },
+                        }
                     },
                 },
             });
@@ -448,12 +451,45 @@ export class KpiDashboard extends Component {
                 },
                 options: {
                     responsive: true,
+                    // Cho phép tự do thay đổi chiều cao của Chart (không bị fix cứng tỷ lệ vuông)
+                    maintainAspectRatio: false,
+
+                    // 1. CHỐNG CẮT CHỮ: Chừa lề xung quanh chart (Tăng số này lên nếu chữ vẫn bị cắt)
+                    layout: {
+                        padding: 30
+                    },
+
                     plugins: { legend: { display: false } },
                     scales: {
                         r: {
                             min: 0, max: 10,
                             ticks: { stepSize: 2, font: { size: 10 } },
-                            pointLabels: { font: { size: 11 } },
+                            pointLabels: {
+                                font: { size: 11 },
+                                // 2. TỰ ĐỘNG NGẮT DÒNG CHO NHÃN QUÁ DÀI
+                                callback: function (label) {
+                                    const maxLength = 15; // Ký tự tối đa trên 1 dòng (bạn có thể tùy chỉnh)
+                                    if (typeof label === 'string' && label.length > maxLength) {
+                                        // Cắt theo dấu cách để không làm đứt đôi 1 từ
+                                        const words = label.split(' ');
+                                        let lines = [];
+                                        let currentLine = '';
+
+                                        words.forEach(word => {
+                                            if ((currentLine + word).length > maxLength) {
+                                                if (currentLine) lines.push(currentLine.trim());
+                                                currentLine = word + ' ';
+                                            } else {
+                                                currentLine += word + ' ';
+                                            }
+                                        });
+                                        if (currentLine) lines.push(currentLine.trim());
+
+                                        return lines; // Trả về mảng -> Chart.js sẽ hiển thị nhiều dòng
+                                    }
+                                    return label;
+                                }
+                            },
                             grid: { color: "rgba(0,0,0,0.07)" },
                         },
                     },
@@ -467,7 +503,7 @@ export class KpiDashboard extends Component {
             const worked = d.attendance_full.summary.worked_days;
             const expected = d.attendance_full.summary.expected_work_days;
             const absent = expected - worked;
-            
+
             this._charts.attendance = new Chart(attendanceEl, {
                 type: "doughnut",
                 data: {
@@ -483,7 +519,7 @@ export class KpiDashboard extends Component {
                     responsive: true,
                     maintainAspectRatio: false,
                     cutout: '75%', // makes it a thin ring
-                    plugins: { 
+                    plugins: {
                         legend: { display: false },
                         tooltip: {
                             callbacks: {

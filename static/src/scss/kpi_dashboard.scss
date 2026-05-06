@@ -328,8 +328,17 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 }
 
 .o_kpi_chart_radar {
-    max-width: 340px;
-    margin: 0 auto;
+    /* Cho phép chart tự động phình to ra chiếm hết không gian còn dư */
+    flex: 1;
+
+    /* Gỡ bỏ giới hạn 340px cũ */
+    max-width: none;
+
+    /* BẮT BUỘC: Để cấu hình maintainAspectRatio: false trong JS hoạt động */
+    position: relative;
+
+    /* Set chiều cao tối thiểu để chart to ra. Bạn có thể tăng giảm số này */
+    min-height: 380px;
 }
 
 .o_kpi_chart_note {
@@ -344,14 +353,16 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     display: flex;
     align-items: center;
     gap: 20px;
-    flex-wrap: wrap;
+    /* Ép 2 div con (chart và legend) luôn nằm trên 1 hàng ngang */
+    flex-wrap: nowrap;
 }
 
 .o_kpi_spider_legend {
+    /* Cố định bề rộng của cột Legend, không cho phép nó bị bóp nhỏ lại khi chart phình to */
+    flex: 0 0 180px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    min-width: 160px;
+    gap: 12px;
 }
 
 .o_kpi_spider_legend_item {
@@ -359,11 +370,11 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     flex-direction: column;
     background: #f8fafc;
     border-radius: 8px;
-    padding: 6px 10px;
+    padding: 8px 12px;
 }
 
 .o_kpi_spider_legend_label {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: $text-muted;
@@ -371,7 +382,7 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 }
 
 .o_kpi_spider_legend_score {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #6366f1;
 }

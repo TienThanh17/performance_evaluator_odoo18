@@ -29,14 +29,14 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
 
         # ============================== VIEWS =============================
         'views/hr_department_kpi_generate_wizard_views.xml',
-        'views/res_config_settings_views.xml',
+        'views/kpi_generate_wizard_views.xml',
         'views/kpi_view.xml',
+        'views/res_config_settings_views.xml',
         'views/hr_department_kpi_views.xml',
         'views/hr_department_performance_views.xml',
         'views/performance_evaluation.xml',
         'views/performance_report_views.xml',
         'views/hr_score.xml',
-        'views/kpi_generate_wizard_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

@@ -554,7 +554,7 @@
 
         <!-- Client Action for standalone KPI Dashboard page -->
         <record id="action_kpi_individual_dashboard" model="ir.actions.client">
-            <field name="name">My Performance Dashboard</field>
+            <field name="name">KPI Individual Dashboard</field>
             <field name="tag">kpi_individual_dashboard</field>
         </record>
 
@@ -563,7 +563,7 @@
             parent="performance_evaluator" />
         <menuitem id="performance_evaluation_menu" name="KPI Employee" sequence="10"
             parent="kpi_employee_menu" action="action_performance_evaluation" />
-        <menuitem id="menu_kpi_individual_dashboard" name="My Performance Dashboard"
+        <menuitem id="menu_kpi_individual_dashboard" name="KPI Performance Dashboard"
             sequence="20" parent="kpi_employee_menu"
             action="action_kpi_individual_dashboard" />
     </data>

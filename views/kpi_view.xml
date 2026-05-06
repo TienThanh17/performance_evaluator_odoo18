@@ -151,7 +151,7 @@
 
         <!-- Menu Item to Access KPI Form and List View -->
         <menuitem id="performance_evaluator" name="KPI Performance Evaluator" sequence="1"/>
-        <menuitem id="menu_kpi_template" name="KPI template" parent="performance_evaluator" sequence="30"/>
+        <menuitem id="menu_kpi_template" name="KPI Template" parent="performance_evaluator" sequence="30"/>
         <menuitem id="menu_kpi_form" name="KPI Employee Template" parent="menu_kpi_template" sequence="10"
                   action="hr_kpi_action"/>
     </data>
