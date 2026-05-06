@@ -19,7 +19,8 @@
                     </div>
                     <div class="pd-header-right">
                         <button class="btn btn-secondary" t-on-click="exportExcelReport" style="margin-right: 8px;">
-                            <i class="fa fa-file-excel-o"/> Work Report
+                            <i class="fa fa-file-excel-o"/>
+                            Work Report
                         </button>
                         <!-- Department pill -->
                         <!-- <span class="pd-filter-pill">
@@ -46,10 +47,10 @@
                             <span class="pd-active-label">ACTIVE STATUS</span>
                             <label class="pd-toggle-switch">
                                 <input
-                                    type="checkbox"
-                                    id="pd-active-toggle"
-                                    t-att-checked="state.active ? 'checked' : undefined"
-                                    t-on-change="onActiveChange"
+                                        type="checkbox"
+                                        id="pd-active-toggle"
+                                        t-att-checked="state.active ? 'checked' : undefined"
+                                        t-on-change="onActiveChange"
                                 />
                                 <span class="pd-toggle-slider"/>
                             </label>
@@ -60,43 +61,47 @@
                         <div class="pd-config-field">
                             <label class="pd-config-label">EVALUATION PERIOD</label>
                             <select class="pd-config-select" id="pd-period-select" t-on-change="onPeriodChange">
-                                <option value="monthly" t-att-selected="state.period === 'monthly' ? 'selected' : undefined">Monthly</option>
-                                <option value="quarterly" t-att-selected="state.period === 'quarterly' ? 'selected' : undefined">Quarterly</option>
-                                <option value="half_yearly" t-att-selected="state.period === 'half_yearly' ? 'selected' : undefined">Half-Yearly</option>
-                                <option value="yearly" t-att-selected="state.period === 'yearly' ? 'selected' : undefined">Yearly</option>
+                                <option value="monthly"
+                                        t-att-selected="state.period === 'monthly' ? 'selected' : undefined">Monthly</option>
+                                <option value="quarterly"
+                                        t-att-selected="state.period === 'quarterly' ? 'selected' : undefined">Quarterly</option>
+                                <option value="half_yearly"
+                                        t-att-selected="state.period === 'half_yearly' ? 'selected' : undefined">Half-Yearly</option>
+                                <option value="yearly"
+                                        t-att-selected="state.period === 'yearly' ? 'selected' : undefined">Yearly</option>
                             </select>
                         </div>
                         <!-- Start Date -->
                         <div class="pd-config-field">
                             <label class="pd-config-label">START DATE</label>
                             <input
-                                type="date"
-                                class="pd-config-date"
-                                id="pd-start-date"
-                                t-att-value="state.startDate"
-                                t-on-change="onStartDateChange"
+                                    type="date"
+                                    class="pd-config-date"
+                                    id="pd-start-date"
+                                    t-att-value="state.startDate"
+                                    t-on-change="onStartDateChange"
                             />
                         </div>
                         <!-- End Date -->
                         <div class="pd-config-field">
                             <label class="pd-config-label">END DATE</label>
                             <input
-                                type="date"
-                                class="pd-config-date"
-                                id="pd-end-date"
-                                t-att-value="state.endDate"
-                                t-on-change="onEndDateChange"
+                                    type="date"
+                                    class="pd-config-date"
+                                    id="pd-end-date"
+                                    t-att-value="state.endDate"
+                                    t-on-change="onEndDateChange"
                             />
                         </div>
                         <!-- Deadline -->
                         <div class="pd-config-field">
                             <label class="pd-config-label">DEADLINE</label>
                             <input
-                                type="date"
-                                class="pd-config-date"
-                                id="pd-deadline"
-                                t-att-value="state.deadline"
-                                t-on-change="onDeadlineChange"
+                                    type="date"
+                                    class="pd-config-date"
+                                    id="pd-deadline"
+                                    t-att-value="state.deadline"
+                                    t-on-change="onDeadlineChange"
                             />
                         </div>
                     </div>
@@ -165,6 +170,7 @@
                                     <th>EMPLOYEE</th>
                                     <th>ID &amp; ROLE</th>
                                     <th>PERFORMANCE SCORE</th>
+                                    <th>RESULT</th>
                                     <th>STATUS</th>
                                     <th>ACTION</th>
                                 </tr>
@@ -177,10 +183,10 @@
                                             <div class="pd-employee-cell">
                                                 <t t-if="ev.employee_id">
                                                     <img
-                                                        class="pd-avatar"
-                                                        t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'"
-                                                        t-att-alt="ev.employee_id[1]"
-                                                        loading="lazy"
+                                                            class="pd-avatar"
+                                                            t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'"
+                                                            t-att-alt="ev.employee_id[1]"
+                                                            loading="lazy"
                                                     />
                                                 </t>
                                                 <span class="pd-emp-name">
@@ -209,43 +215,69 @@
                                                 </span>
                                                 <div class="pd-progress-bar-wrap">
                                                     <div
-                                                        class="pd-progress-bar-fill"
-                                                        t-att-style="'width:' + ((ev.performance_score || 0) * 10) + '%'"
+                                                            class="pd-progress-bar-fill"
+                                                            t-att-style="'width:' + ((ev.performance_score || 0) * 10) + '%'"
                                                     />
                                                 </div>
                                             </div>
                                         </td>
 
-                                        <!-- Status badge -->
+                                        <!-- Result badge -->
                                         <td>
                                             <t t-if="ev.performance_level === 'excellent'">
                                                 <span class="pd-badge badge-excellent">
-                                                    <i class="fa fa-star" title="Excellent"/> EXCELLENT
+                                                    <i class="fa fa-star" title="Excellent"/>
+                                                    EXCELLENT
                                                 </span>
                                             </t>
                                             <t t-elif="ev.performance_level === 'pass'">
                                                 <span class="pd-badge badge-pass">
-                                                    <i class="fa fa-check" title="Pass"/> PASS
+                                                    <i class="fa fa-check" title="Pass"/>
+                                                    PASS
                                                 </span>
                                             </t>
                                             <t t-elif="ev.performance_level === 'fail'">
                                                 <span class="pd-badge badge-fail">
-                                                    <i class="fa fa-times" title="Fail"/> FAIL
+                                                    <i class="fa fa-times" title="Fail"/>
+                                                    FAIL
                                                 </span>
                                             </t>
                                             <t t-else="">
-                                                <span class="pd-badge" style="background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;">
+                                                <span class="pd-badge"
+                                                      style="background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;">
                                                     — N/A
                                                 </span>
                                             </t>
                                         </td>
 
+                                        <!-- Status badge -->
+                                        <td>
+                                                <span class="pd-badge">
+                                                    <t t-if="ev.state === 'draft'">
+                                                        <i class="fa fa-clock-o"/>
+                                                        DRAFT
+                                                    </t>
+                                                    <t t-elif="ev.state === 'submitted'">
+                                                        <i class="fa fa-spinner fa-spin"/>
+                                                        SUBMITTED
+                                                    </t>
+                                                    <t t-elif="ev.state === 'approved'">
+                                                        <i class="fa fa-check-circle"/>
+                                                        APPROVED
+                                                    </t>
+                                                    <t t-elif="ev.state === 'cancel'">
+                                                        <i class="fa fa-question-circle"/>
+                                                        CANCELLED
+                                                    </t>
+                                                </span>
+                                        </td>
+
                                         <!-- Action: open evaluation form -->
                                         <td>
                                             <button
-                                                class="pd-action-btn"
-                                                title="Open evaluation"
-                                                t-on-click="() => this.openEvaluation(ev.id)"
+                                                    t-attf-class="pd-action-btn #{ev.state === 'submitted' ? 'pd-btn-attention' : ''}"
+                                                    title="Open evaluation"
+                                                    t-on-click="() => this.openEvaluation(ev.id)"
                                             >
                                                 <i class="fa fa-chevron-right" title="Open"/>
                                             </button>

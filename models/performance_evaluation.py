@@ -141,10 +141,10 @@ class PerformanceEvaluation(models.Model):
     @api.depends("evaluation_line_ids.kpi_type")
     def _compute_kpi_types(self):
         for rec in self:
-            kpi_types = rec.evaluation_line_ids.mapped('kpi_type')
-            rec.has_binary_kpi = 'binary' in kpi_types
-            rec.has_rating_kpi = 'rating' in kpi_types
-            rec.has_score_kpi = 'score' in kpi_types
+            kpi_types = rec.evaluation_line_ids.mapped("kpi_type")
+            rec.has_binary_kpi = "binary" in kpi_types
+            rec.has_rating_kpi = "rating" in kpi_types
+            rec.has_score_kpi = "score" in kpi_types
 
     @api.depends("performance_score", "employee_id")
     def _compute_performance_visual(self):
@@ -226,7 +226,7 @@ class PerformanceEvaluation(models.Model):
                 lambda l: l.kpi_type == "rating" and not l.employee_rating_selection
             )
             if missing_rating:
-                missing_rating.write({'employee_rating_selection': '0'})
+                missing_rating.write({"employee_rating_selection": "0"})
 
             missing_score = lines.filtered(
                 lambda l: l.kpi_type == "score" and l.employee_rating_score is None
@@ -369,7 +369,9 @@ class PerformanceEvaluation(models.Model):
         if not kpi:
             return []
 
-        template_lines = kpi.kpi_line_ids.sorted(lambda l: (l.sequence or 0, l._origin.id or 0, l.id or 0))
+        template_lines = kpi.kpi_line_ids.sorted(
+            lambda l: (l.sequence or 0, l._origin.id or 0, l.id or 0)
+        )
 
         # Sử dụng : list[tuple] để Type Checker không hiểu lầm là danh sách chỉ chứa tuple 3 số nguyên.
         # fields.Command.clear() tương đương với lệnh (5, 0, 0) để xóa sạch các dòng cũ trước khi thêm mới.
@@ -436,9 +438,7 @@ class PerformanceEvaluation(models.Model):
 
         if self.kpi_id:
             self.evaluation_line_ids = (
-                self._prepare_evaluation_line_commands_from_template(
-                    self.kpi_id
-                )
+                self._prepare_evaluation_line_commands_from_template(self.kpi_id)
             )
 
     def action_compute_auto_kpi(self):
@@ -518,3 +518,240 @@ class PerformanceEvaluation(models.Model):
             domain = domain + [("id", ">", last_id)]
 
         return True
+
+    # ------------------------------------------------------------
+    # Dashboard
+    # ------------------------------------------------------------
+    def get_dashboard_data(self):
+        """Return all data needed to render the individual KPI dashboard.
+
+        Called from JS via orm.call().  Returns a plain dict so it can be
+        serialised to JSON by the RPC layer.
+        """
+        self.ensure_one()
+        evaluation = self
+
+        result = {
+            "evaluation_id": evaluation.id,
+            "employee_name": evaluation.employee_id.name or "",
+            "period": evaluation.period or "",
+            "start_date": str(evaluation.start_date) if evaluation.start_date else "",
+            "end_date": str(evaluation.end_date) if evaluation.end_date else "",
+            "performance_score": round(float(evaluation.performance_score or 0.0), 2),
+            "performance_level": evaluation.performance_level or "fail",
+            "task_completion": self._get_task_completion_data(evaluation),
+            "punctuality_log": self._get_punctuality_log_data(evaluation),
+            "attendance_full": self._get_attendance_full_data(evaluation),
+            "spider_web": self._get_spider_web_data(evaluation),
+            "quantitative_table": self._get_quantitative_table_data(evaluation),
+        }
+        return result
+
+    def _get_task_completion_data(self, evaluation):
+        line = evaluation.evaluation_line_ids.filtered(
+            lambda l: not l.is_section and l.data_source == "task_on_time"
+        )
+        if not line or not evaluation.start_date or not evaluation.end_date:
+            return {"labels": [], "data": [], "target": 0.0}
+
+        line = line[0]
+        engine = self.env["hr.kpi.engine"]
+        per_day = engine.get_task_on_time_by_day(
+            evaluation.employee_id,
+            line,
+            evaluation.start_date,
+            evaluation.end_date,
+        )
+        days = (evaluation.end_date - evaluation.start_date).days + 1
+        return {
+            "labels": [f"Day {i + 1}" for i in range(days)],
+            "data": per_day,
+            "target": float(line.target or 100.0),
+        }
+
+    # ------------------------------------------------------------------
+    # Punctuality Log – first check-in hour per day (data_source=late_days)
+    # ------------------------------------------------------------------
+    def _get_punctuality_log_data(self, evaluation):
+        """Per-day first check-in hour cho biểu đồ punctuality.
+
+        Thay vì tự tính, gọi engine để đảm bảo nhất quán với điểm KPI thực tế:
+        - Cùng timezone resolution
+        - Cùng cách xác định first check-in per day
+        - expected_hour phản ánh đúng giờ làm việc danh nghĩa trên calendar
+
+        Grace period KHÔNG được cộng vào expected_hour ở đây — đó là ngưỡng
+        tính "trễ" nội bộ trong engine, không phải giờ hiển thị cho người dùng.
+
+        Returns dict:
+            labels        list[str]         — ["Day 1", "Day 2", ...]
+            data          list[float|None]  — giờ check-in decimal, None nếu vắng
+            expected_hour float             — giờ bắt đầu từ calendar (ví dụ 8.0)
+            grace_minutes int               — grace period đang cấu hình (hiển thị
+                                              thêm trên UI nếu muốn)
+        """
+        line = evaluation.evaluation_line_ids.filtered(
+            lambda l: not l.is_section and l.data_source == "late_days"
+        )
+        if not line or not evaluation.start_date or not evaluation.end_date:
+            return {"labels": [], "data": [], "expected_hour": 8.0, "grace_minutes": 0}
+
+        line = line[0]
+        employee = evaluation.employee_id
+        engine = self.env["hr.kpi.engine"]
+
+        # Per-day check-in hours — cùng logic với _compute_late_days
+        per_day = engine.get_late_days_by_day(
+            employee,
+            line,
+            evaluation.start_date,
+            evaluation.end_date,
+        )
+
+        # Giờ bắt đầu danh nghĩa từ calendar (chưa cộng grace)
+        expected_hour = engine.get_expected_start_hour(employee)
+
+        # Grace period hiện tại — để dashboard có thể vẽ thêm đường ngưỡng nếu cần
+        grace_minutes = engine._get_late_grace_minutes()
+
+        days = (evaluation.end_date - evaluation.start_date).days + 1
+        labels = [f"Day {i + 1}" for i in range(days)]
+
+        return {
+            "labels": labels,
+            "data": per_day,
+            "expected_hour": expected_hour,
+            "grace_minutes": grace_minutes,
+        }
+
+    # ------------------------------------------------------------------
+    # Attendance Full — data_source = attendance_full
+    # ------------------------------------------------------------------
+    def _get_attendance_full_data(self, evaluation):
+        """Dữ liệu tổng hợp cho widget attendance_full trên dashboard.
+
+        Trả về 2 phần:
+          summary   — các con số tổng hợp (worked/expected/leave days, v.v.)
+                      để render progress bar / số liệu tóm tắt.
+          calendar  — per-day status list để render calendar heatmap.
+
+        Tất cả tính toán đều uỷ quyền cho engine — dashboard chỉ format.
+
+        Returns dict:
+            summary:
+                value               float  — KPI actual (unpaid_leave_days hoặc %)
+                expected_work_days  float
+                worked_days         float
+                approved_leave_days float
+                public_holiday_days float
+                unpaid_leave_days   float
+                has_unpaid_leave    bool
+                target              float  — từ kpi line
+                target_type         str    — 'value' | 'percentage'
+            calendar:
+                list[{'date': 'YYYY-MM-DD', 'status': str}]
+                status ∈ {'present', 'approved_leave', 'public_holiday', 'absent'}
+        """
+        empty = {
+            "summary": {
+                "value": 0.0,
+                "expected_work_days": 0.0,
+                "worked_days": 0.0,
+                "approved_leave_days": 0.0,
+                "public_holiday_days": 0.0,
+                "unpaid_leave_days": 0.0,
+                "has_unpaid_leave": False,
+                "target": 0.0,
+                "target_type": "value",
+            },
+            "calendar": [],
+        }
+
+        line = evaluation.evaluation_line_ids.filtered(
+            lambda l: not l.is_section and l.data_source == "attendance_full"
+        )
+        if not line or not evaluation.start_date or not evaluation.end_date:
+            return empty
+
+        line = line[0]
+        employee = evaluation.employee_id
+        engine = self.env["hr.kpi.engine"]
+
+        # ── Summary metrics (tái sử dụng _compute_attendance_full_with_metrics) ──
+        metrics = engine.get_attendance_full_period_metrics(
+            employee,
+            line,
+            evaluation.start_date,
+            evaluation.end_date,
+        )
+        summary = dict(metrics)
+        summary["target"] = float(line.target or 0.0)
+        summary["target_type"] = line.target_type or "value"
+
+        # ── Per-day calendar data ─────────────────────────────────────────────
+        calendar_data = engine.get_attendance_worked_dates(
+            employee,
+            evaluation.start_date,
+            evaluation.end_date,
+        )
+
+        return {
+            "summary": summary,
+            "calendar": calendar_data,
+        }
+
+    # ------------------------------------------------------------------
+    # Spider Web – non-quantitative KPIs
+    # ------------------------------------------------------------------
+    def _get_spider_web_data(self, evaluation):
+        lines = evaluation.evaluation_line_ids.filtered(
+            lambda l: not l.is_section and l.kpi_type != "quantitative"
+        )
+        labels = []
+        scores = []
+        max_val = 10.0
+
+        for line in lines:
+            labels.append(line.key_performance_area or "KPI")
+            scores.append(round(float(line.final_rating or 0.0), 2))
+
+        return {
+            "labels": labels,
+            "scores": scores,
+            "max": max_val,
+        }
+
+    # ------------------------------------------------------------------
+    # Quantitative Table
+    # ------------------------------------------------------------------
+    def _get_quantitative_table_data(self, evaluation):
+        lines = evaluation.evaluation_line_ids.filtered(
+            lambda l: (
+                not l.is_section
+                and l.kpi_type == "quantitative"
+                and l.data_source not in ("task_on_time", "late_days", "attendance_full")
+            )
+        )
+        rows = []
+        for line in lines:
+            target = float(line.target or 0.0)
+            actual = float(line.actual or 0.0)
+            final = float(line.final_rating or 0.0)
+
+            if target != 0:
+                variance_pct = round((actual - target) / abs(target) * 100, 1)
+            else:
+                variance_pct = 0.0
+
+            unit = "%" if (line.target_type == "percentage") else ""
+            rows.append(
+                {
+                    "name": line.key_performance_area or "",
+                    "target": f"{target:g}{unit}",
+                    "actual": f"{actual:g}{unit}",
+                    "variance": variance_pct,
+                    "final_score": round(final, 2),
+                    "direction": line.direction or "higher_better",
+                }
+            )
+        return rows

@@ -6,18 +6,18 @@ from odoo import api, fields, models
 LATE_GRACE_MINUTES = 30
 
 _EMPTY_METRICS = {
-    'expected_work_days': 0.0,  # Ngày phải đi làm theo calendar (đã trừ ngày lễ , nhưng chưa trừ phép   )
-    'worked_days': 0.0,  # Ngày thực sự có check-in
-    'approved_leave_days': 0.0,  # Ngày nghỉ có phép (validated hr.leave)
-    'public_holiday_days': 0.0,  # Ngày nghỉ lễ (global leaves từ calendar)
-    'unpaid_leave_days': 0.0,  # Ngày nghỉ không phép
-    'has_unpaid_leave': False,
+    "expected_work_days": 0.0,  # Ngày phải đi làm theo calendar (đã trừ ngày lễ , nhưng chưa trừ phép   )
+    "worked_days": 0.0,  # Ngày thực sự có check-in
+    "approved_leave_days": 0.0,  # Ngày nghỉ có phép (validated hr.leave)
+    "public_holiday_days": 0.0,  # Ngày nghỉ lễ (global leaves từ calendar)
+    "unpaid_leave_days": 0.0,  # Ngày nghỉ không phép
+    "has_unpaid_leave": False,
 }
 
 
 class HrKpiEngine(models.AbstractModel):
-    _name = 'hr.kpi.engine'
-    _description = 'HR KPI Engine'
+    _name = "hr.kpi.engine"
+    _description = "HR KPI Engine"
 
     @api.model
     def compute(self, employee, kpi_line, date_from, date_to):
@@ -30,14 +30,14 @@ class HrKpiEngine(models.AbstractModel):
         if not employee or not kpi_line:
             return 0.0
 
-        if not kpi_line.is_auto or (kpi_line.data_source or 'manual') == 'manual':
+        if not kpi_line.is_auto or (kpi_line.data_source or "manual") == "manual":
             return 0.0
 
-        if kpi_line.data_source == 'task_on_time':
+        if kpi_line.data_source == "task_on_time":
             return self._compute_task_on_time(employee, kpi_line, date_from, date_to)
-        if kpi_line.data_source == 'late_days':
+        if kpi_line.data_source == "late_days":
             return self._compute_late_days(employee, kpi_line, date_from, date_to)
-        if kpi_line.data_source == 'attendance_full':
+        if kpi_line.data_source == "attendance_full":
             return self._compute_attendance_full(employee, kpi_line, date_from, date_to)
 
         return 0.0
@@ -57,8 +57,10 @@ class HrKpiEngine(models.AbstractModel):
         if not kpi_line:
             return 0.0, False
 
-        if (kpi_line.data_source or 'manual') == 'attendance_full':
-            value, metrics = self._compute_attendance_full_with_metrics(employee, kpi_line, date_from, date_to)
+        if (kpi_line.data_source or "manual") == "attendance_full":
+            value, metrics = self._compute_attendance_full_with_metrics(
+                employee, kpi_line, date_from, date_to
+            )
             return value, metrics
 
         return self.compute(employee, kpi_line, date_from, date_to), False
@@ -70,10 +72,7 @@ class HrKpiEngine(models.AbstractModel):
     def _get_tz(self, employee):
         """Best-effort timezone used to bucket datetimes by local date."""
         tz_name = (
-                employee.resource_calendar_id.tz
-                or employee.tz
-                or self.env.user.tz
-                or 'UTC'
+            employee.resource_calendar_id.tz or employee.tz or self.env.user.tz or "UTC"
         )
         return pytz.timezone(tz_name)
 
@@ -81,15 +80,17 @@ class HrKpiEngine(models.AbstractModel):
         """Tổng duration_days của ngày đó theo calendar. 0.0 nếu không phải ngày làm."""
         weekday = str(day_date.weekday())
         slots = calendar.attendance_ids.filtered(
-            lambda a: a.dayofweek == weekday
-                      and not a.display_type
-                      and a.day_period != 'lunch'
-                      and (not a.date_from or a.date_from <= day_date)
-                      and (not a.date_to or a.date_to >= day_date)
+            lambda a: (
+                a.dayofweek == weekday
+                and not a.display_type
+                and a.day_period != "lunch"
+                and (not a.date_from or a.date_from <= day_date)
+                and (not a.date_to or a.date_to >= day_date)
+            )
         )
         if calendar.two_weeks_calendar:
             week_type = str(
-                self.env['resource.calendar.attendance'].get_week_type(day_date)
+                self.env["resource.calendar.attendance"].get_week_type(day_date)
             )
             slots = slots.filtered(lambda a: a.week_type == week_type)
         return sum(s.duration_days for s in slots)
@@ -108,7 +109,7 @@ class HrKpiEngine(models.AbstractModel):
         numerator = float(numerator or 0.0)
         denominator = float(denominator or 0.0)
 
-        if not kpi_line or (kpi_line.target_type or 'value') == 'value':
+        if not kpi_line or (kpi_line.target_type or "value") == "value":
             return numerator
 
         # percentage (ratio)
@@ -116,12 +117,15 @@ class HrKpiEngine(models.AbstractModel):
 
     @api.model
     def _get_late_grace_minutes(self):
-        param_obj = self.env['ir.config_parameter'].sudo()
-        res = param_obj.get_param('custom_adecsol_hr_performance_evaluator.late_grace_minutes', default=30)
+        param_obj = self.env["ir.config_parameter"].sudo()
+        res = param_obj.get_param(
+            "custom_adecsol_hr_performance_evaluator.late_grace_minutes",
+            default=LATE_GRACE_MINUTES,
+        )
         try:
             return int(res)
         except (ValueError, TypeError):
-            return 30
+            return LATE_GRACE_MINUTES
 
     # ------------------------------------------------------------
     # Data sources
@@ -144,13 +148,13 @@ class HrKpiEngine(models.AbstractModel):
         if not user or not date_from or not date_to:
             return 0.0
 
-        Task = self.env['project.task'].sudo()
+        Task = self.env["project.task"].sudo()
         domain = [
-            ('user_ids', 'in', user.id),
-            ('stage_id.is_done_stage', '=', True),
-            ('date_deadline', '>=', date_from),
-            ('date_deadline', '<=', date_to),
-            ('project_id', '!=', False),
+            ("user_ids", "in", user.id),
+            ("stage_id.is_done_stage", "=", True),
+            ("date_deadline", ">=", date_from),
+            ("date_deadline", "<=", date_to),
+            ("project_id", "!=", False),
         ]
         tasks = Task.search(domain)
         if not tasks:
@@ -158,8 +162,14 @@ class HrKpiEngine(models.AbstractModel):
 
         on_time = 0
         for t in tasks:
-            done_dt_utc = fields.Datetime.to_datetime(t.done_date) if t.done_date else False
-            deadline_dt_utc = fields.Datetime.to_datetime(t.date_deadline) if t.date_deadline else False
+            done_dt_utc = (
+                fields.Datetime.to_datetime(t.done_date) if t.done_date else False
+            )
+            deadline_dt_utc = (
+                fields.Datetime.to_datetime(t.date_deadline)
+                if t.date_deadline
+                else False
+            )
             if not deadline_dt_utc or not done_dt_utc:
                 continue
 
@@ -170,7 +180,9 @@ class HrKpiEngine(models.AbstractModel):
             if done_dt_local <= deadline_dt_local:
                 on_time += 1
 
-        return self._value_or_percentage(kpi_line=kpi_line, numerator=on_time, denominator=len(tasks))
+        return self._value_or_percentage(
+            kpi_line=kpi_line, numerator=on_time, denominator=len(tasks)
+        )
 
     @api.model
     def _compute_late_days(self, employee, kpi_line, date_from, date_to):
@@ -196,14 +208,14 @@ class HrKpiEngine(models.AbstractModel):
         dt_start = fields.Datetime.to_datetime(date_from)
         dt_end_excl = fields.Datetime.to_datetime(fields.Date.add(date_to, days=1))
 
-        Attendance = self.env['hr.attendance'].sudo()
+        Attendance = self.env["hr.attendance"].sudo()
         attendances = Attendance.search(
             [
-                ('employee_id', '=', employee.id),
-                ('check_in', '>=', dt_start),
-                ('check_in', '<', dt_end_excl),
+                ("employee_id", "=", employee.id),
+                ("check_in", ">=", dt_start),
+                ("check_in", "<", dt_end_excl),
             ],
-            order='check_in asc',
+            order="check_in asc",
         )
 
         # Build first check-in per local date
@@ -233,10 +245,14 @@ class HrKpiEngine(models.AbstractModel):
                     late_days += 1
             d = fields.Date.add(d, days=1)
 
-        return self._value_or_percentage(kpi_line=kpi_line, numerator=late_days, denominator=total_work_days)
+        return self._value_or_percentage(
+            kpi_line=kpi_line, numerator=late_days, denominator=total_work_days
+        )
 
     @api.model
-    def _compute_attendance_full_with_metrics(self, employee, kpi_line, date_from, date_to):
+    def _compute_attendance_full_with_metrics(
+        self, employee, kpi_line, date_from, date_to
+    ):
         """Tính số ngày phải đi làm, nghỉ có phép, nghỉ không phép trong khoảng thời gian.
 
         Nguyên tắc thiết kế (quan trọng):
@@ -288,8 +304,14 @@ class HrKpiEngine(models.AbstractModel):
         # Tạo datetime bounds có timezone theo local của employee.
         # Lý do: _get_work_days_data_batch dùng timezone_datetime() bên trong,
         # nếu truyền naive thì nó gắn UTC → lệch ngày với employee ở VN (+7).
-        dt_from_local = tz.localize(datetime.datetime.combine(d_from, datetime.time.min))
-        dt_to_local = tz.localize(datetime.datetime.combine(d_to + datetime.timedelta(days=1), datetime.time.min))
+        dt_from_local = tz.localize(
+            datetime.datetime.combine(d_from, datetime.time.min)
+        )
+        dt_to_local = tz.localize(
+            datetime.datetime.combine(
+                d_to + datetime.timedelta(days=1), datetime.time.min
+            )
+        )
 
         # ------------------------------------------------------------------
         # Bước 1: expected_raw — ngày làm việc theo calendar thuần (chưa trừ lễ)
@@ -303,7 +325,7 @@ class HrKpiEngine(models.AbstractModel):
                 dt_to_local,
                 compute_leaves=False,
             )
-            expected_raw = float((work_data.get(employee.id) or {}).get('days') or 0.0)
+            expected_raw = float((work_data.get(employee.id) or {}).get("days") or 0.0)
         except Exception:
             expected_raw = 0.0
 
@@ -317,19 +339,30 @@ class HrKpiEngine(models.AbstractModel):
         # Đi trễ/về sớm không xét ở đây — thuộc KPI late_days.
 
         dt_start_utc = datetime.datetime.combine(d_from, datetime.time.min)
-        dt_end_utc = datetime.datetime.combine(d_to + datetime.timedelta(days=1), datetime.time.min)
+        dt_end_utc = datetime.datetime.combine(
+            d_to + datetime.timedelta(days=1), datetime.time.min
+        )
 
-        attendances = self.env['hr.attendance'].sudo().search([
-            ('employee_id', '=', employee.id),
-            ('check_in', '>=', dt_start_utc),
-            ('check_in', '<', dt_end_utc),
-        ], order='check_in asc')
+        attendances = (
+            self.env["hr.attendance"]
+            .sudo()
+            .search(
+                [
+                    ("employee_id", "=", employee.id),
+                    ("check_in", ">=", dt_start_utc),
+                    ("check_in", "<", dt_end_utc),
+                ],
+                order="check_in asc",
+            )
+        )
 
         worked_dates = set()
         for att in attendances:
             if not att.check_in:
                 continue
-            check_in_utc = fields.Datetime.to_datetime(att.check_in).replace(tzinfo=pytz.UTC)
+            check_in_utc = fields.Datetime.to_datetime(att.check_in).replace(
+                tzinfo=pytz.UTC
+            )
             local_date = check_in_utc.astimezone(tz).date()
 
             if not (d_from <= local_date <= d_to):
@@ -359,12 +392,18 @@ class HrKpiEngine(models.AbstractModel):
         #   → Hai bên nhất quán, phép tính sau không bị lệch
         approved_leave_days = 0.0
         try:
-            validated_leaves = self.env['hr.leave'].sudo().search([
-                ('employee_id', '=', employee.id),
-                ('state', '=', 'validate'),
-                ('request_date_from', '<=', d_to),
-                ('request_date_to', '>=', d_from),
-            ])
+            validated_leaves = (
+                self.env["hr.leave"]
+                .sudo()
+                .search(
+                    [
+                        ("employee_id", "=", employee.id),
+                        ("state", "=", "validate"),
+                        ("request_date_from", "<=", d_to),
+                        ("request_date_to", ">=", d_from),
+                    ]
+                )
+            )
 
             for lv in validated_leaves:
                 # Clamp leave vào khoảng [d_from, d_to]
@@ -375,14 +414,20 @@ class HrKpiEngine(models.AbstractModel):
 
                 # Localize theo timezone employee (không phải UTC)
                 dt_lf = tz.localize(datetime.datetime.combine(lf, datetime.time.min))
-                dt_lt = tz.localize(datetime.datetime.combine(lt + datetime.timedelta(days=1), datetime.time.min))
+                dt_lt = tz.localize(
+                    datetime.datetime.combine(
+                        lt + datetime.timedelta(days=1), datetime.time.min
+                    )
+                )
 
                 leave_work = employee._get_work_days_data_batch(
                     dt_lf,
                     dt_lt,
                     compute_leaves=False,  # <-- cùng hệ quy chiếu với expected
                 )
-                approved_leave_days += float((leave_work.get(employee.id) or {}).get('days') or 0.0)
+                approved_leave_days += float(
+                    (leave_work.get(employee.id) or {}).get("days") or 0.0
+                )
         except Exception:
             approved_leave_days = 0.0
 
@@ -399,13 +444,13 @@ class HrKpiEngine(models.AbstractModel):
             # sẽ trả về các leaves của calendar, bao gồm global leaves (ngày lễ).
             # Ta chỉ muốn global leaves → lọc resource_id = False.
             global_leave_domain = [
-                ('time_type', '=', 'leave'),
-                ('resource_id', '=', False),
+                ("time_type", "=", "leave"),
+                ("resource_id", "=", False),
             ]
             leave_intervals = calendar._leave_intervals_batch(
                 dt_from_local,
                 dt_to_local,
-                resources=self.env['resource.resource'],  # empty = global
+                resources=self.env["resource.resource"],  # empty = global
                 domain=global_leave_domain,
             )
             # Interval trả về cho resource False (global)
@@ -424,12 +469,16 @@ class HrKpiEngine(models.AbstractModel):
 
             # Chỉ đếm ngày lễ nằm trong working days (theo calendar)
             for hday in holiday_dates:
-                dt_hday = tz.localize(datetime.datetime.combine(hday, datetime.time.min))
+                dt_hday = tz.localize(
+                    datetime.datetime.combine(hday, datetime.time.min)
+                )
                 dt_hday_next = dt_hday + datetime.timedelta(days=1)
                 day_work = employee._get_work_days_data_batch(
-                    dt_hday, dt_hday_next, compute_leaves=False,
+                    dt_hday,
+                    dt_hday_next,
+                    compute_leaves=False,
                 )
-                day_count = float((day_work.get(employee.id) or {}).get('days') or 0.0)
+                day_count = float((day_work.get(employee.id) or {}).get("days") or 0.0)
                 public_holiday_days += day_count
 
         except Exception:
@@ -451,8 +500,7 @@ class HrKpiEngine(models.AbstractModel):
         # Dùng expected_raw (chưa trừ lễ) để phép tính cộng lại đúng nội bộ.
         # expected_raw = worked + approved_leave + public_holiday + unpaid_leave
         unpaid_leave_days = max(
-            0.0,
-            expected_raw - worked_days - approved_leave_days - public_holiday_days
+            0.0, expected_raw - worked_days - approved_leave_days - public_holiday_days
         )
         has_unpaid_leave = unpaid_leave_days > 1e-6
 
@@ -470,12 +518,12 @@ class HrKpiEngine(models.AbstractModel):
         expected_display = max(0.0, expected_raw - public_holiday_days)
 
         metrics = {
-            'expected_work_days': expected_display,  # UI: đã trừ ngày lễ
-            'worked_days': worked_days,
-            'approved_leave_days': approved_leave_days,
-            'public_holiday_days': public_holiday_days,
-            'unpaid_leave_days': unpaid_leave_days,
-            'has_unpaid_leave': has_unpaid_leave,
+            "expected_work_days": expected_display,  # UI: đã trừ ngày lễ
+            "worked_days": worked_days,
+            "approved_leave_days": approved_leave_days,
+            "public_holiday_days": public_holiday_days,
+            "unpaid_leave_days": unpaid_leave_days,
+            "has_unpaid_leave": has_unpaid_leave,
         }
 
         value = self._value_or_percentage(
@@ -484,6 +532,357 @@ class HrKpiEngine(models.AbstractModel):
             denominator=expected_display,  # % tính trên nền đã trừ lễ (đúng với UI)
         )
         return value, metrics
+
+    # ============================================================
+    # Dashboard breakdown methods (per-day / per-period data
+    # cho từng data_source, dùng chung logic với compute*)
+    # ============================================================
+    @api.model
+    def get_late_days_by_day(self, employee, kpi_line, date_from, date_to):
+        """Trả về per-day first check-in hour (decimal) trong khoảng [date_from, date_to].
+
+        Dùng CÙNG timezone / expected-start logic với _compute_late_days để
+        dashboard và điểm KPI luôn nhất quán.
+
+        Returns:
+            list[float | None]  — độ dài = số ngày trong khoảng.
+                None  : không có check-in ngày đó (nghỉ / không đến).
+                float : giờ check-in đầu tiên, dạng decimal (8.5 = 8:30).
+
+        Caller (dashboard) cũng cần:
+            expected_hour  — lấy qua get_expected_start_hour()
+        """
+        if not employee or not date_from or not date_to:
+            return []
+
+        employee = employee.sudo()
+        tz = self._get_tz(employee)
+
+        d_from = fields.Date.to_date(date_from)
+        d_to = fields.Date.to_date(date_to)
+        if not d_from or not d_to or d_from > d_to:
+            return []
+
+        # Lấy tất cả attendance trong kỳ một lần (tránh N query vòng lặp)
+        dt_start_utc = datetime.datetime.combine(d_from, datetime.time.min)
+        dt_end_utc = datetime.datetime.combine(
+            d_to + datetime.timedelta(days=1), datetime.time.min
+        )
+        attendances = (
+            self.env["hr.attendance"]
+            .sudo()
+            .search(
+                [
+                    ("employee_id", "=", employee.id),
+                    ("check_in", ">=", dt_start_utc),
+                    ("check_in", "<", dt_end_utc),
+                ],
+                order="check_in asc",
+            )
+        )
+
+        # Build first check-in (decimal hour) per local date
+        # Dùng cùng timezone logic với _compute_late_days
+        first_ci_by_date = {}
+        for att in attendances:
+            if not att.check_in:
+                continue
+            ci_utc = fields.Datetime.to_datetime(att.check_in).replace(tzinfo=pytz.UTC)
+            ci_local = ci_utc.astimezone(tz)
+            day = ci_local.date()
+            if day not in first_ci_by_date:
+                first_ci_by_date[day] = round(ci_local.hour + ci_local.minute / 60.0, 2)
+
+        # Build result list — một entry per calendar day trong kỳ
+        result = []
+        day = d_from
+        while day <= d_to:
+            result.append(first_ci_by_date.get(day))  # None nếu không check-in
+            day = fields.Date.add(day, days=1)
+        return result
+
+    @api.model
+    def get_expected_start_hour(self, employee):
+        """Trả về giờ bắt đầu kỳ vọng (decimal, CHƯA cộng grace) từ calendar.
+
+        Dashboard dùng để vẽ đường tham chiếu trên biểu đồ punctuality.
+        Không cộng grace period vào đây — đó là ngưỡng để tính "trễ" trong engine,
+        không phải giờ làm việc danh nghĩa cần hiển thị cho người dùng.
+
+        Returns:
+            float — ví dụ 8.0 cho 8:00 sáng.
+        """
+        if not employee:
+            return 8.0
+        employee = employee.sudo()
+        calendar = employee.resource_calendar_id
+        if not calendar:
+            return 8.0
+        hours = calendar.attendance_ids.filtered(
+            lambda a: not a.display_type and a.day_period != "lunch"
+        ).mapped("hour_from")
+        return round(min(hours), 2) if hours else 8.0
+
+    @api.model
+    def get_attendance_full_period_metrics(
+        self, employee, kpi_line, date_from, date_to
+    ):
+        """Trả về metrics tổng hợp cho data_source=attendance_full.
+
+        Tái sử dụng hoàn toàn _compute_attendance_full_with_metrics — dashboard
+        chỉ format/render, không tự tính toán lại.
+
+        Returns:
+            dict với các key:
+                value               (float)  — KPI actual (unpaid_leave_days hoặc %)
+                expected_work_days  (float)  — ngày phải đi làm (đã trừ lễ)
+                worked_days         (float)
+                approved_leave_days (float)
+                public_holiday_days (float)
+                unpaid_leave_days   (float)
+                has_unpaid_leave    (bool)
+        """
+        if not employee or not kpi_line or not date_from or not date_to:
+            return dict(_EMPTY_METRICS, value=0.0)
+
+        value, metrics = self._compute_attendance_full_with_metrics(
+            employee, kpi_line, date_from, date_to
+        )
+        if not metrics:
+            return dict(_EMPTY_METRICS, value=0.0)
+
+        return dict(metrics, value=value)
+
+    @api.model
+    def get_attendance_worked_dates(self, employee, date_from, date_to):
+        """Trả về per-day attendance status để vẽ calendar heatmap trên dashboard.
+
+        Với mỗi ngày làm việc (theo calendar) trong kỳ, trả về:
+            'present'       — có check-in
+            'approved_leave'— ngày nghỉ có phép (validated hr.leave)
+            'public_holiday'— ngày lễ (global calendar leave)
+            'absent'        — ngày làm việc nhưng không có check-in và không có lý do
+
+        Ngày cuối tuần / ngoài lịch làm việc KHÔNG xuất hiện trong kết quả
+        (dashboard tự ẩn hoặc render xám).
+
+        Returns:
+            list[dict]:  [{'date': '2025-01-06', 'status': 'present'}, ...]
+            Sắp xếp theo date tăng dần.
+        """
+        if not employee or not date_from or not date_to:
+            return []
+
+        employee = employee.sudo()
+        d_from = fields.Date.to_date(date_from)
+        d_to = fields.Date.to_date(date_to)
+        if not d_from or not d_to or d_from > d_to:
+            return []
+
+        calendar = employee.resource_calendar_id
+        if not calendar:
+            return []
+
+        tz = self._get_tz(employee)
+
+        # ── 1. Ngày có check-in ──────────────────────────────────────────
+        dt_start_utc = datetime.datetime.combine(d_from, datetime.time.min)
+        dt_end_utc = datetime.datetime.combine(
+            d_to + datetime.timedelta(days=1), datetime.time.min
+        )
+        attendances = (
+            self.env["hr.attendance"]
+            .sudo()
+            .search(
+                [
+                    ("employee_id", "=", employee.id),
+                    ("check_in", ">=", dt_start_utc),
+                    ("check_in", "<", dt_end_utc),
+                ]
+            )
+        )
+        worked_dates = set()
+        for att in attendances:
+            if not att.check_in:
+                continue
+            ci_utc = fields.Datetime.to_datetime(att.check_in).replace(tzinfo=pytz.UTC)
+            local_date = ci_utc.astimezone(tz).date()
+            if d_from <= local_date <= d_to:
+                worked_dates.add(local_date)
+
+        # ── 2. Ngày nghỉ có phép (validated hr.leave) ────────────────────
+        approved_leave_dates = set()
+        validated_leaves = (
+            self.env["hr.leave"]
+            .sudo()
+            .search(
+                [
+                    ("employee_id", "=", employee.id),
+                    ("state", "=", "validate"),
+                    ("request_date_from", "<=", d_to),
+                    ("request_date_to", ">=", d_from),
+                ]
+            )
+        )
+        for lv in validated_leaves:
+            lf = max(fields.Date.to_date(lv.request_date_from), d_from)
+            lt = min(fields.Date.to_date(lv.request_date_to), d_to)
+            cur = lf
+            while cur <= lt:
+                approved_leave_dates.add(cur)
+                cur += datetime.timedelta(days=1)
+
+        # ── 3. Ngày lễ (global calendar leaves) ──────────────────────────
+        dt_from_local = tz.localize(
+            datetime.datetime.combine(d_from, datetime.time.min)
+        )
+        dt_to_local = tz.localize(
+            datetime.datetime.combine(
+                d_to + datetime.timedelta(days=1), datetime.time.min
+            )
+        )
+        public_holiday_dates = set()
+        try:
+            global_leave_domain = [
+                ("time_type", "=", "leave"),
+                ("resource_id", "=", False),
+            ]
+            leave_intervals = calendar._leave_intervals_batch(
+                dt_from_local,
+                dt_to_local,
+                resources=self.env["resource.resource"],
+                domain=global_leave_domain,
+            )
+            for start, stop, _meta in leave_intervals.get(False, []):
+                cur = start.astimezone(tz).date()
+                end_date = stop.astimezone(tz).date()
+                while cur <= end_date:
+                    public_holiday_dates.add(cur)
+                    cur += datetime.timedelta(days=1)
+        except Exception:
+            pass
+
+        # ── 4. Duyệt từng ngày làm việc theo calendar → gán status ──────
+        result = []
+        day = d_from
+        while day <= d_to:
+            # Bỏ qua ngày không có ca làm (cuối tuần hoặc ngoài lịch)
+            if self._get_duration_days_for_date(calendar, day) <= 0:
+                day += datetime.timedelta(days=1)
+                continue
+
+            if day in worked_dates:
+                status = "present"
+            elif day in public_holiday_dates:
+                # Ưu tiên hiển thị lễ trước phép (hiếm khi overlap)
+                status = "public_holiday"
+            elif day in approved_leave_dates:
+                status = "approved_leave"
+            else:
+                status = "absent"
+
+            result.append(
+                {
+                    "date": str(day),
+                    "status": status,
+                }
+            )
+            day += datetime.timedelta(days=1)
+
+        return result
+
+    @api.model
+    def get_task_on_time_by_day(self, employee, kpi_line, date_from, date_to):
+        """Trả về list per-day on-time rate, dùng chung logic với _compute_task_on_time."""
+        user = employee.user_id
+        if not user:
+            return []
+
+        Task = self.env["project.task"].sudo()
+        d, d_end = fields.Date.to_date(date_from), fields.Date.to_date(date_to)
+        result = []
+        day = d
+        while day <= d_end:
+            tasks = Task.search(
+                [
+                    ("user_ids", "in", user.id),
+                    ("stage_id.is_done_stage", "=", True),
+                    ("date_deadline", ">=", day),
+                    ("date_deadline", "<=", day),
+                    ("project_id", "!=", False),
+                ]
+            )
+            if not tasks:
+                result.append(None)
+            else:
+                on_time, total = 0, 0
+                for t in tasks:
+                    done_dt = (
+                        fields.Datetime.to_datetime(t.done_date)
+                        if t.done_date
+                        else False
+                    )
+                    deadline_dt = (
+                        fields.Datetime.to_datetime(t.date_deadline)
+                        if t.date_deadline
+                        else False
+                    )
+                    if not done_dt or not deadline_dt:
+                        continue
+                    total += 1
+                    # Dùng CÙNG logic với _compute_task_on_time
+                    done_local = fields.Datetime.context_timestamp(self, done_dt)
+                    deadline_local = fields.Datetime.context_timestamp(
+                        self, deadline_dt
+                    )
+                    if done_local <= deadline_local:
+                        on_time += 1
+                result.append(round(on_time / total * 100, 1) if total > 0 else 0.0)
+            day = fields.Date.add(day, days=1)
+        return result
+
+    # @api.model
+    # def get_late_days_by_day(self, employee, kpi_line, date_from, date_to):
+    #     """Trả về per-day check-in hour (decimal), dùng chung logic với _compute_late_days."""
+    #     if not employee:
+    #         return []
+
+    #     calendar = employee.resource_calendar_id
+    #     tz = self._get_tz(employee)
+    #     d, d_end = fields.Date.to_date(date_from), fields.Date.to_date(date_to)
+
+    #     dt_start = datetime.datetime.combine(d, datetime.time.min)
+    #     dt_end = datetime.datetime.combine(
+    #         d_end + datetime.timedelta(days=1), datetime.time.min
+    #     )
+    #     attendances = (
+    #         self.env["hr.attendance"]
+    #         .sudo()
+    #         .search(
+    #             [
+    #                 ("employee_id", "=", employee.id),
+    #                 ("check_in", ">=", dt_start),
+    #                 ("check_in", "<", dt_end),
+    #             ],
+    #             order="check_in asc",
+    #         )
+    #     )
+
+    #     first_ci_by_date = {}
+    #     for att in attendances:
+    #         if not att.check_in:
+    #             continue
+    #         ci_local = att.check_in.replace(tzinfo=pytz.UTC).astimezone(tz)
+    #         day = ci_local.date()
+    #         if day not in first_ci_by_date:
+    #             first_ci_by_date[day] = round(ci_local.hour + ci_local.minute / 60.0, 2)
+
+    #     result = []
+    #     day = d
+    #     while day <= d_end:
+    #         result.append(first_ci_by_date.get(day))
+    #         day = fields.Date.add(day, days=1)
+    #     return result
 
     # ------------------------------------------------------------
     # Calendar helpers
@@ -501,18 +900,13 @@ class HrKpiEngine(models.AbstractModel):
         if not day_attendances:
             return False
 
-        hour_from = min(day_attendances.mapped('hour_from') or [0.0])
+        hour_from = min(day_attendances.mapped("hour_from") or [0.0])
         hours = int(hour_from)
         minutes = int(round((hour_from - hours) * 60.0))
 
         # FIX: Tạo naive datetime rồi localize trực tiếp,
         # KHÔNG convert qua UTC trước
-        tz_name = (
-                calendar.tz
-                or employee.tz
-                or self.env.user.tz
-                or 'UTC'
-        )
+        tz_name = calendar.tz or employee.tz or self.env.user.tz or "UTC"
         tz = pytz.timezone(tz_name)
         naive_local = datetime.datetime.combine(
             day_date, datetime.time(hour=hours, minute=minutes)

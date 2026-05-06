@@ -1,0 +1,489 @@
+/* ====================================================================
+   KPI INDIVIDUAL DASHBOARD  – kpi_dashboard.scss
+   ==================================================================== */
+
+/* ── Variables ────────────────────────────────────────────────────── */
+$color-excellent: #3b82f6;
+$color-pass: #22c55e;
+$color-fail: #ef4444;
+$bg-card: #ffffff;
+$bg-page: #f3f4f8;
+$border: #e5e7eb;
+$text-primary: #1e293b;
+$text-muted: #64748b;
+$radius: 14px;
+$shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+
+/* ── Full-page wrapper (standalone client action) ─────────────────── */
+.o_kpi_dashboard_page {
+    background: $bg-page;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+    /* Đảm bảo chiếm hết chiều cao còn lại của Odoo backend */
+    height: 100%;
+    overflow-y: auto;
+    /* Kích hoạt thanh cuộn dọc */
+}
+
+/* ── Selector bar ─────────────────────────────────────────────────── */
+.o_kpi_selector_bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 12px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    /* Tăng z-index để không bị chart đè lên */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Thêm đổ bóng nhẹ khi cuộn */
+}
+
+.o_kpi_selector_icon {
+    font-size: 1.2rem;
+    color: #6366f1;
+    margin-right: 8px;
+}
+
+.o_kpi_selector_title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.o_kpi_selector_left {
+    display: flex;
+    align-items: center;
+}
+
+.o_kpi_selector_right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.o_kpi_selector_label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.o_kpi_selector_select {
+    background: #334155;
+    border: 1px solid #475569;
+    color: #f1f5f9;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    min-width: 260px;
+    cursor: pointer;
+
+    &:focus {
+        outline: 2px solid #6366f1;
+        border-color: #6366f1;
+    }
+
+    option {
+        background: #1e293b;
+    }
+}
+
+/* ── Error / Empty state ──────────────────────────────────────────── */
+.o_kpi_error_state,
+.o_kpi_empty_state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: $text-muted;
+    gap: 16px;
+    text-align: center;
+    font-size: 0.95rem;
+
+    .fa {
+        color: #cbd5e1;
+    }
+}
+
+/* ── Misc ─────────────────────────────────────────────────────────── */
+.o_kpi_muted {
+    color: $text-muted;
+    font-style: italic;
+}
+
+.o_kpi_card_full {
+    grid-column: 1 / -1;
+}
+
+
+/* ── Wrapper ──────────────────────────────────────────────────────── */
+.o_kpi_dashboard {
+    font-family: 'Inter', 'Roboto', sans-serif;
+    background: $bg-page;
+    padding: 24px;
+    padding-bottom: 80px;
+    color: $text-primary;
+    box-sizing: border-box;
+
+    * {
+        box-sizing: border-box;
+    }
+}
+
+/* ── Header ───────────────────────────────────────────────────────── */
+.o_kpi_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: $bg-card;
+    border-radius: $radius;
+    padding: 20px 28px;
+    box-shadow: $shadow;
+    margin-bottom: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.o_kpi_title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.o_kpi_period_badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: #e0e7ff;
+    color: #4338ca;
+    border-radius: 20px;
+    padding: 2px 10px;
+}
+
+.o_kpi_subtitle {
+    margin: 0;
+    font-size: 0.92rem;
+    color: $text-muted;
+}
+
+.o_kpi_dates {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: $text-muted;
+}
+
+/* Score ring */
+.o_kpi_score_card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.o_kpi_score_ring {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.o_kpi_score_inner {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: $bg-card;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.o_kpi_score_value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: $text-primary;
+}
+
+.o_kpi_score_meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.o_kpi_score_label {
+    font-size: 0.75rem;
+    color: $text-muted;
+    font-weight: 500;
+}
+
+.o_kpi_level_badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 3px 10px;
+    border-radius: 20px;
+
+    &.o_kpi_level_excellent {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    &.o_kpi_level_pass {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    &.o_kpi_level_fail {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+}
+
+/* ── Layout rows ──────────────────────────────────────────────────── */
+.o_kpi_row {
+    display: grid;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.o_kpi_row_2col {
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 900px) {
+    .o_kpi_row_2col {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Card base ────────────────────────────────────────────────────── */
+.o_kpi_card {
+    background: $bg-card;
+    border-radius: $radius;
+    box-shadow: $shadow;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.o_kpi_card_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.o_kpi_card_title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: $text-primary;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .fa {
+        color: #6366f1;
+    }
+}
+
+.o_kpi_target_badge {
+    font-size: 0.72rem;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-weight: 500;
+
+    &.o_kpi_target_warn {
+        background: #fff7ed;
+        color: #b45309;
+        border-color: #fed7aa;
+    }
+}
+
+.o_kpi_chart_container {
+    position: relative;
+    width: 100%;
+
+    canvas {
+        max-width: 100%;
+        display: block;
+    }
+}
+
+.o_kpi_chart_radar {
+    max-width: 340px;
+    margin: 0 auto;
+}
+
+.o_kpi_chart_note {
+    margin: 0;
+    font-size: 0.75rem;
+    color: $text-muted;
+    text-align: center;
+}
+
+/* ── Spider card ──────────────────────────────────────────────────── */
+.o_kpi_spider_body {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.o_kpi_spider_legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 160px;
+}
+
+.o_kpi_spider_legend_item {
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+.o_kpi_spider_legend_label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $text-muted;
+    font-weight: 600;
+}
+
+.o_kpi_spider_legend_score {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #6366f1;
+}
+
+/* ── Table card ───────────────────────────────────────────────────── */
+.o_kpi_table_wrapper {
+    overflow-x: auto;
+}
+
+.o_kpi_table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+
+    th {
+        text-align: left;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: $text-muted;
+        font-weight: 600;
+        padding: 8px 10px;
+        border-bottom: 2px solid $border;
+    }
+
+    td {
+        padding: 10px 10px;
+        border-bottom: 1px solid $border;
+        vertical-align: middle;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover td {
+        background: #f8fafc;
+    }
+}
+
+.o_kpi_table_name {
+    font-weight: 600;
+    color: #6366f1;
+}
+
+.o_kpi_variance {
+    font-weight: 600;
+    font-size: 0.82rem;
+
+    &.o_kpi_variance_good {
+        color: $color-excellent;
+    }
+
+    &.o_kpi_variance_bad {
+        color: $color-fail;
+    }
+}
+
+.o_kpi_status {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-radius: 20px;
+    padding: 2px 10px;
+
+    &.o_kpi_status_excellent {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    &.o_kpi_status_pass {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    &.o_kpi_status_fail {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+}
+
+/* ── Loading ──────────────────────────────────────────────────────── */
+.o_kpi_loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+    color: $text-muted;
+}
+
+.o_kpi_spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid $border;
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: kpi-spin 0.8s linear infinite;
+}
+
+@keyframes kpi-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.o_kpi_empty {
+    text-align: center;
+    color: $text-muted;
+    padding: 20px;
+    font-style: italic;
+}
