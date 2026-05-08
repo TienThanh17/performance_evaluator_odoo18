@@ -2450,7 +2450,7 @@ msgstr "Người quản lý của nhân viên (được điền tự động)."
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_kpi__period
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_kpi_generate_wizard__period
 msgid "The evaluation cycle for this KPI template."
-msgstr "Chu trình đánh giá cho mẫu KPI này."
+msgstr "Chu kỳ đánh giá cho mẫu KPI này."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__evaluation_id

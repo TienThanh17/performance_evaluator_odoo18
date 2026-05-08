@@ -8,11 +8,11 @@
   <div class="o_kpi_selector_bar">
     <div class="o_kpi_selector_left">
       <i class="fa fa-tachometer o_kpi_selector_icon"/>
-      <span class="o_kpi_selector_title">Performance Dashboard</span>
+      <span class="o_kpi_selector_title">Individual Performance Dashboard</span>
     </div>
     <div class="o_kpi_selector_right">
           <!-- Bộ lọc Department & Employee (Chỉ dành cho Manager) -->
-      <t t-if="state.isManager">
+      <t t-if="state.isManager || state.isHR || state.isAdmin">
             <!-- Chọn phòng ban -->
         <label class="o_kpi_selector_label">Department:</label>
         <select class="o_kpi_selector_select" t-on-change="onSelectDepartment" style="min-width: 150px; margin-right: 10px;">

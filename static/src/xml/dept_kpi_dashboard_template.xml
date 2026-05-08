@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="performance_evaluator.DeptKpiDashboard">
+<div class="o_dept_kpi_page">
+
+  <!-- ══ Header / Selector Bar ══ -->
+  <div class="o_dept_kpi_header_bar">
+    <div class="o_dept_kpi_brand">
+      <i class="fa fa-building"/>
+      <span class="o_dept_kpi_brand_title">Department KPI Dashboard</span>
+    </div>
+
+    <div class="o_dept_kpi_selectors">
+      <!-- Department selector -->
+      <div class="o_dept_kpi_selector_group">
+        <label>Department:</label>
+        <select t-on-change="onSelectDepartment">
+          <option value="">— All Departments —</option>
+          <t t-foreach="state.departments" t-as="dept" t-key="dept.id">
+            <option t-att-value="dept.id"
+                    t-att-selected="dept.id === state.selectedDepartmentId"
+                    t-esc="dept.name"/>
+          </t>
+        </select>
+      </div>
+
+      <!-- Evaluation selector -->
+      <t t-if="state.evaluations.length">
+        <div class="o_dept_kpi_selector_group">
+          <label>Evaluation:</label>
+          <select t-on-change="onSelectEvaluation">
+            <t t-foreach="state.evaluations" t-as="ev" t-key="ev.id">
+              <option t-att-value="ev.id"
+                      t-att-selected="ev.id === state.selectedEvaluationId"
+                      t-esc="ev.name"/>
+            </t>
+          </select>
+        </div>
+      </t>
+    </div>
+  </div>
+
+  <!-- ══ Loading ══ -->
+  <div t-if="state.phase === 'loading'" class="o_dept_kpi_loading">
+    <div class="o_dept_kpi_spinner"/>
+    <p>Loading dashboard data…</p>
+  </div>
+
+  <!-- ══ Error ══ -->
+  <div t-elif="state.phase === 'error'" class="o_dept_kpi_error">
+    <i class="fa fa-exclamation-triangle"/>
+    <p t-esc="state.errorMsg"/>
+  </div>
+
+  <!-- ══ Empty ══ -->
+  <div t-elif="state.phase === 'empty'" class="o_dept_kpi_empty">
+    <i class="fa fa-bar-chart"/>
+    <p>No department evaluations found. Please select a department or create an evaluation.</p>
+  </div>
+
+  <!-- ══ Dashboard Body ══ -->
+  <div t-elif="state.phase === 'done'" class="o_dept_kpi_body">
+
+    <!-- ── 4 Scorecards ── -->
+    <div class="o_dept_kpi_scorecards">
+
+      <!-- Scorecard 1: Department Manager -->
+      <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--blue">
+        <div class="o_dept_kpi_scorecard_icon">
+          <i class="fa fa-user-md"/>
+        </div>
+        <div class="o_dept_kpi_scorecard_body">
+          <div class="o_dept_kpi_scorecard_label">Department Manager</div>
+          <div class="o_dept_kpi_scorecard_value" t-esc="state.data.manager_name || '—'"/>
+          <div class="o_dept_kpi_scorecard_sub" t-esc="state.data.department_name"/>
+        </div>
+      </div>
+
+      <!-- Scorecard 2: Total Employees -->
+      <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--green">
+        <div class="o_dept_kpi_scorecard_icon">
+          <i class="fa fa-users"/>
+        </div>
+        <div class="o_dept_kpi_scorecard_body">
+          <div class="o_dept_kpi_scorecard_label">Total Employees</div>
+          <div class="o_dept_kpi_scorecard_value" t-esc="state.data.employee_count"/>
+          <div class="o_dept_kpi_scorecard_sub">Active members</div>
+        </div>
+      </div>
+
+      <!-- Scorecard 3: Department Score -->
+      <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--amber">
+        <div class="o_dept_kpi_scorecard_icon">
+          <i class="fa fa-star"/>
+        </div>
+        <div class="o_dept_kpi_scorecard_body">
+          <div class="o_dept_kpi_scorecard_label">Department Score</div>
+          <div class="o_dept_kpi_scorecard_value" t-esc="formatScore(state.data.department_score)"/>
+          <div class="o_dept_kpi_scorecard_sub" t-esc="levelLabel(state.data.department_level)"/>
+        </div>
+      </div>
+
+      <!-- Scorecard 4: Placeholder -->
+      <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--purple">
+        <div class="o_dept_kpi_scorecard_icon">
+          <i class="fa fa-trophy"/>
+        </div>
+        <div class="o_dept_kpi_scorecard_body">
+          <div class="o_dept_kpi_scorecard_label">Task Completion Rate</div>
+          <div class="o_dept_kpi_scorecard_value">87%</div>
+          <div class="o_dept_kpi_scorecard_sub">Avg. this period</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Row 1: Chart A (Stacked Bar) + Chart B (Bar) ── -->
+    <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--2col">
+
+      <!-- Chart A: Task stacked bar per employee -->
+      <div class="o_dept_kpi_chart_card">
+        <div class="o_dept_kpi_chart_header">
+          <div class="o_dept_kpi_chart_title">
+            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--blue"/>
+            Task Distribution by Employee
+          </div>
+          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--blue">Stacked Bar</span>
+        </div>
+        <div class="o_dept_kpi_chart_body">
+          <div class="o_dept_kpi_chart_canvas_wrap">
+            <canvas t-ref="chartA"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart B: Project progress bar -->
+      <div class="o_dept_kpi_chart_card">
+        <div class="o_dept_kpi_chart_header">
+          <div class="o_dept_kpi_chart_title">
+            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--green"/>
+            Project Progress (%)
+          </div>
+          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--green">Bar Chart</span>
+        </div>
+        <div class="o_dept_kpi_chart_body">
+          <div class="o_dept_kpi_chart_canvas_wrap">
+            <canvas t-ref="chartB"/>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Row 2: Chart C (Attendance Line) + Chart D (Bug Line) ── -->
+    <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--2col">
+
+      <!-- Chart C: Attendance hours per employee -->
+      <div class="o_dept_kpi_chart_card">
+        <div class="o_dept_kpi_chart_header">
+          <div class="o_dept_kpi_chart_title">
+            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--teal"/>
+            Attendance Hours by Employee
+          </div>
+          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--teal">Line Chart</span>
+        </div>
+        <div class="o_dept_kpi_chart_body">
+          <div class="o_dept_kpi_chart_canvas_wrap">
+            <canvas t-ref="chartC"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart D: Bug count per employee -->
+      <div class="o_dept_kpi_chart_card">
+        <div class="o_dept_kpi_chart_header">
+          <div class="o_dept_kpi_chart_title">
+            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--amber"/>
+            Bug Count by Employee
+          </div>
+          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--amber">Line Chart</span>
+        </div>
+        <div class="o_dept_kpi_chart_body">
+          <div class="o_dept_kpi_chart_canvas_wrap">
+            <canvas t-ref="chartD"/>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Row 3: Chart E (Timeline score line, full width) ── -->
+    <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col">
+
+      <div class="o_dept_kpi_chart_card o_dept_kpi_chart_card--tall">
+        <div class="o_dept_kpi_chart_header">
+          <div class="o_dept_kpi_chart_title">
+            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--purple"/>
+            Employee Score Over Time
+          </div>
+          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--purple">Timeline</span>
+        </div>
+        <div class="o_dept_kpi_chart_body">
+          <div class="o_dept_kpi_chart_canvas_wrap">
+            <canvas t-ref="chartE"/>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /o_dept_kpi_body -->
+
+</div><!-- /o_dept_kpi_page -->
+</t>
+
+</templates>

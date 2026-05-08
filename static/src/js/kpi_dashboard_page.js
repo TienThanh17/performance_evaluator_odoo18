@@ -36,7 +36,10 @@ const COLOR_RED = "#ef4444";
 const COLOR_INDIGO = "#6366f1";
 
 // Group that grants manager-level access
+const EMPLOYEE_GROUP = "custom_adecsol_hr_performance_evaluator.group_employee";
 const MANAGER_GROUP = "custom_adecsol_hr_performance_evaluator.group_manager";
+const HR_GROUP = "custom_adecsol_hr_performance_evaluator.group_hr";
+const ADMIN_GROUP = "custom_adecsol_hr_performance_evaluator.group_admin";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
@@ -55,7 +58,10 @@ export class KpiDashboard extends Component {
 
         this.state = useState({
             phase: "evals",           // "evals" | "dashboard" | "done" | "error"
+            isEmployee: false,
             isManager: false,
+            isHR: false,
+            isAdmin: false,
             employees: [],            // [{id, name}] – only for managers
             selectedEmployeeId: null, // null = current user's employee
             departments: [],             // Thêm: Lưu danh sách phòng ban
@@ -73,12 +79,18 @@ export class KpiDashboard extends Component {
             await this._loadChartJs();
             // await loadJS("https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js");
 
-            // 1. Check manager group using the user singleton
-            const isManager = await user.hasGroup(MANAGER_GROUP);
-            this.state.isManager = isManager;
+            // Chạy song song tất cả các kiểm tra quyền
+            const [isEmployee, isManager, isHR, isAdmin] = await Promise.all([
+                user.hasGroup(EMPLOYEE_GROUP),
+                user.hasGroup(MANAGER_GROUP),
+                user.hasGroup(HR_GROUP),
+                user.hasGroup(ADMIN_GROUP),
+            ]);
+
+            Object.assign(this.state, { isEmployee, isManager, isHR, isAdmin });
 
             // 2. If manager, prefetch the employee list
-            if (isManager) {
+            if (this.state.isManager || this.state.isHR || this.state.isAdmin) {
                 await this._loadEmployees();
             }
 
@@ -87,6 +99,7 @@ export class KpiDashboard extends Component {
         });
 
         onMounted(async () => {
+            console.log('this.state', this.state)
             if (this.state.selectedId) {
                 await this._loadDashboard();
             }
@@ -121,7 +134,7 @@ export class KpiDashboard extends Component {
             const departments = await this.orm.searchRead(
                 "hr.department",
                 [["active", "=", true]],
-                ["id", "name"],
+                ["id", "name", "member_ids"],
                 { order: "name asc" }
             );
             this.state.departments = departments;
@@ -133,21 +146,26 @@ export class KpiDashboard extends Component {
                 { order: "name asc", limit: 500 } // Tăng limit nếu công ty đông
             );
             this.state.employees = employees;
+            
             // 3. Lấy thông tin nhân viên của user đang đăng nhập
-            const myEmployee = await this.orm.searchRead(
-                "hr.employee",
-                [["user_id", "=", user.userId]],
-                ["id", "name", "department_id"],
-                { limit: 1 }
-            );
+            // const myEmployee = await this.orm.searchRead(
+            //     "hr.employee",
+            //     [["user_id", "=", user.userId]],
+            //     ["id", "name", "department_id"],
+            //     { limit: 1 }
+            // );
 
-            if (myEmployee.length) {
-                this.state.selectedEmployeeId = myEmployee[0].id;
-                // Nếu nhân viên này có phòng ban, set phòng ban mặc định
-                if (myEmployee[0].department_id) {
-                    this.state.selectedDepartmentId = myEmployee[0].department_id[0];
-                }
-            }
+            // if (myEmployee.length) {
+            //     this.state.selectedEmployeeId = myEmployee[0].id;
+            //     // Nếu nhân viên này có phòng ban, set phòng ban mặc định
+            //     if (myEmployee[0].department_id) {
+            //         this.state.selectedDepartmentId = myEmployee[0].department_id[0];
+            //     }
+            // }
+
+            this.state.selectedDepartmentId = departments[0].id
+            this.state.selectedEmployeeId = departments[0].member_ids[0].id
+
             // 4. Lọc nhân viên theo phòng ban
             this._filterEmployees();
         } catch (e) {
@@ -186,7 +204,7 @@ export class KpiDashboard extends Component {
 
             // Domain: filter by selected employee (manager) or by current user
             let domain;
-            if (this.state.isManager && this.state.selectedEmployeeId) {
+            if ((this.state.isManager || this.state.isHR || this.state.isAdmin) && this.state.selectedEmployeeId) {
                 domain = [["employee_id", "=", this.state.selectedEmployeeId]];
             } else {
                 domain = [["employee_id.user_id", "=", user.userId]];

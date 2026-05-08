@@ -6,72 +6,76 @@
         <field name="arch" type="xml">
             <form string="Department Evaluation Line">
                 <sheet>
-                    <field name="is_section" invisible="1"/>
-                    <field name="is_auto" invisible="1"/>
+                    <field name="is_section" invisible="1" />
+                    <field name="is_auto" invisible="1" />
 
                     <div class="oe_title">
                         <h2 class="mb-1">
-                            <field name="name" placeholder="Key Performance Area"/>
+                            <field name="name" placeholder="Key Performance Area" />
                         </h2>
                     </div>
 
-                    <group string="Target / Actual" invisible="is_section or kpi_type != 'quantitative'">
+                    <group string="Target / Actual"
+                        invisible="is_section or kpi_type != 'quantitative'">
                         <group>
-                            <field name="target"/>
-                            <field name="target_type" invisible="kpi_type != 'quantitative'"/>
-                            <field name="direction" invisible="kpi_type != 'quantitative'"/>
+                            <field name="target" />
+                            <field name="target_type" invisible="kpi_type != 'quantitative'" />
+                            <field name="direction" invisible="kpi_type != 'quantitative'" />
                         </group>
                         <group>
-                            <field name="actual" placeholder="Actual value"/>
+                            <field name="actual" placeholder="Actual value" />
                         </group>
                     </group>
 
                     <group string="Assessment" invisible="is_section or kpi_type == 'quantitative'">
                         <group>
                             <label for="manager_rating_binary" string="Manager Rating"
-                                   invisible="kpi_type != 'binary'"/>
+                                invisible="kpi_type != 'binary'" />
                             <field name="manager_rating_binary" nolabel="1" widget="radio"
-                                   invisible="kpi_type != 'binary'"/>
+                                invisible="kpi_type != 'binary'" />
 
                             <label for="manager_rating_selection" string="Manager Rating (0-5)"
-                                   invisible="kpi_type != 'rating'"/>
-                            <field name="manager_rating_selection" nolabel="1" widget="priority_onchange"
-                                   invisible="kpi_type != 'rating'"/>
+                                invisible="kpi_type != 'rating'" />
+                            <field name="manager_rating_selection" nolabel="1"
+                                widget="priority_onchange"
+                                invisible="kpi_type != 'rating'" />
 
-                            <label for="manager_rating_score" string="Manager Score" invisible="kpi_type != 'score'"/>
-                            <field name="manager_rating_score" nolabel="1" invisible="kpi_type != 'score'"/>
+                            <label for="manager_rating_score" string="Manager Score"
+                                invisible="kpi_type != 'score'" />
+                            <field name="manager_rating_score" nolabel="1"
+                                invisible="kpi_type != 'score'" />
                         </group>
                     </group>
 
                     <group string="Scoring" invisible="is_section">
                         <group>
-                            <field name="system_score" readonly="1"/>
+                            <field name="system_score" readonly="1" />
                         </group>
                         <group>
-                            <field name="final_score" readonly="1"/>
+                            <field name="final_score" readonly="1" />
                         </group>
                     </group>
 
                     <group string="KPI Info" invisible="is_section">
                         <group>
-                            <field name="kpi_type"/>
-                            <field name="weight"/>
+                            <field name="kpi_type" />
+                            <field name="weight" />
                         </group>
                         <group invisible="kpi_type != 'quantitative'">
-                            <field name="data_source" invisible="is_auto == False"/>
+                            <field name="data_source" invisible="is_auto == False" />
                         </group>
                     </group>
 
                     <group string="Comments" invisible="is_section">
                         <field name="manager_comment" widget="html"
-                               options="{'resizable': false}"
-                               style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                            options="{'resizable': false}"
+                            style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                     </group>
 
                     <group string="KPI Description" invisible="is_section">
                         <field name="description" widget="html" placeholder="KPI Description"
-                               options="{'resizable': false}"
-                               style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                            options="{'resizable': false}"
+                            style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                     </group>
                 </sheet>
             </form>
@@ -85,119 +89,123 @@
             <form string="Department Performance Evaluation">
                 <header>
                     <button name="action_submit" string="Submit" type="object" class="oe_highlight"
-                            invisible="state != 'draft'"/>
+                        invisible="state != 'draft'" />
                     <button name="action_approve" string="Approve" type="object"
-                            class="oe_highlight"
-                            invisible="state != 'submitted'"/>
+                        class="oe_highlight"
+                        invisible="state != 'submitted'" />
                     <button name="action_cancel" string="Cancel" type="object"
-                            invisible="state in ('approved', 'cancel')"/>
+                        invisible="state in ('approved', 'cancel')" />
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,submitted,approved"/>
+                        statusbar_visible="draft,submitted,approved" />
                 </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>
-                            <field name="name" readonly="1"/>
+                            <field name="name" readonly="1" />
                         </h1>
                     </div>
                     <group>
                         <group>
-                            <field name="department_id" readonly="state != 'draft'"/>
-                            <field name="department_kpi_id" readonly="state != 'draft'"/>
-                            <field name="performance_report_id" readonly="state != 'draft'"/>
+                            <field name="department_id" readonly="state != 'draft'" />
+                            <field name="department_kpi_id" readonly="state != 'draft'" />
+                            <field name="performance_report_id" readonly="state != 'draft'" />
                         </group>
                         <group>
-                            <field name="start_date" readonly="state != 'draft'"/>
-                            <field name="end_date" readonly="state != 'draft'"/>
-                            <field name="deadline" readonly="state != 'draft'"/>
+                            <field name="start_date" readonly="state != 'draft'" />
+                            <field name="end_date" readonly="state != 'draft'" />
+                            <field name="deadline" readonly="state != 'draft'" />
                         </group>
                     </group>
                     <group>
                         <group string="Scores">
                             <group>
-                                <field name="dept_kpi_score" string="Department KPI Score" readonly="1"/>
-                                <field name="avg_individual_score" string="Average Individual Score" readonly="1"/>
-                                <field name="department_score" string="Overall Score" readonly="1"/>
-                                <field name="department_level" widget="badge" string="Performance Level"
-                                       decoration-success="department_level == 'pass'"
-                                       decoration-info="department_level == 'excellent'"
-                                       decoration-danger="department_level == 'fail'" readonly="1"/>
+                                <field name="dept_kpi_score" string="Department KPI Score"
+                                    readonly="1" />
+                                <field name="avg_individual_score" string="Average Individual Score"
+                                    readonly="1" />
+                                <field name="department_score" string="Overall Score" readonly="1" />
+                                <field name="department_level" widget="badge"
+                                    string="Performance Level"
+                                    decoration-success="department_level == 'pass'"
+                                    decoration-info="department_level == 'excellent'"
+                                    decoration-danger="department_level == 'fail'" readonly="1" />
                             </group>
                             <group>
-                                <field name="alpha" string="KPI Weight (α)" readonly="1"/>
-                                <field name="beta" string="Individual Weight (β)" readonly="1"/>
+                                <field name="alpha" string="KPI Weight (α)" readonly="1" />
+                                <field name="beta" string="Individual Weight (β)" readonly="1" />
                             </group>
                         </group>
                     </group>
                     <notebook>
                         <page string="Evaluation Lines">
-                            <button name="action_compute_auto_kpi" string="Compute Auto KPI" type="object"
-                                    class="oe_highlight"
-                                    invisible="state != 'draft'"/>
+                            <button name="action_compute_auto_kpi" string="Compute Auto KPI"
+                                type="object"
+                                class="oe_highlight"
+                                invisible="state != 'draft'" />
                             <field name="evaluation_line_ids" widget="kpi_one2many"
-                                   readonly="state in ('approved', 'cancel')"
-                                   context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_department_evaluation_line_form_popup', 'title_field': 'name'}">
+                                readonly="state in ('approved', 'cancel')"
+                                context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_department_evaluation_line_form_popup', 'title_field': 'name'}">
                                 <list editable="bottom"
-                                      decoration-bf="is_section">
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="is_section" column_invisible="1"/>
-                                    <field name="is_auto" column_invisible="1"/>
+                                    decoration-bf="is_section">
+                                    <field name="sequence" widget="handle" />
+                                    <field name="is_section" column_invisible="1" />
+                                    <field name="is_auto" column_invisible="1" />
 
-                                    <field name="name" string="Title" readonly="1" force_save="1"/>
+                                    <field name="name" string="Title" readonly="1" force_save="1" />
                                     <field name="description"
-                                           string="Info"
-                                           widget="kpi_description_icon"
-                                           invisible="is_section"
-                                           optional="show"/>
+                                        string="Info"
+                                        widget="kpi_description_icon"
+                                        invisible="is_section"
+                                        optional="show" />
 
                                     <field name="kpi_type" readonly="1" invisible="is_section"
-                                           force_save="1"/>
+                                        force_save="1" />
                                     <field name="target_type" optional="hide"
-                                           invisible="is_section or kpi_type != 'quantitative'"/>
+                                        invisible="is_section or kpi_type != 'quantitative'" />
                                     <field name="data_source" optional="hide"
-                                           invisible="is_section or not is_auto"/>
+                                        invisible="is_section or not is_auto" />
                                     <field name="direction" optional="hide"
-                                           invisible="is_section or kpi_type != 'quantitative'"/>
+                                        invisible="is_section or kpi_type != 'quantitative'" />
                                     <field name="manager_comment" optional="hide"
-                                           invisible="is_section"/>
+                                        invisible="is_section" />
 
-                                    <field name="target" column_invisible="1" force_save="1"/>
+                                    <field name="target" column_invisible="1" force_save="1" />
                                     <field name="target_display" string="Target"
-                                           invisible="is_section or kpi_type != 'quantitative'"/>
+                                        invisible="is_section or kpi_type != 'quantitative'" />
                                     <field name="actual_display" string="Actual"
-                                           invisible="is_section or kpi_type != 'quantitative'"/>
+                                        invisible="is_section or kpi_type != 'quantitative'" />
 
                                     <field name="manager_rating_binary"
-                                           string="Manager Rating (Y/N)"
-                                           invisible="is_section or kpi_type != 'binary'"
-                                           column_invisible="not parent.has_binary_kpi"
+                                        string="Manager Rating (Y/N)"
+                                        invisible="is_section or kpi_type != 'binary'"
+                                        column_invisible="not parent.has_binary_kpi"
                                     />
                                     <field name="manager_rating_selection"
-                                           string="Manager Rating (0-5)" widget="priority_onchange"
-                                           invisible="is_section or kpi_type != 'rating'"
-                                           column_invisible="not parent.has_rating_kpi"
+                                        string="Manager Rating (0-5)" widget="priority_onchange"
+                                        invisible="is_section or kpi_type != 'rating'"
+                                        column_invisible="not parent.has_rating_kpi"
                                     />
                                     <field name="manager_rating_score" string="Manager Score"
-                                           invisible="is_section or kpi_type != 'score'"
-                                           column_invisible="not parent.has_score_kpi"
+                                        invisible="is_section or kpi_type != 'score'"
+                                        column_invisible="not parent.has_score_kpi"
                                     />
-                                    <field name="weight" invisible="is_section"/>
+                                    <field name="weight" invisible="is_section" />
 
-                                    <field name="final_score_badge_class" column_invisible="1"/>
+                                    <field name="final_score_badge_class" column_invisible="1" />
                                     <field name="final_score_badge_text" readonly="1"
-                                           widget="badge"
-                                           decoration-info="final_score_badge_class == 'o_kpi_badge_excellent'"
-                                           decoration-success="final_score_badge_class == 'o_kpi_badge_pass'"
-                                           decoration-danger="final_score_badge_class == 'o_kpi_badge_fail'"/>
+                                        widget="badge"
+                                        decoration-info="final_score_badge_class == 'o_kpi_badge_excellent'"
+                                        decoration-success="final_score_badge_class == 'o_kpi_badge_pass'"
+                                        decoration-danger="final_score_badge_class == 'o_kpi_badge_fail'" />
 
                                     <button name="action_open_popup" type="object"
-                                            icon="fa-pencil" title="Open Details"
-                                            invisible="is_section"/>
+                                        icon="fa-pencil" title="Open Details"
+                                        invisible="is_section" />
 
                                     <control>
                                         <create name="add_section" string="Add Section"
-                                                context="{'default_is_section': True, 'default_display_type': 'line_section'}"/>
-                                        <create name="add_kpi" string="Add KPI"/>
+                                            context="{'default_is_section': True, 'default_display_type': 'line_section'}" />
+                                        <create name="add_kpi" string="Add KPI" />
                                     </control>
                                 </list>
                             </field>
@@ -213,14 +221,14 @@
         <field name="model">hr.department.performance.evaluation</field>
         <field name="arch" type="xml">
             <list string="Department Performance Evaluations">
-                <field name="name"/>
-                <field name="department_id"/>
-                <field name="department_kpi_id"/>
-                <field name="start_date"/>
-                <field name="end_date"/>
-                <field name="department_score"/>
-                <field name="department_level"/>
-                <field name="state"/>
+                <field name="name" />
+                <field name="department_id" />
+                <field name="department_kpi_id" />
+                <field name="start_date" />
+                <field name="end_date" />
+                <field name="department_score" />
+                <field name="department_level" />
+                <field name="state" />
             </list>
         </field>
     </record>
@@ -231,8 +239,17 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="kpi_department_menu" name="KPI Department" sequence="20"
-              parent="performance_evaluator"/>
+    <!-- Client Action for KPI Department Dashboard page -->
+    <record id="action_kpi_department_dashboard" model="ir.actions.client">
+        <field name="name">KPI Department Dashboard</field>
+        <field name="tag">kpi_department_dashboard</field>
+    </record>
+
+    <menuitem id="kpi_department_menu" name="KPI Department" sequence="10"
+        parent="performance_evaluator" />
     <menuitem id="department_performance_evaluation" name="KPI Department" sequence="10"
-              parent="kpi_department_menu" action="action_hr_department_performance_evaluation"/>
+        parent="kpi_department_menu" action="action_hr_department_performance_evaluation" />
+    <menuitem id="menu_kpi_department_dashboard" name="Dashboard"
+        sequence="20" parent="kpi_department_menu"
+        action="action_kpi_department_dashboard" />
 </odoo>

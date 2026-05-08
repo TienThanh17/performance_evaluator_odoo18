@@ -228,3 +228,277 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 )
             )
         return commands
+
+    def get_dashboard_data(self):
+        self.ensure_one()
+
+        employees = self.env['hr.employee'].sudo().search([
+            ('department_id', '=', self.department_id.id),
+            ('active', '=', True),
+        ], order='name asc')
+
+        result = {
+            'department_name': self.department_id.name or '',
+            'manager_name': (
+                self.department_id.manager_id.name
+                if self.department_id.manager_id else '—'
+            ),
+            'employee_count': len(employees),
+            'department_score': round(float(self.department_score or 0.0), 2),
+            'department_level': self.department_level or 'fail',
+            'employees': [{'id': e.id, 'name': e.name} for e in employees],
+            'task_summary_by_employee': self._dashboard_task_summary_by_employee(),
+            'project_progress': self._dashboard_project_progress(),
+            'attendance_count': self._dashboard_attendance_count(),
+            'bug_count_by_employee': self._dashboard_bug_count_by_employee(),
+        }
+        return result
+
+    def _dashboard_task_summary_by_employee(self):
+        """
+        Trả về task summary (total/done/pending) theo từng nhân viên
+        trong cùng phòng ban, cùng kỳ đánh giá.
+
+        Returns:
+            list[dict]: [
+                {
+                    'employee_id': int,
+                    'name': str,
+                    'total': int,
+                    'done': int,
+                    'pending': int,
+                },
+                ...
+            ]
+        """
+        self.ensure_one()
+        if not self.start_date or not self.end_date or not self.department_id:
+            return []
+
+        # Lấy tất cả nhân viên trong phòng ban
+        employees = self.env['hr.employee'].sudo().search([
+            ('department_id', '=', self.department_id.id),
+            ('active', '=', True),
+        ])
+        if not employees:
+            return []
+
+        user_ids = employees.mapped('user_id').ids
+        if not user_ids:
+            return []
+
+        Task = self.env['project.task'].sudo()
+
+        # Query tất cả tasks trong kỳ một lần (tránh N+1 queries)
+        all_tasks = Task.search([
+            ('user_ids', 'in', user_ids),
+            ('date_deadline', '>=', self.start_date),
+            ('date_deadline', '<=', self.end_date),
+            ('project_id', '!=', False),
+        ])
+
+        # Group tasks by user_id
+        # Một task có thể assign nhiều user → đếm cho từng user
+        tasks_by_user = {}
+        for task in all_tasks:
+            for user in task.user_ids:
+                if user.id not in tasks_by_user:
+                    tasks_by_user[user.id] = {'total': [], 'done': []}
+                tasks_by_user[user.id]['total'].append(task)
+                if task.stage_id and task.stage_id.is_done_stage:
+                    tasks_by_user[user.id]['done'].append(task)
+
+        result = []
+        for emp in employees:
+            if not emp.user_id:
+                continue
+            uid = emp.user_id.id
+            bucket = tasks_by_user.get(uid, {'total': [], 'done': []})
+            total = len(bucket['total'])
+            done = len(bucket['done'])
+            result.append({
+                'employee_id': emp.id,
+                'name': emp.name,
+                'total': total,
+                'done': done,
+                'pending': total - done,
+            })
+
+        # Sắp xếp theo tên
+        result.sort(key=lambda x: x['name'])
+        return result
+
+    def _dashboard_project_progress(self):
+        """
+        Tính % tiến độ các dự án mà nhân viên trong phòng ban tham gia,
+        trong kỳ đánh giá (dựa trên date_deadline của task).
+
+        Returns:
+            list[dict]: [
+                {
+                    'project_id': int,
+                    'name': str,
+                    'total_tasks': int,
+                    'done_tasks': int,
+                    'progress_pct': float,  # 0.0 - 100.0
+                },
+                ...
+            ]
+        """
+        self.ensure_one()
+        if not self.start_date or not self.end_date or not self.department_id:
+            return []
+
+        # Lấy user_ids của nhân viên trong phòng ban
+        employees = self.env['hr.employee'].sudo().search([
+            ('department_id', '=', self.department_id.id),
+            ('active', '=', True),
+        ])
+        user_ids = employees.mapped('user_id').ids
+        if not user_ids:
+            return []
+
+        # Lấy tất cả tasks trong kỳ có assign nhân viên phòng ban
+        Task = self.env['project.task'].sudo()
+        # NOTE: hiện tại đang lấy tất cả tasks có project_id khác False, sau đó sẽ lọc theo project_id và tính toán tiến độ.
+        all_tasks = Task.search([
+            # ('user_ids', 'in', user_ids),
+            # ('date_deadline', '>=', self.start_date),
+            # ('date_deadline', '<=', self.end_date),
+            ('project_id', '!=', False),
+        ])
+        if not all_tasks:
+            return []
+
+        # Group theo project
+        tasks_by_project = {}
+        for task in all_tasks:
+            pid = task.project_id.id
+            pname = task.project_id.name
+            if pid not in tasks_by_project:
+                tasks_by_project[pid] = {'name': pname, 'total': 0, 'done': 0}
+            tasks_by_project[pid]['total'] += 1
+            if task.stage_id and task.stage_id.is_done_stage:
+                tasks_by_project[pid]['done'] += 1
+
+        result = []
+        for pid, info in tasks_by_project.items():
+            total = info['total']
+            done = info['done']
+            result.append({
+                'project_id': pid,
+                'name': info['name'],
+                'total_tasks': total,
+                'done_tasks': done,
+                'progress_pct': round(done / total * 100, 1) if total > 0 else 0.0,
+            })
+
+        # Sắp xếp theo % giảm dần
+        result.sort(key=lambda x: x['progress_pct'], reverse=True)
+        return result
+
+    def _dashboard_attendance_count(self):
+        """
+        Đếm số lần chấm công (số attendance record) theo từng nhân viên
+        trong kỳ đánh giá.
+
+        Returns:
+            list[dict]: [
+                {
+                    'employee_id': int,
+                    'name': str,
+                    'attendance_count': int,
+                },
+                ...
+            ]
+        """
+        self.ensure_one()
+        if not self.start_date or not self.end_date or not self.department_id:
+            return []
+
+        employees = self.env['hr.employee'].sudo().search([
+            ('department_id', '=', self.department_id.id),
+            ('active', '=', True),
+        ], order='name asc')
+        if not employees:
+            return []
+
+        # Query tất cả attendance trong kỳ, 1 lần duy nhất
+        attendances = self.env['hr.attendance'].sudo().search([
+            ('employee_id', 'in', employees.ids),
+            ('check_in', '>=', str(self.start_date) + ' 00:00:00'),
+            ('check_in', '<=', str(self.end_date) + ' 23:59:59'),
+        ])
+
+        # Group by employee_id
+        count_by_emp = {}
+        for att in attendances:
+            eid = att.employee_id.id
+            count_by_emp[eid] = count_by_emp.get(eid, 0) + 1
+
+        result = []
+        for emp in employees:
+            result.append({
+                'employee_id': emp.id,
+                'name': emp.name,
+                'attendance_count': count_by_emp.get(emp.id, 0),
+            })
+
+        return result
+
+    def _dashboard_bug_count_by_employee(self):
+        """
+        Đếm số task có task_type = 'bug' được assign cho từng nhân viên
+        trong kỳ đánh giá.
+
+        Returns:
+            list[dict]: [
+                {
+                    'employee_id': int,
+                    'name': str,
+                    'bug_count': int,
+                },
+                ...
+            ]
+        """
+        self.ensure_one()
+        if not self.start_date or not self.end_date or not self.department_id:
+            return []
+
+        employees = self.env['hr.employee'].sudo().search([
+            ('department_id', '=', self.department_id.id),
+            ('active', '=', True),
+        ], order='name asc')
+        if not employees:
+            return []
+
+        user_ids = employees.mapped('user_id').ids
+        if not user_ids:
+            return []
+
+        # Query 1 lần tất cả bug tasks trong kỳ
+        bug_tasks = self.env['project.task'].sudo().search([
+            # ('task_type', '=', 'bug'),
+            ('user_ids', 'in', user_ids),
+            ('date_deadline', '>=', self.start_date),
+            ('date_deadline', '<=', self.end_date),
+            ('project_id', '!=', False),
+        ])
+
+        # Group by user_id — 1 task nhiều user → đếm cho từng user
+        count_by_user = {}
+        for task in bug_tasks:
+            for user in task.user_ids:
+                count_by_user[user.id] = count_by_user.get(user.id, 0) + 1
+
+        result = []
+        for emp in employees:
+            if not emp.user_id:
+                continue
+            result.append({
+                'employee_id': emp.id,
+                'name': emp.name,
+                'bug_count': count_by_user.get(emp.user_id.id, 0),
+            })
+
+        return result
