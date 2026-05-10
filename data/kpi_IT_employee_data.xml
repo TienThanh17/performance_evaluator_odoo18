@@ -12,13 +12,32 @@
             <field name="sequence">10</field>
         </record>
 
-        <record id="kpi_line_it_task_on_time" model="hr.kpi.line">
+        <record id="kpi_line_it_done_task" model="hr.kpi.line">
             <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
-            <field name="key_performance_area">Tỷ lệ hoàn thành Task đúng hạn</field>
+            <field name="key_performance_area">Task hoàn thành</field>
             <field name="description" type="html">
                 <p>Hệ thống tự động tính dựa trên dữ liệu dự án:</p>
                 <p>
-                    <strong>Điểm = (Số task hoàn thành đúng hạn / Tổng số task được giao) * 10</strong>
+                    <strong>Điểm = (Số task hoàn thành / Tổng số task được giao) * 10</strong>
+                </p>
+            </field>
+            <field name="kpi_type">quantitative</field>
+            <field name="target_type">percentage</field>
+            <field name="direction">higher_better</field>
+            <field name="target">100.0</field>
+            <field name="weight">15.0</field>
+            <field name="is_auto">True</field>
+            <field name="data_source">done_task</field>
+            <field name="sequence">19</field>
+        </record>
+
+        <record id="kpi_line_it_task_on_time" model="hr.kpi.line">
+            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
+            <field name="key_performance_area">Hoàn thành Task đúng hạn</field>
+            <field name="description" type="html">
+                <p>Hệ thống tự động tính dựa trên dữ liệu dự án:</p>
+                <p>
+                    <strong>Điểm = (Số task hoàn thành đúng hạn / Tổng số task hoàn thành) * 10</strong>
                 </p>
             </field>
             <field name="kpi_type">quantitative</field>
@@ -35,7 +54,8 @@
             <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
             <field name="key_performance_area">Đi làm đúng giờ</field>
             <field name="description" type="html">
-                <p>Đánh giá dựa trên <strong>dữ liệu chấm công thực tế</strong> từ module Attendance</p>
+                <p>Đánh giá dựa trên <strong>dữ liệu chấm công thực tế</strong> từ module Attendance
+                </p>
                 <ul>
                     <li>
                         <strong>10 điểm:</strong>
@@ -45,15 +65,15 @@
                         <strong>Trừ 1 điểm:</strong>
                         Cho mỗi lần phát hiện vi phạm quy định giờ giấc làm việc.
                     </li>
-<!--                    <li>-->
-<!--                        <strong>0 điểm:</strong>-->
-<!--                        Trường hợp tổng số lần vi phạm trong tháng <strong>vượt quá 5 lần</strong>.-->
-<!--                    </li>-->
+                    <!--                    <li>-->
+                    <!--                        <strong>0 điểm:</strong>-->
+                    <!--                        Trường hợp tổng số lần vi phạm trong tháng <strong>vượt quá 5 lần</strong>.-->
+                    <!--                    </li>-->
                 </ul>
             </field>
             <field name="kpi_type">quantitative</field>
-<!--            <field name="target_type">value</field>-->
-<!--            <field name="direction">lower_better</field>-->
+            <!--            <field name="target_type">value</field>-->
+            <!--            <field name="direction">lower_better</field>-->
             <field name="target">0.0</field>
             <field name="weight">10.0</field>
             <field name="is_auto">True</field>

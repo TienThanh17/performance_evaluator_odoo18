@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -81,20 +81,23 @@ class PerformanceEvaluationLine(models.Model):
     is_auto = fields.Boolean(
         string='Auto Compute',
         default=False,
-        help="Enable to let the system compute the Actual value automatically from the selected Data Source.",
+        compute='_compute_auto',
+        store=True,
+        help="Enable to let the system automatically compute Actual values from the selected Data Source.",
     )
 
     data_source = fields.Selection(
         selection=[
             ('manual', 'Manual'),
+            ('done_task', 'Done Task'),
             ('task_on_time', 'Task On Time'),
             ('late_days', 'Late Days'),
             ('attendance_full', 'Attendance Full'),
         ],
         string='Data Source',
         default='manual',
-        required=True,
-        help="Copied from KPI template line when generating evaluation lines.",
+        required=False,
+        help="Where the system gets the Actual value from when Auto Compute is enabled.",
     )
 
     # ------------------------------------------------------------
@@ -312,6 +315,11 @@ class PerformanceEvaluationLine(models.Model):
             rec.is_employee = is_employee
 
     @api.depends('kpi_type', 'data_source')
+    def _compute_auto(self):
+        for rec in self:
+            rec.is_auto = bool(rec.kpi_type == 'quantitative' and rec.data_source != 'manual')
+
+    @api.depends('kpi_type', 'data_source')
     def _compute_is_special_scoring(self):
         special_sources = {'late_days', 'attendance_full'}
         for rec in self:
@@ -431,12 +439,12 @@ class PerformanceEvaluationLine(models.Model):
                     continue
 
                 # Target vs Actual scoring, works for both value and percentage (same unit).
-                if target <= 0:
+                if target < 0:
                     line.system_score = 0.0
                     continue
 
                 if line.direction == 'higher_better':
-                    score_ratio = actual / target
+                    score_ratio = actual / target if target > 0 else 0.0
                 else:
                     score_ratio = (target / actual) if actual > 0 else 0.0
 
@@ -700,6 +708,7 @@ class PerformanceEvaluationLine(models.Model):
     def action_open_popup(self):
         self.ensure_one()
         return {
+            'name': _('Edit KPI Line'),
             'type': 'ir.actions.act_window',
             'res_model': 'hr.performance.evaluation.line',
             'res_id': self.id,

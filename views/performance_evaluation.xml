@@ -108,9 +108,9 @@
                                 <field name="actual" readonly="1" invisible="not is_special_scoring" />
                             </group>
                             <group invisible="kpi_type != 'quantitative'">
-                                <field name="is_auto" readonly="is_employee" />
-                                <field name="data_source" invisible="not is_auto"
-                                    readonly="is_employee" />
+                                <field name="is_auto" readonly="1" invisible="kpi_type != 'quantitative'"/>
+                                <field name="data_source" invisible="kpi_type != 'quantitative'"/>
+                                <field name="is_special_scoring" invisible="not is_special_scoring"/>
                                 <!-- ============================
                                  ATTENDANCE FULL (AUTO KPI METRICS)
                                 ============================ -->
@@ -406,7 +406,7 @@
                                             optional="show" />
 
                                         <field name="kpi_type" invisible="is_section" />
-                                        <field name="target_type" optional="hide"
+                                        <field name="target_type" optional="show"
                                             invisible="is_section or kpi_type != 'quantitative'" />
                                         <field name="data_source" optional="hide"
                                             invisible="is_section or not is_auto" />

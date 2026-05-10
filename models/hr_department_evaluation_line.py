@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 
 
 class HrDepartmentEvaluationLine(models.Model):
@@ -173,6 +173,7 @@ class HrDepartmentEvaluationLine(models.Model):
     def action_open_popup(self):
         self.ensure_one()
         return {
+            'name': _('Edit KPI Line'),
             "type": "ir.actions.act_window",
             "res_model": "hr.department.evaluation.line",
             "res_id": self.id,

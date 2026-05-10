@@ -18,13 +18,13 @@ class KPIListRenderer extends ListRenderer {
 
         // Lấy context từ list hiện tại (đã được Odoo parse từ XML)
         const context = this.props.list?.context || {};
-        console.log("class KPIListRenderer this.props:", this.props);
+//        console.log("class KPIListRenderer this.props:", this.props);
         // Đọc tên field từ context, nếu không có thì dùng mặc định
         this.discriminant = context.section_field || "is_section";
         this.titleField = context.title_field || "name"; // Mặc định của Odoo thường là 'name'
 
-        console.log("KPIListRenderer setup 1:", { section_field: context.section_field, title_field: context.title_field });
-        console.log("KPIListRenderer setup 2:", { discriminant: this.discriminant, titleField: this.titleField });
+//        console.log("KPIListRenderer setup 1:", { section_field: context.section_field, title_field: context.title_field });
+//        console.log("KPIListRenderer setup 2:", { discriminant: this.discriminant, titleField: this.titleField });
     }
 
     onClickSortColumn(column) {

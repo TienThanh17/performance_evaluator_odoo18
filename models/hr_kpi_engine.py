@@ -30,9 +30,10 @@ class HrKpiEngine(models.AbstractModel):
         if not employee or not kpi_line:
             return 0.0
 
-        if not kpi_line.is_auto or (kpi_line.data_source or "manual") == "manual":
-            return 0.0
-
+        # if not kpi_line.is_auto or (kpi_line.data_source or "manual") == "manual":
+        #     return 0.0
+        if kpi_line.data_source == "done_task":
+            return self._compute_done_tasks(employee, kpi_line, date_from, date_to)
         if kpi_line.data_source == "task_on_time":
             return self._compute_task_on_time(employee, kpi_line, date_from, date_to)
         if kpi_line.data_source == "late_days":
@@ -182,6 +183,38 @@ class HrKpiEngine(models.AbstractModel):
 
         return self._value_or_percentage(
             kpi_line=kpi_line, numerator=on_time, denominator=len(tasks)
+        )
+
+    @api.model
+    def _compute_done_tasks(self, employee, kpi_line, date_from, date_to):
+        user = employee.user_id
+        if not user or not date_from or not date_to:
+            return 0.0
+
+        Task = self.env["project.task"].sudo()
+
+        # Domain cơ bản chung cho cả 2 query
+        base_domain = [
+            ("user_ids", "in", user.id),
+            ("date_deadline", ">=", date_from),
+            ("date_deadline", "<=", date_to),
+            ("project_id", "!=", False),
+        ]
+
+        # Đếm tổng số task
+        total_tasks = Task.search_count(base_domain)
+        if not total_tasks:
+            return 0.0
+
+        # Đếm số task đã hoàn thành trực tiếp bằng SQL (cực nhanh)
+        done_domain = base_domain + [("stage_id.is_done_stage", "=", True)]
+        done_tasks = Task.search_count(done_domain)
+
+        if not done_tasks:
+            return 0.0
+
+        return self._value_or_percentage(
+            kpi_line=kpi_line, numerator=done_tasks, denominator=total_tasks
         )
 
     @api.model
@@ -885,4 +918,5 @@ class HrKpiEngine(models.AbstractModel):
         )
         late_grace_minutes = self._get_late_grace_minutes()
 
-        return tz.localize(naive_local) + datetime.timedelta(minutes=late_grace_minutes)
+        # return tz.localize(naive_local) + datetime.timedelta(minutes=late_grace_minutes)
+        return tz.localize(naive_local)
