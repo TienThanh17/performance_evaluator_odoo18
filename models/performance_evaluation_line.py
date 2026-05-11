@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -81,20 +81,23 @@ class PerformanceEvaluationLine(models.Model):
     is_auto = fields.Boolean(
         string='Auto Compute',
         default=False,
-        help="Enable to let the system compute the Actual value automatically from the selected Data Source.",
+        compute='_compute_auto',
+        store=True,
+        help="Enable to let the system automatically compute Actual values from the selected Data Source.",
     )
 
     data_source = fields.Selection(
         selection=[
             ('manual', 'Manual'),
+            ('done_task', 'Done Task'),
             ('task_on_time', 'Task On Time'),
             ('late_days', 'Late Days'),
             ('attendance_full', 'Attendance Full'),
         ],
         string='Data Source',
         default='manual',
-        required=True,
-        help="Copied from KPI template line when generating evaluation lines.",
+        required=False,
+        help="Where the system gets the Actual value from when Auto Compute is enabled.",
     )
 
     # ------------------------------------------------------------
@@ -132,6 +135,7 @@ class PerformanceEvaluationLine(models.Model):
     actual = fields.Float(
         string="Actual",
         help="Actual value input/collected for Quantitative KPIs. Compared against Target to compute the System Score.",
+        digits=(16, 2),
     )
 
     target_display = fields.Char(
@@ -159,6 +163,7 @@ class PerformanceEvaluationLine(models.Model):
         string="Special Scoring",
         compute="_compute_is_special_scoring",
         store=False,
+        help="Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).",
     )
 
     # ------------------------------------------------------------
@@ -312,6 +317,11 @@ class PerformanceEvaluationLine(models.Model):
             rec.is_employee = is_employee
 
     @api.depends('kpi_type', 'data_source')
+    def _compute_auto(self):
+        for rec in self:
+            rec.is_auto = bool(rec.kpi_type == 'quantitative' and rec.data_source != 'manual')
+
+    @api.depends('kpi_type', 'data_source')
     def _compute_is_special_scoring(self):
         special_sources = {'late_days', 'attendance_full'}
         for rec in self:
@@ -355,8 +365,8 @@ class PerformanceEvaluationLine(models.Model):
 
             if rec.target_type == 'percentage':
                 # hiển thị 90% thay vì 90.0
-                rec.target_display = f"{(rec.target or 0.0):g}%"
-                rec.actual_display = f"{(rec.actual or 0.0):g}%"
+                rec.target_display = f"{(rec.target or 0.0):g} %"
+                rec.actual_display = f"{(rec.actual or 0.0):g} %"
             else:
                 rec.target_display = f"{(rec.target or 0.0):g}"
                 rec.actual_display = f"{(rec.actual or 0.0):g}"
@@ -431,12 +441,12 @@ class PerformanceEvaluationLine(models.Model):
                     continue
 
                 # Target vs Actual scoring, works for both value and percentage (same unit).
-                if target <= 0:
+                if target < 0:
                     line.system_score = 0.0
                     continue
 
                 if line.direction == 'higher_better':
-                    score_ratio = actual / target
+                    score_ratio = actual / target if target > 0 else 0.0
                 else:
                     score_ratio = (target / actual) if actual > 0 else 0.0
 
@@ -468,15 +478,11 @@ class PerformanceEvaluationLine(models.Model):
     def _compute_final_rating(self):
         for line in self:
             if line.kpi_type == 'quantitative':
-                line.final_rating = round(max(0.0, min(line.system_score or 0.0, 10.0)), 2)
-            elif line.kpi_type == 'binary':
-                line.final_rating = 10.0 if (line.manager_rating_binary == 'yes') else 0.0
-            elif line.kpi_type == 'rating':
-                sel = float(line.manager_rating_selection or '0')
-                line.final_rating = round((sel / 5.0) * 10.0, 2)
+                # system_score đã đúng, dùng thẳng
+                line.final_rating = round(min(max(line.system_score or 0.0, 0.0), 10.0), 2)
             else:
-                # score (and any future non-quantitative types): fallback to system_score
-                line.final_rating = round(max(0.0, min(line.system_score or 0.0, 10.0)), 2)
+                # Với binary/rating/score: final_rating = system_score (manager đã được ưu tiên trong system_score)
+                line.final_rating = round(min(max(line.system_score or 0.0, 0.0), 10.0), 2)
 
     @api.depends('final_rating')
     def _compute_final_rating_badge_class(self):
@@ -521,17 +527,17 @@ class PerformanceEvaluationLine(models.Model):
 
     @api.onchange('employee_rating_binary', 'employee_rating_selection', 'employee_rating_score')
     def _onchange_employee_rating_autofill_manager(self):
-        """In draft state, mirror employee self-rating into manager rating.
+        """In self evaluation state, mirror employee self-rating into manager rating.
 
         Purpose: allow employees to see current final_rating and the evaluation average in real time,
         without waiting for the Submit action.
 
         Notes:
         - This is an onchange-only UX helper. Real security is enforced in write().
-        - We only mirror while the parent evaluation is in draft.
+        - We only mirror while the parent evaluation is in self evaluation.
         """
         # New (unsaved) one2many lines might not have evaluation_id yet in some cases.
-        if self.evaluation_id and self.evaluation_id.state != 'draft':
+        if self.evaluation_id and self.evaluation_id.state != 'self_evaluation':
             return
 
         for line in self:
@@ -545,12 +551,12 @@ class PerformanceEvaluationLine(models.Model):
     # ------------------------------------------------------------------
     # Constraints
     # ------------------------------------------------------------------
-    @api.constrains('actual', 'target_type')
-    def _check_actual_matches_target_type(self):
-        for rec in self:
-            if rec.target_type == 'percentage':
-                if (rec.actual or 0.0) < 0 or (rec.actual or 0.0) > 100:
-                    raise ValidationError("Actual must be between 0 and 100 for percentage KPIs")
+    # @api.constrains('actual', 'target_type')
+    # def _check_actual_matches_target_type(self):
+    #     for rec in self:
+    #         if rec.target_type == 'percentage':
+    #             if (rec.actual or 0.0) < 0 or (rec.actual or 0.0) > 100:
+    #                 raise ValidationError("Actual must be between 0 and 100 for percentage KPIs")
 
     @api.constrains('manager_rating_selection', 'kpi_type')
     def _check_manager_rating_selection_range(self):
@@ -577,14 +583,14 @@ class PerformanceEvaluationLine(models.Model):
                 raise ValidationError("Manager rating value must be between 0 and 10.")
 
     def _mirror_employee_to_manager_vals(self, vals, vals_before=None):
-        """Mirror employee self-rating into manager rating on draft evaluations.
+        """Mirror employee self-rating into manager rating on self evaluation evaluations.
 
         Onchange only updates in memory; without this, manager fields revert after save/reload.
         """
         vals = dict(vals or {})
         vals_before = dict(vals_before or vals)
         for line in self:
-            if line.evaluation_id and line.evaluation_id.state != 'draft':
+            if line.evaluation_id and line.evaluation_id.state != 'self_evaluation':
                 continue
             if line.kpi_type == 'binary' and 'employee_rating_binary' in vals_before:
                 vals.setdefault('manager_rating_binary', vals_before.get('employee_rating_binary'))
@@ -636,70 +642,70 @@ class PerformanceEvaluationLine(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
-        # Keep section consistency
+        # 1. Đảm bảo tính nhất quán cho các dòng Section
         if vals.get('display_type') and 'is_section' not in vals:
             vals = dict(vals, is_section=True)
 
+        # Lưu lại bản sao dữ liệu GỐC trước khi bị mirror can thiệp
         vals_before = dict(vals or {})
+
+        # Hàm mirror sẽ tự động copy điểm từ employee sang manager (nếu có)
         vals = self._mirror_employee_to_manager_vals(vals, vals_before=vals_before)
 
-        # If called in sudo/superuser context, skip custom field-level restrictions.
+        # Bỏ qua mọi check cho Superuser
         if self.env.is_superuser():
             return super().write(vals)
 
         user = self.env.user
 
-        # Prevent edits on canceled evaluations for everybody.
-        if any(line.evaluation_id.state == 'cancel' for line in self):
-            raise UserError("You cannot modify lines of a canceled evaluation.")
+        # Chặn toàn bộ hành động sửa trên phiếu đã bị hủy
+        if any(line.evaluation_id.state in ['cancel', 'completed'] for line in self):
+            raise UserError("You cannot modify lines of a canceled or completed evaluation.")
 
-        is_manager = user.has_group('custom_adecsol_hr_performance_evaluator.group_manager')
-        is_employee = user.has_group('custom_adecsol_hr_performance_evaluator.group_employee')
+        # Các cờ (flags) định danh
+        is_manager_group = user.has_group('custom_adecsol_hr_performance_evaluator.group_manager')
+        is_own_evaluation = all(line.evaluation_id.employee_id.user_id == user for line in self)
 
-        # Employee cannot edit manager fields (except mirrored ones in draft).
-        if is_employee and not is_manager:
-            forbidden = {
-                'manager_rating_value', 'manager_rating_binary', 'manager_rating_selection', 'manager_rating_score',
-                'manager_comment',
-            }
-            allowed_manager_fields = set()
-            if any(line.evaluation_id and line.evaluation_id.state == 'draft' for line in self):
-                if 'employee_rating_binary' in vals_before:
-                    allowed_manager_fields.add('manager_rating_binary')
-                if 'employee_rating_selection' in vals_before:
-                    allowed_manager_fields.add('manager_rating_selection')
-                if 'employee_rating_score' in vals_before:
-                    allowed_manager_fields.add('manager_rating_score')
+        # Phân loại các trường dữ liệu
+        manager_fields = {
+            'manager_rating_value', 'manager_rating_binary', 'manager_rating_selection',
+            'manager_rating_score', 'manager_comment',
+        }
+        employee_fields = {
+            'employee_rating_value', 'employee_rating_binary', 'employee_rating_selection',
+            'employee_rating_score', 'employee_comment',
+        }
 
-            effective_forbidden = forbidden.intersection(vals.keys()) - allowed_manager_fields
-            if effective_forbidden:
-                raise UserError("You are not allowed to edit manager fields.")
+        # Xác định xem người dùng đang CHỦ ĐỘNG sửa nhóm trường nào trên giao diện (kiểm tra từ vals_before)
+        editing_employee_fields = bool(employee_fields.intersection(vals_before.keys()))
+        editing_manager_fields = bool(manager_fields.intersection(vals_before.keys()))
 
-            # Employee can only edit in Draft.
-            if any(line.evaluation_id.state != 'draft' for line in self):
-                raise UserError("You can only edit your evaluation in Draft state.")
+        # =====================================================================
+        # LOGIC 1: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA EMPLOYEE
+        # =====================================================================
+        if editing_employee_fields:
+            if not is_own_evaluation:
+                raise UserError("Only the employee being evaluated can edit self-rating and comments.")
 
-        # Manager should not change employee self fields.
-        if is_manager and not is_employee:
-            if {
-                'employee_rating_value', 'employee_rating_binary', 'employee_rating_selection',
-                'employee_rating_score', 'employee_comment',
-            }.intersection(vals.keys()):
-                raise UserError("Managers are not allowed to edit employee self-rating/comments.")
+            if any(line.evaluation_id.state != 'self_evaluation' for line in self):
+                raise UserError("Employee fields can only be edited in the Self Evaluation state.")
 
-            # Manager rating only in Submitted.
-            if any(line.evaluation_id.state != 'submitted' for line in self):
-                if {
-                    'manager_rating_value', 'manager_rating_binary', 'manager_rating_selection',
-                    'manager_rating_score', 'manager_comment',
-                }.intersection(vals.keys()):
-                    raise UserError("Manager rating is only editable in Submitted state.")
+        # =====================================================================
+        # LOGIC 2: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA MANAGER
+        # =====================================================================
+        if editing_manager_fields:
+            if not is_manager_group:
+                raise UserError("You do not have the required Manager access to edit manager fields.")
+
+            if any(line.evaluation_id.state != 'manager_evaluating' for line in self):
+                raise UserError("Manager rating is only editable in the Manager Evaluating state.")
 
         return super().write(vals)
 
     def action_open_popup(self):
         self.ensure_one()
         return {
+            'name': _('Edit KPI Line'),
             'type': 'ir.actions.act_window',
             'res_model': 'hr.performance.evaluation.line',
             'res_id': self.id,

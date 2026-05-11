@@ -1,5 +1,6 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from odoo.tools.float_utils import float_compare
 
 class KPI(models.Model):
     _name = 'hr.kpi'
@@ -33,3 +34,22 @@ class KPI(models.Model):
         default="monthly",
         help="The evaluation cycle for this KPI template.",
     )
+
+    @api.constrains('kpi_line_ids')
+    def _check_total_weight(self):
+        for kpi in self:
+            # Lọc bỏ các dòng là section/note (chỉ tính các dòng KPI thực tế)
+            valid_lines = kpi.kpi_line_ids.filtered(lambda l: not l.display_type)
+
+            # Tính tổng weight
+            total_weight = sum(valid_lines.mapped('weight'))
+
+            # Bỏ qua validate nếu chưa có dòng nào (tùy logic nghiệp vụ của bạn)
+            if not valid_lines:
+                continue
+
+            # Sử dụng float_compare của Odoo để tránh lỗi sai số thập phân (ví dụ: 99.9999999 != 100.0)
+            if float_compare(total_weight, 100.0, precision_digits=2) != 0:
+                raise ValidationError(
+                    _("The total weight of all KPI lines must equal exactly 100. The current total is %s.") % total_weight
+                )

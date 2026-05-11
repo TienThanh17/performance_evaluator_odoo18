@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -72,6 +72,7 @@ class KPIline(models.Model):
     data_source = fields.Selection(
         selection=[
             ('manual', 'Manual'),
+            ('done_task', 'Done Task'),
             ('task_on_time', 'Task On Time'),
             ('late_days', 'Late Days'),
             ('attendance_full', 'Attendance Full'),
@@ -84,6 +85,8 @@ class KPIline(models.Model):
     is_auto = fields.Boolean(
         string='Auto Compute',
         default=False,
+        compute='_compute_auto',
+        store=True,
         help="Enable to let the system automatically compute Actual values from the selected Data Source.",
     )
     is_special_scoring = fields.Boolean(
@@ -107,6 +110,10 @@ class KPIline(models.Model):
     )
     sequence = fields.Integer(default=10)
 
+    @api.depends('kpi_type', 'data_source')
+    def _compute_auto(self):
+        for rec in self:
+            rec.is_auto = bool(rec.kpi_type == 'quantitative' and rec.data_source != 'manual')
 
     @api.depends('kpi_type', 'data_source')
     def _compute_is_special_scoring(self):
@@ -150,3 +157,15 @@ class KPIline(models.Model):
         if vals.get('display_type') and 'is_section' not in vals:
             vals = dict(vals, is_section=True)
         return super().write(vals)
+
+    def action_open_popup(self):
+        self.ensure_one()
+        return {
+            'name': _('Edit KPI Line'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'hr.kpi.line',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup').id,
+            'target': 'new',
+        }

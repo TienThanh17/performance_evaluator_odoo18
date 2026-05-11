@@ -12,50 +12,64 @@
             <field name="sequence">10</field>
         </record>
 
-        <record id="kpi_line_it_task_on_time" model="hr.kpi.line">
+        <record id="kpi_line_it_done_task" model="hr.kpi.line">
             <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
-            <field name="key_performance_area">Tỷ lệ hoàn thành Task đúng hạn</field>
+            <field name="key_performance_area">Task hoàn thành</field>
             <field name="description" type="html">
                 <p>Hệ thống tự động tính dựa trên dữ liệu dự án:</p>
                 <p>
-                    <strong>Điểm = (Số task hoàn thành đúng hạn / Tổng số task được giao) * 10</strong>
+                    <strong>Điểm = (Số task hoàn thành / Tổng số task được giao) * 10</strong>
                 </p>
             </field>
             <field name="kpi_type">quantitative</field>
             <field name="target_type">percentage</field>
             <field name="direction">higher_better</field>
             <field name="target">100.0</field>
-            <field name="weight">15.0</field>
+            <field name="weight">20.0</field>
             <field name="is_auto">True</field>
-            <field name="data_source">task_on_time</field>
-            <field name="sequence">20</field>
+            <field name="data_source">done_task</field>
+            <field name="sequence">19</field>
         </record>
+
+<!--        <record id="kpi_line_it_task_on_time" model="hr.kpi.line">-->
+<!--            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>-->
+<!--            <field name="key_performance_area">Hoàn thành Task đúng hạn</field>-->
+<!--            <field name="description" type="html">-->
+<!--                <p>Hệ thống tự động tính dựa trên dữ liệu dự án:</p>-->
+<!--                <p>-->
+<!--                    <strong>Điểm = (Số task hoàn thành đúng hạn / Tổng số task hoàn thành) * 10</strong>-->
+<!--                </p>-->
+<!--            </field>-->
+<!--            <field name="kpi_type">quantitative</field>-->
+<!--            <field name="target_type">percentage</field>-->
+<!--            <field name="direction">higher_better</field>-->
+<!--            <field name="target">100.0</field>-->
+<!--            <field name="weight">15.0</field>-->
+<!--            <field name="is_auto">True</field>-->
+<!--            <field name="data_source">task_on_time</field>-->
+<!--            <field name="sequence">20</field>-->
+<!--        </record>-->
 
         <record id="kpi_line_it_attendance" model="hr.kpi.line">
             <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
             <field name="key_performance_area">Đi làm đúng giờ</field>
             <field name="description" type="html">
-                <p>Đánh giá dựa trên <strong>dữ liệu chấm công thực tế</strong> từ module Attendance</p>
+                <p>Đánh giá dựa trên <strong>dữ liệu chấm công thực tế</strong> từ module Attendance
+                </p>
                 <ul>
                     <li>
                         <strong>10 điểm:</strong>
-                        Hoàn thành xuất sắc, <strong>không vi phạm</strong> đi muộn hoặc về sớm.
+                        Hoàn thành xuất sắc, <strong>không vi phạm</strong> đi muộn.
                     </li>
                     <li>
                         <strong>Trừ 1 điểm:</strong>
                         Cho mỗi lần phát hiện vi phạm quy định giờ giấc làm việc.
                     </li>
-<!--                    <li>-->
-<!--                        <strong>0 điểm:</strong>-->
-<!--                        Trường hợp tổng số lần vi phạm trong tháng <strong>vượt quá 5 lần</strong>.-->
-<!--                    </li>-->
                 </ul>
             </field>
             <field name="kpi_type">quantitative</field>
-<!--            <field name="target_type">value</field>-->
-<!--            <field name="direction">lower_better</field>-->
             <field name="target">0.0</field>
-            <field name="weight">10.0</field>
+            <field name="weight">5.0</field>
             <field name="is_auto">True</field>
             <field name="data_source">late_days</field>
             <field name="sequence">30</field>
@@ -101,7 +115,7 @@
             <field name="target_type">value</field>
             <field name="direction">lower_better</field>
             <field name="target">0.0</field>
-            <field name="weight">10.0</field>
+            <field name="weight">5.0</field>
             <field name="is_auto">True</field>
             <field name="data_source">attendance_full</field>
             <field name="sequence">40</field>
@@ -219,7 +233,7 @@
             <field name="target_type">value</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
-            <field name="weight">10.0</field>
+            <field name="weight">15.0</field>
             <field name="is_auto">False</field>
             <field name="data_source">manual</field>
             <field name="sequence">70</field>
@@ -264,12 +278,12 @@
 
         <record id="kpi_line_it_discipline" model="hr.kpi.line">
             <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>
-            <field name="key_performance_area">Chấp hành nội quy &amp; Giờ giấc</field>
+            <field name="key_performance_area">Chấp hành nội quy</field>
             <field name="description" type="html">
                 <ul>
                     <li>
                         <strong>5 sao (10đ):</strong>
-                        Không vi phạm bất kỳ nội quy nào (giờ giấc, trang phục).
+                        Không vi phạm bất kỳ nội quy nào.
                     </li>
                     <li>
                         <strong>4 sao (8đ):</strong>
@@ -298,33 +312,5 @@
             <field name="data_source">manual</field>
             <field name="sequence">90</field>
         </record>
-
-
-        <!--        <record id="kpi_line_it_learning" model="hr.kpi.line">-->
-        <!--            <field name="kpi_id" ref="kpi_template_it_odoo_dev"/>-->
-        <!--            <field name="key_performance_area">Đóng góp giải pháp/thư viện dùng chung</field>-->
-        <!--            <field name="description" type="html">-->
-        <!--                <p>Đánh giá dựa trên sự đóng góp thực tế vào kho tài nguyên chung:</p>-->
-        <!--                <ul>-->
-        <!--                    <li>-->
-        <!--                        <strong>Đạt (10đ):</strong>-->
-        <!--                        Có ít nhất 1 đóng góp hữu ích (Module, Script, Doc).-->
-        <!--                    </li>-->
-        <!--                    <li>-->
-        <!--                        <strong>Không đạt (0đ):</strong>-->
-        <!--                        Không có đóng góp nào.-->
-        <!--                    </li>-->
-        <!--                </ul>-->
-        <!--            </field>-->
-        <!--            <field name="kpi_type">binary</field>-->
-        <!--            <field name="target_type">value</field>-->
-        <!--            <field name="direction">higher_better</field>-->
-        <!--            <field name="target">1.0</field>-->
-        <!--            <field name="weight">10.0</field>-->
-        <!--            <field name="is_monthly">True</field>-->
-        <!--            <field name="is_auto">False</field>-->
-        <!--            <field name="data_source">manual</field>-->
-        <!--            <field name="sequence">100</field>-->
-        <!--        </record>-->
     </data>
 </odoo>

@@ -251,5 +251,7 @@
         parent="kpi_department_menu" action="action_hr_department_performance_evaluation" />
     <menuitem id="menu_kpi_department_dashboard" name="Dashboard"
         sequence="20" parent="kpi_department_menu"
-        action="action_kpi_department_dashboard" />
+        action="action_kpi_department_dashboard"
+        groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_hr"
+    />
 </odoo>

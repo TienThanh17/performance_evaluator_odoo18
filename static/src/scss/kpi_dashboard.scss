@@ -237,13 +237,13 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     border-radius: 20px;
 
     &.o_kpi_level_excellent {
-        background: #dcfce7;
-        color: #166534;
+        background: #dcf0fc;
+        color: #1e40af;
     }
 
     &.o_kpi_level_pass {
-        background: #dbeafe;
-        color: #1e40af;
+        background: #dbfef1;
+        color: #166534;
     }
 
     &.o_kpi_level_fail {
@@ -432,8 +432,12 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     font-weight: 600;
     font-size: 0.82rem;
 
-    &.o_kpi_variance_good {
+    &.o_kpi_variance_exceeded {
         color: $color-excellent;
+    }
+
+    &.o_kpi_variance_good {
+        color: $color-pass;
     }
 
     &.o_kpi_variance_bad {
@@ -451,13 +455,13 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     padding: 2px 10px;
 
     &.o_kpi_status_excellent {
-        background: #dcfce7;
-        color: #166534;
+        background: #dcf0fc;
+        color: #1e40af;
     }
 
     &.o_kpi_status_pass {
-        background: #dbeafe;
-        color: #1e40af;
+        background: #dbfef1;
+        color: #166534;
     }
 
     &.o_kpi_status_fail {

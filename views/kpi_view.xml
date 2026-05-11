@@ -28,8 +28,8 @@
                                 <field name="weight"/>
                             </group>
                             <group string="Auto Compute">
-                                <field name="is_auto"/>
-                                <field name="data_source" invisible="not is_auto"/>
+                                <field name="is_auto" readonly="1" invisible="kpi_type != 'quantitative'"/>
+                                <field name="data_source" invisible="kpi_type != 'quantitative'"/>
                                 <field name="is_special_scoring" invisible="not is_special_scoring"/>
                             </group>
                         </group>
@@ -117,7 +117,7 @@
                                         <field name="kpi_type" invisible="is_section"/>
                                         <field name="target_type"
                                                invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
-                                        <field name="target_display" string="Target"
+                                        <field name="target" string="Target"
                                                invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
                                         <field name="direction"
                                                invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
@@ -127,6 +127,9 @@
                                                invisible="is_section or not is_auto"/>
 
                                         <field name="weight" invisible="is_section"/>
+                                        <button name="action_open_popup" type="object"
+                                            icon="fa-pencil" title="Open Details"
+                                            invisible="is_section" />
                                         <control>
                                             <create name="add_section" string="Add Section"
                                                     context="{'default_is_section': True, 'default_display_type': 'line_section'}"
