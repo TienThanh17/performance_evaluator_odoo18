@@ -12,6 +12,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";   // singleton – no service needed
 import { loadJS } from "@web/core/assets";
+import { _t } from "@web/core/l10n/translation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -51,6 +52,7 @@ export class KpiDashboard extends Component {
     setup() {
         this.orm = useService("orm");
 
+        this.doneTasksRef = useRef("doneTasksChart");
         this.taskRef = useRef("taskChart");
         this.puncRef = useRef("punctualityChart");
         this.radarRef = useRef("spiderChart");
@@ -68,7 +70,7 @@ export class KpiDashboard extends Component {
             selectedDepartmentId: null,  // Thêm: Phòng ban đang chọn
             filteredEmployees: [],       // Thêm: Nhân viên ĐÃ LỌC theo phòng ban để show ra view
             evaluations: [],
-            selectedId: null,
+            selectedEvaluationId: null,
             data: null,
             errorMsg: "",
         });
@@ -99,8 +101,7 @@ export class KpiDashboard extends Component {
         });
 
         onMounted(async () => {
-            console.log('this.state', this.state)
-            if (this.state.selectedId) {
+            if (this.state.selectedEvaluationId) {
                 await this._loadDashboard();
             }
         });
@@ -130,41 +131,69 @@ export class KpiDashboard extends Component {
     // ── Data loaders ─────────────────────────────────────────────────────────
     async _loadEmployees() {
         try {
-            // 1. Load danh sách phòng ban
+            // 1. Lấy thông tin nhân viên của user đang đăng nhập
+            const myEmployee = await this.orm.searchRead(
+                "hr.employee",
+                [["user_id", "=", user.userId]],
+                ["id", "name", "department_id"],
+                { limit: 1 }
+            );
+
+            let myDepartmentId = null;
+            if (myEmployee.length && myEmployee[0].department_id) {
+                myDepartmentId = myEmployee[0].department_id[0];
+            }
+
+            // 2. Load danh sách phòng ban
+            let deptDomain = [["active", "=", true]];
+            if (this.state.isManager && !this.state.isHR && !this.state.isAdmin) {
+                if (myDepartmentId) {
+                    deptDomain.push(["id", "=", myDepartmentId]);
+                } else {
+                    deptDomain.push(["id", "=", 0]);
+                }
+            }
+
             const departments = await this.orm.searchRead(
                 "hr.department",
-                [["active", "=", true]],
+                deptDomain,
                 ["id", "name", "member_ids"],
                 { order: "name asc" }
             );
             this.state.departments = departments;
-            // 2. Load toàn bộ nhân viên (kèm theo department_id)
+
+            // 3. Load toàn bộ nhân viên (kèm theo department_id)
+            let empDomain = [["active", "=", true]];
+            if (this.state.isManager && !this.state.isHR && !this.state.isAdmin) {
+                if (myDepartmentId) {
+                    empDomain.push(["department_id", "=", myDepartmentId]);
+                } else {
+                    empDomain.push(["id", "=", 0]);
+                }
+            }
+
             const employees = await this.orm.searchRead(
                 "hr.employee",
-                [["active", "=", true]],
+                empDomain,
                 ["id", "name", "department_id"],
                 { order: "name asc", limit: 500 } // Tăng limit nếu công ty đông
             );
             this.state.employees = employees;
-            
-            // 3. Lấy thông tin nhân viên của user đang đăng nhập
-            // const myEmployee = await this.orm.searchRead(
-            //     "hr.employee",
-            //     [["user_id", "=", user.userId]],
-            //     ["id", "name", "department_id"],
-            //     { limit: 1 }
-            // );
 
-            // if (myEmployee.length) {
-            //     this.state.selectedEmployeeId = myEmployee[0].id;
-            //     // Nếu nhân viên này có phòng ban, set phòng ban mặc định
-            //     if (myEmployee[0].department_id) {
-            //         this.state.selectedDepartmentId = myEmployee[0].department_id[0];
-            //     }
-            // }
-
-            this.state.selectedDepartmentId = departments[0].id
-            this.state.selectedEmployeeId = departments[0].member_ids[0].id
+            if (departments.length > 0) {
+                this.state.selectedDepartmentId = departments[0].id;
+                const deptMembers = employees.filter(e => e.department_id && e.department_id[0] === departments[0].id);
+                if (myEmployee.length && deptMembers.find(e => e.id === myEmployee[0].id)) {
+                    this.state.selectedEmployeeId = myEmployee[0].id;
+                } else if (deptMembers.length > 0) {
+                    this.state.selectedEmployeeId = deptMembers[0].id;
+                } else if (employees.length > 0) {
+                    this.state.selectedEmployeeId = employees[0].id;
+                }
+            } else {
+                this.state.selectedDepartmentId = null;
+                this.state.selectedEmployeeId = null;
+            }
 
             // 4. Lọc nhân viên theo phòng ban
             this._filterEmployees();
@@ -220,7 +249,7 @@ export class KpiDashboard extends Component {
             this.state.evaluations = evals;
 
             if (evals.length > 0) {
-                this.state.selectedId = evals[0].id;
+                this.state.selectedEvaluationId = evals[0].id;
                 this.state.phase = "dashboard";
             } else {
                 this.state.data = null;
@@ -239,7 +268,7 @@ export class KpiDashboard extends Component {
             const data = await this.orm.call(
                 "hr.performance.evaluation",
                 "get_dashboard_data",
-                [[this.state.selectedId]]
+                [[this.state.selectedEvaluationId]]
             );
             this.state.data = data;
             this.state.phase = "done";
@@ -268,10 +297,10 @@ export class KpiDashboard extends Component {
 
         // Reset data và load lại evaluation của nhân viên mới
         this.state.evaluations = [];
-        this.state.selectedId = null;
+        this.state.selectedEvaluationId = null;
         this.state.data = null;
         await this._loadEvaluations();
-        if (this.state.selectedId) {
+        if (this.state.selectedEvaluationId) {
             await this._loadDashboard();
         }
     }
@@ -281,18 +310,18 @@ export class KpiDashboard extends Component {
         if (!id || id === this.state.selectedEmployeeId) return;
         this.state.selectedEmployeeId = id;
         this.state.evaluations = [];
-        this.state.selectedId = null;
+        this.state.selectedEvaluationId = null;
         this.state.data = null;
         await this._loadEvaluations();
-        if (this.state.selectedId) {
+        if (this.state.selectedEvaluationId) {
             await this._loadDashboard();
         }
     }
 
     async onSelectEval(ev) {
         const id = parseInt(ev.target.value, 10);
-        if (!id || id === this.state.selectedId) return;
-        this.state.selectedId = id;
+        if (!id || id === this.state.selectedEvaluationId) return;
+        this.state.selectedEvaluationId = id;
         await this._loadDashboard();
     }
 
@@ -319,26 +348,48 @@ export class KpiDashboard extends Component {
         return "o_kpi_level_badge o_kpi_level_" + this.levelLabel;
     }
 
-    varianceClass(row) {
-        const positive = row.variance >= 0;
-        const good = row.direction === "higher_better" ? positive : !positive;
-        return "o_kpi_variance " + (good ? "o_kpi_variance_good" : "o_kpi_variance_bad");
-    }
+    // -------------------------------------------------------------------------
+    // Bảng Quantitative - Xử lý Logic Status & Variance
+    // -------------------------------------------------------------------------
 
+    // 1. Format text cho cột Variance (Thêm dấu + cho số dương)
     formatVariance(row) {
-        return (row.variance >= 0 ? "+" : "") + row.variance + "%";
+        if (row.variance === 0) return "0%";
+        return row.variance > 0 ? `+${row.variance}%` : `${row.variance}%`;
     }
 
-    statusClass(row) {
-        if (row.final_score >= 9) return "o_kpi_status o_kpi_status_excellent";
-        if (row.final_score >= 5) return "o_kpi_status o_kpi_status_pass";
-        return "o_kpi_status o_kpi_status_fail";
+    // 2. Màu sắc cho cột Variance
+    varianceClass(row) {
+        if (row.variance === 0) return "o_kpi_variance o_kpi_variance_good";
+
+        // Xác định xem variance hiện tại là Tích cực (Good) hay Tiêu cực (Bad)
+        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+
+        return isGood ? "o_kpi_variance o_kpi_variance_exceeded" : "o_kpi_variance o_kpi_variance_bad";
     }
 
+    // 3. Chữ hiển thị cho cột Status
     statusText(row) {
-        if (row.final_score >= 9) return "Excellent";
-        if (row.final_score >= 5) return "On Track";
-        return "Below Target";
+        // Đúng Target (Variance = 0) -> Achieved
+        if (row.variance === 0) return "Achieved";
+
+        // Xác định Tích cực/Tiêu cực
+        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+
+        // Tích cực -> Exceeded, Tiêu cực -> Not Met
+        return isGood ? "Exceeded" : "Not Met";
+    }
+
+    // 4. Màu nền cho Badge Status
+    statusClass(row) {
+        // Đạt chính xác Target -> Dùng màu Xanh lá (Pass)
+        if (row.variance === 0) return "o_kpi_status o_kpi_status_pass";
+
+        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+
+        // Vượt mục tiêu -> Xanh dương đậm (Excellent)
+        // Không đạt -> Đỏ (Fail)
+        return isGood ? "o_kpi_status o_kpi_status_excellent" : "o_kpi_status o_kpi_status_fail";
     }
 
     periodLabel(period) { return PERIOD_LABELS[period] || period; }
@@ -358,45 +409,45 @@ export class KpiDashboard extends Component {
         this._destroyCharts();
 
         // 1. Task Completion
-        const taskEl = this.taskRef.el;
-        if (taskEl && d.task_completion.labels.length) {
-            this._charts.task = new Chart(taskEl, {
-                type: "line",
-                data: {
-                    labels: d.task_completion.labels,
-                    datasets: [
-                        {
-                            label: "On-time %",
-                            data: d.task_completion.data,
-                            borderColor: COLOR_BLUE,
-                            backgroundColor: "rgba(59,130,246,0.15)",
-                            fill: true, tension: 0.4, pointRadius: 5, spanGaps: true,
-                        },
-                        {
-                            label: "Target",
-                            data: Array(d.task_completion.labels.length).fill(d.task_completion.target),
-                            borderColor: COLOR_GREEN, borderDash: [6, 4],
-                            borderWidth: 1.5, pointRadius: 0, fill: false,
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => c.dataset.label + ": " + (c.parsed.y != null ? c.parsed.y : "--") + "%",
-                            },
-                        },
-                    },
-                    scales: {
-                        x: { ticks: { maxTicksLimit: 10, font: { size: 10 } }, grid: { display: false } },
-                        y: { min: 0, max: 100, ticks: { callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.05)" } },
-                    },
-                },
-            });
-        }
+        //        const taskEl = this.taskRef.el;
+        //        if (taskEl && d.task_completion.labels.length) {
+        //            this._charts.task = new Chart(taskEl, {
+        //                type: "line",
+        //                data: {
+        //                    labels: d.task_completion.labels,
+        //                    datasets: [
+        //                        {
+        //                            label: "On-time %",
+        //                            data: d.task_completion.data,
+        //                            borderColor: COLOR_BLUE,
+        //                            backgroundColor: "rgba(59,130,246,0.15)",
+        //                            fill: true, tension: 0.4, pointRadius: 5, spanGaps: true,
+        //                        },
+        //                        {
+        //                            label: "Target",
+        //                            data: Array(d.task_completion.labels.length).fill(d.task_completion.target),
+        //                            borderColor: COLOR_GREEN, borderDash: [6, 4],
+        //                            borderWidth: 1.5, pointRadius: 0, fill: false,
+        //                        },
+        //                    ],
+        //                },
+        //                options: {
+        //                    responsive: true,
+        //                    plugins: {
+        //                        legend: { display: false },
+        //                        tooltip: {
+        //                            callbacks: {
+        //                                label: (c) => c.dataset.label + ": " + (c.parsed.y != null ? c.parsed.y : "--") + "%",
+        //                            },
+        //                        },
+        //                    },
+        //                    scales: {
+        //                        x: { ticks: { maxTicksLimit: 10, font: { size: 10 } }, grid: { display: false } },
+        //                        y: { min: 0, max: 100, ticks: { callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.05)" } },
+        //                    },
+        //                },
+        //            });
+        //        }
 
         // 2. Punctuality Log
         const puncEl = this.puncRef.el;
@@ -544,6 +595,77 @@ export class KpiDashboard extends Component {
                                 label: (c) => c.label + ": " + c.parsed + " days"
                             }
                         }
+                    },
+                },
+            });
+        }
+
+        // 5. Done Tasks by Day
+        const doneTasksEl = this.doneTasksRef.el;
+        if (doneTasksEl && d.done_tasks_by_day && d.done_tasks_by_day.labels.length) {
+            const dtd = d.done_tasks_by_day;
+            this._charts.doneTasks = new Chart(doneTasksEl, {
+                type: "line",
+                data: {
+                    labels: dtd.labels,
+                    datasets: [
+                        {
+                            label: "Done Tasks",
+                            data: dtd.done_by_day,
+                            borderColor: COLOR_GREEN,
+                            backgroundColor: "rgba(34,197,94,0.12)",
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointBackgroundColor: COLOR_GREEN,
+                            spanGaps: false,
+                        },
+                        {
+                            label: "Total Tasks (target)",
+                            data: Array(dtd.labels.length).fill(dtd.total),
+                            borderColor: COLOR_RED,
+                            borderDash: [6, 4],
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true, position: "top" },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => {
+                                    if (c.datasetIndex === 1) {
+                                        return `Total in period: ${dtd.total} tasks`;
+                                    }
+                                    return `Done (Total): ${c.parsed.y} tasks`;
+                                },
+                            },
+                        },
+                    },
+                    scales: {
+                        x: {
+                            ticks: { maxTicksLimit: 10, font: { size: 10 } },
+                            grid: { display: false },
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                font: { size: 10 },
+                                callback: (v) => Number.isInteger(v) ? v : "",
+                            },
+                            grid: { color: "rgba(0,0,0,0.05)" },
+                            title: {
+                                display: true,
+                                text: "Tasks",
+                                font: { size: 11 },
+                            },
+                        },
                     },
                 },
             });

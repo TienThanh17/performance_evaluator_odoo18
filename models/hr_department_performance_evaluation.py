@@ -90,7 +90,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 continue
 
             evals = self.env['hr.performance.evaluation'].search([
-                ('state', '=', 'approved'),
+                ('state', '=', 'completed'),
                 ('employee_id.department_id', '=', rec.department_id.id),
                 ('start_date', '>=', rec.start_date),
                 ('end_date', '<=', rec.end_date),

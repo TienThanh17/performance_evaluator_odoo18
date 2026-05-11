@@ -16,10 +16,10 @@
             <!-- Chọn phòng ban -->
         <label class="o_kpi_selector_label">Department:</label>
         <select class="o_kpi_selector_select" t-on-change="onSelectDepartment" style="min-width: 150px; margin-right: 10px;">
-          <option value="">All Departments</option>
+          <option t-if="state.isHR || state.isAdmin" value="">All Departments</option>
           <t t-foreach="state.departments" t-as="dept" t-key="dept.id">
-            <option t-att-value="dept.id" 
-                    t-att-selected="dept.id === state.selectedDepartmentId" 
+            <option t-att-value="dept.id"
+                    t-att-selected="dept.id === state.selectedDepartmentId"
                     t-esc="dept.name"/>
           </t>
         </select>
@@ -28,8 +28,8 @@
         <label class="o_kpi_selector_label">Employee:</label>
         <select class="o_kpi_selector_select" t-on-change="onSelectEmployee" style="min-width: 180px; margin-right: 10px;">
           <t t-foreach="state.filteredEmployees" t-as="emp" t-key="emp.id">
-            <option t-att-value="emp.id" 
-                    t-att-selected="emp.id === state.selectedEmployeeId" 
+            <option t-att-value="emp.id"
+                    t-att-selected="emp.id === state.selectedEmployeeId"
                     t-esc="emp.name"/>
           </t>
         </select>
@@ -40,7 +40,7 @@
         <label class="o_kpi_selector_label">Evaluation:</label>
         <select class="o_kpi_selector_select" t-on-change="onSelectEval">
           <t t-foreach="state.evaluations" t-as="ev" t-key="ev.id">
-            <option t-att-value="ev.id" 
+            <option t-att-value="ev.id"
                     t-att-selected="ev.id === state.selectedId"
                     t-esc="evalOptionLabel(ev)"/>
           </t>
@@ -98,16 +98,32 @@
         <!-- Row 1: Task Completion + Punctuality -->
     <div class="o_kpi_row o_kpi_row_2col">
 
-      <div class="o_kpi_card o_kpi_chart_card">
+          <!--      <div class="o_kpi_card o_kpi_chart_card">-->
+          <!--        <div class="o_kpi_card_header">-->
+          <!--          <span class="o_kpi_card_title"><i class="fa fa-check-square-o"/> Task
+          Completion</span>-->
+          <!--          <span class="o_kpi_target_badge">Target: <b t-esc="state.data.task_completion.target
+          + '%'"/></span>-->
+          <!--        </div>-->
+          <!--        <div class="o_kpi_chart_container"
+          t-if="state.data.task_completion.labels.length">-->
+          <!--          <canvas t-ref="taskChart" height="160"/>-->
+          <!--        </div>-->
+          <!--        <p t-else="" class="o_kpi_chart_note o_kpi_muted">No task data for this
+          period.</p>-->
+          <!--        <p class="o_kpi_chart_note">% of tasks completed on time per day</p>-->
+          <!--      </div>-->
+
+        <div class="o_kpi_card o_kpi_chart_card">
         <div class="o_kpi_card_header">
           <span class="o_kpi_card_title"><i class="fa fa-check-square-o"/> Task Completion</span>
-          <span class="o_kpi_target_badge">Target: <b t-esc="state.data.task_completion.target + '%'"/></span>
+          <span class="o_kpi_target_badge">Total Task: <b t-esc="state.data.done_tasks_by_day.total"/></span>
         </div>
-        <div class="o_kpi_chart_container" t-if="state.data.task_completion.labels.length">
-          <canvas t-ref="taskChart" height="160"/>
+        <div class="o_kpi_chart_container" t-if="state.data.done_tasks_by_day.labels.length">
+          <canvas t-ref="doneTasksChart" height="160"/>
         </div>
         <p t-else="" class="o_kpi_chart_note o_kpi_muted">No task data for this period.</p>
-        <p class="o_kpi_chart_note">% of tasks completed on time per day</p>
+        <p class="o_kpi_chart_note">Cumulative tasks completed vs Target</p>
       </div>
 
       <div class="o_kpi_card o_kpi_chart_card">
@@ -126,10 +142,10 @@
 
     </div>
 
-    <!-- Row 2: Spider Web + Attendance Overview -->
+        <!-- Row 2: Spider Web + Attendance Overview -->
     <div class="o_kpi_row" style="display: grid; grid-template-columns: 7fr 3fr; gap: 20px;">
-      
-      <!-- Competency Spider Web -->
+
+          <!-- Competency Spider Web -->
       <div class="o_kpi_card o_kpi_spider_card" t-if="state.data.spider_web.labels.length">
         <div class="o_kpi_card_header">
           <span class="o_kpi_card_title"><i class="fa fa-bullseye"/> Competency Chart</span>
@@ -153,7 +169,7 @@
         <p class="o_kpi_empty">No competency data available.</p>
       </div>
 
-      <!-- Attendance Overview -->
+          <!-- Attendance Overview -->
       <div class="o_kpi_card o_kpi_attendance_card">
         <div class="o_kpi_card_header">
           <span class="o_kpi_card_title"><i class="fa fa-pie-chart"/> Attendance Overview</span>
@@ -161,7 +177,7 @@
         <div class="o_kpi_attendance_body" t-if="state.data.attendance_full and state.data.attendance_full.summary.expected_work_days > 0">
           <div class="o_kpi_chart_container o_kpi_chart_doughnut" style="position: relative; height: 180px; width: 100%; display: flex; align-items: center; justify-content: center;">
             <canvas t-ref="attendanceChart"/>
-            <!-- Center Text for Doughnut Chart -->
+                <!-- Center Text for Doughnut Chart -->
             <div style="position: absolute; text-align: center; pointer-events: none;">
               <div style="font-size: 24px; font-weight: bold; color: #1e293b;" t-esc="state.data.attendance_full.summary.expected_work_days"></div>
               <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Total Days</div>
@@ -189,30 +205,40 @@
 
     </div>
 
-    <!-- Row 3: Quantitative Table -->
+        <!-- Row 3: Quantitative Table -->
     <div class="o_kpi_row" style="margin-top: 20px;">
       <div class="o_kpi_card o_kpi_table_card o_kpi_card_full">
         <div class="o_kpi_card_header">
           <span class="o_kpi_card_title"><i class="fa fa-table"/> Detailed Evaluation Log</span>
-          <!-- Optional Export button if needed: <button class="btn btn-primary btn-sm"><i class="fa fa-download"/> Export PDF</button> -->
+              <!-- Optional Export button if needed: <button class="btn btn-primary btn-sm"><i
+              class="fa fa-download"/> Export PDF</button> -->
         </div>
         <div class="o_kpi_table_wrapper">
           <table class="o_kpi_table" t-if="state.data.quantitative_table.length">
             <thead>
               <tr>
-                <th>KPI Measure</th><th>Actual</th><th>Target</th>
-                <th>Variance</th><th>Score</th><th>Status</th>
+                <th>KPI Measure</th>
+                <th>Target</th>
+                <th>Actual</th>
+                <th>Variance</th>
+                <th>Status</th>
+                <th>Score</th>
               </tr>
             </thead>
             <tbody>
               <t t-foreach="state.data.quantitative_table" t-as="row" t-key="row_index">
                 <tr>
                   <td class="o_kpi_table_name" t-esc="row.name"/>
+                  <td>
+                    <span t-if="row.direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
+                    <span t-if="row.direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
+                    <span class="ms-1" t-esc="row.target"/>
+                  </td>
                   <td t-esc="row.actual"/>
-                  <td t-esc="row.target"/>
+
                   <td><span t-att-class="varianceClass(row)" t-esc="formatVariance(row)"/></td>
-                  <td><b t-esc="row.final_score"/></td>
                   <td><span t-att-class="statusClass(row)" t-esc="statusText(row)"/></td>
+                  <td><b t-esc="row.final_score"/></td>
                 </tr>
               </t>
             </tbody>
