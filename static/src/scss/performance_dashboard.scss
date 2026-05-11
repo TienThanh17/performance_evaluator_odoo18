@@ -2,247 +2,678 @@
 // performance_dashboard.scss
 //=============================================================================
 
+// ── Variables ────────────────────────────────────────────────────────────────
+$dept-primary: #0367b0;
+$dept-primary-light: #1a80d0;
+$dept-primary-pale: #ddeeff;
+$dept-green: #119a45;
+$dept-green-light: #18b854;
+$dept-green-pale: #d6f5e3;
+$dept-amber: #e6a817;
+$dept-red: #e03c3c;
+$dept-bg: #f0f4f9;
+$dept-surface: #ffffff;
+$dept-border: #dde4ee;
+$dept-text: #1a2640;
+$dept-muted: #637080;
+$dept-radius: 12px;
+$dept-shadow: 0 2px 12px rgba(3, 103, 176, 0.10);
+$dept-shadow-hover: 0 6px 24px rgba(3, 103, 176, 0.18);
+
 .performance_dashboard_form {
-    background: #f5f5f5;
+    background: $dept-bg;
     font-family: 'Inter', 'Segoe UI', sans-serif;
 
-    .o_form_sheet_bg { background: #f5f5f5; }
+    .o_form_sheet_bg {
+        background: $dept-surface;
+    }
 
     // ── Wrapper ──
     .pd-wrapper {
         padding: 24px 28px;
-        // max-width: 1400px;
         margin: 0 auto;
     }
 
     // ── Header ──
     .pd-header {
+        background: linear-gradient(135deg, $dept-primary 0%, $dept-primary-light 100%);
+        padding: 16px 24px;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        margin-bottom: 24px;
         flex-wrap: wrap;
         gap: 12px;
+        box-shadow: 0 4px 16px rgba(3, 103, 176, 0.3);
+        position: sticky;
+        top: 0;
+        z-index: 100;
 
-        h1.pd-title { font-size: 26px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
-        p.pd-subtitle { font-size: 13px; color: #6b7280; margin: 0; }
+        .pd-header-left {
+            .pd-title {
+                color: #ffffff;
+                margin: 0;
+                font-size: 20px;
+                font-weight: 700;
+            }
 
-        .pd-btn-export {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 16px; border-radius: 8px; border: none;
-            background: #3b5bdb; color: #fff; font-size: 13px;
-            font-weight: 600; cursor: pointer; transition: background .2s;
-            &:hover { background: #2f4ac0; }
-            i { font-size: 14px; }
+            .pd-subtitle {
+                color: rgba(255, 255, 255, 0.8);
+                margin: 2px 0 0;
+                font-size: 12px;
+            }
+        }
+
+        .pd-header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
     }
 
-    // ── Eval Config ──
-    .pd-eval-config {
-        background: #fff; border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,.06);
-        border: 1px solid #f0f0f0; padding: 20px 24px; margin-bottom: 20px;
+    // ── Header Toolbar (Chứa fields + toggle) ──
+    .pd-header-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 16px;
 
-        .pd-eval-config-header {
-            display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
-            .pd-eval-config-title {
-                display: flex; align-items: center; gap: 8px;
-                font-size: 14px; font-weight: 700; color: #1a1a2e;
-                i { color: #3b5bdb; font-size: 16px; }
+        .pd-header-fields {
+            display: flex;
+            gap: 12px;
+
+            .pd-header-field-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                label {
+                    color: rgba(255, 255, 255, 0.85);
+                    font-size: 11px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    white-space: nowrap;
+                    margin-bottom: 0;
+                }
+
+                input[type="date"] {
+                    background: rgba(255, 255, 255, 0.15);
+                    border: 1px solid rgba(255, 255, 255, 0.35);
+                    border-radius: 8px;
+                    color: #fff;
+                    padding: 6px 10px;
+                    font-size: 13px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    backdrop-filter: blur(4px);
+                    outline: none;
+                    transition: background 0.2s, border-color 0.2s;
+
+                    &:focus {
+                        background: rgba(255, 255, 255, 0.25);
+                        border-color: rgba(255, 255, 255, 0.7);
+                    }
+
+                    // Style riêng cho input date để gọn hơn
+                    &::-webkit-calendar-picker-indicator {
+                        cursor: pointer;
+                        filter: invert(1);
+                        margin-left: 4px;
+                        opacity: 0.7;
+                    }
+                }
             }
-            .pd-eval-config-active {
-                display: flex; align-items: center; gap: 8px;
-                .pd-active-label { font-size: 10px; font-weight: 700; letter-spacing: .8px; color: #9ca3af; }
+        }
+
+        .pd-header-active-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-left: 12px;
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+
+            .pd-active-label {
+                font-size: 10px;
+                font-weight: 800;
+                color: rgba(255, 255, 255, 0.9);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
-        }
 
-        .pd-eval-config-fields {
-            display: grid; grid-template-columns: repeat(4,1fr); gap: 14px;
-            @media (max-width: 900px) { grid-template-columns: repeat(2,1fr); }
-            @media (max-width: 480px) { grid-template-columns: 1fr; }
-        }
+            .pd-toggle-switch {
+                position: relative;
+                display: inline-block;
+                width: 46px;
+                height: 24px;
+                margin: 0;
+                cursor: pointer;
 
-        .pd-config-field { display: flex; flex-direction: column; gap: 5px; }
-        .pd-config-label { font-size: 10px; font-weight: 700; letter-spacing: .8px; color: #9ca3af; text-transform: uppercase; }
+                input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                    position: absolute;
 
-        .pd-config-select, .pd-config-date {
-            height: 36px; padding: 0 10px; border: 1.5px solid #e5e7eb;
-            border-radius: 8px; font-size: 13px; color: #374151; background: #fff;
-            outline: none; width: 100%; box-sizing: border-box; cursor: pointer;
-            transition: border-color .2s, box-shadow .2s;
-            &:focus, &:hover { border-color: #3b5bdb; box-shadow: 0 0 0 2px rgba(59,91,219,.12); }
-        }
-        .pd-config-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
-        }
+                    &:checked+.pd-toggle-slider {
+                        background: $dept-green-light;
+                    }
 
-        // Toggle
-        .pd-toggle-switch {
-            position: relative; display: inline-block; width: 46px; height: 24px; margin: 0; cursor: pointer;
-            input { opacity: 0; width: 0; height: 0; position: absolute;
-                &:checked + .pd-toggle-slider { background: #3b5bdb; }
-                &:checked + .pd-toggle-slider::before { transform: translateX(22px); }
-            }
-            .pd-toggle-slider {
-                position: absolute; inset: 0; background: #d1d5db; border-radius: 99px; transition: background .25s;
-                &::before {
-                    content: ''; position: absolute; width: 18px; height: 18px;
-                    left: 3px; top: 3px; background: #fff; border-radius: 50%;
-                    transition: transform .25s; box-shadow: 0 1px 4px rgba(0,0,0,.18);
+                    &:checked+.pd-toggle-slider::before {
+                        transform: translateX(22px);
+                    }
+                }
+
+                .pd-toggle-slider {
+                    position: absolute;
+                    inset: 0;
+                    background: #d1d5db;
+                    border-radius: 99px;
+                    transition: background .25s;
+
+                    &::before {
+                        content: '';
+                        position: absolute;
+                        width: 18px;
+                        height: 18px;
+                        left: 3px;
+                        top: 3px;
+                        background: #fff;
+                        border-radius: 50%;
+                        transition: transform .25s;
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+                    }
                 }
             }
         }
     }
 
+    // ── Tinh chỉnh nút Export ──
+    .pd-btn-export {
+        white-space: nowrap; // Đảm bảo nút không bị rớt dòng
+        height: 38px;
+        padding: 0 16px;
+        background: $dept-green-light;
+        color: white;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+
+        &:hover {
+            background: #2b45b5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(59, 91, 219, 0.2);
+        }
+    }
+
     // ── Scorecards ──
     .pd-scorecards {
-        display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px;
-        @media (max-width: 900px) { grid-template-columns: repeat(2,1fr); }
-        @media (max-width: 480px) { grid-template-columns: 1fr; }
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+
+        @media (max-width: 900px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media (max-width: 480px) {
+            grid-template-columns: 1fr;
+        }
     }
 
     .pd-scorecard {
-        background: #fff; border-radius: 16px; padding: 20px;
-        box-shadow: 0 2px 12px rgba(0,0,0,.06); border: 1px solid #f0f0f0;
-        display: flex; align-items: center; gap: 16px;
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
+        border: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
         transition: box-shadow .2s, transform .2s;
-        &:hover { box-shadow: 0 6px 24px rgba(0,0,0,.1); transform: translateY(-2px); }
+
+        &:hover {
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .1);
+            transform: translateY(-2px);
+        }
 
         .pd-scorecard-icon {
-            width: 48px; height: 48px; border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
         }
-        .pd-scorecard-label { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 4px; }
-        .pd-scorecard-value { font-size: 30px; font-weight: 800; color: #111827; line-height: 1; }
-        .pd-scorecard-value--sm { font-size: 16px; font-weight: 700; }
-        .pd-scorecard-unit { font-size: 16px; font-weight: 500; color: #9ca3af; }
 
-        &--blue   .pd-scorecard-icon { background: #eff6ff; color: #3b82f6; }
-        &--green  .pd-scorecard-icon { background: #f0fdf4; color: #22c55e; }
-        &--amber  .pd-scorecard-icon { background: #fffbeb; color: #f59e0b; }
-        &--purple .pd-scorecard-icon { background: #f5f3ff; color: #8b5cf6; }
+        .pd-scorecard-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            margin-bottom: 4px;
+        }
+
+        .pd-scorecard-value {
+            font-size: 30px;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1;
+        }
+
+        .pd-scorecard-value--sm {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .pd-scorecard-unit {
+            font-size: 16px;
+            font-weight: 500;
+            color: #9ca3af;
+        }
+
+        &--blue .pd-scorecard-icon {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        &--green .pd-scorecard-icon {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+
+        &--amber .pd-scorecard-icon {
+            background: #fffbeb;
+            color: #f59e0b;
+        }
+
+        &--purple .pd-scorecard-icon {
+            background: #f5f3ff;
+            color: #8b5cf6;
+        }
     }
 
     // ── Chart layout ──
     .pd-chart-row {
         margin-bottom: 20px;
-        &--2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-            @media (max-width: 900px) { grid-template-columns: 1fr; } }
-        &--1col { display: grid; grid-template-columns: 1fr; gap: 16px; }
-        &--qual { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+        &--2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+
+            @media (max-width: 900px) {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        &--13col {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 16px;
+
+            @media (max-width: 900px) {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        &--1col {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        &--qual {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
     }
 
     .pd-chart-card {
-        background: #fff; border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,.06); border: 1px solid #f0f0f0; overflow: hidden;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
+        border: 1px solid #f0f0f0;
+        overflow: hidden;
     }
 
     .pd-chart-header {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 16px 20px; border-bottom: 1px solid #f3f4f6;
-        .pd-chart-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #111827; }
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid #f3f4f6;
+
+        .pd-chart-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+        }
     }
 
     .pd-chart-dot {
-        width: 10px; height: 10px; border-radius: 50%; display: inline-block;
-        &--green  { background: #22c55e; }
-        &--blue   { background: #3b5bdb; }
-        &--red    { background: #ef4444; }
-        &--purple { background: #8b5cf6; }
-        &--amber  { background: #f59e0b; }
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+
+        &--green {
+            background: #22c55e;
+        }
+
+        &--blue {
+            background: #3b5bdb;
+        }
+
+        &--red {
+            background: #ef4444;
+        }
+
+        &--purple {
+            background: #8b5cf6;
+        }
+
+        &--amber {
+            background: #f59e0b;
+        }
     }
 
     .pd-chart-badge {
-        font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
-        padding: 3px 10px; border-radius: 99px;
-        &--green  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-        &--blue   { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-        &--red    { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
-        &--purple { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
-        &--amber  { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .5px;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 99px;
+
+        &--green {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        &--blue {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        &--red {
+            background: #fff1f2;
+            color: #be123c;
+            border: 1px solid #fecdd3;
+        }
+
+        &--purple {
+            background: #f5f3ff;
+            color: #6d28d9;
+            border: 1px solid #ddd6fe;
+        }
+
+        &--amber {
+            background: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
     }
 
     .pd-chart-body {
         padding: 16px 20px;
-        canvas { max-width: 100%; }
-        &--doughnut { height: 260px; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        position: relative;
+        height: 300px;
+
+        canvas {
+            max-width: 100%;
+        }
+
+        &--doughnut {
+            height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
     }
 
     // ── Section title ──
     .pd-section-title {
-        font-size: 15px; font-weight: 700; color: #374151;
-        margin: 4px 0 12px; display: flex; align-items: center; gap: 8px;
-        i { color: #8b5cf6; }
+        font-size: 15px;
+        font-weight: 700;
+        color: #374151;
+        margin: 4px 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        i {
+            color: #8b5cf6;
+        }
     }
 
     // ── Roster ──
     .pd-roster-section {
-        background: #fff; border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,.06); border: 1px solid #f0f0f0; overflow: hidden;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
+        border: 1px solid #f0f0f0;
+        overflow: hidden;
 
         .pd-roster-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 24px; border-bottom: 1px solid #f3f4f6;
-            h2 { font-size: 16px; font-weight: 700; color: #111827; margin: 0; }
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            border-bottom: 1px solid #f3f4f6;
+
+            h2 {
+                font-size: 16px;
+                font-weight: 700;
+                color: #111827;
+                margin: 0;
+            }
         }
 
         table.pd-table {
-            width: 100%; border-collapse: collapse;
+            width: 100%;
+            border-collapse: collapse;
+
             thead th {
-                padding: 10px 20px; font-size: 11px; font-weight: 600;
-                text-transform: uppercase; letter-spacing: .7px; color: #9ca3af;
-                background: #fafafa; border-bottom: 1px solid #f3f4f6; text-align: left;
+                padding: 10px 20px;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: .7px;
+                color: #9ca3af;
+                background: #fafafa;
+                border-bottom: 1px solid #f3f4f6;
+                text-align: left;
             }
+
             tbody tr {
-                border-bottom: 1px solid #f9fafb; transition: background .15s;
-                &:last-child { border-bottom: none; }
-                &:hover { background: #f9fafb; }
-                td { padding: 12px 20px; vertical-align: middle; font-size: 13px; color: #374151; }
+                border-bottom: 1px solid #f9fafb;
+                transition: background .15s;
+
+                &:last-child {
+                    border-bottom: none;
+                }
+
+                &:hover {
+                    background: #f9fafb;
+                }
+
+                td {
+                    padding: 12px 20px;
+                    vertical-align: middle;
+                    font-size: 13px;
+                    color: #374151;
+                }
             }
         }
 
-        .pd-employee-cell { display: flex; align-items: center; gap: 10px; }
-        .pd-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #f0f0f0; }
-        .pd-emp-name { font-weight: 600; color: #111827; }
-        .pd-emp-id { font-weight: 600; color: #374151; font-size: 13px; }
+        .pd-employee-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-        .pd-score-cell { display: flex; align-items: center; gap: 10px;
-            .pd-score-num { font-weight: 700; font-size: 14px; color: #111827; min-width: 28px; }
-            .pd-progress-bar-wrap { flex: 1; height: 7px; background: #e5e7eb; border-radius: 99px; overflow: hidden; min-width: 70px; max-width: 110px;
-                .pd-progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg,#3b5bdb,#4dabf7); transition: width .6s ease; }
+        .pd-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #f0f0f0;
+        }
+
+        .pd-emp-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .pd-employee-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .pd-employee-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+
+        .pd-emp-id {
+            font-weight: 600;
+            color: #374151;
+            font-size: 13px;
+        }
+
+        .pd-score-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            .pd-score-num {
+                font-weight: 700;
+                font-size: 14px;
+                color: #111827;
+                min-width: 28px;
+            }
+
+            .pd-progress-bar-wrap {
+                flex: 1;
+                height: 7px;
+                background: #e5e7eb;
+                border-radius: 99px;
+                overflow: hidden;
+                min-width: 70px;
+                max-width: 110px;
+
+                .pd-progress-bar-fill {
+                    height: 100%;
+                    border-radius: 99px;
+                    background: linear-gradient(90deg, #3b5bdb, #4dabf7);
+                    transition: width .6s ease;
+                }
             }
         }
 
         .pd-badge {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 3px 10px; border-radius: 99px; font-size: 10px;
-            font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
-            background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb;
-            &.badge-pass      { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
-            &.badge-excellent { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
-            &.badge-fail      { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+
+            &.badge-pass {
+                background: #f0fdf4;
+                color: #16a34a;
+                border-color: #bbf7d0;
+            }
+
+            &.badge-excellent {
+                background: #eff6ff;
+                color: #1d4ed8;
+                border-color: #bfdbfe;
+            }
+
+            &.badge-fail {
+                background: #fff1f2;
+                color: #be123c;
+                border-color: #fecdd3;
+            }
         }
 
         .pd-action-btn {
-            width: 30px; height: 30px; border: none; background: #f3f4f6;
-            border-radius: 8px; cursor: pointer; display: flex;
-            align-items: center; justify-content: center;
-            color: #6b7280; font-size: 14px; transition: background .2s, color .2s;
-            &:hover { background: #e0e7ff; color: #3b5bdb; }
-        }
-        .pd-btn-attention { color: #f59e0b; font-weight: bold;
-            i.fa-chevron-right { animation: bounceRight 1.5s infinite; }
-        }
-        @keyframes bounceRight {
-            0%, 100% { transform: translateX(0); }
-            50%       { transform: translateX(5px); }
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 14px;
+            transition: background .2s, color .2s;
+
+            &:hover {
+                background: #e0e7ff;
+                color: #3b5bdb;
+            }
         }
 
-        .pd-empty-state { text-align: center; padding: 48px 24px; color: #9ca3af; font-size: 14px;
-            i { font-size: 36px; margin-bottom: 10px; display: block; }
+        .pd-btn-attention {
+            color: #f59e0b;
+            font-weight: bold;
+
+            i.fa-chevron-right {
+                animation: bounceRight 1.5s infinite;
+            }
+        }
+
+        @keyframes bounceRight {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
+        }
+
+        .pd-empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #9ca3af;
+            font-size: 14px;
+
+            i {
+                font-size: 36px;
+                margin-bottom: 10px;
+                display: block;
+            }
         }
     }
 }

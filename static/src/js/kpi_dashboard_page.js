@@ -58,7 +58,19 @@ export class KpiDashboard extends Component {
         this.radarRef = useRef("spiderChart");
         this.attendanceRef = useRef("attendanceChart");
 
+        // 1. Lấy context từ action props (bắt lỗi an toàn nếu mở trực tiếp không qua nút bấm)
+        const actionContext = this.props.action?.context || {};
+
+        // 2. Hứng ID nhân viên (nếu không có thì trả về false để load tất cả)
+        const passedEmployeeId = actionContext.default_employee_id || false;
+
+        // 3. Khởi tạo state với ID vừa hứng được
+
         this.state = useState({
+            employee_id: passedEmployeeId, // Dashboard sẽ lấy ID này để gọi xuống Python filter data
+            period: "monthly",
+            date_from: "",
+            date_to: "",
             phase: "evals",           // "evals" | "dashboard" | "done" | "error"
             isEmployee: false,
             isManager: false,
@@ -195,6 +207,17 @@ export class KpiDashboard extends Component {
                 this.state.selectedEmployeeId = null;
             }
 
+            // Nếu có passedEmployeeId, override selectedEmployeeId và selectedDepartmentId
+            if (this.state.employee_id) {
+                const targetEmp = employees.find(e => e.id === this.state.employee_id);
+                if (targetEmp) {
+                    this.state.selectedEmployeeId = targetEmp.id;
+                    if (targetEmp.department_id) {
+                        this.state.selectedDepartmentId = targetEmp.department_id[0];
+                    }
+                }
+            }
+
             // 4. Lọc nhân viên theo phòng ban
             this._filterEmployees();
         } catch (e) {
@@ -235,6 +258,9 @@ export class KpiDashboard extends Component {
             let domain;
             if ((this.state.isManager || this.state.isHR || this.state.isAdmin) && this.state.selectedEmployeeId) {
                 domain = [["employee_id", "=", this.state.selectedEmployeeId]];
+            } else if (this.state.employee_id) {
+                // Được truyền thẳng employee_id từ context (ví dụ: mở từ form nhân viên)
+                domain = [["employee_id", "=", this.state.employee_id]];
             } else {
                 domain = [["employee_id.user_id", "=", user.userId]];
             }

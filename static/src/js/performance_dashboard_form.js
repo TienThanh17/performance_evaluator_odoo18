@@ -10,11 +10,11 @@ import { useState, onWillStart, onWillUpdateProps, useEffect, useRef } from "@od
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
-const C_BLUE   = "#3b5bdb";
-const C_GREEN  = "#22c55e";
-const C_AMBER  = "#f59e0b";
-const C_RED    = "#ef4444";
-const C_TEAL   = "#14b8a6";
+const C_BLUE = "#3b5bdb";
+const C_GREEN = "#22c55e";
+const C_AMBER = "#f59e0b";
+const C_RED = "#ef4444";
+const C_TEAL = "#14b8a6";
 const C_PURPLE = "#8b5cf6";
 
 const POINT_COLORS = [
@@ -51,6 +51,7 @@ function toInputDate(val) {
 function baseBarOpts(yLabel = "") {
     return {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: { legend: { display: true, position: "top" } },
         scales: {
             x: { grid: { display: false }, ticks: { font: { size: 11 } } },
@@ -67,6 +68,7 @@ function baseBarOpts(yLabel = "") {
 function baseLineOpts(yLabel = "") {
     return {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
             x: { grid: { display: false }, ticks: { font: { size: 11 } } },
@@ -80,6 +82,67 @@ function baseLineOpts(yLabel = "") {
     };
 }
 
+function baseDoughnutPlugin() {
+    return [
+        {
+            // CẤU HÌNH EMPTY STATE BẰNG CUSTOM PLUGIN
+            id: 'emptyStatePlugin',
+            afterDraw: function (chart) {
+                const data = chart.data.datasets[0].data;
+                // Kiểm tra xem mảng data có rỗng hoặc tất cả các giá trị đều là 0 không
+                const isEmpty = !data || data.length === 0 || data.every(val => val === 0 || val === null);
+
+                if (isEmpty) {
+                    const ctx = chart.ctx;
+                    const width = chart.width;
+                    const height = chart.height;
+
+                    chart.clear(); // Xóa đồ thị mặc định nếu có
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = '14px sans-serif';
+                    ctx.fillStyle = '#9ca3af'; // Màu chữ xám
+                    // Vẽ text ra chính giữa Canvas
+                    ctx.fillText('Chưa có dữ liệu đánh giá', width / 2, height / 2);
+                    ctx.restore();
+                }
+            }
+        },
+        {
+            // Vẽ text vào giữa các miếng bánh
+            id: 'sliceLabelsPlugin',
+            afterDatasetsDraw: function (chart) {
+                const ctx = chart.ctx;
+
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (meta.hidden) return; // Bỏ qua nếu dataset bị ẩn
+
+                    meta.data.forEach((element, index) => {
+                        const data = dataset.data[index];
+
+                        // Chỉ in số nếu giá trị lớn hơn 0 để biểu đồ nhìn sạch sẽ
+                        if (data > 0) {
+                            // Cấu hình font chữ và màu sắc
+                            ctx.fillStyle = '#ffffff'; // Chữ màu trắng
+                            ctx.font = 'bold 12px sans-serif'; // Chữ in đậm
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+
+                            // Lấy toạ độ chính giữa của "miếng bánh"
+                            const position = element.tooltipPosition();
+
+                            // Vẽ con số ra màn hình tại toạ độ đó
+                            ctx.fillText(data, position.x, position.y);
+                        }
+                    });
+                });
+            }
+        }]
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // PerformanceDashboardRenderer
 // ═════════════════════════════════════════════════════════════════════════════
@@ -88,31 +151,34 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
     setup() {
         super.setup();
-        this.orm           = useService("orm");
+        this.orm = useService("orm");
         this.actionService = useService("action");
 
         // Chart canvas refs
+        this.refChartScore = useRef("chartScore");
         this.refChartA = useRef("chartA");
         this.refChartB = useRef("chartB");
         this.refChartC = useRef("chartC");
         // qualitative refs tạo động khi render
 
-        this._charts    = {};
+        // this.refQualContainer = useRef("qualContainer");
+
+        this._charts = {};
         this._chartJsLoaded = false;
 
         this.state = useState({
-            departmentName : "",
-            periodLabel    : "",
-            totalEmployees : 0,
-            avgScore       : "0.0",
-            passRate       : "0",
-            evaluations    : [],
-            period         : "",
-            startDate      : "",
-            endDate        : "",
-            deadline       : "",
-            active         : true,
-            chartData      : null,   // data từ get_report_dashboard_data
+            departmentName: "",
+            periodLabel: "",
+            totalEmployees: 0,
+            avgScore: "0.0",
+            passRate: "0",
+            evaluations: [],
+            period: "",
+            startDate: "",
+            endDate: "",
+            deadline: "",
+            active: true,
+            chartData: null,   // data từ get_report_dashboard_data
         });
 
         onWillStart(async () => {
@@ -129,6 +195,9 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                 if (this.state.chartData) {
                     this._renderAllCharts();
                 }
+                // if (this.state.chartData && this.state.chartData.qualitative_charts) {
+                //     this._renderQualitativeCharts(this.state.chartData.qualitative_charts);
+                // }
             },
             () => [this.state.chartData]
         );
@@ -149,15 +218,15 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     // ── Data loader ───────────────────────────────────────────────────────────
     async _loadDashboardData() {
         const record = this.props.record;
-        const data   = record.data;
+        const data = record.data;
 
         this.state.departmentName = data.department_name || "";
-        this.state.periodLabel    = data.start_date ? formatMonthYear(data.start_date) : "";
-        this.state.period         = data.period    || "monthly";
-        this.state.startDate      = toInputDate(data.start_date);
-        this.state.endDate        = toInputDate(data.end_date);
-        this.state.deadline       = toInputDate(data.deadline);
-        this.state.active         = data.active !== undefined ? data.active : true;
+        this.state.periodLabel = data.start_date ? formatMonthYear(data.start_date) : "";
+        this.state.period = data.period || "monthly";
+        this.state.startDate = toInputDate(data.start_date);
+        this.state.endDate = toInputDate(data.end_date);
+        this.state.deadline = toInputDate(data.deadline);
+        this.state.active = data.active !== undefined ? data.active : true;
 
         // Lấy evalIds từ One2many StaticList
         const evalList = data.evaluation_ids;
@@ -170,10 +239,10 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
         if (!evalIds.length) {
             this.state.totalEmployees = 0;
-            this.state.avgScore       = "0.0";
-            this.state.passRate       = "0";
-            this.state.evaluations    = [];
-            this.state.chartData      = null;
+            this.state.avgScore = "0.0";
+            this.state.passRate = "0";
+            this.state.evaluations = [];
+            this.state.chartData = null;
             return;
         }
 
@@ -184,16 +253,16 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             ["employee_id", "job_id", "performance_score", "performance_level", "state"]
         );
 
-        const total     = evaluations.length;
-        const scoreSum  = evaluations.reduce((s, e) => s + (e.performance_score || 0), 0);
+        const total = evaluations.length;
+        const scoreSum = evaluations.reduce((s, e) => s + (e.performance_score || 0), 0);
         const passCount = evaluations.filter(
             (e) => e.performance_level === "pass" || e.performance_level === "excellent"
         ).length;
 
         this.state.totalEmployees = total;
-        this.state.avgScore       = total ? (scoreSum / total).toFixed(2) : "0.0";
-        this.state.passRate       = total ? Math.round((passCount / total) * 100).toString() : "0";
-        this.state.evaluations    = evaluations;
+        this.state.avgScore = total ? (scoreSum / total).toFixed(2) : "0.0";
+        this.state.passRate = total ? Math.round((passCount / total) * 100).toString() : "0";
+        this.state.evaluations = evaluations;
 
         // Lấy chart data từ Python
         const reportId = record.resId;
@@ -216,10 +285,63 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         if (!window.Chart || !this.state.chartData) return;
         this._destroyCharts();
         const d = this.state.chartData;
+        this._renderChartScore(d.employees || []);
         this._renderChartA(d.task_summary);
         this._renderChartB(d.attendance_summary);
         this._renderChartC(d.late_summary);
         this._renderQualitativeCharts(d.qualitative_charts || []);
+    }
+
+    // ── Chart Score: Performance Score per Employee — bar ─────────────────────
+    _chartScoreConfig(employees) {
+        const names = employees.map((e) => e.name);
+        const scores = employees.map((e) => e.score);
+        return {
+            type: "bar",
+            data: {
+                labels: names,
+                datasets: [{
+                    label: "Performance Score",
+                    data: scores,
+                    backgroundColor: scores.map((s) =>
+                        s >= 9 ? C_BLUE + "cc" :
+                            s >= 5 ? C_GREEN + "cc" : C_RED + "cc"
+                    ),
+                    borderColor: scores.map((s) =>
+                        s >= 9 ? C_BLUE :
+                            s >= 5 ? C_GREEN : C_RED
+                    ),
+                    borderWidth: 1,
+                    borderRadius: 5,
+                }],
+            },
+            options: {
+                ...baseBarOpts("Điểm"),
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                    y: {
+                        min: 0, max: 10,
+                        title: { display: true, text: "Điểm (thang 10)", font: { size: 11 } },
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                        ticks: { stepSize: 1, font: { size: 10 } },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => `Score: ${c.parsed.y}/10`,
+                        },
+                    },
+                },
+            },
+        };
+    }
+
+    _renderChartScore(employees) {
+        const el = this.refChartScore.el;
+        if (!el || !employees.length) return;
+        this._charts.Score = new window.Chart(el, this._chartScoreConfig(employees));
     }
 
     // ── Chart A: Task Summary — stacked bar ───────────────────────────────────
@@ -269,12 +391,13 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
     _renderChartA(ts) {
         const el = this.refChartA.el;
-        if (!el || !ts || !ts.names.length) return;
+        if (!el || !ts || !ts.names?.length) return;
         this._charts.A = new window.Chart(el, this._chartAConfig(ts));
     }
 
     // ── Chart B: Attendance — doughnut ────────────────────────────────────────
     _chartBConfig(as) {
+        const expected = as.expected_work_days || 0;
         return {
             type: "doughnut",
             data: {
@@ -290,7 +413,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: "65%",
+                cutout: "68%",
                 plugins: {
                     legend: { display: true, position: "right", labels: { font: { size: 11 } } },
                     tooltip: {
@@ -298,14 +421,47 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                             label: (c) => `${c.label}: ${c.parsed} ngày`,
                         },
                     },
+                    // Plugin nội tuyến: vẽ text ở giữa doughnut
+                    centerText: {
+                        text: String(expected),
+                        subText: "Total Days",
+                    },
                 },
             },
+            plugins: baseDoughnutPlugin()
         };
     }
 
     _renderChartB(as) {
         const el = this.refChartB.el;
-        if (!el || !as || !as.names.length) return;
+        if (!el || !as || !as.names?.length) return;
+
+        // Đăng ký plugin centerText một lần duy nhất
+        if (!window.Chart.registry.plugins.get("centerText")) {
+            window.Chart.register({
+                id: "centerText",
+                beforeDraw(chart) {
+                    const cfg = chart.config.options.plugins.centerText;
+                    if (!cfg) return;
+                    const { ctx, chartArea: { left, right, top, bottom } } = chart;
+                    const cx = (left + right) / 2;
+                    const cy = (top + bottom) / 2;
+                    ctx.save();
+                    // Số lớn
+                    ctx.font = "bold 22px Inter, sans-serif";
+                    ctx.fillStyle = "#111827";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(cfg.text, cx, cy - 10);
+                    // Sub-text nhỏ
+                    ctx.font = "11px Inter, sans-serif";
+                    ctx.fillStyle = "#9ca3af";
+                    ctx.fillText(cfg.subText, cx, cy + 12);
+                    ctx.restore();
+                },
+            });
+        }
+
         this._charts.B = new window.Chart(el, this._chartBConfig(as));
     }
 
@@ -344,7 +500,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
     _renderChartC(ls) {
         const el = this.refChartC.el;
-        if (!el || !ls || !ls.names.length) return;
+        if (!el || !ls || !ls.names?.length) return;
         this._charts.C = new window.Chart(el, this._chartCConfig(ls));
     }
 
@@ -365,18 +521,41 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: "60%",
+                cutout: '60%',
                 plugins: {
-                    legend: { display: true, position: "right", labels: { font: { size: 11 } } },
+                    // 1. CẤU HÌNH TIÊU ĐỀ THANG ĐIỂM
+                    title: {
+                        display: true,
+                        text: '(Thang điểm 10)',
+                        color: '#6b7280', // Màu xám nhạt
+                        font: {
+                            size: 13,
+                            weight: 'normal',
+                            style: 'italic'
+                        },
+                        padding: { bottom: 15 }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            usePointStyle: false,
+                            padding: 20
+                        }
+                    },
                     tooltip: {
                         callbacks: {
-                            label: (c) => `${c.label}: ${c.parsed} điểm`,
-                        },
-                    },
-                },
+                            label: function (context) {
+                                return ` ${context.label}: ${context.raw} điểm`;
+                            }
+                        }
+                    }
+                }
             },
+
+            plugins: baseDoughnutPlugin()
         };
-    }
+    };
 
     _renderQualitativeCharts(qualCharts) {
         qualCharts.forEach((qc, idx) => {
@@ -390,7 +569,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
     _destroyCharts() {
         for (const k of Object.keys(this._charts)) {
-            try { this._charts[k].destroy(); } catch (_) {}
+            try { this._charts[k].destroy(); } catch (_) { }
         }
         this._charts = {};
     }
@@ -404,7 +583,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     }
 
     async _writeConfigField(reportVals, evalVals) {
-        const record   = this.props.record;
+        const record = this.props.record;
         const reportId = record.resId;
         if (!reportId) return;
         await this.orm.write("hr.performance.report", [reportId], reportVals);
@@ -462,6 +641,19 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             res_id: evalId,
             views: [[false, "form"]],
             target: "current",
+        });
+    }
+
+    openIndividualDashboard(employeeId) {
+        if (!employeeId) return;
+
+        this.actionService.doAction({
+            type: "ir.actions.client",
+            tag: "kpi_individual_dashboard", // Tag client action của dashboard cá nhân
+            name: "Dashboard KPI Cá Nhân",
+            context: {
+                default_employee_id: employeeId // Truyền ID sang màn hình kia
+            }
         });
     }
 }

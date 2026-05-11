@@ -988,5 +988,5 @@ class HrKpiEngine(models.AbstractModel):
         )
         late_grace_minutes = self._get_late_grace_minutes()
 
-        # return tz.localize(naive_local) + datetime.timedelta(minutes=late_grace_minutes)
-        return tz.localize(naive_local)
+        return tz.localize(naive_local) + datetime.timedelta(minutes=late_grace_minutes)
+        # return tz.localize(naive_local)

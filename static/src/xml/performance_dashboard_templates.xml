@@ -1,244 +1,319 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-<t t-name="custom_adecsol_hr_performance_evaluator.PerformanceDashboard">
-<div class="performance_dashboard_form">
-<div class="pd-wrapper">
+    <t t-name="custom_adecsol_hr_performance_evaluator.PerformanceDashboard">
+        <div class="performance_dashboard_form">
 
-    <!-- ══ HEADER ══ -->
-    <div class="pd-header">
-        <div class="pd-header-left">
-            <h1 class="pd-title"><t t-esc="state.departmentName"/></h1>
-            <p class="pd-subtitle">Departmental Performance Overview</p>
-        </div>
-        <div class="pd-header-right">
-            <button class="pd-btn-export" t-on-click="exportExcelReport">
-                <i class="fa fa-file-excel-o"/> Work Report
-            </button>
-        </div>
-    </div>
-
-    <!-- ══ EVALUATION CONFIG ══ -->
-    <div class="pd-eval-config">
-        <div class="pd-eval-config-header">
-            <div class="pd-eval-config-title">
-                <i class="fa fa-sliders"/>
-                <span>Evaluation Configuration</span>
-            </div>
-            <div class="pd-eval-config-active">
-                <span class="pd-active-label">ACTIVE</span>
-                <label class="pd-toggle-switch">
-                    <input type="checkbox" t-att-checked="state.active ? 'checked' : undefined" t-on-change="onActiveChange"/>
-                    <span class="pd-toggle-slider"/>
-                </label>
-            </div>
-        </div>
-        <div class="pd-eval-config-fields">
-            <div class="pd-config-field">
-                <label class="pd-config-label">PERIOD</label>
-                <select class="pd-config-select" t-on-change="onPeriodChange">
-                    <option value="monthly"    t-att-selected="state.period === 'monthly'    ? 'selected' : undefined">Monthly</option>
-                    <option value="quarterly"  t-att-selected="state.period === 'quarterly'  ? 'selected' : undefined">Quarterly</option>
-                    <option value="half_yearly" t-att-selected="state.period === 'half_yearly'? 'selected' : undefined">Half-Yearly</option>
-                    <option value="yearly"     t-att-selected="state.period === 'yearly'     ? 'selected' : undefined">Yearly</option>
-                </select>
-            </div>
-            <div class="pd-config-field">
-                <label class="pd-config-label">START DATE</label>
-                <input type="date" class="pd-config-date" t-att-value="state.startDate" t-on-change="onStartDateChange"/>
-            </div>
-            <div class="pd-config-field">
-                <label class="pd-config-label">END DATE</label>
-                <input type="date" class="pd-config-date" t-att-value="state.endDate" t-on-change="onEndDateChange"/>
-            </div>
-            <div class="pd-config-field">
-                <label class="pd-config-label">DEADLINE</label>
-                <input type="date" class="pd-config-date" t-att-value="state.deadline" t-on-change="onDeadlineChange"/>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══ KPI SCORECARDS ══ -->
-    <div class="pd-scorecards">
-        <div class="pd-scorecard pd-scorecard--blue">
-            <div class="pd-scorecard-icon"><i class="fa fa-tachometer"/></div>
-            <div class="pd-scorecard-body">
-                <div class="pd-scorecard-label">Average Score</div>
-                <div class="pd-scorecard-value"><t t-esc="state.avgScore"/><span class="pd-scorecard-unit">/10</span></div>
-            </div>
-        </div>
-        <div class="pd-scorecard pd-scorecard--green">
-            <div class="pd-scorecard-icon"><i class="fa fa-check-circle"/></div>
-            <div class="pd-scorecard-body">
-                <div class="pd-scorecard-label">Pass Rate</div>
-                <div class="pd-scorecard-value"><t t-esc="state.passRate"/><span class="pd-scorecard-unit">%</span></div>
-            </div>
-        </div>
-        <div class="pd-scorecard pd-scorecard--amber">
-            <div class="pd-scorecard-icon"><i class="fa fa-users"/></div>
-            <div class="pd-scorecard-body">
-                <div class="pd-scorecard-label">Total Employees</div>
-                <div class="pd-scorecard-value"><t t-esc="state.totalEmployees"/></div>
-            </div>
-        </div>
-        <div class="pd-scorecard pd-scorecard--purple">
-            <div class="pd-scorecard-icon"><i class="fa fa-calendar-check-o"/></div>
-            <div class="pd-scorecard-body">
-                <div class="pd-scorecard-label">Period</div>
-                <div class="pd-scorecard-value pd-scorecard-value--sm"><t t-esc="state.periodLabel"/></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══ CHARTS ROW 1: Task + Attendance ══ -->
-    <div class="pd-chart-row pd-chart-row--2col">
-        <div class="pd-chart-card">
-            <div class="pd-chart-header">
-                <div class="pd-chart-title">
-                    <span class="pd-chart-dot pd-chart-dot--green"/>
-                    Task Hoàn Thành theo Nhân Viên
+            <div class="pd-header">
+                <div class="pd-header-left">
+                    <h1 class="pd-title">
+                        <t t-esc="state.departmentName"/>
+                    </h1>
+                    <p class="pd-subtitle">Departmental Performance Overview</p>
                 </div>
-                <span class="pd-chart-badge pd-chart-badge--green">Stacked Bar</span>
-            </div>
-            <div class="pd-chart-body">
-                <canvas t-ref="chartA" height="220"/>
-            </div>
-        </div>
-        <div class="pd-chart-card">
-            <div class="pd-chart-header">
-                <div class="pd-chart-title">
-                    <span class="pd-chart-dot pd-chart-dot--blue"/>
-                    Đi Làm Đầy Đủ — Số Ngày Có Mặt
-                </div>
-                <span class="pd-chart-badge pd-chart-badge--blue">Doughnut</span>
-            </div>
-            <div class="pd-chart-body pd-chart-body--doughnut">
-                <canvas t-ref="chartB"/>
-            </div>
-        </div>
-    </div>
 
-    <!-- ══ CHARTS ROW 2: Late (full width) ══ -->
-    <div class="pd-chart-row pd-chart-row--1col">
-        <div class="pd-chart-card">
-            <div class="pd-chart-header">
-                <div class="pd-chart-title">
-                    <span class="pd-chart-dot pd-chart-dot--red"/>
-                    Đi Làm Đúng Giờ — Số Lần Trễ theo Nhân Viên
-                </div>
-                <span class="pd-chart-badge pd-chart-badge--red">Line</span>
-            </div>
-            <div class="pd-chart-body">
-                <canvas t-ref="chartC" height="160"/>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══ CHARTS ROW 3: Qualitative KPIs (dynamic) ══ -->
-    <t t-if="state.chartData and state.chartData.qualitative_charts.length">
-        <div class="pd-section-title">
-            <i class="fa fa-star-o"/> KPI Định Tính — So Sánh Nhân Viên
-        </div>
-        <div class="pd-chart-row pd-chart-row--qual">
-            <t t-foreach="state.chartData.qualitative_charts" t-as="qc" t-key="qc_index">
-                <div class="pd-chart-card">
-                    <div class="pd-chart-header">
-                        <div class="pd-chart-title">
-                            <span class="pd-chart-dot pd-chart-dot--purple"/>
-                            <t t-esc="qc.kpi_name"/>
+                <div class="pd-header-right">
+                    <div class="pd-header-toolbar">
+                        <div class="pd-header-fields">
+                            <div class="pd-header-field-group">
+                                <label>Start</label>
+                                <input type="date" t-att-value="state.startDate" t-on-change="onStartDateChange"/>
+                            </div>
+                            <div class="pd-header-field-group">
+                                <label>End</label>
+                                <input type="date" t-att-value="state.endDate" t-on-change="onEndDateChange"/>
+                            </div>
+                            <div class="pd-header-field-group">
+                                <label>Deadline</label>
+                                <input type="date" t-att-value="state.deadline" t-on-change="onDeadlineChange"/>
+                            </div>
                         </div>
-                        <span class="pd-chart-badge pd-chart-badge--purple">Doughnut</span>
+
+                        <div class="pd-header-active-toggle">
+                            <span class="pd-active-label">ACTIVE</span>
+                            <label class="pd-toggle-switch">
+                                <input type="checkbox" t-att-checked="state.active ? 'checked' : undefined"
+                                       t-on-change="onActiveChange"/>
+                                <span class="pd-toggle-slider"/>
+                            </label>
+                        </div>
                     </div>
-                    <div class="pd-chart-body pd-chart-body--doughnut">
-                        <canvas t-att-id="'pd-qual-chart-' + qc_index"/>
+
+                    <button class="pd-btn-export" t-on-click="exportExcelReport">
+                        <i class="fa fa-file-excel-o"/>
+                        Work Report
+                    </button>
+                </div>
+            </div>
+            <div class="pd-wrapper">
+
+                <!-- ══ HEADER ══ -->
+
+
+                <!-- ══ KPI SCORECARDS ══ -->
+                <div class="pd-scorecards">
+                    <div class="pd-scorecard pd-scorecard--blue">
+                        <div class="pd-scorecard-icon">
+                            <i class="fa fa-tachometer"/>
+                        </div>
+                        <div class="pd-scorecard-body">
+                            <div class="pd-scorecard-label">Average Score</div>
+                            <div class="pd-scorecard-value">
+                                <t t-esc="state.avgScore"/>
+                                <span class="pd-scorecard-unit">/10</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pd-scorecard pd-scorecard--green">
+                        <div class="pd-scorecard-icon">
+                            <i class="fa fa-check-circle"/>
+                        </div>
+                        <div class="pd-scorecard-body">
+                            <div class="pd-scorecard-label">Pass Rate</div>
+                            <div class="pd-scorecard-value">
+                                <t t-esc="state.passRate"/>
+                                <span class="pd-scorecard-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pd-scorecard pd-scorecard--amber">
+                        <div class="pd-scorecard-icon">
+                            <i class="fa fa-users"/>
+                        </div>
+                        <div class="pd-scorecard-body">
+                            <div class="pd-scorecard-label">Total Employees</div>
+                            <div class="pd-scorecard-value">
+                                <t t-esc="state.totalEmployees"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pd-scorecard pd-scorecard--purple">
+                        <div class="pd-scorecard-icon">
+                            <i class="fa fa-calendar-check-o"/>
+                        </div>
+                        <div class="pd-scorecard-body">
+                            <div class="pd-scorecard-label">Period</div>
+                            <div class="pd-scorecard-value pd-scorecard-value--sm">
+                                <t t-esc="state.periodLabel"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </t>
+
+                <!-- ══ CHARTS ROW 1: Score (trái) + Task (phải) ══ -->
+                <div class="pd-chart-row pd-chart-row--2col">
+                    <div class="pd-chart-card">
+                        <div class="pd-chart-header">
+                            <div class="pd-chart-title">
+                                <span class="pd-chart-dot pd-chart-dot--blue"/>
+                                Điểm Hiệu Suất theo Nhân Viên
+                            </div>
+                            <span class="pd-chart-badge pd-chart-badge--blue">Bar</span>
+                        </div>
+                        <div class="pd-chart-body">
+                            <canvas t-ref="chartScore"/>
+                        </div>
+                    </div>
+                    <div class="pd-chart-card">
+                        <div class="pd-chart-header">
+                            <div class="pd-chart-title">
+                                <span class="pd-chart-dot pd-chart-dot--green"/>
+                                Task Hoàn Thành theo Nhân Viên
+                            </div>
+                            <span class="pd-chart-badge pd-chart-badge--green">Stacked Bar</span>
+                        </div>
+                        <div class="pd-chart-body">
+                            <canvas t-ref="chartA"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ CHARTS ROW 2: Attendance (1/3 trái) + Late (2/3 phải) ══ -->
+                <div class="pd-chart-row pd-chart-row--13col">
+                    <div class="pd-chart-card">
+                        <div class="pd-chart-header">
+                            <div class="pd-chart-title">
+                                <span class="pd-chart-dot pd-chart-dot--blue"/>
+                                Đi Làm Đầy Đủ — Số Ngày Có Mặt
+                            </div>
+                            <span class="pd-chart-badge pd-chart-badge--blue">Doughnut</span>
+                        </div>
+                        <div class="pd-chart-body pd-chart-body--doughnut">
+                            <canvas t-ref="chartB"/>
+                        </div>
+                    </div>
+                    <div class="pd-chart-card">
+                        <div class="pd-chart-header">
+                            <div class="pd-chart-title">
+                                <span class="pd-chart-dot pd-chart-dot--red"/>
+                                Đi Làm Đúng Giờ — Số Lần Trễ theo Nhân Viên
+                            </div>
+                            <span class="pd-chart-badge pd-chart-badge--red">Line</span>
+                        </div>
+                        <div class="pd-chart-body">
+                            <canvas t-ref="chartC"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ CHARTS ROW 3: Qualitative KPIs (dynamic) ══ -->
+                <t t-if="state.chartData and state.chartData.qualitative_charts.length">
+                                    <div class="pd-section-title">
+                                        <i class="fa fa-star-o"/>
+                                        KPI Định Tính — So Sánh Nhân Viên
+                                    </div>
+                    <div class="pd-chart-row pd-chart-row--qual">
+                                        <t t-foreach="state.chartData.qualitative_charts" t-as="qc" t-key="qc_index">
+                                            <div class="pd-chart-card">
+                                                <div class="pd-chart-header">
+                                                    <div class="pd-chart-title">
+                                                        <span class="pd-chart-dot pd-chart-dot--purple"/>
+                                                        <t t-esc="qc.kpi_name"/>
+                                                    </div>
+                                                    <span class="pd-chart-badge pd-chart-badge--purple">Doughnut</span>
+                                                </div>
+                                                <div class="pd-chart-body pd-chart-body--doughnut">
+                                                    <canvas t-att-id="'pd-qual-chart-' + qc_index"/>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </t>
+
+
+                <!--                <t t-if="state.chartData and state.chartData.qualitative_charts and state.chartData.qualitative_charts.length">-->
+                <!--                    <div class="pd-section-title">-->
+                <!--                        <i class="fa fa-star-o"/>-->
+                <!--                        KPI Định Tính — So Sánh Nhân Viên-->
+                <!--                    </div>-->
+                <!--                    <div class="pd-chart-row pd-chart-row&#45;&#45;qual" t-ref="qualContainer">-->
+                <!--                        <t t-foreach="state.chartData.qualitative_charts" t-as="qc" t-key="qc_index">-->
+                <!--                            <div class="pd-chart-card">-->
+                <!--                                <div class="pd-chart-header">-->
+                <!--                                    <div class="pd-chart-title">-->
+                <!--                                        <span class="pd-chart-dot pd-chart-dot&#45;&#45;purple"/>-->
+                <!--                                        <t t-esc="qc.kpi_name"/>-->
+                <!--                                    </div>-->
+                <!--                                    <span class="pd-chart-badge pd-chart-badge&#45;&#45;purple">Doughnut</span>-->
+                <!--                                </div>-->
+                <!--                                <div class="pd-chart-body pd-chart-body&#45;&#45;doughnut">-->
+                <!--                                    <canvas class="pd-qual-canvas"/>-->
+                <!--                                </div>-->
+                <!--                            </div>-->
+                <!--                        </t>-->
+                <!--                    </div>-->
+                <!--                </t>-->
+
+                <!-- ══ TEAM ROSTER ══ -->
+                <div class="pd-roster-section">
+                    <div class="pd-roster-header">
+                        <h2>Team Roster</h2>
+                    </div>
+                    <t t-if="state.evaluations.length > 0">
+                        <table class="pd-table">
+                            <thead>
+                                <tr>
+                                    <th>EMPLOYEE</th>
+                                    <th>ROLE</th>
+                                    <th>PERFORMANCE SCORE</th>
+                                    <th>RESULT</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.evaluations" t-as="ev" t-key="ev.id">
+                                    <tr>
+                                        <td>
+                                            <div class="pd-employee-cell">
+                                                <t t-if="ev.employee_id">
+                                                    <img class="pd-avatar"
+                                                         t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'"
+                                                         t-att-alt="ev.employee_id[1]" loading="lazy"/>
+                                                </t>
+                                                <span class="pd-emp-name">
+                                                    <a href="#" class="pd-employee-link"
+                                                       t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0])">
+                                                        <t t-esc="ev.employee_id[1]"/>
+                                                    </a>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="pd-emp-id">
+                                                <t t-esc="ev.job_id ? ev.job_id[1] : ''"/>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="pd-score-cell">
+                                                <span class="pd-score-num">
+                                                    <t t-esc="ev.performance_score ? ev.performance_score.toFixed(1) : '0.0'"/>
+                                                </span>
+                                                <div class="pd-progress-bar-wrap">
+                                                    <div class="pd-progress-bar-fill"
+                                                         t-att-style="'width:' + ((ev.performance_score || 0) * 10) + '%'"/>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <t t-if="ev.performance_level === 'excellent'">
+                                                <span class="pd-badge badge-excellent">
+                                                    <i class="fa fa-star"/>
+                                                    EXCELLENT</span>
+                                            </t>
+                                            <t t-elif="ev.performance_level === 'pass'">
+                                                <span class="pd-badge badge-pass">
+                                                    <i class="fa fa-check"/>
+                                                    PASS</span>
+                                            </t>
+                                            <t t-elif="ev.performance_level === 'fail'">
+                                                <span class="pd-badge badge-fail">
+                                                    <i class="fa fa-times"/>
+                                                    FAIL</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="pd-badge"
+                                                      style="background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;">— N/A</span>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <span class="pd-badge">
+                                                <t t-if="ev.state === 'self_evaluation'">
+                                                    <i class="fa fa-clock-o"/>
+                                                    SELF EVAL</t>
+                                                <t t-elif="ev.state === 'manager_evaluating'">
+                                                    <i class="fa fa-spinner fa-spin"/>
+                                                    EVALUATING</t>
+                                                <t t-elif="ev.state === 'completed'">
+                                                    <i class="fa fa-check-circle"/>
+                                                    COMPLETED</t>
+                                                <t t-elif="ev.state === 'cancel'">
+                                                    <i class="fa fa-ban"/>
+                                                    CANCELLED</t>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}"
+                                                    t-on-click="() => this.openEvaluation(ev.id)">
+                                                <i class="fa fa-chevron-right"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <div class="pd-empty-state">
+                            <i class="fa fa-users"/>
+                            <p>No evaluations found for this period.</p>
+                        </div>
+                    </t>
+                </div>
+
+            </div>            <!--
+            /pd-wrapper -->
         </div>
     </t>
-
-    <!-- ══ TEAM ROSTER ══ -->
-    <div class="pd-roster-section">
-        <div class="pd-roster-header">
-            <h2>Team Roster</h2>
-        </div>
-        <t t-if="state.evaluations.length > 0">
-            <table class="pd-table">
-                <thead>
-                    <tr>
-                        <th>EMPLOYEE</th>
-                        <th>ROLE</th>
-                        <th>PERFORMANCE SCORE</th>
-                        <th>RESULT</th>
-                        <th>STATUS</th>
-                        <th>ACTION</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <t t-foreach="state.evaluations" t-as="ev" t-key="ev.id">
-                        <tr>
-                            <td>
-                                <div class="pd-employee-cell">
-                                    <t t-if="ev.employee_id">
-                                        <img class="pd-avatar"
-                                             t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'"
-                                             t-att-alt="ev.employee_id[1]" loading="lazy"/>
-                                    </t>
-                                    <span class="pd-emp-name"><t t-esc="ev.employee_id ? ev.employee_id[1] : ''"/></span>
-                                </div>
-                            </td>
-                            <td><div class="pd-emp-id"><t t-esc="ev.job_id ? ev.job_id[1] : ''"/></div></td>
-                            <td>
-                                <div class="pd-score-cell">
-                                    <span class="pd-score-num"><t t-esc="ev.performance_score ? ev.performance_score.toFixed(1) : '0.0'"/></span>
-                                    <div class="pd-progress-bar-wrap">
-                                        <div class="pd-progress-bar-fill" t-att-style="'width:' + ((ev.performance_score || 0) * 10) + '%'"/>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <t t-if="ev.performance_level === 'excellent'">
-                                    <span class="pd-badge badge-excellent"><i class="fa fa-star"/> EXCELLENT</span>
-                                </t>
-                                <t t-elif="ev.performance_level === 'pass'">
-                                    <span class="pd-badge badge-pass"><i class="fa fa-check"/> PASS</span>
-                                </t>
-                                <t t-elif="ev.performance_level === 'fail'">
-                                    <span class="pd-badge badge-fail"><i class="fa fa-times"/> FAIL</span>
-                                </t>
-                                <t t-else="">
-                                    <span class="pd-badge" style="background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;">— N/A</span>
-                                </t>
-                            </td>
-                            <td>
-                                <span class="pd-badge">
-                                    <t t-if="ev.state === 'self_evaluation'"><i class="fa fa-clock-o"/> SELF EVAL</t>
-                                    <t t-elif="ev.state === 'manager_evaluating'"><i class="fa fa-spinner fa-spin"/> EVALUATING</t>
-                                    <t t-elif="ev.state === 'completed'"><i class="fa fa-check-circle"/> COMPLETED</t>
-                                    <t t-elif="ev.state === 'cancel'"><i class="fa fa-ban"/> CANCELLED</t>
-                                </span>
-                            </td>
-                            <td>
-                                <button t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}"
-                                        t-on-click="() => this.openEvaluation(ev.id)">
-                                    <i class="fa fa-chevron-right"/>
-                                </button>
-                            </td>
-                        </tr>
-                    </t>
-                </tbody>
-            </table>
-        </t>
-        <t t-else="">
-            <div class="pd-empty-state">
-                <i class="fa fa-users"/>
-                <p>No evaluations found for this period.</p>
-            </div>
-        </t>
-    </div>
-
-</div><!-- /pd-wrapper -->
-</div>
-</t>
 
 </templates>

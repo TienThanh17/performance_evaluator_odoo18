@@ -431,116 +431,132 @@ class HrPerformanceReport(models.Model):
         evalids = self.evaluation_ids.ids
         if not evalids:
             return {
-                'employees': [],
-                'task_summary': {},
-                'attendance_summary': {},
-                'late_summary': {},
-                'qualitative_charts': [],
+                "employees": [],
+                "task_summary": {},
+                "attendance_summary": {},
+                "late_summary": {},
+                "qualitative_charts": [],
             }
 
-        evaluations = self.env['hr.performance.evaluation'].sudo().browse(evalids)
+        evaluations = self.env["hr.performance.evaluation"].sudo().browse(evalids)
 
         # ── 1. Base employee list ──────────────────────────────────────────────
         employees = []
         for ev in evaluations:
-            employees.append({
-                'id': ev.employee_id.id if ev.employee_id else 0,
-                'name': ev.employee_id.name if ev.employee_id else '?',
-                'score': round(float(ev.performance_score or 0.0), 2),
-                'level': ev.performance_level or 'fail',
-                'eval_id': ev.id,
-            })
+            employees.append(
+                {
+                    "id": ev.employee_id.id if ev.employee_id else 0,
+                    "name": ev.employee_id.name if ev.employee_id else "?",
+                    "score": round(float(ev.performance_score or 0.0), 2),
+                    "level": ev.performance_level or "fail",
+                    "eval_id": ev.id,
+                }
+            )
 
-        emp_names = [e['name'] for e in employees]
+        emp_names = [e["name"] for e in employees]
 
         # ── 2. Task summary (done_task data_source) ───────────────────────────
-        task_summary = {'names': emp_names, 'total_tasks': [], 'done_tasks': []}
+        task_summary = {"names": emp_names, "total_tasks": [], "done_tasks": []}
         for ev in evaluations:
             line = ev.evaluation_line_ids.filtered(
-                lambda l: not l.is_section and l.data_source == 'done_task'
+                lambda l: not l.is_section and l.data_source == "done_task"
             )
             if not line or not ev.employee_id or not ev.start_date or not ev.end_date:
-                task_summary['total_tasks'].append(0)
-                task_summary['done_tasks'].append(0)
+                task_summary["total_tasks"].append(0)
+                task_summary["done_tasks"].append(0)
                 continue
 
             user = ev.employee_id.user_id
             if not user:
-                task_summary['total_tasks'].append(0)
-                task_summary['done_tasks'].append(0)
+                task_summary["total_tasks"].append(0)
+                task_summary["done_tasks"].append(0)
                 continue
 
-            Task = self.env['project.task'].sudo()
+            Task = self.env["project.task"].sudo()
             base_domain = [
-                ('user_ids', 'in', user.id),
-                ('date_deadline', '>=', ev.start_date),
-                ('date_deadline', '<=', ev.end_date),
-                ('project_id', '!=', False),
+                ("user_ids", "in", user.id),
+                ("date_deadline", ">=", ev.start_date),
+                ("date_deadline", "<=", ev.end_date),
+                ("project_id", "!=", False),
             ]
             total = Task.search_count(base_domain)
-            done = Task.search_count(base_domain + [('stage_id.is_done_stage', '=', True)])
-            task_summary['total_tasks'].append(total)
-            task_summary['done_tasks'].append(done)
+            done = Task.search_count(
+                base_domain + [("stage_id.is_done_stage", "=", True)]
+            )
+            task_summary["total_tasks"].append(total)
+            task_summary["done_tasks"].append(done)
 
         # ── 3. Attendance summary (attendance_full data_source) ───────────────
-        attendance_summary = {'names': emp_names, 'worked_days': []}
+        attendance_summary = {
+            "names": emp_names,
+            "worked_days": [],
+            "expected_work_days": 0,
+        }
         for ev in evaluations:
             line = ev.evaluation_line_ids.filtered(
-                lambda l: not l.is_section and l.data_source == 'attendance_full'
+                lambda l: not l.is_section and l.data_source == "attendance_full"
             )
             if not line or not ev.start_date or not ev.end_date:
-                attendance_summary['worked_days'].append(0)
+                attendance_summary["worked_days"].append(0)
                 continue
 
-            engine = self.env['hr.kpi.engine']
+            engine = self.env["hr.kpi.engine"]
             _, metrics = engine.compute_with_metrics(
                 ev.employee_id, line[0], ev.start_date, ev.end_date
             )
-            worked = float((metrics or {}).get('worked_days', 0))
-            attendance_summary['worked_days'].append(round(worked, 1))
+            metrics = metrics or {}
+            worked = float(metrics.get("worked_days", 0))
+            attendance_summary["worked_days"].append(worked)
+
+            # expected_work_days giống nhau cho mọi nhân viên trong cùng kỳ
+            # chỉ cần lấy 1 lần
+            if not attendance_summary["expected_work_days"]:
+                attendance_summary["expected_work_days"] = int(
+                    metrics.get("expected_work_days", 0)
+                )
 
         # ── 4. Late summary (late_days data_source) ───────────────────────────
-        late_summary = {'names': emp_names, 'late_count': []}
+        late_summary = {"names": emp_names, "late_count": []}
         for ev in evaluations:
             line = ev.evaluation_line_ids.filtered(
-                lambda l: not l.is_section and l.data_source == 'late_days'
+                lambda l: not l.is_section and l.data_source == "late_days"
             )
             if not line or not ev.start_date or not ev.end_date:
-                late_summary['late_count'].append(0)
+                late_summary["late_count"].append(0)
                 continue
 
-            engine = self.env['hr.kpi.engine']
-            val = engine.compute(
-                ev.employee_id, line[0], ev.start_date, ev.end_date
-            )
-            late_summary['late_count'].append(int(val or 0))
+            engine = self.env["hr.kpi.engine"]
+            val = engine.compute(ev.employee_id, line[0], ev.start_date, ev.end_date)
+            late_summary["late_count"].append(int(val or 0))
 
         # ── 5. Qualitative charts (kpi_type = rating) ─────────────────────────
         # Gom tất cả KPI rating theo key_performance_area
         qual_map = {}  # {kpi_name: {emp_name: score}}
         for ev in evaluations:
-            emp_name = ev.employee_id.name if ev.employee_id else '?'
+            emp_name = ev.employee_id.name if ev.employee_id else "?"
             rating_lines = ev.evaluation_line_ids.filtered(
-                lambda l: not l.is_section and l.kpi_type == 'rating'
+                lambda l: not l.is_section and l.kpi_type == "rating"
             )
             for line in rating_lines:
-                kname = line.key_performance_area or line.name or 'KPI'
+                kname = line.key_performance_area or line.name or "KPI"
                 if kname not in qual_map:
                     qual_map[kname] = {}
-                qual_map[kname][emp_name] = round(float(line.actual or 0.0), 2)
+                qual_map[kname][emp_name] = round(float(line.final_rating or 0.0), 2)
 
         qualitative_charts = []
         for kname, emp_scores in qual_map.items():
-            qualitative_charts.append({
-                'kpi_name': kname,
-                'labels': list(emp_scores.keys()),
-                'scores': list(emp_scores.values()),
-            })
+            qualitative_charts.append(
+                {
+                    "kpi_name": kname,
+                    "labels": list(emp_scores.keys()),
+                    "scores": list(emp_scores.values()),
+                }
+            )
 
         return {
-            'employees': employees,
-            'task_summary': task_summary,
-            'attendance_summary': attendance_summary,
-            'late_summary': late_summary,
-            'qualitative_charts': qualitative_charts,
+            "employees": employees,
+            "task_summary": task_summary,
+            "attendance_summary": attendance_summary,
+            "late_summary": late_summary,
+            "qualitative_charts": qualitative_charts,
         }
