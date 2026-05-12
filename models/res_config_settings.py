@@ -36,3 +36,15 @@ class ResConfigSettings(models.TransientModel):
             icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent', default='9') or 9.0)
         passed = float(icp.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_pass', default='5') or 5.0)
         return excellent, passed
+
+    def set_values(self):
+        # Gọi super để Odoo thực hiện các logic mặc định trước
+        super(ResConfigSettings, self).set_values()
+        
+        # Ép buộc ghi giá trị '0' vào System Parameters nếu người dùng nhập 0
+        # Vì config_parameter lưu dưới dạng String, nên ta ép kiểu về str
+        self.env['ir.config_parameter'].sudo().set_param(
+            'custom_adecsol_hr_performance_evaluator.late_grace_minutes', 
+            str(self.late_grace_minutes)
+        )
+

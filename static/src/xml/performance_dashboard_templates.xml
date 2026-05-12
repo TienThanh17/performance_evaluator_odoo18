@@ -32,8 +32,7 @@
                         <div class="pd-header-active-toggle">
                             <span class="pd-active-label">ACTIVE</span>
                             <label class="pd-toggle-switch">
-                                <input type="checkbox" t-att-checked="state.active ? 'checked' : undefined"
-                                       t-on-change="onActiveChange"/>
+                                <input type="checkbox" t-att-checked="state.active ? 'checked' : undefined" t-on-change="onActiveChange"/>
                                 <span class="pd-toggle-slider"/>
                             </label>
                         </div>
@@ -106,7 +105,8 @@
                         <div class="pd-chart-header">
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--blue"/>
-                                Điểm Hiệu Suất theo Nhân Viên
+                                <!-- Điểm Hiệu Suất theo Nhân Viên -->
+                                <span>Performance Score by Employee</span>
                             </div>
                             <span class="pd-chart-badge pd-chart-badge--blue">Bar</span>
                         </div>
@@ -118,7 +118,8 @@
                         <div class="pd-chart-header">
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--green"/>
-                                Task Hoàn Thành theo Nhân Viên
+                                <!-- Task Hoàn Thành theo Nhân Viên -->
+                                <span>Completed Tasks by Employee</span>
                             </div>
                             <span class="pd-chart-badge pd-chart-badge--green">Stacked Bar</span>
                         </div>
@@ -134,7 +135,9 @@
                         <div class="pd-chart-header">
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--blue"/>
-                                Đi Làm Đầy Đủ — Số Ngày Có Mặt
+                                <!-- Đi Làm Đầy Đủ — Số Ngày Có Mặt -->
+                                
+                                <span>Attendance — Days Present</span>
                             </div>
                             <span class="pd-chart-badge pd-chart-badge--blue">Doughnut</span>
                         </div>
@@ -146,7 +149,8 @@
                         <div class="pd-chart-header">
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--red"/>
-                                Đi Làm Đúng Giờ — Số Lần Trễ theo Nhân Viên
+                                <!-- Đi Làm Đúng Giờ — Số Lần Trễ theo Nhân Viên -->
+                                <span>Punctuality — Late Count by Employee</span>
                             </div>
                             <span class="pd-chart-badge pd-chart-badge--red">Line</span>
                         </div>
@@ -158,27 +162,28 @@
 
                 <!-- ══ CHARTS ROW 3: Qualitative KPIs (dynamic) ══ -->
                 <t t-if="state.chartData and state.chartData.qualitative_charts.length">
-                                    <div class="pd-section-title">
-                                        <i class="fa fa-star-o"/>
-                                        KPI Định Tính — So Sánh Nhân Viên
-                                    </div>
+                    <div class="pd-section-title">
+                        <i class="fa fa-star-o"/>
+                        <!-- KPI Định Tính — So Sánh Nhân Viên -->
+                        <span>Qualitative KPIs — Employee Comparison</span>
+                    </div>
                     <div class="pd-chart-row pd-chart-row--qual">
-                                        <t t-foreach="state.chartData.qualitative_charts" t-as="qc" t-key="qc_index">
-                                            <div class="pd-chart-card">
-                                                <div class="pd-chart-header">
-                                                    <div class="pd-chart-title">
-                                                        <span class="pd-chart-dot pd-chart-dot--purple"/>
-                                                        <t t-esc="qc.kpi_name"/>
-                                                    </div>
-                                                    <span class="pd-chart-badge pd-chart-badge--purple">Doughnut</span>
-                                                </div>
-                                                <div class="pd-chart-body pd-chart-body--doughnut">
-                                                    <canvas t-att-id="'pd-qual-chart-' + qc_index"/>
-                                                </div>
-                                            </div>
-                                        </t>
+                        <t t-foreach="state.chartData.qualitative_charts" t-as="qc" t-key="qc_index">
+                            <div class="pd-chart-card">
+                                <div class="pd-chart-header">
+                                    <div class="pd-chart-title">
+                                        <span class="pd-chart-dot pd-chart-dot--purple"/>
+                                        <t t-esc="qc.kpi_name"/>
                                     </div>
-                                </t>
+                                    <!--                                                     <span class="pd-chart-badge pd-chart-badge&#45;&#45;purple">Doughnut</span> -->
+                                </div>
+                                <div class="pd-chart-body pd-chart-body--doughnut">
+                                    <canvas t-att-id="'pd-qual-chart-' + qc_index"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
 
 
                 <!--                <t t-if="state.chartData and state.chartData.qualitative_charts and state.chartData.qualitative_charts.length">-->
@@ -227,13 +232,10 @@
                                         <td>
                                             <div class="pd-employee-cell">
                                                 <t t-if="ev.employee_id">
-                                                    <img class="pd-avatar"
-                                                         t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'"
-                                                         t-att-alt="ev.employee_id[1]" loading="lazy"/>
+                                                    <img class="pd-avatar" t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'" t-att-alt="ev.employee_id[1]" loading="lazy"/>
                                                 </t>
                                                 <span class="pd-emp-name">
-                                                    <a href="#" class="pd-employee-link"
-                                                       t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0])">
+                                                    <a href="#" class="pd-employee-link" t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0])">
                                                         <t t-esc="ev.employee_id[1]"/>
                                                     </a>
                                                 </span>
@@ -250,8 +252,7 @@
                                                     <t t-esc="ev.performance_score ? ev.performance_score.toFixed(1) : '0.0'"/>
                                                 </span>
                                                 <div class="pd-progress-bar-wrap">
-                                                    <div class="pd-progress-bar-fill"
-                                                         t-att-style="'width:' + ((ev.performance_score || 0) * 10) + '%'"/>
+                                                    <div class="pd-progress-bar-fill" t-att-style="'width:' + ((ev.performance_score || 0) * 10) + '%'"/>
                                                 </div>
                                             </div>
                                         </td>
@@ -272,8 +273,7 @@
                                                     FAIL</span>
                                             </t>
                                             <t t-else="">
-                                                <span class="pd-badge"
-                                                      style="background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;">— N/A</span>
+                                                <span class="pd-badge" style="background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;">— N/A</span>
                                             </t>
                                         </td>
                                         <td>
@@ -283,7 +283,7 @@
                                                     SELF EVAL</t>
                                                 <t t-elif="ev.state === 'manager_evaluating'">
                                                     <i class="fa fa-spinner fa-spin"/>
-                                                    EVALUATING</t>
+                                                    MANAGER EVALUATING</t>
                                                 <t t-elif="ev.state === 'completed'">
                                                     <i class="fa fa-check-circle"/>
                                                     COMPLETED</t>
@@ -293,8 +293,7 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <button t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}"
-                                                    t-on-click="() => this.openEvaluation(ev.id)">
+                                            <button t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}" t-on-click="() => this.openEvaluation(ev.id)">
                                                 <i class="fa fa-chevron-right"/>
                                             </button>
                                         </td>

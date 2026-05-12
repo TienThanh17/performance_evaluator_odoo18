@@ -139,16 +139,15 @@ class PerformanceEvaluation(models.Model):
     performance_visual = fields.Html(compute="_compute_performance_visual")
 
     is_current_employee = fields.Boolean(
-        compute="_compute_is_current_employee",
-        string="Is Current Employee"
+        compute="_compute_is_current_employee", string="Is Current Employee"
     )
 
-    @api.depends('employee_id.user_id')
+    @api.depends("employee_id.user_id")
     def _compute_is_current_employee(self):
         for rec in self:
             # So sánh user_id của nhân viên với user đang đăng nhập
             if rec.employee_id and rec.employee_id.user_id:
-                rec.is_current_employee = (rec.employee_id.user_id == self.env.user)
+                rec.is_current_employee = rec.employee_id.user_id == self.env.user
             else:
                 rec.is_current_employee = False
 
@@ -215,16 +214,18 @@ class PerformanceEvaluation(models.Model):
     #     return defaults
 
     def action_submit(self):
-        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
         for record in self:
             if record.state != "self_evaluation":
-                raise UserError(_("You can only submit evaluations in self evaluation state."))
+                raise UserError(
+                    _("You can only submit evaluations in self evaluation state.")
+                )
 
             lines = record.evaluation_line_ids.filtered(
                 lambda l: (
-                        (l.kpi_type != "quantitative")
-                        and (not l.is_auto)
-                        and (not l.is_section)
+                    (l.kpi_type != "quantitative")
+                    and (not l.is_auto)
+                    and (not l.is_section)
                 )
             )
 
@@ -248,7 +249,9 @@ class PerformanceEvaluation(models.Model):
             )
             if missing_score:
                 raise ValidationError(
-                    _("Please provide Employee Score for all Score KPI lines before submit.")
+                    _(
+                        "Please provide Employee Score for all Score KPI lines before submit."
+                    )
                 )
 
             record.state = "manager_evaluating"
@@ -264,7 +267,9 @@ class PerformanceEvaluation(models.Model):
                 partner_to = manager.user_id.partner_id
 
                 # Tạo đường dẫn trực tiếp đến bản ghi hiện tại
-                record_url = f"{base_url}/web#id={record.id}&model={record._name}&view_type=form"
+                record_url = (
+                    f"{base_url}/web#id={record.id}&model={record._name}&view_type=form"
+                )
 
                 # CSS cho nút nhấn để hiển thị tốt trên Email
                 button_style = (
@@ -277,38 +282,45 @@ class PerformanceEvaluation(models.Model):
                     "font-weight: bold;"
                 )
 
-                body_html = Markup(_(
-                    "<p>Dear Manager,</p>"
-                    "<p>The performance evaluation for <b>%(employee_name)s</b> has been submitted.</p>"
-                    "<ul>"
-                    "<li><b>Status:</b> Waiting for Manager Evaluation</li>"
-                    "<li><b>Period:</b> %(period)s</li>"
-                    "</ul>"
-                    "<div style='margin: 16px 0;'>"
-                    "    <a href='%(url)s' style='%(style)s'>View Evaluation</a>"
-                    "</div>"
-                    "<p>Please review and provide your manager ratings.</p>"
-                )) % {
-                                'employee_name': record.employee_id.name,
-                                'period': dict(self._fields['period'].selection).get(record.period,
-                                                                                     record.period) if record.period else 'N/A',
-                                'url': record_url,
-                                'style': button_style,
-                            }
+                body_html = Markup(
+                    _(
+                        "<p>Dear Manager,</p>"
+                        "<p>The performance evaluation for <b>%(employee_name)s</b> has been submitted.</p>"
+                        "<ul>"
+                        "<li><b>Status:</b> Waiting for Manager Evaluation</li>"
+                        "<li><b>Period:</b> %(period)s</li>"
+                        "</ul>"
+                        "<div style='margin: 16px 0;'>"
+                        "    <a href='%(url)s' style='%(style)s'>View Evaluation</a>"
+                        "</div>"
+                        "<p>Please review and provide your manager ratings.</p>"
+                    )
+                ) % {
+                    "employee_name": record.employee_id.name,
+                    "period": dict(self._fields["period"].selection).get(
+                        record.period, record.period
+                    )
+                    if record.period
+                    else "N/A",
+                    "url": record_url,
+                    "style": button_style,
+                }
 
                 # Post tin nhắn vào Chatter và tag (notify) quản lý
                 record.message_post(
                     body=body_html,
                     subject=_("Action Required: Performance Evaluation Submitted"),
                     partner_ids=[partner_to.id],
-                    message_type='comment',  # 'comment' sẽ kích hoạt gửi email/notification
-                    subtype_xmlid='mail.mt_comment',
+                    message_type="comment",  # 'comment' sẽ kích hoạt gửi email/notification
+                    subtype_xmlid="mail.mt_comment",
                 )
 
     def action_approve(self):
         for record in self:
             if record.state != "manager_evaluating":
-                raise UserError("You can only approve evaluations in manager evaluating state.")
+                raise UserError(
+                    "You can only approve evaluations in manager evaluating state."
+                )
             record.state = "completed"
 
     def action_cancel(self):
@@ -320,7 +332,9 @@ class PerformanceEvaluation(models.Model):
     @api.depends("evaluation_line_ids.final_rating", "evaluation_line_ids.weight")
     def _compute_performance_score(self):
         for record in self:
-            scorable_lines = record.evaluation_line_ids.filtered(lambda l: not l.is_section)
+            scorable_lines = record.evaluation_line_ids.filtered(
+                lambda l: not l.is_section
+            )
             total_weighted_score_sum = sum(
                 line.final_rating * line.weight for line in scorable_lines
             )
@@ -341,7 +355,7 @@ class PerformanceEvaluation(models.Model):
 
     @api.depends("performance_score")
     def _compute_performance_badge_class(self):
-        excellent, passed = self.env['res.config.settings'].get_thresholds()
+        excellent, passed = self.env["res.config.settings"].get_thresholds()
         for rec in self:
             score = rec.performance_score or 0.0
             if score >= excellent:
@@ -353,7 +367,7 @@ class PerformanceEvaluation(models.Model):
 
     @api.depends("performance_score")
     def _compute_performance_level(self):
-        excellent, passed = self.env['res.config.settings'].get_thresholds()
+        excellent, passed = self.env["res.config.settings"].get_thresholds()
         for rec in self:
             score = rec.performance_score or 0.0
             if score >= excellent:
@@ -376,8 +390,8 @@ class PerformanceEvaluation(models.Model):
             else:
                 year = datetime.now().year
             sequence = (
-                    self.env["ir.sequence"].next_by_code("performance.evaluation.sequence")
-                    or "0001"
+                self.env["ir.sequence"].next_by_code("performance.evaluation.sequence")
+                or "0001"
             )
             vals["name"] = f"KPI/{sequence}/{year}"
         return super().create(vals_list)
@@ -400,8 +414,8 @@ class PerformanceEvaluation(models.Model):
         if self.kpi_id:
             # Kiểm tra xem KPI hiện tại có khớp với Period và Department mới không
             if (self.kpi_id.period != self.period) or (
-                    self.kpi_id.department_id
-                    and self.kpi_id.department_id != self.department_id
+                self.kpi_id.department_id
+                and self.kpi_id.department_id != self.department_id
             ):
                 self.kpi_id = False
 
@@ -544,7 +558,7 @@ class PerformanceEvaluation(models.Model):
         """Cron: compute auto KPI actuals for submitted evaluations."""
 
         # 1. Khởi tạo domain cơ bản (Chỉ quét những phiếu đang ở trạng thái cần tính toán)
-        base_domain = [('state', 'not in', ['completed', 'cancel'])]
+        base_domain = [("state", "not in", ["completed", "cancel"])]
         domain = base_domain.copy()
 
         while True:
@@ -563,7 +577,7 @@ class PerformanceEvaluation(models.Model):
                         "Auto KPI cron failed for evaluation id=%s (employee=%s): %s",
                         ev.id,
                         ev.employee_id.id if ev.employee_id else None,
-                        str(e)
+                        str(e),
                     )
 
             # 3. Cập nhật lại domain cho vòng lặp tiếp theo
@@ -588,6 +602,17 @@ class PerformanceEvaluation(models.Model):
         self.ensure_one()
         evaluation = self
 
+        perf_key = evaluation.performance_level or "fail"
+
+        # 2. Lấy mapping các tuỳ chọn của Selection đã ĐƯỢC DỊCH theo context ngôn ngữ hiện tại
+        # Lệnh này sẽ trả về dạng {'excellent': 'Xuất sắc', 'fail': 'Không đạt', ...}
+        selection_dict = dict(
+            self._fields["performance_level"]._description_selection(self.env)
+        )
+
+        # 3. Lấy ra nhãn (label) đã dịch tương ứng với key
+        perf_label = selection_dict.get(perf_key, perf_key)
+
         result = {
             "evaluation_id": evaluation.id,
             "employee_name": evaluation.employee_id.name or "",
@@ -595,7 +620,12 @@ class PerformanceEvaluation(models.Model):
             "start_date": str(evaluation.start_date) if evaluation.start_date else "",
             "end_date": str(evaluation.end_date) if evaluation.end_date else "",
             "performance_score": round(float(evaluation.performance_score or 0.0), 2),
-            "performance_level": evaluation.performance_level or "fail",
+
+            # Giữ lại key gốc lỡ JS cần dùng để đổi màu class css (levelClass)
+            "performance_level": perf_key,
+            # TRUYỀN THÊM LABEL ĐÃ DỊCH CHO GIAO DIỆN
+            "performance_level_label": perf_label,
+            
             # "task_completion": self._get_task_completion_data(evaluation),
             "done_tasks_by_day": self._get_done_tasks_by_day_data(evaluation),
             "punctuality_log": self._get_punctuality_log_data(evaluation),
@@ -819,9 +849,10 @@ class PerformanceEvaluation(models.Model):
     def _get_quantitative_table_data(self, evaluation):
         lines = evaluation.evaluation_line_ids.filtered(
             lambda l: (
-                    not l.is_section
-                    and l.kpi_type == "quantitative"
-                    and l.data_source not in ("task_on_time", "late_days", "attendance_full")
+                not l.is_section
+                and l.kpi_type == "quantitative"
+                and l.data_source
+                not in ("task_on_time", "late_days", "attendance_full")
             )
         )
         rows = []

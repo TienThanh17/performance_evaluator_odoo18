@@ -15,7 +15,7 @@
       <t t-if="state.isManager || state.isHR || state.isAdmin">
             <!-- Chọn phòng ban -->
         <label class="o_kpi_selector_label">Department:</label>
-        <select class="o_kpi_selector_select" t-on-change="onSelectDepartment" style="min-width: 150px; margin-right: 10px;">
+        <select class="o_kpi_selector_select o_kpi_dept_select" t-on-change="onSelectDepartment">
           <option t-if="state.isHR || state.isAdmin" value="">All Departments</option>
           <t t-foreach="state.departments" t-as="dept" t-key="dept.id">
             <option t-att-value="dept.id"
@@ -26,7 +26,7 @@
 
             <!-- Chọn nhân viên (Data đã được lọc) -->
         <label class="o_kpi_selector_label">Employee:</label>
-        <select class="o_kpi_selector_select" t-on-change="onSelectEmployee" style="min-width: 180px; margin-right: 10px;">
+        <select class="o_kpi_selector_select o_kpi_employee_select" t-on-change="onSelectEmployee">
           <t t-foreach="state.filteredEmployees" t-as="emp" t-key="emp.id">
             <option t-att-value="emp.id"
                     t-att-selected="emp.id === state.selectedEmployeeId"
@@ -38,10 +38,10 @@
           <!-- Chọn kỳ đánh giá (Hiển thị nếu nhân viên đó có dữ liệu) -->
       <t t-if="state.evaluations.length">
         <label class="o_kpi_selector_label">Evaluation:</label>
-        <select class="o_kpi_selector_select" t-on-change="onSelectEval">
+        <select class="o_kpi_selector_select o_kpi_eval_select" t-on-change="onSelectEval">
           <t t-foreach="state.evaluations" t-as="ev" t-key="ev.id">
             <option t-att-value="ev.id"
-                    t-att-selected="ev.id === state.selectedId"
+                    t-att-selected="ev.id === state.selectedEvaluationId"
                     t-esc="evalOptionLabel(ev)"/>
           </t>
         </select>
@@ -89,7 +89,7 @@
           </div>
         </div>
         <div class="o_kpi_score_meta">
-          <span class="o_kpi_score_label">Overall Score</span>
+          <span class="o_kpi_score_label">Performance Score</span>
           <span t-att-class="levelClass" t-esc="levelLabel"/>
         </div>
       </div>

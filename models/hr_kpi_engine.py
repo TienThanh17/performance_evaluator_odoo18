@@ -3,7 +3,7 @@ import pytz
 
 from odoo import api, fields, models
 
-LATE_GRACE_MINUTES = 30
+LATE_GRACE_MINUTES = 0
 
 _EMPTY_METRICS = {
     "expected_work_days": 0.0,  # Ngày phải đi làm theo calendar (đã trừ ngày lễ , nhưng chưa trừ phép   )
