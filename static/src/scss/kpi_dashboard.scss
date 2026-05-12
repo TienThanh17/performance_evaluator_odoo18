@@ -72,6 +72,8 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     font-size: 0.8rem;
     color: #94a3b8;
     font-weight: 500;
+    white-space: nowrap; /* Bắt buộc chữ phải nằm trên 1 dòng, không được ngắt tại khoảng trắng */
+    flex-shrink: 0;      /* Cấm Flexbox bóp nhỏ chiều rộng của thẻ label này */
 }
 
 .o_kpi_selector_select {
@@ -81,7 +83,7 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     border-radius: 8px;
     padding: 6px 12px;
     font-size: 0.85rem;
-    min-width: 260px;
+    min-width: 140px; /* Base min-width */
     cursor: pointer;
 
     &:focus {
@@ -91,6 +93,19 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 
     option {
         background: #1e293b;
+    }
+
+    /* Specific widths */
+    &.o_kpi_dept_select {
+        min-width: 20rem;
+    }
+
+    &.o_kpi_employee_select {
+        min-width: 15em;
+    }
+
+    &.o_kpi_eval_select {
+        min-width: 15rem;
     }
 }
 
@@ -235,6 +250,7 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     letter-spacing: 0.07em;
     padding: 3px 10px;
     border-radius: 20px;
+    text-align: center;
 
     &.o_kpi_level_excellent {
         background: #dcf0fc;

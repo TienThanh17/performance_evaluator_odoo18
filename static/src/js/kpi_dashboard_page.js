@@ -7,10 +7,17 @@
  *           "performance_evaluator.KpiDashboardStandalone"
  */
 
-import { Component, onMounted, onWillStart, useRef, useState, useEffect } from "@odoo/owl";
+import {
+    Component,
+    onMounted,
+    onWillStart,
+    useRef,
+    useState,
+    useEffect,
+} from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { user } from "@web/core/user";   // singleton – no service needed
+import { user } from "@web/core/user"; // singleton – no service needed
 import { loadJS } from "@web/core/assets";
 import { _t } from "@web/core/l10n/translation";
 
@@ -25,10 +32,10 @@ function formatHour(h) {
 }
 
 const PERIOD_LABELS = {
-    monthly: "Monthly",
-    quarterly: "Quarterly",
-    half_yearly: "Half-Yearly",
-    yearly: "Yearly",
+    monthly: _t("Monthly"),
+    quarterly: _t("Quarterly"),
+    half_yearly: _t("Half-Yearly"),
+    yearly: _t("Yearly"),
 };
 
 const COLOR_BLUE = "#3b82f6";
@@ -68,19 +75,19 @@ export class KpiDashboard extends Component {
 
         this.state = useState({
             employee_id: passedEmployeeId, // Dashboard sẽ lấy ID này để gọi xuống Python filter data
-            period: "monthly",
-            date_from: "",
-            date_to: "",
-            phase: "evals",           // "evals" | "dashboard" | "done" | "error"
+            // period: "monthly",
+            // date_from: "",
+            // date_to: "",
+            phase: "evals", // "evals" | "dashboard" | "done" | "error"
             isEmployee: false,
             isManager: false,
             isHR: false,
             isAdmin: false,
-            employees: [],            // [{id, name}] – only for managers
+            employees: [], // [{id, name}] – only for managers
             selectedEmployeeId: null, // null = current user's employee
-            departments: [],             // Thêm: Lưu danh sách phòng ban
-            selectedDepartmentId: null,  // Thêm: Phòng ban đang chọn
-            filteredEmployees: [],       // Thêm: Nhân viên ĐÃ LỌC theo phòng ban để show ra view
+            departments: [], // Thêm: Lưu danh sách phòng ban
+            selectedDepartmentId: null, // Thêm: Phòng ban đang chọn
+            filteredEmployees: [], // Thêm: Nhân viên ĐÃ LỌC theo phòng ban để show ra view
             evaluations: [],
             selectedEvaluationId: null,
             data: null,
@@ -124,7 +131,7 @@ export class KpiDashboard extends Component {
                     this._renderCharts();
                 }
             },
-            () => [this.state.phase, this.state.data] // Chạy lại effect này nếu phase hoặc data thay đổi
+            () => [this.state.phase, this.state.data], // Chạy lại effect này nếu phase hoặc data thay đổi
         );
     }
 
@@ -132,7 +139,8 @@ export class KpiDashboard extends Component {
         if (window.Chart) return;
         await new Promise((resolve, reject) => {
             const s = document.createElement("script");
-            s.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js";
+            s.src =
+                "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js";
 
             s.onload = resolve;
             s.onerror = reject;
@@ -148,7 +156,7 @@ export class KpiDashboard extends Component {
                 "hr.employee",
                 [["user_id", "=", user.userId]],
                 ["id", "name", "department_id"],
-                { limit: 1 }
+                { limit: 1 },
             );
 
             let myDepartmentId = null;
@@ -170,7 +178,7 @@ export class KpiDashboard extends Component {
                 "hr.department",
                 deptDomain,
                 ["id", "name", "member_ids"],
-                { order: "name asc" }
+                { order: "name asc" },
             );
             this.state.departments = departments;
 
@@ -188,14 +196,19 @@ export class KpiDashboard extends Component {
                 "hr.employee",
                 empDomain,
                 ["id", "name", "department_id"],
-                { order: "name asc", limit: 500 } // Tăng limit nếu công ty đông
+                { order: "name asc", limit: 500 }, // Tăng limit nếu công ty đông
             );
             this.state.employees = employees;
 
             if (departments.length > 0) {
                 this.state.selectedDepartmentId = departments[0].id;
-                const deptMembers = employees.filter(e => e.department_id && e.department_id[0] === departments[0].id);
-                if (myEmployee.length && deptMembers.find(e => e.id === myEmployee[0].id)) {
+                const deptMembers = employees.filter(
+                    (e) => e.department_id && e.department_id[0] === departments[0].id,
+                );
+                if (
+                    myEmployee.length &&
+                    deptMembers.find((e) => e.id === myEmployee[0].id)
+                ) {
                     this.state.selectedEmployeeId = myEmployee[0].id;
                 } else if (deptMembers.length > 0) {
                     this.state.selectedEmployeeId = deptMembers[0].id;
@@ -209,7 +222,9 @@ export class KpiDashboard extends Component {
 
             // Nếu có passedEmployeeId, override selectedEmployeeId và selectedDepartmentId
             if (this.state.employee_id) {
-                const targetEmp = employees.find(e => e.id === this.state.employee_id);
+                const targetEmp = employees.find(
+                    (e) => e.id === this.state.employee_id,
+                );
                 if (targetEmp) {
                     this.state.selectedEmployeeId = targetEmp.id;
                     if (targetEmp.department_id) {
@@ -229,7 +244,9 @@ export class KpiDashboard extends Component {
     _filterEmployees() {
         if (this.state.selectedDepartmentId) {
             this.state.filteredEmployees = this.state.employees.filter(
-                emp => emp.department_id && emp.department_id[0] === this.state.selectedDepartmentId
+                (emp) =>
+                    emp.department_id &&
+                    emp.department_id[0] === this.state.selectedDepartmentId,
             );
         } else {
             // Nếu chọn "Tất cả phòng ban"
@@ -237,7 +254,9 @@ export class KpiDashboard extends Component {
         }
 
         // Kiểm tra xem selectedEmployeeId hiện tại có nằm trong list vừa lọc không
-        const empExists = this.state.filteredEmployees.find(e => e.id === this.state.selectedEmployeeId);
+        const empExists = this.state.filteredEmployees.find(
+            (e) => e.id === this.state.selectedEmployeeId,
+        );
 
         // Nếu không có, tự động nhảy sang nhân viên đầu tiên của phòng ban đó
         if (!empExists && this.state.filteredEmployees.length > 0) {
@@ -250,13 +269,23 @@ export class KpiDashboard extends Component {
     async _loadEvaluations() {
         try {
             const fields = [
-                "id", "name", "period", "start_date", "end_date",
-                "performance_score", "performance_level", "state", "employee_id",
+                "id",
+                "name",
+                "period",
+                "start_date",
+                "end_date",
+                "performance_score",
+                "performance_level",
+                "state",
+                "employee_id",
             ];
 
             // Domain: filter by selected employee (manager) or by current user
             let domain;
-            if ((this.state.isManager || this.state.isHR || this.state.isAdmin) && this.state.selectedEmployeeId) {
+            if (
+                (this.state.isManager || this.state.isHR || this.state.isAdmin) &&
+                this.state.selectedEmployeeId
+            ) {
                 domain = [["employee_id", "=", this.state.selectedEmployeeId]];
             } else if (this.state.employee_id) {
                 // Được truyền thẳng employee_id từ context (ví dụ: mở từ form nhân viên)
@@ -269,7 +298,7 @@ export class KpiDashboard extends Component {
                 "hr.performance.evaluation",
                 domain,
                 fields,
-                { order: "start_date desc", limit: 24 }
+                { order: "start_date desc", limit: 24 },
             );
 
             this.state.evaluations = evals;
@@ -282,7 +311,7 @@ export class KpiDashboard extends Component {
                 this.state.phase = "done";
             }
         } catch (e) {
-            this.state.errorMsg = "Could not load evaluations.";
+            this.state.errorMsg = _t("Could not load evaluations.");
             this.state.phase = "error";
         }
     }
@@ -294,12 +323,12 @@ export class KpiDashboard extends Component {
             const data = await this.orm.call(
                 "hr.performance.evaluation",
                 "get_dashboard_data",
-                [[this.state.selectedEvaluationId]]
+                [[this.state.selectedEvaluationId]],
             );
             this.state.data = data;
             this.state.phase = "done";
 
-            console.log('data', data)
+            console.log("data", data);
 
             // await Promise.resolve();
             // Ép trình duyệt đợi đến frame tiếp theo (đảm bảo thẻ <canvas> đã xuất hiện trên DOM)
@@ -307,7 +336,7 @@ export class KpiDashboard extends Component {
 
             // this._renderCharts();
         } catch (e) {
-            this.state.errorMsg = "Could not load dashboard data.";
+            this.state.errorMsg = _t("Could not load dashboard data.");
             this.state.phase = "error";
         }
     }
@@ -360,18 +389,33 @@ export class KpiDashboard extends Component {
         const score = this.state.data ? this.state.data.performance_score : 0;
         const pct = Math.min(score * 10, 100);
         const level = this.state.data ? this.state.data.performance_level : "fail";
-        const color = level === "excellent" ? COLOR_BLUE
-            : level === "pass" ? COLOR_GREEN
-                : COLOR_RED;
+        const color =
+            level === "excellent"
+                ? COLOR_BLUE
+                : level === "pass"
+                    ? COLOR_GREEN
+                    : COLOR_RED;
         return "background: conic-gradient(" + color + " " + pct + "%, #e5e7eb 0)";
     }
 
+    // get levelLabel() {
+    //     return this.state.data ? this.state.data.performance_level : "";
+    // }
+
+    // get levelClass() {
+    //     return "o_kpi_level_badge o_kpi_level_" + this.levelLabel;
+    // }
+
     get levelLabel() {
-        return this.state.data ? this.state.data.performance_level : "";
+        // Trả về thẳng Label đã được Python dịch
+        return this.state.data ? this.state.data.performance_level_label : "";
     }
 
+    // Nếu bạn có hàm set CSS dựa trên level, hãy giữ nguyên dùng key gốc:
     get levelClass() {
-        return "o_kpi_level_badge o_kpi_level_" + this.levelLabel;
+        const level = this.state.data ? this.state.data.performance_level : "";
+        // Ví dụ: return level === 'fail' ? 'text-danger' : 'text-success';
+        return "o_kpi_level_badge o_kpi_level_" + level;
     }
 
     // -------------------------------------------------------------------------
@@ -389,21 +433,25 @@ export class KpiDashboard extends Component {
         if (row.variance === 0) return "o_kpi_variance o_kpi_variance_good";
 
         // Xác định xem variance hiện tại là Tích cực (Good) hay Tiêu cực (Bad)
-        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+        const isGood =
+            row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
 
-        return isGood ? "o_kpi_variance o_kpi_variance_exceeded" : "o_kpi_variance o_kpi_variance_bad";
+        return isGood
+            ? "o_kpi_variance o_kpi_variance_exceeded"
+            : "o_kpi_variance o_kpi_variance_bad";
     }
 
     // 3. Chữ hiển thị cho cột Status
     statusText(row) {
         // Đúng Target (Variance = 0) -> Achieved
-        if (row.variance === 0) return "Achieved";
+        if (row.variance === 0) return _t("Achieved");
 
         // Xác định Tích cực/Tiêu cực
-        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+        const isGood =
+            row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
 
         // Tích cực -> Exceeded, Tiêu cực -> Not Met
-        return isGood ? "Exceeded" : "Not Met";
+        return isGood ? _t("Exceeded") : _t("Not Met");
     }
 
     // 4. Màu nền cho Badge Status
@@ -411,20 +459,47 @@ export class KpiDashboard extends Component {
         // Đạt chính xác Target -> Dùng màu Xanh lá (Pass)
         if (row.variance === 0) return "o_kpi_status o_kpi_status_pass";
 
-        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+        const isGood =
+            row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
 
         // Vượt mục tiêu -> Xanh dương đậm (Excellent)
         // Không đạt -> Đỏ (Fail)
-        return isGood ? "o_kpi_status o_kpi_status_excellent" : "o_kpi_status o_kpi_status_fail";
+        return isGood
+            ? "o_kpi_status o_kpi_status_excellent"
+            : "o_kpi_status o_kpi_status_fail";
     }
 
-    periodLabel(period) { return PERIOD_LABELS[period] || period; }
+    periodLabel(period) {
+        return PERIOD_LABELS[period] || period;
+    }
 
-    formatHour(h) { return formatHour(h); }
+    formatHour(h) {
+        return formatHour(h);
+    }
 
     evalOptionLabel(ev) {
-        const period = PERIOD_LABELS[ev.period] || ev.period;
-        return ev.name + " — " + period + " (" + ev.start_date + " → " + ev.end_date + ")";
+        let periodLabel = "";
+
+        // Kiểm tra nếu period là monthly và có start_date
+        if (ev.period === "monthly" && ev.start_date) {
+            // start_date có dạng "YYYY-MM-DD", tách chuỗi lấy phần tử thứ 2 (index 1)
+            const monthString = ev.start_date.split("-")[1];
+
+            // parseInt để bỏ số 0 ở đầu (ví dụ: "05" thành 5)
+            const monthNumber = parseInt(monthString, 10);
+
+            // Dùng _t() để có thể dịch từ "Month" sang "Tháng" trong file .po
+            periodLabel = _t("Month ") + monthNumber;
+        } else {
+            // Fallback về logic cũ cho các period khác (yearly, quarterly...)
+            periodLabel = PERIOD_LABELS[ev.period] || ev.period;
+        }
+
+        return (
+            ev.name +
+            " — " +
+            periodLabel
+        );
     }
 
     // ── Chart rendering ──────────────────────────────────────────────────────
@@ -487,17 +562,23 @@ export class KpiDashboard extends Component {
                     labels: d.punctuality_log.labels,
                     datasets: [
                         {
-                            label: "Check-in",
+                            label: _t("Check-in"),
                             data: d.punctuality_log.data,
                             borderColor: COLOR_GREEN,
                             backgroundColor: "rgba(34,197,94,0.12)",
-                            fill: true, tension: 0.3, pointRadius: 5, spanGaps: true,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 5,
+                            spanGaps: true,
                         },
                         {
-                            label: "Start time",
+                            label: _t("Start time"),
                             data: Array(d.punctuality_log.labels.length).fill(expectedH),
-                            borderColor: COLOR_RED, borderDash: [5, 4],
-                            borderWidth: 1.5, pointRadius: 0, fill: false,
+                            borderColor: COLOR_RED,
+                            borderDash: [5, 4],
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            fill: false,
                         },
                     ],
                 },
@@ -509,21 +590,27 @@ export class KpiDashboard extends Component {
                             callbacks: {
                                 label: (c) => {
                                     const v = c.parsed.y;
-                                    return c.dataset.label + ": " + (v != null ? formatHour(v) : "--");
+                                    return (
+                                        c.dataset.label + ": " + (v != null ? formatHour(v) : "--")
+                                    );
                                 },
                             },
                         },
                     },
                     scales: {
-                        x: { ticks: { maxTicksLimit: 10, font: { size: 10 } }, grid: { display: false } },
+                        x: {
+                            ticks: { maxTicksLimit: 10, font: { size: 10 } },
+                            grid: { display: false },
+                        },
                         y: {
-                            min: yMin, max: yMax,
+                            min: yMin,
+                            max: yMax,
                             ticks: {
                                 stepSize: 0.25,
-                                callback: (v) => formatHour(v) // Tái sử dụng luôn hàm đã có
+                                callback: (v) => formatHour(v), // Tái sử dụng luôn hàm đã có
                             },
                             grid: { color: "rgba(0,0,0,0.05)" },
-                        }
+                        },
                     },
                 },
             });
@@ -536,13 +623,17 @@ export class KpiDashboard extends Component {
                 type: "radar",
                 data: {
                     labels: d.spider_web.labels,
-                    datasets: [{
-                        label: "Score",
-                        data: d.spider_web.scores,
-                        backgroundColor: "rgba(99,102,241,0.25)",
-                        borderColor: COLOR_INDIGO, borderWidth: 2,
-                        pointBackgroundColor: COLOR_INDIGO, pointRadius: 4,
-                    }],
+                    datasets: [
+                        {
+                            label: _t("Score"),
+                            data: d.spider_web.scores,
+                            backgroundColor: "rgba(99,102,241,0.25)",
+                            borderColor: COLOR_INDIGO,
+                            borderWidth: 2,
+                            pointBackgroundColor: COLOR_INDIGO,
+                            pointRadius: 4,
+                        },
+                    ],
                 },
                 options: {
                     responsive: true,
@@ -551,31 +642,32 @@ export class KpiDashboard extends Component {
 
                     // 1. CHỐNG CẮT CHỮ: Chừa lề xung quanh chart (Tăng số này lên nếu chữ vẫn bị cắt)
                     layout: {
-                        padding: 30
+                        padding: 30,
                     },
 
                     plugins: { legend: { display: false } },
                     scales: {
                         r: {
-                            min: 0, max: 10,
+                            min: 0,
+                            max: 10,
                             ticks: { stepSize: 2, font: { size: 10 } },
                             pointLabels: {
                                 font: { size: 11 },
                                 // 2. TỰ ĐỘNG NGẮT DÒNG CHO NHÃN QUÁ DÀI
                                 callback: function (label) {
                                     const maxLength = 15; // Ký tự tối đa trên 1 dòng (bạn có thể tùy chỉnh)
-                                    if (typeof label === 'string' && label.length > maxLength) {
+                                    if (typeof label === "string" && label.length > maxLength) {
                                         // Cắt theo dấu cách để không làm đứt đôi 1 từ
-                                        const words = label.split(' ');
+                                        const words = label.split(" ");
                                         let lines = [];
-                                        let currentLine = '';
+                                        let currentLine = "";
 
-                                        words.forEach(word => {
+                                        words.forEach((word) => {
                                             if ((currentLine + word).length > maxLength) {
                                                 if (currentLine) lines.push(currentLine.trim());
-                                                currentLine = word + ' ';
+                                                currentLine = word + " ";
                                             } else {
-                                                currentLine += word + ' ';
+                                                currentLine += word + " ";
                                             }
                                         });
                                         if (currentLine) lines.push(currentLine.trim());
@@ -583,7 +675,7 @@ export class KpiDashboard extends Component {
                                         return lines; // Trả về mảng -> Chart.js sẽ hiển thị nhiều dòng
                                     }
                                     return label;
-                                }
+                                },
                             },
                             grid: { color: "rgba(0,0,0,0.07)" },
                         },
@@ -594,7 +686,11 @@ export class KpiDashboard extends Component {
 
         // 4. Attendance Overview (Doughnut)
         const attendanceEl = this.attendanceRef.el;
-        if (attendanceEl && d.attendance_full && d.attendance_full.summary.expected_work_days > 0) {
+        if (
+            attendanceEl &&
+            d.attendance_full &&
+            d.attendance_full.summary.expected_work_days > 0
+        ) {
             const worked = d.attendance_full.summary.worked_days;
             const expected = d.attendance_full.summary.expected_work_days;
             const absent = expected - worked;
@@ -602,25 +698,27 @@ export class KpiDashboard extends Component {
             this._charts.attendance = new Chart(attendanceEl, {
                 type: "doughnut",
                 data: {
-                    labels: ["Days Present", "Days Absent"],
-                    datasets: [{
-                        data: [worked, absent],
-                        backgroundColor: ["#3b82f6", "#e2e8f0"], // Matching legend color
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }],
+                    labels: [_t("Days Present"), _t("Days Absent")],
+                    datasets: [
+                        {
+                            data: [worked, absent],
+                            backgroundColor: ["#3b82f6", "#e2e8f0"], // Matching legend color
+                            borderWidth: 0,
+                            hoverOffset: 4,
+                        },
+                    ],
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '75%', // makes it a thin ring
+                    cutout: "75%", // makes it a thin ring
                     plugins: {
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: (c) => c.label + ": " + c.parsed + " days"
-                            }
-                        }
+                                label: (c) => c.label + ": " + c.parsed + _t(" days"),
+                            },
+                        },
                     },
                 },
             });
@@ -628,7 +726,11 @@ export class KpiDashboard extends Component {
 
         // 5. Done Tasks by Day
         const doneTasksEl = this.doneTasksRef.el;
-        if (doneTasksEl && d.done_tasks_by_day && d.done_tasks_by_day.labels.length) {
+        if (
+            doneTasksEl &&
+            d.done_tasks_by_day &&
+            d.done_tasks_by_day.labels.length
+        ) {
             const dtd = d.done_tasks_by_day;
             this._charts.doneTasks = new Chart(doneTasksEl, {
                 type: "line",
@@ -636,7 +738,7 @@ export class KpiDashboard extends Component {
                     labels: dtd.labels,
                     datasets: [
                         {
-                            label: "Done Tasks",
+                            label: _t("Done Tasks"),
                             data: dtd.done_by_day,
                             borderColor: COLOR_GREEN,
                             backgroundColor: "rgba(34,197,94,0.12)",
@@ -647,7 +749,7 @@ export class KpiDashboard extends Component {
                             spanGaps: false,
                         },
                         {
-                            label: "Total Tasks (target)",
+                            label: _t("Total Tasks (target)"),
                             data: Array(dtd.labels.length).fill(dtd.total),
                             borderColor: COLOR_RED,
                             borderDash: [6, 4],
@@ -666,9 +768,9 @@ export class KpiDashboard extends Component {
                             callbacks: {
                                 label: (c) => {
                                     if (c.datasetIndex === 1) {
-                                        return `Total in period: ${dtd.total} tasks`;
+                                        return _t("Total in period: ") + dtd.total + _t(" tasks");
                                     }
-                                    return `Done (Total): ${c.parsed.y} tasks`;
+                                    return _t("Done (Total): ") + c.parsed.y + _t(" tasks");
                                 },
                             },
                         },
@@ -683,12 +785,12 @@ export class KpiDashboard extends Component {
                             ticks: {
                                 stepSize: 1,
                                 font: { size: 10 },
-                                callback: (v) => Number.isInteger(v) ? v : "",
+                                callback: (v) => (Number.isInteger(v) ? v : ""),
                             },
                             grid: { color: "rgba(0,0,0,0.05)" },
                             title: {
                                 display: true,
-                                text: "Tasks",
+                                text: _t("Tasks"),
                                 font: { size: 11 },
                             },
                         },
@@ -700,7 +802,9 @@ export class KpiDashboard extends Component {
 
     _destroyCharts() {
         for (const k of Object.keys(this._charts)) {
-            try { this._charts[k].destroy(); } catch (_) { }
+            try {
+                this._charts[k].destroy();
+            } catch (_) { }
         }
         this._charts = {};
     }
