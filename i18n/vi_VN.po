@@ -1573,7 +1573,7 @@ msgstr "Trình đánh giá hiệu suất"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.res_config_settings_view_form_inherit_kpi_thresholds
 msgid "KPI Performance Settings"
-msgstr "KPI Performance settings"
+msgstr "Cài đặt"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi__name
@@ -2206,7 +2206,7 @@ msgstr "Hình ảnh Hiệu suất"
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi_generate_wizard__period
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_generate_wizard__period
 msgid "Period"
-msgstr "Khoảng thời gian"
+msgstr "Giai đoạn đánh giá"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_performance_report_edit_form

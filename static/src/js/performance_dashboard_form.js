@@ -41,10 +41,41 @@ const POINT_COLORS = [
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-function formatMonthYear(dateStr) {
+function formatPeriodLabel(dateStr, period) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const year = d.getFullYear();
+    const month = d.getMonth(); // Trả về từ 0 (Tháng 1) đến 11 (Tháng 12)
+
+    switch (period) {
+        case "monthly":
+            // Lấy tên tháng bằng tiếng Anh (ví dụ: "January"), bọc trong _t() để Odoo có thể dịch sang "Tháng 1"
+            const monthName = d.toLocaleDateString("en-US", { month: "long" });
+            return sprintf(_t("%s / %s"), _t(monthName), year);
+
+        case "quarterly":
+            // Tính số quý: chia tháng cho 3, làm tròn xuống và cộng 1
+            const quarter = Math.floor(month / 3) + 1;
+            return sprintf(_t("Quarter %s %s"), quarter, year);
+
+        case "half_yearly":
+            // Nửa đầu năm (Tháng 1 - 6) và nửa cuối năm (Tháng 7 - 12)
+            if (month < 6) {
+                return sprintf(_t("First Half %s"), year);
+            } else {
+                return sprintf(_t("Second Half %s"), year);
+            }
+
+        case "yearly":
+            // Chỉ hiển thị năm
+            return sprintf(_t("Year %s"), year);
+
+        default:
+            const defaultMonth = d.toLocaleDateString("en-US", {
+                month: "long",
+            });
+            return sprintf(_t("%s %s"), _t(defaultMonth), year);
+    }
 }
 
 function toInputDate(val) {
@@ -280,7 +311,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
         this.state.departmentName = data.department_name || "";
         this.state.periodLabel = data.start_date
-            ? formatMonthYear(data.start_date)
+            ? formatPeriodLabel(data.start_date, data.period || "monthly")
             : "";
         this.state.period = data.period || "monthly";
         this.state.startDate = toInputDate(data.start_date);
@@ -423,7 +454,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: (c) => sprintf(_t("Score: $"), c.parsed.y),
+                            label: (c) => sprintf(_t("Score: %s"), c.parsed.y),
                         },
                     },
                 },
@@ -748,13 +779,27 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     async onPeriodChange(ev) {
         const value = ev.target.value;
         this.state.period = value;
+
+        // Cập nhật lại nhãn hiển thị nếu đã có start_date
+        if (this.state.startDate) {
+            this.state.periodLabel = formatPeriodLabel(
+                this.state.startDate,
+                value,
+            );
+        }
+
         await this._writeConfigField({ period: value }, { period: value });
     }
 
     async onStartDateChange(ev) {
         const value = ev.target.value;
         this.state.startDate = value;
-        if (value) this.state.periodLabel = formatMonthYear(value);
+        if (value) {
+            this.state.periodLabel = formatPeriodLabel(
+                value,
+                this.state.period,
+            );
+        }
         await this._writeConfigField(
             { start_date: value || false },
             { start_date: value || false },

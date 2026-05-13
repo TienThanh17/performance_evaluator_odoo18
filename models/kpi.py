@@ -53,3 +53,19 @@ class KPI(models.Model):
                 raise ValidationError(
                     _("The total weight of all KPI lines must equal exactly 100. The current total is %s.") % total_weight
                 )
+
+    def copy(self, default=None):
+        # 1. Initialize default dictionary
+        default = default or {}
+
+        # 2. Add specific fields to update during copy
+        default['name'] = self.name + ' (Copy)'
+
+        # 3. Call super to create the new parent record
+        new_parent = super(KPI, self).copy(default)
+
+        # 4. Iterate over original lines and copy them
+        for line in self.kpi_line_ids:
+            line.copy({'kpi_id': new_parent.id})
+
+        return new_parent
