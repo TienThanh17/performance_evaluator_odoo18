@@ -511,7 +511,7 @@ class HrPerformanceReport(models.Model):
             # expected_work_days giống nhau cho mọi nhân viên trong cùng kỳ
             # chỉ cần lấy 1 lần
             if not attendance_summary["expected_work_days"]:
-                attendance_summary["expected_work_days"] = int(
+                attendance_summary["expected_work_days"] = float(
                     metrics.get("expected_work_days", 0)
                 )
 
