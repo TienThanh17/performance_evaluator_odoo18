@@ -138,18 +138,57 @@ class PerformanceEvaluation(models.Model):
 
     performance_visual = fields.Html(compute="_compute_performance_visual")
 
-    is_current_employee = fields.Boolean(
-        compute="_compute_is_current_employee", string="Is Current Employee"
+    is_manager = fields.Boolean(
+        compute="_compute_role",
+        store=False,
+    )
+    is_hr = fields.Boolean(
+        compute="_compute_role",
+        store=False,
+    )
+    is_employee = fields.Boolean(
+        compute="_compute_role",
+        store=False,
+    )
+    is_current_user = fields.Boolean(
+        compute="_compute_is_current_user",
+        store=False
+    )
+    is_department_manager = fields.Boolean(
+        compute="_compute_is_department_manager",
+        store=False
     )
 
+    @api.depends_context('uid')
+    def _compute_role(self):
+        is_manager = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_manager')
+        is_hr = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_hr')
+        is_employee = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_employee')
+
+        for rec in self:
+            rec.is_manager = is_manager
+            rec.is_hr = is_hr
+            rec.is_employee = is_employee
+
     @api.depends("employee_id.user_id")
-    def _compute_is_current_employee(self):
+    def _compute_is_current_user(self):
         for rec in self:
             # So sánh user_id của nhân viên với user đang đăng nhập
             if rec.employee_id and rec.employee_id.user_id:
-                rec.is_current_employee = rec.employee_id.user_id == self.env.user
+                rec.is_current_user = rec.employee_id.user_id == self.env.user
             else:
-                rec.is_current_employee = False
+                rec.is_current_user = False
+
+    @api.depends_context("uid")
+    def _compute_is_department_manager(self):
+        for rec in self:
+            # Cách viết an toàn và sạch sẽ hơn trong Odoo 18
+            manager_user = rec.department_id.manager_id.user_id
+            if manager_user:
+                # So sánh Recordset trực tiếp (Odoo tự hiểu là so sánh ID)
+                rec.is_department_manager = (manager_user == self.env.user)
+            else:
+                rec.is_department_manager = False
 
     @api.depends("evaluation_line_ids.kpi_type")
     def _compute_kpi_types(self):
@@ -223,9 +262,9 @@ class PerformanceEvaluation(models.Model):
 
             lines = record.evaluation_line_ids.filtered(
                 lambda l: (
-                    (l.kpi_type != "quantitative")
-                    and (not l.is_auto)
-                    and (not l.is_section)
+                        (l.kpi_type != "quantitative")
+                        and (not l.is_auto)
+                        and (not l.is_section)
                 )
             )
 
@@ -296,15 +335,15 @@ class PerformanceEvaluation(models.Model):
                         "<p>Please review and provide your manager ratings.</p>"
                     )
                 ) % {
-                    "employee_name": record.employee_id.name,
-                    "period": dict(self._fields["period"].selection).get(
-                        record.period, record.period
-                    )
-                    if record.period
-                    else "N/A",
-                    "url": record_url,
-                    "style": button_style,
-                }
+                                "employee_name": record.employee_id.name,
+                                "period": dict(self._fields["period"].selection).get(
+                                    record.period, record.period
+                                )
+                                if record.period
+                                else "N/A",
+                                "url": record_url,
+                                "style": button_style,
+                            }
 
                 # Post tin nhắn vào Chatter và tag (notify) quản lý
                 record.message_post(
@@ -388,8 +427,8 @@ class PerformanceEvaluation(models.Model):
             else:
                 year = datetime.now().year
             sequence = (
-                self.env["ir.sequence"].next_by_code("performance.evaluation.sequence")
-                or "0001"
+                    self.env["ir.sequence"].next_by_code("performance.evaluation.sequence")
+                    or "0001"
             )
             vals["name"] = f"KPI/{sequence}/{year}"
         return super().create(vals_list)
@@ -412,8 +451,8 @@ class PerformanceEvaluation(models.Model):
         if self.kpi_id:
             # Kiểm tra xem KPI hiện tại có khớp với Period và Department mới không
             if (self.kpi_id.period != self.period) or (
-                self.kpi_id.department_id
-                and self.kpi_id.department_id != self.department_id
+                    self.kpi_id.department_id
+                    and self.kpi_id.department_id != self.department_id
             ):
                 self.kpi_id = False
 
@@ -623,7 +662,7 @@ class PerformanceEvaluation(models.Model):
             "performance_level": perf_key,
             # TRUYỀN THÊM LABEL ĐÃ DỊCH CHO GIAO DIỆN
             "performance_level_label": perf_label,
-            
+
             # "task_completion": self._get_task_completion_data(evaluation),
             "done_tasks_by_day": self._get_done_tasks_by_day_data(evaluation),
             "punctuality_log": self._get_punctuality_log_data(evaluation),
@@ -847,10 +886,10 @@ class PerformanceEvaluation(models.Model):
     def _get_quantitative_table_data(self, evaluation):
         lines = evaluation.evaluation_line_ids.filtered(
             lambda l: (
-                not l.is_section
-                and l.kpi_type == "quantitative"
-                and l.data_source
-                not in ("task_on_time", "late_days", "attendance_full")
+                    not l.is_section
+                    and l.kpi_type == "quantitative"
+                    and l.data_source
+                    not in ("task_on_time", "late_days", "attendance_full")
             )
         )
         rows = []

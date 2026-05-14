@@ -34,7 +34,7 @@
                             <field name="manager_rating_binary" nolabel="1" widget="radio"
                                 invisible="kpi_type != 'binary'" />
 
-                            <label for="manager_rating_selection" string="Manager Rating (0-5)"
+                            <label for="manager_rating_selection" string="Manager Rating"
                                 invisible="kpi_type != 'rating'" />
                             <field name="manager_rating_selection" nolabel="1"
                                 widget="priority_onchange"
@@ -181,7 +181,7 @@
                                         column_invisible="not parent.has_binary_kpi"
                                     />
                                     <field name="manager_rating_selection"
-                                        string="Manager Rating (0-5)" widget="priority_onchange"
+                                        string="Manager Rating" widget="priority_onchange"
                                         invisible="is_section or kpi_type != 'rating'"
                                         column_invisible="not parent.has_rating_kpi"
                                     />

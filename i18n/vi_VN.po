@@ -460,7 +460,7 @@ msgstr "Điểm cá nhân trung bình"
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__beta
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__beta
 msgid "Average Individual Weight (β)"
-msgstr "Trọng lượng cá nhân trung bình (β)"
+msgstr "Trọng số cá nhân trung bình (β)"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -1010,8 +1010,8 @@ msgstr "Xếp hạng nhân viên"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__employee_rating_selection
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup
-msgid "Employee Rating (0-5)"
-msgstr "Xếp hạng nhân viên (0-5)"
+msgid "Employee Rating"
+msgstr "Xếp hạng nhân viên"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__employee_rating_binary
@@ -1470,7 +1470,7 @@ msgid "Is Auto"
 msgstr "Là Tự động"
 
 #. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__is_current_employee
+#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__is_current_user
 msgid "Is Current Employee"
 msgstr ""
 
@@ -1811,8 +1811,8 @@ msgstr "Xếp hạng của Trưởng phòng"
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_performance_evaluation_form
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_form
-msgid "Manager Rating (0-5)"
-msgstr "Xếp hạng của Trưởng phòng (0-5)"
+msgid "Manager Rating"
+msgstr "Xếp hạng của Trưởng phòng "
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__manager_rating_binary
@@ -2455,8 +2455,8 @@ msgstr "Tự đánh giá"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_form
-msgid "Self Rating (0-5)"
-msgstr "Tự xếp hạng (0-5)"
+msgid "Self Rating"
+msgstr "Tự xếp hạng"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_form
@@ -2796,7 +2796,7 @@ msgid ""
 "The total weight of all KPI lines must equal exactly 100. The current total "
 "is %s."
 msgstr ""
-"Tổng trọng lượng của tất cả các dòng KPI phải bằng chính xác 100. Tổng hiện "
+"Tổng trọng số của tất cả các dòng KPI phải bằng chính xác 100. Tổng hiện "
 "tại là %s."
 
 #. module: custom_adecsol_hr_performance_evaluator

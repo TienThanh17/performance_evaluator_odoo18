@@ -31,7 +31,7 @@
                                 <field name="employee_rating_binary" nolabel="1"
                                        invisible="kpi_type != 'binary'"
                                        widget="radio"
-                                       readonly="evaluation_state != 'self_evaluation' or evaluation_state == 'cancel' "/>
+                                       readonly="evaluation_state != 'self_evaluation' or not is_current_user"/>
 
                                 <label for="employee_rating_selection"
                                        string="Employee Rating (0-5)"
@@ -39,13 +39,13 @@
                                 <field name="employee_rating_selection" nolabel="1"
                                        invisible="kpi_type != 'rating'"
                                        widget="priority_onchange"
-                                       readonly="evaluation_state != 'self_evaluation' or evaluation_state == 'cancel' "/>
+                                       readonly="evaluation_state != 'self_evaluation' or not is_current_user"/>
 
                                 <label for="employee_rating_score" string="Employee Score"
                                        invisible="kpi_type != 'score'"/>
                                 <field name="employee_rating_score" nolabel="1"
                                        invisible="kpi_type != 'score'"
-                                       readonly="evaluation_state != 'self_evaluation' or evaluation_state == 'cancel' "/>
+                                       readonly="evaluation_state != 'self_evaluation' or not is_current_user"/>
                             </group>
 
                             <group>
@@ -54,20 +54,20 @@
                                 <field name="manager_rating_binary" nolabel="1"
                                        invisible="kpi_type != 'binary'"
                                        widget="radio"
-                                       readonly="not is_manager or evaluation_state == 'cancel'"/>
+                                       readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager"/>
 
-                                <label for="manager_rating_selection" string="Manager Rating (0-5)"
+                                <label for="manager_rating_selection" string="Manager Rating"
                                        invisible="kpi_type != 'rating'"/>
                                 <field name="manager_rating_selection" nolabel="1"
                                        invisible="kpi_type != 'rating'"
                                        widget="priority_onchange"
-                                       readonly="not is_manager or evaluation_state == 'cancel'"/>
+                                       readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
 
                                 <label for="manager_rating_score" string="Manager Score"
                                        invisible="kpi_type != 'score'"/>
                                 <field name="manager_rating_score" nolabel="1"
                                        invisible="kpi_type != 'score'"
-                                       readonly="not is_manager or evaluation_state == 'cancel'"/>
+                                       readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager"/>
                             </group>
                         </group>
 
@@ -76,10 +76,9 @@
                             <group>
                                 <field name="target" readonly="is_employee"/>
                                 <field name="target_type" invisible="kpi_type != 'quantitative'"
-                                       readonly="is_employee"/>
+                                       readonly="not is_manager and not is_department_manager"/>
                                 <field name="direction" invisible="kpi_type != 'quantitative'"
-                                       readonly="is_employee"/>
-
+                                       readonly="not is_manager and not is_department_manager"/>
                             </group>
                             <group>
                                 <field name="actual" placeholder="Actual value"/>
@@ -103,14 +102,16 @@
                              ============================ -->
                         <group string="KPI Info" invisible="is_section">
                             <group>
-                                <field name="kpi_type" readonly="is_employee"/>
-                                <field name="weight" readonly="is_employee"/>
-                                <field name="actual" readonly="1" invisible="not is_special_scoring"/>
+                                <field name="kpi_type" readonly="not is_manager and not is_department_manager"/>
+                                <field name="weight" readonly="not is_manager and not is_department_manager"/>
+                                <field name="actual" invisible="not is_special_scoring"
+                                       readonly="not is_manager and not is_department_manager"/>
                             </group>
                             <group invisible="kpi_type != 'quantitative'">
                                 <field name="is_auto" readonly="1" invisible="kpi_type != 'quantitative'"/>
-                                <field name="data_source" invisible="kpi_type != 'quantitative'"/>
-                                <field name="is_special_scoring" invisible="not is_special_scoring"/>
+                                <field name="data_source" invisible="kpi_type != 'quantitative'"
+                                       readonly="not is_manager and not is_department_manager"/>
+                                <field name="is_special_scoring" invisible="not is_special_scoring" readonly="1"/>
                                 <!-- ============================
                                  ATTENDANCE FULL (AUTO KPI METRICS)
                                 ============================ -->
@@ -133,13 +134,13 @@
                         <group string="Comments" invisible="is_section">
                             <group>
                                 <field name="employee_comment" widget="html"
-                                       readonly="evaluation_state != 'self_evaluation' or not is_employee"
+                                       readonly="evaluation_state != 'self_evaluation' or not is_current_user"
                                        options="{'resizable': false}"
                                        style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
                             </group>
                             <group>
                                 <field name="manager_comment" widget="html"
-                                       readonly="not is_manager or evaluation_state == 'self_evaluation'"
+                                       readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"
                                        options="{'resizable': false}"
                                        style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
                             </group>
@@ -150,7 +151,7 @@
                              ============================ -->
                         <group string="KPI Description" invisible="is_section">
                             <field name="description" widget="html" placeholder="KPI Description"
-                                   readonly="evaluation_state == 'cancel' or not is_manager"
+                                   readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"
                                    options="{'resizable': false}"
                                    style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
                         </group>
@@ -311,7 +312,7 @@
                         <!-- Submit button -->
                         <button name="action_submit" type="object" string="Submit"
                                 groups="custom_adecsol_hr_performance_evaluator.group_employee"
-                                invisible="state != 'self_evaluation' or not is_current_employee"
+                                invisible="state != 'self_evaluation' or not is_current_user"
                                 class="oe_highlight"/>
                         <!-- Approve button -->
                         <button name="action_approve" type="object" string="Approve"
@@ -351,15 +352,15 @@
 
                                 <field name="name"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
-                                <field name="employee_id"
+                                <field name="employee_id" readonly="1"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
 
                                 <field name="job_id" readonly="1"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
-                                <field name="period"
+                                <field name="period" readonly="1"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="kpi_id"
-                                       readonly="not employee_id"
+                                       readonly="1"
                                        domain="[('period', '=', period), ('department_id', '=', department_id)]"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md "/>
                             </group>
@@ -368,11 +369,11 @@
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="department_id" readonly="1"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
-                                <field name="start_date"
+                                <field name="start_date" readonly="1"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
-                                <field name="end_date"
+                                <field name="end_date" readonly="1"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
-                                <field name="deadline"
+                                <field name="deadline" readonly="1"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="performance_score" invisible="1"/>
                                 <field name="performance_badge_class" invisible="1"/>
@@ -396,28 +397,36 @@
                                        context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
                                           decoration-bf="is_section">
-                                        <field name="sequence" widget="handle"/>
+<!--                                        <field name="sequence" widget="handle" />-->
                                         <field name="is_section" column_invisible="1"/>
                                         <field name="is_auto" column_invisible="1"/>
 
-                                        <field name="key_performance_area" string="Title"/>
+                                        <field name="key_performance_area" string="Title"
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="description"
                                                string="Info"
                                                widget="kpi_description_icon"
                                                invisible="is_section"
                                                optional="show"/>
 
-                                        <field name="kpi_type" invisible="is_section"/>
+                                        <field name="kpi_type" invisible="is_section"
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="target_type" optional="show"
-                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                               invisible="is_section or kpi_type != 'quantitative'"
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="data_source" optional="hide"
-                                               invisible="is_section or not is_auto"/>
+                                               invisible="is_section or not is_auto"
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="direction" optional="hide"
-                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
+                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="employee_comment" optional="hide"
-                                               invisible="is_section"/>
+                                               invisible="is_section"
+                                               readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                        />
                                         <field name="manager_comment" optional="hide"
-                                               invisible="is_section"/>
+                                               invisible="is_section"
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
 
                                         <!--                                        <field name="target" column_invisible="1" force_save="1"/>-->
                                         <!--                                        <field name="target_display" string="Target"-->
@@ -426,41 +435,42 @@
                                         <!--                                               invisible="is_section or kpi_type != 'quantitative'"/>-->
 
                                         <field name="target"
-                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
+                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="actual" invisible="is_section or kpi_type != 'quantitative'"
-                                               readonly="is_special_scoring"/>
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager and is_special_scoring"/>
 
                                         <field name="employee_rating_binary"
                                                string="Self Rating (Y/N)"
                                                column_invisible="not parent.has_binary_kpi"
                                                invisible="is_section or kpi_type != 'binary'"
-                                               readonly="evaluation_state != 'self_evaluation' or evaluation_state == 'cancel' "/>
+                                               readonly="evaluation_state != 'self_evaluation'"/>
                                         <field name="employee_rating_selection"
-                                               string="Self Rating (0-5)" widget="priority"
+                                               string="Self Rating" widget="priority"
                                                column_invisible="not parent.has_rating_kpi"
                                                invisible="is_section or kpi_type != 'rating'"
-                                               readonly="evaluation_state != 'self_evaluation' or evaluation_state == 'cancel' "/>
+                                               readonly="evaluation_state != 'self_evaluation'"/>
                                         <field name="employee_rating_score" string="Self Score"
                                                column_invisible="not parent.has_score_kpi"
                                                invisible="is_section or kpi_type != 'score'"
-                                               readonly="evaluation_state != 'self_evaluation' or evaluation_state == 'cancel' "/>
+                                               readonly="evaluation_state != 'self_evaluation'"/>
 
                                         <field name="manager_rating_binary"
                                                string="Manager Rating (Y/N)"
                                                column_invisible="not parent.has_binary_kpi"
                                                invisible="is_section or kpi_type != 'binary'"
-                                               readonly="evaluation_state == 'cancel'"/>
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="manager_rating_selection"
-                                               string="Manager Rating (0-5)" widget="priority"
+                                               string="Manager Rating" widget="priority"
                                                column_invisible="not parent.has_rating_kpi"
                                                invisible="is_section or kpi_type != 'rating'"
-                                               readonly="evaluation_state == 'cancel'"/>
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="manager_rating_score" string="Manager Score"
                                                column_invisible="not parent.has_score_kpi"
                                                invisible="is_section or kpi_type != 'score'"
-                                               readonly="evaluation_state == 'cancel'"/>
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
 
-                                        <field name="weight" invisible="is_section"/>
+                                        <field name="weight" invisible="is_section" readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="manager_edited" column_invisible="1"/>
                                         <field name="final_rating_badge_class" column_invisible="1"/>
                                         <field name="final_rating_badge_text" readonly="1"

@@ -264,29 +264,11 @@ class PerformanceEvaluationLine(models.Model):
         help="Additional details or guidance for this evaluation line.",
     )
 
-    # ------------------------------------------------------------
-    # UX helper: identify current user's role (manager group)
-    # ------------------------------------------------------------
-    is_manager = fields.Boolean(
-        string="Is Manager",
-        compute="_compute_role",
-        store=False,
-        help="Technical helper used by the UI to apply role-based readonly rules.",
-    )
-
-    is_hr = fields.Boolean(
-        string="Is HR",
-        compute="_compute_role",
-        store=False,
-        help="Technical helper used by the UI to apply role-based readonly rules.",
-    )
-
-    is_employee = fields.Boolean(
-        string="Is Employee",
-        compute="_compute_role",
-        store=False,
-        help="Technical helper used by the UI to apply role-based readonly rules.",
-    )
+    is_manager = fields.Boolean(related='evaluation_id.is_manager', store=False)
+    is_hr = fields.Boolean(related='evaluation_id.is_hr', store=False)
+    is_employee = fields.Boolean(related='evaluation_id.is_employee', store=False)
+    is_current_user = fields.Boolean(related='evaluation_id.is_current_user', store=False)
+    is_department_manager = fields.Boolean(related='evaluation_id.is_department_manager', store=False)
 
     is_section = fields.Boolean(default=False)
     display_type = fields.Selection(
@@ -304,17 +286,6 @@ class PerformanceEvaluationLine(models.Model):
         default=10,
         help="Controls the order of lines in the evaluation (drag & drop).",
     )
-
-    @api.depends_context('uid')
-    def _compute_role(self):
-        is_manager = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_manager')
-        is_hr = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_hr')
-        is_employee = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_employee')
-
-        for rec in self:
-            rec.is_manager = is_manager
-            rec.is_hr = is_hr
-            rec.is_employee = is_employee
 
     @api.depends('kpi_type', 'data_source')
     def _compute_auto(self):
@@ -710,6 +681,7 @@ class PerformanceEvaluationLine(models.Model):
             'res_model': 'hr.performance.evaluation.line',
             'res_id': self.id,
             'view_mode': 'form',
-            'view_id': self.env.ref('custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup').id,
+            'view_id': self.env.ref(
+                'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup').id,
             'target': 'new',
         }
