@@ -30,6 +30,16 @@ msgid ""
 "                    </div>\n"
 "                    "
 msgstr ""
+"\n"
+"                    <strong>Thông báo:</strong> Thời hạn nộp báo cáo đánh giá này sẽ kết thúc sau %s ngày nữa (%s). Vui lòng hoàn thành đúng hạn.\n"
+"\n"
+"                    <div style=\"margin-top: 20px; margin-bottom: 20px;\">\n"
+"                        <a href=\"%s\" \n"
+"                            style=\"background-color: #714B67; padding: 10px 20px; color: #FFFFFF; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;\">\n"
+"                            Xem bản đánh giá của bạn\n"
+"                        </a>\n"
+"                    </div>\n"
+"                    "
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -147,6 +157,9 @@ msgid ""
 "                            Click to create a new performance evaluation.\n"
 "                         </p>"
 msgstr ""
+"<p class=\"oe_view_nocontent_create\">\n"
+"                            Chọn để tạo mới phiếu đánh giá hiệu suất.\n"
+"                         </p>"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -1369,6 +1382,7 @@ msgid ""
 "How this KPI is evaluated: Quantitative (Target vs Actual), Binary (Yes/No),"
 " Rating (0–5), or Score (0–10)."
 msgstr ""
+"Cách thức đánh giá KPI này: Định lượng (Mục tiêu so với Thực tế), Nhị phân (Đạt/Không Đạt), Đánh giá (0–5), hoặc Điểm số (0–10)."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__kpi_type
@@ -1376,6 +1390,7 @@ msgid ""
 "How this KPI line is evaluated: Quantitative (Target vs Actual), Binary "
 "(Yes/No), Rating (0–5), or Score (0–10)."
 msgstr ""
+"Cách thức đánh giá KPI này: Định lượng (Mục tiêu so với Thực tế), Nhị phân (Có/Không), Đánh giá (0–5), hoặc Điểm số (0–10)."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__id
@@ -2493,7 +2508,7 @@ msgstr "Ghi điểm đặc biệt"
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/dept_kpi_dashboard_template.xml:0
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/performance_dashboard_templates.xml:0
 msgid "Stacked Bar"
-msgstr ""
+msgstr "Biểu đồ cột chồng"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -2708,6 +2723,7 @@ msgid ""
 "Technical flag: True when scoring uses a custom rule (not Target vs Actual "
 "ratio)."
 msgstr ""
+"Cờ kỹ thuật: True khi việc tính điểm sử dụng một quy tắc tùy chỉnh (không phải tỷ lệ giữa Mục tiêu và Thực tế)."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__is_employee
