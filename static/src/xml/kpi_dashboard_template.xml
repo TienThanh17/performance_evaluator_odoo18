@@ -89,8 +89,23 @@
           </div>
         </div>
         <div class="o_kpi_score_meta">
-          <span class="o_kpi_score_label">Performance Score</span>
+          <span class="o_kpi_score_label">KPI Score</span>
           <span t-att-class="levelClass" t-esc="levelLabel"/>
+        </div>
+      </div>
+
+      <!-- Final Score card — hiển thị điểm pha trộn cá nhân + phòng ban -->
+      <div class="o_kpi_score_card" style="margin-left: 16px;">
+        <div class="o_kpi_score_ring"
+             style="background: conic-gradient(#7c3aed 0%, #e5e7eb 0);"
+             t-att-style="'background: conic-gradient(#7c3aed ' + Math.min((state.data.final_score || 0) * 10, 100) + '%, #e5e7eb 0)'">
+          <div class="o_kpi_score_inner">
+            <span class="o_kpi_score_value" style="color:#7c3aed;" t-esc="finalScoreText"/>
+          </div>
+        </div>
+        <div class="o_kpi_score_meta">
+          <span class="o_kpi_score_label">Final Score</span>
+          <span t-att-class="finalLevelClass" t-esc="finalLevelLabel"/>
         </div>
       </div>
     </div>

@@ -173,13 +173,16 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
 
         # 4. Chạy vòng lặp tạo Evaluations cho các employee (nếu có kpi_template_id)
         count = 0
+        # Gom tất cả evaluation vừa tạo để trigger recompute final_score một lần sau vòng lặp
+        individual_evals = self.env['hr.performance.evaluation']
+
         if self.kpi_template_id:
             Evaluation = self.env['hr.performance.evaluation']
             valid_employees = self.env['hr.employee']
             
             for emp in employees:
                 if self._employee_matches_kpi(emp, self.kpi_template_id):
-                    # Check if evaluation exists
+                    # Kiểm tra tránh tạo evaluation trùng kỳ cho cùng nhân viên
                     exists = Evaluation.search([
                         ('employee_id', '=', emp.id),
                         ('kpi_id', '=', self.kpi_template_id.id),
@@ -190,7 +193,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                         valid_employees |= emp
 
             for emp in valid_employees:
-                # the period in hr.performance.evaluation should match hr.kpi
+                # Period của hr.performance.evaluation phải khớp với hr.kpi template
                 emp_period = self.kpi_template_id.period
                 scratch = Evaluation.new({'kpi_id': self.kpi_template_id.id, 'period': emp_period})
                 line_cmds = scratch._prepare_evaluation_line_commands_from_template(self.kpi_template_id)
@@ -204,9 +207,19 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                     'deadline': self.deadline,
                     'evaluation_line_ids': line_cmds,
                     'performance_report_id': report.id,
+                    # Gán dept_evaluation_id để tính final_score theo công thức pha trộn
+                    'dept_evaluation_id': dept_eval.id,
                 })
                 self.send_notification(emp, evaluation)
+                # Tích lũy vào recordset để recompute sau vòng lặp
+                individual_evals |= evaluation
                 count += 1
+
+        # Trigger recompute final_score cho toàn bộ evaluations vừa tạo.
+        # Cần thiết vì dept_evaluation_id vừa được gán — Odoo có thể chưa
+        # invalidate cache và trigger store=True ngay trong cùng transaction.
+        if individual_evals:
+            individual_evals._compute_final_score()
 
         return {
             'type': 'ir.actions.client',

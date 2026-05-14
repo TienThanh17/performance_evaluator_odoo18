@@ -130,10 +130,6 @@
                                     decoration-info="department_level == 'excellent'"
                                     decoration-danger="department_level == 'fail'" readonly="1" />
                             </group>
-                            <group>
-                                <field name="alpha" string="KPI Weight (α)" readonly="1" />
-                                <field name="beta" string="Individual Weight (β)" readonly="1" />
-                            </group>
                         </group>
                     </group>
                     <notebook>

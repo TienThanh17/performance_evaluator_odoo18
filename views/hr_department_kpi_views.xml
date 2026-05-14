@@ -63,9 +63,14 @@
                             <field name="department_id"/>
                             <field name="period"/>
                         </group>
-                        <group>
-                            <field name="alpha"/>
-                            <field name="beta"/>
+                        <group string="Score Weights">
+                            <!-- Trọng số mới: dept_weight + individual_weight (tự tính) -->
+                            <field name="dept_weight"
+                                   string="Department KPI Weight"
+                                   help="0.4 means dept score contributes 40%, individual 60%"/>
+                            <field name="individual_weight"
+                                   string="Individual Weight (auto)"
+                                   readonly="1"/>
                         </group>
                     </group>
                     <notebook>
@@ -119,8 +124,9 @@
                 <field name="name"/>
                 <field name="department_id"/>
                 <field name="period"/>
-                <field name="alpha"/>
-                <field name="beta"/>
+                <!-- Hiển thị trọng số mới -->
+                <field name="dept_weight" string="Dept Weight"/>
+                <field name="individual_weight" string="Individual Weight"/>
             </list>
         </field>
     </record>

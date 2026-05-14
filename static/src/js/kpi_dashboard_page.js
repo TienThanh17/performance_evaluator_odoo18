@@ -273,6 +273,8 @@ export class KpiDashboard extends Component {
                 "end_date",
                 "performance_score",
                 "performance_level",
+                "final_score",
+                "final_level",
                 "state",
                 "employee_id",
             ];
@@ -422,6 +424,25 @@ export class KpiDashboard extends Component {
         const level = this.state.data ? this.state.data.performance_level : "";
         // Ví dụ: return level === 'fail' ? 'text-danger' : 'text-success';
         return "o_kpi_level_badge o_kpi_level_" + level;
+    }
+
+    // ── Final Score helpers (dùng cho breakdown section trong template) ────────
+    get finalScoreText() {
+        // Trả về final_score đã được làm tròn 2 chữ số thập phân
+        return (this.state.data ? this.state.data.final_score : 0).toFixed(2);
+    }
+
+    get finalLevelClass() {
+        // Class CSS tương ứng với final_level (excellent / pass / fail)
+        const level = this.state.data ? this.state.data.final_level : "fail";
+        return "o_kpi_level_badge o_kpi_level_" + level;
+    }
+
+    get finalLevelLabel() {
+        // Hiển thị label xết loại của final_score
+        const level = this.state.data ? this.state.data.final_level : "fail";
+        const labels = { excellent: "Excellent", pass: "Pass", fail: "Fail" };
+        return labels[level] || level;
     }
 
     // -------------------------------------------------------------------------

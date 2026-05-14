@@ -93,6 +93,27 @@ class PerformanceEvaluation(models.Model):
         help="Result level derived from the Average Score and the KPI thresholds configured in Settings.",
     )
 
+    # Điểm cuối cùng: pha trộn performance_score cá nhân và dept_kpi_score phòng ban
+    final_score = fields.Float(
+        string="Final Score",
+        compute="_compute_final_score",
+        store=True,
+        digits=(6, 2),
+        help="Individual blended score: dept_kpi_score × dept_weight + performance_score × (1 - dept_weight). "
+        "Falls back to performance_score when no department evaluation is linked.",
+    )
+    final_level = fields.Selection(
+        selection=[
+            ("excellent", "Excellent"),
+            ("pass", "Pass"),
+            ("fail", "Fail"),
+        ],
+        string="Final Result",
+        compute="_compute_final_level",
+        store=True,
+        help="Performance level derived from final_score using the same thresholds as performance_level.",
+    )
+
     performance_badge_class = fields.Char(
         string="Performance Badge Class",
         compute="_compute_performance_badge_class",
@@ -106,6 +127,15 @@ class PerformanceEvaluation(models.Model):
         required=False,
         help="Defines the active evaluation window (start/end/deadline) for the selected period.",
         ondelete="cascade",
+    )
+    dept_evaluation_id = fields.Many2one(
+        "hr.department.performance.evaluation",
+        string="Department Evaluation",
+        domain="[('department_id', '=', department_id)]",
+        required=False,
+        ondelete="set null",
+        help="Link to the department KPI evaluation for the same period. "
+        "Used to blend dept_kpi_score into the individual final_score.",
     )
     department_id = fields.Many2one(
         "hr.department",
@@ -150,20 +180,22 @@ class PerformanceEvaluation(models.Model):
         compute="_compute_role",
         store=False,
     )
-    is_current_user = fields.Boolean(
-        compute="_compute_is_current_user",
-        store=False
-    )
+    is_current_user = fields.Boolean(compute="_compute_is_current_user", store=False)
     is_department_manager = fields.Boolean(
-        compute="_compute_is_department_manager",
-        store=False
+        compute="_compute_is_department_manager", store=False
     )
 
-    @api.depends_context('uid')
+    @api.depends_context("uid")
     def _compute_role(self):
-        is_manager = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_manager')
-        is_hr = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_hr')
-        is_employee = self.env.user.has_group('custom_adecsol_hr_performance_evaluator.group_employee')
+        is_manager = self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_manager"
+        )
+        is_hr = self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_hr"
+        )
+        is_employee = self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_employee"
+        )
 
         for rec in self:
             rec.is_manager = is_manager
@@ -186,7 +218,7 @@ class PerformanceEvaluation(models.Model):
             manager_user = rec.department_id.manager_id.user_id
             if manager_user:
                 # So sánh Recordset trực tiếp (Odoo tự hiểu là so sánh ID)
-                rec.is_department_manager = (manager_user == self.env.user)
+                rec.is_department_manager = manager_user == self.env.user
             else:
                 rec.is_department_manager = False
 
@@ -262,9 +294,9 @@ class PerformanceEvaluation(models.Model):
 
             lines = record.evaluation_line_ids.filtered(
                 lambda l: (
-                        (l.kpi_type != "quantitative")
-                        and (not l.is_auto)
-                        and (not l.is_section)
+                    (l.kpi_type != "quantitative")
+                    and (not l.is_auto)
+                    and (not l.is_section)
                 )
             )
 
@@ -335,15 +367,15 @@ class PerformanceEvaluation(models.Model):
                         "<p>Please review and provide your manager ratings.</p>"
                     )
                 ) % {
-                                "employee_name": record.employee_id.name,
-                                "period": dict(self._fields["period"].selection).get(
-                                    record.period, record.period
-                                )
-                                if record.period
-                                else "N/A",
-                                "url": record_url,
-                                "style": button_style,
-                            }
+                    "employee_name": record.employee_id.name,
+                    "period": dict(self._fields["period"].selection).get(
+                        record.period, record.period
+                    )
+                    if record.period
+                    else "N/A",
+                    "url": record_url,
+                    "style": button_style,
+                }
 
                 # Post tin nhắn vào Chatter và tag (notify) quản lý
                 record.message_post(
@@ -357,7 +389,9 @@ class PerformanceEvaluation(models.Model):
     def action_approve(self):
         for record in self:
             if record.state != "manager_evaluating":
-                raise UserError(_("You can only approve evaluations in manager evaluating state."))
+                raise UserError(
+                    _("You can only approve evaluations in manager evaluating state.")
+                )
             record.state = "completed"
 
     def action_cancel(self):
@@ -414,6 +448,82 @@ class PerformanceEvaluation(models.Model):
             else:
                 rec.performance_level = "fail"
 
+    @api.depends(
+        "performance_score",
+        "dept_evaluation_id",
+        "dept_evaluation_id.dept_kpi_score",
+        "dept_evaluation_id.state",
+        "dept_evaluation_id.department_kpi_id.dept_weight",
+    )
+    def _compute_final_score(self):
+        """Tính điểm cuối cùng của cá nhân theo công thức:
+        final_score = dept_kpi_score × dept_weight + performance_score × (1 - dept_weight)
+
+        Quy tắc nghiệp vụ:
+        - Chưa liên kết dept evaluation   → final_score = performance_score
+        - dept evaluation bị hủy (cancel) → final_score = performance_score
+        - draft / submitted / approved      → dùng dept_kpi_score tạm thời hoặc chính thức
+        """
+        for rec in self:
+            dept_eval = rec.dept_evaluation_id
+
+            # Fallback: không có dept evaluation → giữ nguyên performance_score
+            if not dept_eval:
+                rec.final_score = rec.performance_score
+                continue
+
+            # Lấy điểm KPI phòng ban qua method (trả 0.0 nếu state=cancel)
+            dept_score = dept_eval.get_dept_kpi_score()
+
+            # Fallback: dept bị hủy → không đưa vào công thức
+            if dept_eval.state == "cancel":
+                rec.final_score = rec.performance_score
+                continue
+
+            # Lấy trọng số từ template KPI phòng ban; mặc định 0.4 nếu chưa cấu hình
+            dept_weight = (
+                dept_eval.department_kpi_id.dept_weight
+                if dept_eval.department_kpi_id
+                else 0.4
+            )
+            individual_weight = 1.0 - dept_weight
+
+            # Công thức pha trộn
+            rec.final_score = (dept_score * dept_weight) + (
+                rec.performance_score * individual_weight
+            )
+
+    @api.depends("final_score")
+    def _compute_final_level(self):
+        """Xết loại dựa trên final_score và ngưỡng cấu hình trong ir.config_parameter.
+
+        Dùng cùng key param với _compute_performance_level để đảm bảo nhất quán.
+        """
+        # Lấy ngưỡng từ hệ thống cấu hình — không hardcode
+        ICP = self.env["ir.config_parameter"].sudo()
+        threshold_excellent = float(
+            ICP.get_param(
+                "custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent",
+                default="9",
+            )
+            or 9.0
+        )
+        threshold_pass = float(
+            ICP.get_param(
+                "custom_adecsol_hr_performance_evaluator.kpi_threshold_pass",
+                default="5",
+            )
+            or 5.0
+        )
+        for rec in self:
+            score = rec.final_score or 0.0
+            if score >= threshold_excellent:
+                rec.final_level = "excellent"
+            elif score >= threshold_pass:
+                rec.final_level = "pass"
+            else:
+                rec.final_level = "fail"
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -427,8 +537,8 @@ class PerformanceEvaluation(models.Model):
             else:
                 year = datetime.now().year
             sequence = (
-                    self.env["ir.sequence"].next_by_code("performance.evaluation.sequence")
-                    or "0001"
+                self.env["ir.sequence"].next_by_code("performance.evaluation.sequence")
+                or "0001"
             )
             vals["name"] = f"KPI/{sequence}/{year}"
         return super().create(vals_list)
@@ -451,8 +561,8 @@ class PerformanceEvaluation(models.Model):
         if self.kpi_id:
             # Kiểm tra xem KPI hiện tại có khớp với Period và Department mới không
             if (self.kpi_id.period != self.period) or (
-                    self.kpi_id.department_id
-                    and self.kpi_id.department_id != self.department_id
+                self.kpi_id.department_id
+                and self.kpi_id.department_id != self.department_id
             ):
                 self.kpi_id = False
 
@@ -657,12 +767,12 @@ class PerformanceEvaluation(models.Model):
             "start_date": str(evaluation.start_date) if evaluation.start_date else "",
             "end_date": str(evaluation.end_date) if evaluation.end_date else "",
             "performance_score": round(float(evaluation.performance_score or 0.0), 2),
-
-            # Giữ lại key gốc lỡ JS cần dùng để đổi màu class css (levelClass)
+            "final_score": round(float(evaluation.final_score or 0.0), 2),
+            "final_level": evaluation.final_level or "fail",
+            # Keep raw key for CSS class logic (levelClass)
             "performance_level": perf_key,
-            # TRUYỀN THÊM LABEL ĐÃ DỊCH CHO GIAO DIỆN
+            # Translated label for display
             "performance_level_label": perf_label,
-
             # "task_completion": self._get_task_completion_data(evaluation),
             "done_tasks_by_day": self._get_done_tasks_by_day_data(evaluation),
             "punctuality_log": self._get_punctuality_log_data(evaluation),
@@ -886,10 +996,10 @@ class PerformanceEvaluation(models.Model):
     def _get_quantitative_table_data(self, evaluation):
         lines = evaluation.evaluation_line_ids.filtered(
             lambda l: (
-                    not l.is_section
-                    and l.kpi_type == "quantitative"
-                    and l.data_source
-                    not in ("task_on_time", "late_days", "attendance_full")
+                not l.is_section
+                and l.kpi_type == "quantitative"
+                and l.data_source
+                not in ("task_on_time", "late_days", "attendance_full")
             )
         )
         rows = []

@@ -155,7 +155,7 @@ class HrKpiEngineDeptExt(models.AbstractModel):
     @api.model
     def _compute_dept_avg_individual(self, department, dept_kpi_line, date_from, date_to):
         evals = self.env['hr.performance.evaluation'].sudo().search([
-            ('state', '=', 'approved'),
+            # ('state', '=', 'approved'),
             ('employee_id.department_id', '=', department.id),
             ('start_date', '>=', date_from),
             ('end_date', '<=', date_to),
@@ -171,4 +171,3 @@ class HrKpiEngineDeptExt(models.AbstractModel):
             numerator=avg,
             denominator=10.0,
         )
-

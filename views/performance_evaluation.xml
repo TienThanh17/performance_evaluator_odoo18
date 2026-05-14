@@ -61,7 +61,7 @@
                                 <field name="manager_rating_selection" nolabel="1"
                                        invisible="kpi_type != 'rating'"
                                        widget="priority_onchange"
-                                       readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
+                                       readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager"/>
 
                                 <label for="manager_rating_score" string="Manager Score"
                                        invisible="kpi_type != 'score'"/>
@@ -172,8 +172,16 @@
                     <field name="job_id"/>
                     <field name="kpi_id"/>
                     <field name="period"/>
-                    <field name="performance_score"/>
-                    <field name="performance_level"/>
+                    <field name="performance_score" string="KPI Score"/>
+                    <field name="final_score" string="Final Score"
+                           decoration-success="final_level == 'excellent'"
+                           decoration-warning="final_level == 'pass'"
+                           decoration-danger="final_level == 'fail'"/>
+                    <field name="final_level" string="Final Result" widget="badge"
+                           decoration-info="final_level == 'excellent'"
+                           decoration-success="final_level == 'pass'"
+                           decoration-danger="final_level == 'fail'"/>
+                    <field name="performance_level" column_invisible="1"/>
                     <field name="start_date"/>
                     <field name="end_date"/>
                     <field name="deadline"/>
@@ -190,6 +198,8 @@
                     <field name="name"/>
                     <field name="employee_id"/>
                     <field name="performance_score"/>
+                    <field name="final_score"/>
+                    <field name="final_level"/>
                     <field name="job_id"/>
                     <field name="department_id"/>
                     <field name="kpi_id"/>
@@ -334,14 +344,31 @@
                                          style="font-size: 32px;">
                                         <field name="performance_score" readonly="1"/>
                                     </div>
-                                    <div class="text-uppercase small fw-bold mb-4">Overall
-                                        Performance
+                                    <div class="text-uppercase small fw-bold mb-2">Individual
+                                        KPI Score
                                     </div>
-                                    <div class="d-flex justify-content-center">
+                                    <div class="d-flex justify-content-center mb-3">
                                         <field name="performance_level" widget="badge"
                                                decoration-info="performance_level == 'excellent'"
                                                decoration-success="performance_level == 'pass'"
                                                decoration-danger="performance_level == 'fail'"
+                                               class="o_custom_level_badge"/>
+                                    </div>
+                                    <!-- Phân cách -->
+                                    <hr style="margin: 4px 16px;"/>
+                                    <!-- Điểm cuối cùng (pha trộn với KPI phòng ban) -->
+                                    <div class="score_value font-weight-bold"
+                                         style="font-size: 28px; color: #7c3aed;">
+                                        <field name="final_score" readonly="1"/>
+                                    </div>
+                                    <div class="text-uppercase small fw-bold mb-2"
+                                         style="color: #7c3aed;">Final Score
+                                    </div>
+                                    <div class="d-flex justify-content-center">
+                                        <field name="final_level" widget="badge"
+                                               decoration-info="final_level == 'excellent'"
+                                               decoration-success="final_level == 'pass'"
+                                               decoration-danger="final_level == 'fail'"
                                                class="o_custom_level_badge"/>
                                     </div>
                                 </div>
@@ -368,6 +395,12 @@
                                 <field name="manager_id" readonly="1"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="department_id" readonly="1"
+                                       class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
+                                <!-- Liên kết tới KPI đánh giá phòng ban cùng kỳ -->
+                                <field name="dept_evaluation_id"
+                                       readonly="1"
+                                       domain="[('department_id', '=', department_id)]"
+                                       options="{'no_create': True, 'no_open': True}"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
                                 <field name="start_date" readonly="1"
                                        class="o_custom_input_field p-2 border border-gray-300 rounded-md"/>
@@ -444,31 +477,31 @@
                                                string="Self Rating (Y/N)"
                                                column_invisible="not parent.has_binary_kpi"
                                                invisible="is_section or kpi_type != 'binary'"
-                                               readonly="evaluation_state != 'self_evaluation'"/>
+                                               readonly="evaluation_state != 'self_evaluation' or not is_current_user"/>
                                         <field name="employee_rating_selection"
                                                string="Self Rating" widget="priority"
                                                column_invisible="not parent.has_rating_kpi"
                                                invisible="is_section or kpi_type != 'rating'"
-                                               readonly="evaluation_state != 'self_evaluation'"/>
+                                               readonly="evaluation_state != 'self_evaluation' or not is_current_user"/>
                                         <field name="employee_rating_score" string="Self Score"
                                                column_invisible="not parent.has_score_kpi"
                                                invisible="is_section or kpi_type != 'score'"
-                                               readonly="evaluation_state != 'self_evaluation'"/>
+                                               readonly="evaluation_state != 'self_evaluation' or not is_current_user"/>
 
                                         <field name="manager_rating_binary"
                                                string="Manager Rating (Y/N)"
                                                column_invisible="not parent.has_binary_kpi"
                                                invisible="is_section or kpi_type != 'binary'"
-                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
+                                               readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager"/>
                                         <field name="manager_rating_selection"
                                                string="Manager Rating" widget="priority"
                                                column_invisible="not parent.has_rating_kpi"
                                                invisible="is_section or kpi_type != 'rating'"
-                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
+                                               readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager"/>
                                         <field name="manager_rating_score" string="Manager Score"
                                                column_invisible="not parent.has_score_kpi"
                                                invisible="is_section or kpi_type != 'score'"
-                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
+                                               readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager"/>
 
                                         <field name="weight" invisible="is_section" readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="manager_edited" column_invisible="1"/>
