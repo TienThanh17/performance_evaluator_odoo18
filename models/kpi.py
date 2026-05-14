@@ -39,7 +39,7 @@ class KPI(models.Model):
     def _check_total_weight(self):
         for kpi in self:
             # Lọc bỏ các dòng là section/note (chỉ tính các dòng KPI thực tế)
-            valid_lines = kpi.kpi_line_ids.filtered(lambda l: not l.display_type)
+            valid_lines = kpi.kpi_line_ids.filtered(lambda l: not l.is_section)
 
             # Tính tổng weight
             total_weight = sum(valid_lines.mapped('weight'))
@@ -49,9 +49,19 @@ class KPI(models.Model):
                 continue
 
             # Sử dụng float_compare của Odoo để tránh lỗi sai số thập phân (ví dụ: 99.9999999 != 100.0)
-            if float_compare(total_weight, 100.0, precision_digits=2) != 0:
+            # if float_compare(total_weight, 100.0, precision_digits=2) != 0:
+            #     raise ValidationError(
+            #         _("The total weight of all KPI lines must equal exactly 100. The current total is %s.") % total_weight
+            #     )
+
+            # Khai báo mức độ sai số cho phép.
+             # 0.02 sẽ cover được trường hợp 33.33 * 3 = 99.99 hoặc các làm tròn tương tự
+            tolerance = 0.1
+
+            # Nếu khoảng cách từ tổng hiện tại đến 100 lớn hơn sai số cho phép thì mới báo lỗi
+            if abs(total_weight - 100.0) > tolerance:
                 raise ValidationError(
-                    _("The total weight of all KPI lines must equal exactly 100. The current total is %s.") % total_weight
+                    _("The total weight of all KPI lines must equal exactly 100. The current total is %s.") % round(total_weight, 2)
                 )
 
     def copy(self, default=None):

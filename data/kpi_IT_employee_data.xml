@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0">
+    <data noupdate="1">
         <record id="kpi_template_it_odoo_dev" model="hr.kpi">
             <field name="name">KPI Lập trình viên Odoo - Phòng IT</field>
         </record>
@@ -68,6 +68,7 @@
                 </ul>
             </field>
             <field name="kpi_type">quantitative</field>
+            <field name="direction">lower_better</field>
             <field name="target">0.0</field>
             <field name="weight">5.0</field>
             <field name="is_auto">True</field>

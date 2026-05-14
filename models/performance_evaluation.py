@@ -318,9 +318,7 @@ class PerformanceEvaluation(models.Model):
     def action_approve(self):
         for record in self:
             if record.state != "manager_evaluating":
-                raise UserError(
-                    "You can only approve evaluations in manager evaluating state."
-                )
+                raise UserError(_("You can only approve evaluations in manager evaluating state."))
             record.state = "completed"
 
     def action_cancel(self):

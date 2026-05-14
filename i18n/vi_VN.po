@@ -55,6 +55,24 @@ msgid ""
 "                </div>\n"
 "                "
 msgstr ""
+"\n"
+"                <div style=\"margin: 0; padding: 0;\">\n"
+"                    <p>Xin chào <b>%s</b>,</p>\n"
+"                    <p>Một bản đánh giá KPI mới đã được tạo cho bạn trên hệ thống.</p>\n"
+"                    <ul>\n"
+"                        <li><b>Kỳ đánh giá:</b> %s</li>\n"
+"                        <li><b>Thời gian tiêu chuẩn:</b> Từ %s đến %s</li>\n"
+"                    </ul>\n"
+"                    <p>Vui lòng nhấn vào nút bên dưới để xem chi tiết và hoàn thành phần tự đánh giá (nếu có).</p>\n"
+"\n"
+"                    <div style=\"margin-top: 20px; margin-bottom: 20px;\">\n"
+"                        <a href=\"%s\" \n"
+"                           style=\"background-color: #714B67; padding: 10px 20px; color: #FFFFFF; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;\">\n"
+"                            Xem bản đánh giá\n"
+"                        </a>\n"
+"                    </div>\n"
+"                </div>\n"
+"                "
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -141,11 +159,11 @@ msgid ""
 "style='%(style)s'>View Evaluation</a></div><p>Please review and provide your"
 " manager ratings.</p>"
 msgstr ""
-"<p>Kính gửi Quản lý,</p><p>Bản đánh giá hiệu suất của "
-"<b>%(tên_nhân_viên)s</b> đã được gửi.</p><ul><li><b>Trạng thái:</b> Đang chờ"
-" đánh giá của Quản lý</li><li><b>Thời gian:</b> %(thời gian)s</li></ul><div "
-"style='margin: 16px 0;'> <a href='%(url)s' style='%(style)s'>Xem đánh "
-"giá</a></div><p>Vui lòng xem xét và cung cấpxếp hạng của quản lý.</p>"
+"<p>Kính gửi Trưởng phòng,</p><p>Bản đánh giá hiệu suất của "
+"<b>%(employee_name)s</b> đã được gửi.</p><ul><li><b>Trạng thái:</b> Đang chờ"
+" đánh giá của Trưởng phòng</li><li><b>Thời gian:</b> %(period)s</li></ul><div "
+"style='margin: 16px 0;'> <a href='%(url)s' style='%(style)s'>Xeam đánh "
+"giá</a></div><p>Vui lòng xem xét và cung cấp xếp hạng của trưởng phòng.</p>"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_form
@@ -1839,7 +1857,7 @@ msgstr "Điểm của Trưởng phòng cho Điểm KPI (0–10)."
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_line__data_source__manual
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_performance_evaluation_line__data_source__manual
 msgid "Manual"
-msgstr "Hướng dẫn sử dụng"
+msgstr "Thủ công"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__message_has_error
@@ -1924,7 +1942,7 @@ msgstr "Loại hoạt động tiếp theo"
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_performance_evaluation_line__employee_rating_binary__no
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_performance_evaluation_line__manager_rating_binary__no
 msgid "No"
-msgstr "Không"
+msgstr "Không Đạt"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -2300,7 +2318,7 @@ msgstr "Xếp hạng"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__name
 msgid "Reference"
-msgstr "Tham khảo"
+msgstr "Reference"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__activity_user_id
@@ -2965,7 +2983,7 @@ msgstr "Hàng năm"
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_performance_evaluation_line__employee_rating_binary__yes
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_performance_evaluation_line__manager_rating_binary__yes
 msgid "Yes"
-msgstr "Có"
+msgstr "Đạt"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python

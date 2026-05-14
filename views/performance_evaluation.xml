@@ -413,7 +413,7 @@
                                         <field name="data_source" optional="hide"
                                                invisible="is_section or not is_auto"/>
                                         <field name="direction" optional="hide"
-                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
                                         <field name="employee_comment" optional="hide"
                                                invisible="is_section"/>
                                         <field name="manager_comment" optional="hide"

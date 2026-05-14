@@ -312,13 +312,7 @@ export class DeptKpiDashboard extends Component {
     _renderChartA(employeeStats) {
         const el = this.refA.el;
         if (!el) return;
-        const source = employeeStats.length ? employeeStats : [
-            { name: "Employee 1", total: 20, done: 15, pending: 5 },
-            { name: "Employee 2", total: 18, done: 10, pending: 8 },
-            { name: "Employee 3", total: 22, done: 12, pending: 10 },
-            { name: "Employee 4", total: 16, done: 14, pending: 2 },
-            { name: "Employee 5", total: 19, done: 11, pending: 8 },
-        ];
+        const source = employeeStats;
         const { names, done, pending, total } = buildChartAData(source);
         this._charts.A = new Chart(el, {
             type: "bar",
@@ -379,14 +373,7 @@ export class DeptKpiDashboard extends Component {
         const el = this.refB.el;
         if (!el) return;
 
-        const source = projectProgress.length ? projectProgress : [
-            { name: "CRM Portal", progress_pct: 72, total_tasks: 25, done_tasks: 18 },
-            { name: "HR Module", progress_pct: 55, total_tasks: 20, done_tasks: 11 },
-            { name: "E-Commerce", progress_pct: 40, total_tasks: 30, done_tasks: 12 },
-            { name: "Mobile App", progress_pct: 88, total_tasks: 16, done_tasks: 14 },
-            { name: "Analytics", progress_pct: 35, total_tasks: 22, done_tasks: 8 },
-            { name: "AI Integration", progress_pct: 60, total_tasks: 18, done_tasks: 11 },
-        ];
+        const source = projectProgress;
         const { projects, pct, totals, done } = buildChartBData(source);
 
         this._charts.B = new Chart(el, {
@@ -440,13 +427,7 @@ export class DeptKpiDashboard extends Component {
     _renderChartC(attendanceData) {
         const el = this.refC.el;
         if (!el) return;
-        const source = attendanceData.length ? attendanceData : [
-            { name: "Emp A", attendance_count: 22 },
-            { name: "Emp B", attendance_count: 20 },
-            { name: "Emp C", attendance_count: 18 },
-            { name: "Emp D", attendance_count: 23 },
-            { name: "Emp E", attendance_count: 19 },
-        ];
+        const source = attendanceData;
         const data = buildChartCData(source);
         this._charts.C = new Chart(el, {
             type: "line",
@@ -495,13 +476,7 @@ export class DeptKpiDashboard extends Component {
     _renderChartD(bugData) {
         const el = this.refD.el;
         if (!el) return;
-        const source = bugData.length ? bugData : [
-            { name: "Emp A", bug_count: 5 },
-            { name: "Emp B", bug_count: 3 },
-            { name: "Emp C", bug_count: 8 },
-            { name: "Emp D", bug_count: 1 },
-            { name: "Emp E", bug_count: 4 },
-        ];
+        const source = bugData;
         const data = buildChartDData(source);
         this._charts.D = new Chart(el, {
             type: "line",
@@ -546,10 +521,7 @@ export class DeptKpiDashboard extends Component {
     _renderChartE(employees) {
         const el = this.refE.el;
         if (!el) return;
-        const empList = employees.length ? employees.slice(0, 6) : [
-            { name: "Alice" }, { name: "Bob" }, { name: "Charlie" },
-            { name: "Diana" }, { name: "Ethan" },
-        ];
+        const empList = employees.slice(0, 6);
         const { labels, datasets } = buildChartEData(empList);
         this._charts.E = new Chart(el, {
             type: "line",
