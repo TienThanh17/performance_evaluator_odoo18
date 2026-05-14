@@ -851,8 +851,8 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         });
     }
 
-    openIndividualDashboard(employeeId) {
-        if (!employeeId) return;
+    openIndividualDashboard(employeeId, evalId) {
+        if (!employeeId || !evalId) return;
 
         this.actionService.doAction({
             type: "ir.actions.client",
@@ -860,6 +860,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             name: _t("Individual KPI Dashboard"),
             context: {
                 default_employee_id: employeeId, // Truyền ID sang màn hình kia
+                default_evaluation_id: evalId,
             },
         });
     }

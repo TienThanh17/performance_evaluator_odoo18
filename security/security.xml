@@ -6,7 +6,8 @@
         <record id="module_hr_performance_evaluation" model="ir.module.category">
             <field name="name">HR Performance Evaluator</field>
             <field name="description">KPI templates &amp; employee performance evaluations</field>
-            <field name="sequence">10</field>
+<!--            <field name="sequence">10</field>-->
+            <field name="parent_id" ref="base.module_category_human_resources"/>
         </record>
 
         <!-- Groups / Roles -->

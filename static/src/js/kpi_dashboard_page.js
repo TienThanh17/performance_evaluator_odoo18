@@ -70,14 +70,11 @@ export class KpiDashboard extends Component {
 
         // 2. Hứng ID nhân viên (nếu không có thì trả về false để load tất cả)
         const passedEmployeeId = actionContext.default_employee_id || false;
-
-        // 3. Khởi tạo state với ID vừa hứng được
+        const passedEvaluationId = actionContext.default_evaluation_id || false;
 
         this.state = useState({
             employee_id: passedEmployeeId, // Dashboard sẽ lấy ID này để gọi xuống Python filter data
-            // period: "monthly",
-            // date_from: "",
-            // date_to: "",
+            passedEvaluationId: passedEvaluationId,
             phase: "evals", // "evals" | "dashboard" | "done" | "error"
             isEmployee: false,
             isManager: false,
@@ -298,13 +295,22 @@ export class KpiDashboard extends Component {
                 "hr.performance.evaluation",
                 domain,
                 fields,
-                { order: "start_date desc", limit: 24 },
+                { order: "start_date desc", limit: 500, context: { active_test: false } }, // Thêm dòng này để lấy cả record archived
             );
 
             this.state.evaluations = evals;
 
             if (evals.length > 0) {
-                this.state.selectedEvaluationId = evals[0].id;
+                // Kiểm tra xem passedEvaluationId có khớp với evaluation nào trong danh sách không
+                const targetEval = evals.find(e => e.id === this.state.passedEvaluationId);
+
+                if (targetEval) {
+                    this.state.selectedEvaluationId = targetEval.id;
+                    // Reset lại để các lần user tự chọn nhân viên khác thì nó fallback về evals[0]
+                    this.state.passedEvaluationId = false; 
+                } else {
+                    this.state.selectedEvaluationId = evals[0].id;
+                }
                 this.state.phase = "dashboard";
             } else {
                 this.state.data = null;

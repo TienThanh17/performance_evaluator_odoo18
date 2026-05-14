@@ -235,7 +235,7 @@
                                                     <img class="pd-avatar" t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'" t-att-alt="ev.employee_id[1]" loading="lazy"/>
                                                 </t>
                                                 <span class="pd-emp-name">
-                                                    <a href="#" class="pd-employee-link" t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0])">
+                                                    <a href="#" class="pd-employee-link" t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0], ev.id)">
                                                         <t t-esc="ev.employee_id[1]"/>
                                                     </a>
                                                 </span>

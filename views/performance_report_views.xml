@@ -107,7 +107,7 @@
                     <field name="period"/>
                     <field name="start_date"/>
                     <field name="end_date"/>
-                    <field name="deadline"/>
+<!--                    <field name="deadline"/>-->
                     <field name="active" widget="boolean_toggle"/>
                 </list>
             </field>

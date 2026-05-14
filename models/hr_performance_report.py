@@ -428,7 +428,7 @@ class HrPerformanceReport(models.Model):
         """
         self.ensure_one()
 
-        evalids = self.evaluation_ids.ids
+        evalids = self.with_context(active_test=False).evaluation_ids.ids
         if not evalids:
             return {
                 "employees": [],

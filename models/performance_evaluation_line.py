@@ -660,7 +660,7 @@ class PerformanceEvaluationLine(models.Model):
 
         # Chặn toàn bộ hành động sửa trên phiếu đã bị hủy
         if any(line.evaluation_id.state in ['cancel', 'completed'] for line in self):
-            raise UserError("You cannot modify lines of a canceled or completed evaluation.")
+            raise UserError(_("You cannot modify lines of a canceled or completed evaluation."))
 
         # Các cờ (flags) định danh
         is_manager_group = user.has_group('custom_adecsol_hr_performance_evaluator.group_manager')
@@ -685,20 +685,20 @@ class PerformanceEvaluationLine(models.Model):
         # =====================================================================
         if editing_employee_fields:
             if not is_own_evaluation:
-                raise UserError("Only the employee being evaluated can edit self-rating and comments.")
+                raise UserError(_("Only the employee being evaluated can edit self-rating and comments."))
 
             if any(line.evaluation_id.state != 'self_evaluation' for line in self):
-                raise UserError("Employee fields can only be edited in the Self Evaluation state.")
+                raise UserError(_("Employee fields can only be edited in the Self Evaluation state."))
 
         # =====================================================================
         # LOGIC 2: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA MANAGER
         # =====================================================================
         if editing_manager_fields:
             if not is_manager_group:
-                raise UserError("You do not have the required Manager access to edit manager fields.")
+                raise UserError(_("You do not have the required Manager access to edit manager fields."))
 
             if any(line.evaluation_id.state != 'manager_evaluating' for line in self):
-                raise UserError("Manager rating is only editable in the Manager Evaluating state.")
+                raise UserError(_("Manager rating is only editable in the Manager Evaluating state."))
 
         return super().write(vals)
 
