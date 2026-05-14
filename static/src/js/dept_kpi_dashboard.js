@@ -67,7 +67,8 @@ function buildChartEData(employees) {
         const color = POINT_COLORS[i % POINT_COLORS.length];
         return {
             label: e.name,
-            data: months.map(() => parseFloat((4 + Math.random() * 6).toFixed(2))),
+            // data: months.map(() => parseFloat((4 + Math.random() * 6).toFixed(2))),
+            data: null,
             borderColor: color,
             backgroundColor: color + "22",
             pointBackgroundColor: color,
