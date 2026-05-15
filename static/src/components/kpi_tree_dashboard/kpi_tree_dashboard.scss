@@ -4,10 +4,10 @@
 $tree-bg: #f0f2f7;
 $tree-card-bg: #ffffff;
 $tree-border: #e2e6ef;
-$tree-primary: #378ADD;
-$tree-green: #1D9E75;
-$tree-red: #E24B4A;
-$tree-amber: #F5A623;
+$tree-primary: #378add;
+$tree-green: #1d9e75;
+$tree-red: #e24b4a;
+$tree-amber: #f5a623;
 $tree-purple: #7c3aed;
 $tree-gray: #8c8c8c;
 $tree-text: #1a1a2e;
@@ -21,7 +21,7 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     height: 100%;
     min-height: 100vh;
     background: $tree-bg;
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
     color: $tree-text;
 }
 
@@ -33,7 +33,7 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     padding: 14px 24px;
     background: $tree-card-bg;
     border-bottom: 1px solid $tree-border;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     flex-shrink: 0;
 
     .o_kpi_tree_brand {
@@ -120,12 +120,14 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     padding: 14px 16px;
     box-shadow: $tree-shadow;
     cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition:
+        transform 0.15s,
+        box-shadow 0.15s;
     border-left: 4px solid transparent;
 
     &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
     }
 
     .metric-icon {
@@ -166,52 +168,100 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     // Color variants
     &.card-blue {
         border-left-color: $tree-primary;
-        .metric-icon { background: #E6F1FB; color: $tree-primary; }
-        .metric-value { color: $tree-primary; }
+        .metric-icon {
+            background: #e6f1fb;
+            color: $tree-primary;
+        }
+        .metric-value {
+            color: $tree-primary;
+        }
     }
     &.card-green {
         border-left-color: $tree-green;
-        .metric-icon { background: #E1F5EE; color: $tree-green; }
-        .metric-value { color: $tree-green; }
+        .metric-icon {
+            background: #e1f5ee;
+            color: $tree-green;
+        }
+        .metric-value {
+            color: $tree-green;
+        }
     }
     &.card-amber {
         border-left-color: $tree-amber;
-        .metric-icon { background: #FEF3CD; color: $tree-amber; }
-        .metric-value { color: $tree-amber; }
+        .metric-icon {
+            background: #fef3cd;
+            color: $tree-amber;
+        }
+        .metric-value {
+            color: $tree-amber;
+        }
     }
     &.card-red {
         border-left-color: $tree-red;
-        .metric-icon { background: #FCEBEB; color: $tree-red; }
-        .metric-value { color: $tree-red; }
+        .metric-icon {
+            background: #fcebeb;
+            color: $tree-red;
+        }
+        .metric-value {
+            color: $tree-red;
+        }
     }
     &.card-purple {
         border-left-color: $tree-purple;
-        .metric-icon { background: #f3e8ff; color: $tree-purple; }
-        .metric-value { color: $tree-purple; }
+        .metric-icon {
+            background: #f3e8ff;
+            color: $tree-purple;
+        }
+        .metric-value {
+            color: $tree-purple;
+        }
     }
     &.card-gray {
         border-left-color: $tree-gray;
-        .metric-icon { background: #f3f4f6; color: $tree-gray; }
-        .metric-value { color: $tree-gray; }
+        .metric-icon {
+            background: #f3f4f6;
+            color: $tree-gray;
+        }
+        .metric-value {
+            color: $tree-gray;
+        }
     }
 
     // Skeleton
     &.skeleton {
         pointer-events: none;
-        .sk-title, .sk-value, .sk-sub {
+        .sk-title,
+        .sk-value,
+        .sk-sub {
             background: #e5e7eb;
             border-radius: 4px;
             animation: sk-pulse 1.5s infinite;
         }
-        .sk-title { height: 10px; width: 70%; margin-bottom: 6px; }
-        .sk-value { height: 22px; width: 50%; margin-bottom: 5px; }
-        .sk-sub   { height: 8px; width: 60%; }
+        .sk-title {
+            height: 10px;
+            width: 70%;
+            margin-bottom: 6px;
+        }
+        .sk-value {
+            height: 22px;
+            width: 50%;
+            margin-bottom: 5px;
+        }
+        .sk-sub {
+            height: 8px;
+            width: 60%;
+        }
     }
 }
 
 @keyframes sk-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.45; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.45;
+    }
 }
 
 // ── Main: Tree + Panel ────────────────────────────────────────────────────────
@@ -243,8 +293,71 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
         .sk-tree-placeholder {
             text-align: center;
             color: $tree-muted;
-            .fa { margin-bottom: 12px; opacity: 0.3; }
-            p { font-size: 0.9rem; }
+            .fa {
+                margin-bottom: 12px;
+                opacity: 0.3;
+            }
+            p {
+                font-size: 0.9rem;
+            }
+        }
+    }
+
+    // 1. Đường nối (Link)
+    path {
+        transition: stroke 0.3s ease;
+    }
+
+    // 2. Node chung
+    .kpi-d3-node {
+        transition: transform 0.2s ease;
+
+        // Thẻ hình chữ nhật (Card background)
+        .kpi-card-rect {
+            transition: all 0.3s ease;
+            filter: drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.04));
+
+            &:hover {
+                stroke-width: 2.5px;
+                filter: drop-shadow(0px 4px 12px rgba(55, 138, 221, 0.25));
+                // Nếu muốn card sáng lên khi hover, có thể chỉnh thêm fill ở đây
+            }
+        }
+
+        // Text Điểm số
+        .kpi-score-text {
+            font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+            letter-spacing: 0.02em;
+        }
+
+        // Text Tên
+        .kpi-name-text {
+            font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+            font-weight: 500;
+        }
+    }
+
+    // 3. Nút Toggle Expand/Collapse (+ / -)
+    .kpi-toggle-btn {
+        circle {
+            transition: all 0.2s ease;
+            stroke-width: 1.5px;
+            stroke: $tree-border;
+        }
+
+        text {
+            user-select: none; // Tránh bôi đen text khi click
+        }
+
+        &:hover {
+            circle {
+                fill: #ffffff;
+                stroke: $tree-primary;
+                stroke-width: 2px;
+            }
+            text {
+                fill: $tree-primary;
+            }
         }
     }
 }
@@ -254,7 +367,9 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
         cursor: pointer;
         transition: opacity 0.15s;
 
-        &:hover { opacity: 0.85; }
+        &:hover {
+            opacity: 0.85;
+        }
     }
 }
 
@@ -279,7 +394,9 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
             cursor: pointer;
             color: $tree-muted;
             font-size: 0.9rem;
-            &:hover { color: $tree-red; }
+            &:hover {
+                color: $tree-red;
+            }
         }
 
         .panel-title {
@@ -321,11 +438,16 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
         margin-bottom: 10px;
         font-size: 0.82rem;
 
-        .pm-label { color: $tree-muted; }
+        .pm-label {
+            color: $tree-muted;
+        }
         .pm-value {
             font-weight: 700;
             color: $tree-text;
-            &.highlight { color: $tree-primary; font-size: 1rem; }
+            &.highlight {
+                color: $tree-primary;
+                font-size: 1rem;
+            }
         }
     }
 
@@ -368,8 +490,12 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     gap: 12px;
     flex-shrink: 0;
 
-    @media (max-width: 1100px) { grid-template-columns: repeat(2, 1fr); }
-    @media (max-width: 640px)  { grid-template-columns: 1fr; }
+    @media (max-width: 1100px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .o_kpi_tree_panel {
@@ -392,7 +518,9 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
         display: flex;
         align-items: center;
         gap: 6px;
-        .fa { color: $tree-primary; }
+        .fa {
+            color: $tree-primary;
+        }
     }
 
     .panel-empty {
@@ -409,7 +537,9 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     }
 
     &.panel-ai {
-        .panel-head .fa { color: $tree-amber; }
+        .panel-head .fa {
+            color: $tree-amber;
+        }
     }
 }
 
@@ -421,7 +551,9 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     padding: 6px 0;
     border-bottom: 1px solid $tree-border;
     font-size: 0.8rem;
-    &:last-child { border-bottom: none; }
+    &:last-child {
+        border-bottom: none;
+    }
 
     .risk-info {
         display: flex;
@@ -430,8 +562,17 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
         flex: 1;
         min-width: 0;
     }
-    .risk-name { font-weight: 600; color: $tree-text; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .risk-meta { font-size: 0.7rem; color: $tree-muted; }
+    .risk-name {
+        font-weight: 600;
+        color: $tree-text;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .risk-meta {
+        font-size: 0.7rem;
+        color: $tree-muted;
+    }
     .risk-right {
         display: flex;
         flex-direction: column;
@@ -440,7 +581,11 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
         flex-shrink: 0;
         margin-left: 8px;
     }
-    .risk-score { font-weight: 700; font-size: 0.85rem; color: $tree-text; }
+    .risk-score {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: $tree-text;
+    }
 }
 
 // Dept bar
@@ -450,10 +595,34 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     gap: 8px;
     font-size: 0.78rem;
     margin-bottom: 6px;
-    .dept-name { width: 80px; flex-shrink: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .dept-bar-wrap { flex: 1; height: 8px; background: #f0f2f7; border-radius: 10px; overflow: hidden; }
-    .dept-bar { height: 100%; background: $tree-primary; border-radius: 10px; transition: width 0.3s; }
-    .dept-score { width: 44px; text-align: right; font-weight: 600; color: $tree-primary; flex-shrink: 0; }
+    .dept-name {
+        width: 80px;
+        flex-shrink: 0;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .dept-bar-wrap {
+        flex: 1;
+        height: 8px;
+        background: #f0f2f7;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .dept-bar {
+        height: 100%;
+        background: $tree-primary;
+        border-radius: 10px;
+        transition: width 0.3s;
+    }
+    .dept-score {
+        width: 44px;
+        text-align: right;
+        font-weight: 600;
+        color: $tree-primary;
+        flex-shrink: 0;
+    }
 }
 
 // Miss rows
@@ -464,11 +633,25 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     padding: 5px 0;
     border-bottom: 1px solid $tree-border;
     font-size: 0.78rem;
-    &:last-child { border-bottom: none; }
+    &:last-child {
+        border-bottom: none;
+    }
 
-    .miss-info { flex: 1; min-width: 0; }
-    .miss-name { font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .miss-meta { font-size: 0.68rem; color: $tree-muted; }
+    .miss-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .miss-name {
+        font-weight: 600;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .miss-meta {
+        font-size: 0.68rem;
+        color: $tree-muted;
+    }
     .tag-missing {
         flex-shrink: 0;
         margin-left: 6px;
@@ -487,8 +670,12 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     font-size: 0.8rem;
     padding: 8px 0;
     border-bottom: 1px solid $tree-border;
-    &:last-child { border-bottom: none; }
-    .panel-note { margin-top: 3px; }
+    &:last-child {
+        border-bottom: none;
+    }
+    .panel-note {
+        margin-top: 3px;
+    }
 }
 
 // ── Badges ────────────────────────────────────────────────────────────────────
@@ -501,9 +688,18 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     padding: 2px 8px;
     border-radius: 10px;
 
-    &.badge-excellent { background: #E1F5EE; color: $tree-green; }
-    &.badge-pass      { background: #E6F1FB; color: $tree-primary; }
-    &.badge-fail      { background: #FCEBEB; color: $tree-red; }
+    &.badge-excellent {
+        background: #e1f5ee;
+        color: $tree-green;
+    }
+    &.badge-pass {
+        background: #e6f1fb;
+        color: $tree-primary;
+    }
+    &.badge-fail {
+        background: #fcebeb;
+        color: $tree-red;
+    }
 }
 
 // State badges
@@ -514,10 +710,22 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     padding: 2px 8px;
     border-radius: 10px;
 
-    &.state-self    { background: #f3f4f6; color: $tree-gray; }
-    &.state-manager { background: #FEF3CD; color: $tree-amber; }
-    &.state-done    { background: #E1F5EE; color: $tree-green; }
-    &.state-cancel  { background: #FCEBEB; color: $tree-red; }
+    &.state-self {
+        background: #f3f4f6;
+        color: $tree-gray;
+    }
+    &.state-manager {
+        background: #fef3cd;
+        color: $tree-amber;
+    }
+    &.state-done {
+        background: #e1f5ee;
+        color: $tree-green;
+    }
+    &.state-cancel {
+        background: #fcebeb;
+        color: $tree-red;
+    }
 }
 
 // ── Empty state ───────────────────────────────────────────────────────────────
@@ -531,6 +739,12 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     color: $tree-muted;
     flex: 1;
 
-    .fa { margin-bottom: 16px; opacity: 0.35; }
-    p { font-size: 0.9rem; margin: 4px 0; }
+    .fa {
+        margin-bottom: 16px;
+        opacity: 0.35;
+    }
+    p {
+        font-size: 0.9rem;
+        margin: 4px 0;
+    }
 }
