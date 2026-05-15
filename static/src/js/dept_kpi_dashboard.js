@@ -3,6 +3,7 @@ import { Component, useState, useRef, onWillStart, onMounted, onWillUnmount, use
 import { useService } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
+import { _t } from "@web/core/l10n/translation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Colour palette — mirrors SCSS $dept-primary / $dept-green etc.
@@ -203,6 +204,30 @@ export class DeptKpiDashboard extends Component {
         return { excellent: "⭐ Excellent", pass: "✓ Pass", fail: "✗ Fail" }[lvl] || "—";
     }
 
+    // ── Quantitative Table Helpers ───────────────────────────────────────────
+    formatVariance(row) {
+        if (row.variance === 0) return "0%";
+        return row.variance > 0 ? `+${row.variance}%` : `${row.variance}%`;
+    }
+
+    varianceClass(row) {
+        if (row.variance === 0) return "o_kpi_variance o_kpi_variance_good";
+        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+        return isGood ? "o_kpi_variance o_kpi_variance_exceeded" : "o_kpi_variance o_kpi_variance_bad";
+    }
+
+    statusText(row) {
+        if (row.variance === 0) return _t("Achieved");
+        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+        return isGood ? _t("Exceeded") : _t("Not Met");
+    }
+
+    statusClass(row) {
+        if (row.variance === 0) return "o_kpi_status o_kpi_status_pass";
+        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+        return isGood ? "o_kpi_status o_kpi_status_excellent" : "o_kpi_status o_kpi_status_fail";
+    }
+
     // ── Data loaders ─────────────────────────────────────────────────────────
     async _loadDepartments() {
         try {
@@ -234,7 +259,8 @@ export class DeptKpiDashboard extends Component {
                 "hr.department.performance.evaluation",
                 [["department_id", "=", departmentId]],
                 ["id", "name", "department_id", "start_date", "end_date",
-                    "department_score", "department_level", "state"],
+                //    "department_score", "department_level",
+                    "state", 'dept_kpi_score'],
                 { order: "start_date desc", limit: 24 }
             );
             this.state.evaluations = evals;

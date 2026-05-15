@@ -365,3 +365,86 @@ $dept-shadow-hover:  0 6px 24px rgba(3, 103, 176, 0.18);
     }
   }
 }
+
+// ── Table card (Quantitative Table) ──────────────────────────────────────────
+.o_kpi_table_wrapper {
+    overflow-x: auto;
+}
+
+.o_kpi_table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+
+    th {
+        text-align: left;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: $dept-muted;
+        font-weight: 600;
+        padding: 8px 10px;
+        border-bottom: 2px solid $dept-border;
+    }
+
+    td {
+        padding: 10px 10px;
+        border-bottom: 1px solid $dept-border;
+        vertical-align: middle;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover td {
+        background: #f8fafc;
+    }
+}
+
+.o_kpi_table_name {
+    font-weight: 600;
+    color: $dept-primary;
+}
+
+.o_kpi_variance {
+    font-weight: 600;
+    font-size: 0.82rem;
+
+    &.o_kpi_variance_exceeded {
+        color: $dept-primary;
+    }
+
+    &.o_kpi_variance_good {
+        color: $dept-green;
+    }
+
+    &.o_kpi_variance_bad {
+        color: $dept-red;
+    }
+}
+
+.o_kpi_status {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-radius: 20px;
+    padding: 2px 10px;
+
+    &.o_kpi_status_excellent {
+        background: $dept-primary-pale;
+        color: $dept-primary;
+    }
+
+    &.o_kpi_status_pass {
+        background: $dept-green-pale;
+        color: $dept-green;
+    }
+
+    &.o_kpi_status_fail {
+        background: #fee2e2;
+        color: $dept-red;
+    }
+}

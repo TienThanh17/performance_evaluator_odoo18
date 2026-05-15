@@ -740,6 +740,246 @@ class PerformanceEvaluation(models.Model):
     # ------------------------------------------------------------
     # Dashboard
     # ------------------------------------------------------------
+
+    @api.model
+    def get_kpi_tree_data(self, period_start=None, period_end=None):
+        """Single RPC call trả về toàn bộ data cho KPI Tree Dashboard.
+
+        Args:
+            period_start (str|None): 'YYYY-MM-DD'. None = lấy kỳ gần nhất có data.
+            period_end   (str|None): 'YYYY-MM-DD'. None = lấy kỳ gần nhất có data.
+
+        Returns dict với company summary, departments, employees, risk KPIs, v.v.
+        """
+        try:
+            Evaluation = self.env['hr.performance.evaluation'].sudo()
+            ICP = self.env['ir.config_parameter'].sudo()
+
+            # ── Thresholds (thang 0-10) ───────────────────────────────────────
+            threshold_excellent = float(
+                ICP.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent', default='9') or 9.0
+            )
+            threshold_pass = float(
+                ICP.get_param('custom_adecsol_hr_performance_evaluator.kpi_threshold_pass', default='5') or 5.0
+            )
+
+            # ── Available periods ─────────────────────────────────────────────
+            self.env.cr.execute("""
+                SELECT DISTINCT start_date, end_date
+                FROM hr_performance_evaluation
+                WHERE start_date IS NOT NULL AND end_date IS NOT NULL
+                ORDER BY start_date DESC
+                LIMIT 12
+            """)
+            period_rows = self.env.cr.fetchall()
+
+            available_periods = []
+            for sd, ed in period_rows:
+                label = sd.strftime("T%m/%Y") if sd else str(sd)
+                available_periods.append({
+                    'start': str(sd),
+                    'end': str(ed),
+                    'label': label,
+                })
+
+            if not available_periods:
+                # Không có data → trả về dict rỗng hợp lệ
+                return {
+                    'period': {'start': '', 'end': '', 'label': ''},
+                    'available_periods': [],
+                    'company': {'avg_final_score': 0.0, 'total_employees': 0, 'total_depts': 0, 'pass_rate': 0.0},
+                    'departments': [],
+                    'risk_kpis': [],
+                    'missing_data_kpis': [],
+                    'logic_warnings': 2,
+                    'thresholds': {'excellent': threshold_excellent, 'pass': threshold_pass},
+                }
+
+            # ── Xác định kỳ hiện tại ─────────────────────────────────────────
+            if period_start and period_end:
+                current_period = {'start': period_start, 'end': period_end}
+                # Tìm label tương ứng
+                from datetime import datetime
+                try:
+                    sd_obj = datetime.strptime(period_start, '%Y-%m-%d')
+                    current_period['label'] = sd_obj.strftime("T%m/%Y")
+                except Exception:
+                    current_period['label'] = period_start
+            else:
+                current_period = available_periods[0]
+                period_start = current_period['start']
+                period_end = current_period['end']
+
+            # ── Lấy tất cả evaluations trong kỳ ─────────────────────────────
+            evals = Evaluation.search([
+                ('start_date', '=', period_start),
+                ('end_date', '=', period_end),
+                ('state', '!=', 'cancel'),
+            ])
+
+            if not evals:
+                return {
+                    'period': current_period,
+                    'available_periods': available_periods,
+                    'company': {'avg_final_score': 0.0, 'total_employees': 0, 'total_depts': 0, 'pass_rate': 0.0},
+                    'departments': [],
+                    'risk_kpis': [],
+                    'missing_data_kpis': [],
+                    'logic_warnings': 2,
+                    'thresholds': {'excellent': threshold_excellent, 'pass': threshold_pass},
+                }
+
+            # ── Nhóm theo phòng ban ───────────────────────────────────────────
+            dept_map = {}  # dept_id → {'dept': hr.department record, 'evals': list}
+            for ev in evals:
+                dept = ev.department_id
+                if not dept:
+                    continue
+                if dept.id not in dept_map:
+                    dept_map[dept.id] = {'dept': dept, 'evals': []}
+                dept_map[dept.id]['evals'].append(ev)
+
+            # ── Lấy dept_kpi_score từ hr.department.performance.evaluation ───
+            DeptEval = self.env['hr.department.performance.evaluation'].sudo()
+            dept_kpi_evals = DeptEval.search([
+                ('state', '!=', 'cancel'),
+            ])
+            dept_kpi_score_map = {}
+            for de in dept_kpi_evals:
+                # Chỉ lấy bản ghi có start/end khớp nếu có field; fallback dùng dept.id
+                did = de.department_id.id
+                if did not in dept_kpi_score_map:
+                    dept_kpi_score_map[did] = de.get_dept_kpi_score()
+
+            # ── Build departments list ────────────────────────────────────────
+            departments = []
+            total_final_scores = []
+            total_pass_count = 0
+            total_emp_count = 0
+
+            for dept_id, info in dept_map.items():
+                dept = info['dept']
+                dept_evals = info['evals']
+                emp_final_scores = [ev.final_score or 0.0 for ev in dept_evals]
+                dept_avg = sum(emp_final_scores) / len(emp_final_scores) if emp_final_scores else 0.0
+                dept_kpi = dept_kpi_score_map.get(dept_id, 0.0)
+
+                pass_count = sum(1 for ev in dept_evals if (ev.final_level or 'fail') != 'fail')
+                total_pass_count += pass_count
+                total_emp_count += len(dept_evals)
+                total_final_scores.extend(emp_final_scores)
+
+                employees = []
+                for ev in dept_evals:
+                    emp = ev.employee_id
+                    emp_dept_kpi = 0.0
+                    if ev.dept_evaluation_id:
+                        emp_dept_kpi = ev.dept_evaluation_id.get_dept_kpi_score()
+                    employees.append({
+                        'id': ev.id,
+                        'employee_id': emp.id,
+                        'name': emp.name or '',
+                        'job': emp.job_id.name if emp.job_id else '',
+                        'avatar_url': f'/web/image/hr.employee/{emp.id}/image_128' if emp.id else '',
+                        'final_score': round(float(ev.final_score or 0.0), 2),
+                        'performance_score': round(float(ev.performance_score or 0.0), 2),
+                        'dept_kpi_score': round(float(emp_dept_kpi), 2),
+                        'final_level': ev.final_level or 'fail',
+                        'state': ev.state or '',
+                    })
+
+                departments.append({
+                    'id': dept_id,
+                    'name': dept.name or '',
+                    'manager_name': dept.manager_id.name if dept.manager_id else '',
+                    'avg_final_score': round(dept_avg, 2),
+                    'dept_kpi_score': round(float(dept_kpi), 2),
+                    'employee_count': len(dept_evals),
+                    'employees': employees,
+                })
+
+            # Sort departments theo avg_final_score desc
+            departments.sort(key=lambda d: d['avg_final_score'], reverse=True)
+
+            # ── Company summary ───────────────────────────────────────────────
+            company_avg = sum(total_final_scores) / len(total_final_scores) if total_final_scores else 0.0
+            pass_rate = (total_pass_count / total_emp_count * 100.0) if total_emp_count else 0.0
+
+            # ── Risk KPIs: top 5 evaluation.line có final_rating thấp nhất ───
+            EvalLine = self.env['hr.performance.evaluation.line'].sudo()
+            risk_lines = EvalLine.search([
+                ('evaluation_id', 'in', evals.ids),
+                ('is_section', '=', False),
+                ('kpi_type', '=', 'quantitative'),
+            ], order='final_rating asc', limit=5)
+
+            risk_kpis = []
+            for line in risk_lines:
+                ev = line.evaluation_id
+                level = 'fail'
+                score = float(line.final_rating or 0.0)
+                if score >= threshold_excellent:
+                    level = 'excellent'
+                elif score >= threshold_pass:
+                    level = 'pass'
+                risk_kpis.append({
+                    'kpi_name': line.key_performance_area or line.description and '' or '',
+                    'dept_name': ev.department_id.name if ev.department_id else '',
+                    'employee_name': ev.employee_id.name if ev.employee_id else '',
+                    'score': round(score, 2),
+                    'level': level,
+                })
+
+            # ── Missing data KPIs: top 5 manual quantitative với actual=0 ────
+            missing_lines = EvalLine.search([
+                ('evaluation_id', 'in', evals.ids),
+                ('is_section', '=', False),
+                ('is_auto', '=', False),
+                ('kpi_type', '=', 'quantitative'),
+                ('actual', '=', 0.0),
+            ], limit=5)
+
+            missing_data_kpis = []
+            for line in missing_lines:
+                ev = line.evaluation_id
+                missing_data_kpis.append({
+                    'kpi_name': line.key_performance_area or '',
+                    'dept_name': ev.department_id.name if ev.department_id else '',
+                    'employee_name': ev.employee_id.name if ev.employee_id else '',
+                })
+
+            return {
+                'period': current_period,
+                'available_periods': available_periods,
+                'company': {
+                    'avg_final_score': round(company_avg, 2),
+                    'total_employees': total_emp_count,
+                    'total_depts': len(departments),
+                    'pass_rate': round(pass_rate, 1),
+                },
+                'departments': departments,
+                'risk_kpis': risk_kpis,
+                'missing_data_kpis': missing_data_kpis,
+                'logic_warnings': 2,  # HARDCODE — chưa có engine kiểm tra logic
+                'thresholds': {
+                    'excellent': threshold_excellent,
+                    'pass': threshold_pass,
+                },
+            }
+
+        except Exception as e:
+            _logger.exception("get_kpi_tree_data failed: %s", str(e))
+            return {
+                'period': {'start': '', 'end': '', 'label': ''},
+                'available_periods': [],
+                'company': {'avg_final_score': 0.0, 'total_employees': 0, 'total_depts': 0, 'pass_rate': 0.0},
+                'departments': [],
+                'risk_kpis': [],
+                'missing_data_kpis': [],
+                'logic_warnings': 2,
+                'thresholds': {'excellent': 9.0, 'pass': 5.0},
+            }
+
     def get_dashboard_data(self):
         """Return all data needed to render the individual KPI dashboard.
 

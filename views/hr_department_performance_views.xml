@@ -121,14 +121,14 @@
                             <group>
                                 <field name="dept_kpi_score" string="Department KPI Score"
                                     readonly="1" />
-                                <field name="avg_individual_score" string="Average Individual Score"
-                                    readonly="1" />
-                                <field name="department_score" string="Overall Score" readonly="1" />
-                                <field name="department_level" widget="badge"
-                                    string="Performance Level"
-                                    decoration-success="department_level == 'pass'"
-                                    decoration-info="department_level == 'excellent'"
-                                    decoration-danger="department_level == 'fail'" readonly="1" />
+<!--                                <field name="avg_individual_score" string="Average Individual Score"-->
+<!--                                    readonly="1" />-->
+<!--                                <field name="department_score" string="Overall Score" readonly="1" />-->
+<!--                                <field name="department_level" widget="badge"-->
+<!--                                    string="Performance Level"-->
+<!--                                    decoration-success="department_level == 'pass'"-->
+<!--                                    decoration-info="department_level == 'excellent'"-->
+<!--                                    decoration-danger="department_level == 'fail'" readonly="1" />-->
                             </group>
                         </group>
                     </group>
@@ -222,8 +222,8 @@
                 <field name="department_kpi_id" />
                 <field name="start_date" />
                 <field name="end_date" />
-                <field name="department_score" />
-                <field name="department_level" />
+<!--                <field name="department_score" />-->
+<!--                <field name="department_level" />-->
                 <field name="state" />
             </list>
         </field>

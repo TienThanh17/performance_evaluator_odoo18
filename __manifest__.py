@@ -37,6 +37,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         'views/performance_evaluation.xml',
         'views/performance_report_views.xml',
         'views/hr_score.xml',
+        'views/kpi_tree_dashboard_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
@@ -55,6 +56,9 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
             'custom_adecsol_hr_performance_evaluator/static/src/xml/kpi_dashboard_template.xml',
             'custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js',
             'custom_adecsol_hr_performance_evaluator/static/src/xml/dept_kpi_dashboard_template.xml',
+            'custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.scss',
+            'custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.js',
+            'custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml',
         ],
     },
     'installable': True,

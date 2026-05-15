@@ -37,49 +37,49 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         store=True,
         help="Điểm từ KPI riêng phòng ban (trung bình có trọng số các line)",
     )
-    # ── DEPRECATED: avg_individual_score — individual scores now live on hr.performance.evaluation ──
-    avg_individual_score = fields.Float(
-        compute="_compute_avg_individual_score",
-        store=True,
-        deprecated=True,
-        groups="base.group_no_one",
-        help="[DEPRECATED] Individual scores now computed on hr.performance.evaluation.final_score. "
-        "Average performance_score of approved employees in the period.",
-    )
-    # ── DEPRECATED: alpha / beta related fields — replaced by dept_weight on hr.department.kpi ──
-    alpha = fields.Float(
-        related="department_kpi_id.alpha",
-        deprecated=True,
-        groups="base.group_no_one",
-    )
-    beta = fields.Float(
-        related="department_kpi_id.beta",
-        deprecated=True,
-        groups="base.group_no_one",
-    )
-
-    # ── DEPRECATED: department_score — final score now belongs to each individual ──
-    department_score = fields.Float(
-        compute="_compute_department_score",
-        store=True,
-        deprecated=True,
-        groups="base.group_no_one",
-        help="[DEPRECATED] Final score now computed per individual via hr.performance.evaluation.final_score. "
-        "Formula was: α × dept_kpi_score + β × avg_individual_score.",
-    )
-
-    # ── DEPRECATED: department_level — level now computed from individual final_score ──
-    department_level = fields.Selection(
-        [
-            ("excellent", "Excellent"),
-            ("pass", "Pass"),
-            ("fail", "Fail"),
-        ],
-        compute="_compute_department_level",
-        store=True,
-        deprecated=True,
-        groups="base.group_no_one",
-    )
+    # # ── DEPRECATED: avg_individual_score — individual scores now live on hr.performance.evaluation ──
+    # avg_individual_score = fields.Float(
+    #     compute="_compute_avg_individual_score",
+    #     store=True,
+    #     deprecated=True,
+    #     groups="base.group_no_one",
+    #     help="[DEPRECATED] Individual scores now computed on hr.performance.evaluation.final_score. "
+    #     "Average performance_score of approved employees in the period.",
+    # )
+    # # ── DEPRECATED: alpha / beta related fields — replaced by dept_weight on hr.department.kpi ──
+    # alpha = fields.Float(
+    #     related="department_kpi_id.alpha",
+    #     deprecated=True,
+    #     groups="base.group_no_one",
+    # )
+    # beta = fields.Float(
+    #     related="department_kpi_id.beta",
+    #     deprecated=True,
+    #     groups="base.group_no_one",
+    # )
+    #
+    # # ── DEPRECATED: department_score — final score now belongs to each individual ──
+    # department_score = fields.Float(
+    #     compute="_compute_department_score",
+    #     store=True,
+    #     deprecated=True,
+    #     groups="base.group_no_one",
+    #     help="[DEPRECATED] Final score now computed per individual via hr.performance.evaluation.final_score. "
+    #     "Formula was: α × dept_kpi_score + β × avg_individual_score.",
+    # )
+    #
+    # # ── DEPRECATED: department_level — level now computed from individual final_score ──
+    # department_level = fields.Selection(
+    #     [
+    #         ("excellent", "Excellent"),
+    #         ("pass", "Pass"),
+    #         ("fail", "Fail"),
+    #     ],
+    #     compute="_compute_department_level",
+    #     store=True,
+    #     deprecated=True,
+    #     groups="base.group_no_one",
+    # )
 
     has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_rating_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
@@ -115,69 +115,69 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             else:
                 rec.dept_kpi_score = 0.0
 
-    @api.depends("department_id", "start_date", "end_date", "performance_report_id")
-    def _compute_avg_individual_score(self):
-        for rec in self:
-            if not rec.department_id or not rec.start_date or not rec.end_date:
-                rec.avg_individual_score = 0.0
-                continue
-
-            evals = self.env["hr.performance.evaluation"].search(
-                [
-                    ("state", "=", "completed"),
-                    ("employee_id.department_id", "=", rec.department_id.id),
-                    ("start_date", ">=", rec.start_date),
-                    ("end_date", "<=", rec.end_date),
-                ]
-            )
-            if evals:
-                rec.avg_individual_score = sum(evals.mapped("performance_score")) / len(
-                    evals
-                )
-            else:
-                rec.avg_individual_score = 0.0
+    # @api.depends("department_id", "start_date", "end_date", "performance_report_id")
+    # def _compute_avg_individual_score(self):
+    #     for rec in self:
+    #         if not rec.department_id or not rec.start_date or not rec.end_date:
+    #             rec.avg_individual_score = 0.0
+    #             continue
+    #
+    #         evals = self.env["hr.performance.evaluation"].search(
+    #             [
+    #                 ("state", "=", "completed"),
+    #                 ("employee_id.department_id", "=", rec.department_id.id),
+    #                 ("start_date", ">=", rec.start_date),
+    #                 ("end_date", "<=", rec.end_date),
+    #             ]
+    #         )
+    #         if evals:
+    #             rec.avg_individual_score = sum(evals.mapped("performance_score")) / len(
+    #                 evals
+    #             )
+    #         else:
+    #             rec.avg_individual_score = 0.0
 
     # ── DEPRECATED: department_score — final score now belongs to each individual ──
-    @api.depends(
-        "dept_kpi_score",
-        "avg_individual_score",
-        "department_kpi_id.alpha",
-        "department_kpi_id.beta",
-    )
-    def _compute_department_score(self):
-        for rec in self:
-            alpha = rec.department_kpi_id.alpha if rec.department_kpi_id else 0.5
-            beta = rec.department_kpi_id.beta if rec.department_kpi_id else 0.5
-            rec.department_score = (alpha * rec.dept_kpi_score) + (
-                beta * rec.avg_individual_score
-            )
+    # @api.depends(
+    #     "dept_kpi_score",
+    #     "avg_individual_score",
+    #     "department_kpi_id.alpha",
+    #     "department_kpi_id.beta",
+    # )
+    # def _compute_department_score(self):
+    #     for rec in self:
+    #         alpha = rec.department_kpi_id.alpha if rec.department_kpi_id else 0.5
+    #         beta = rec.department_kpi_id.beta if rec.department_kpi_id else 0.5
+    #         rec.department_score = (alpha * rec.dept_kpi_score) + (
+    #             beta * rec.avg_individual_score
+    #         )
 
-    @api.depends("department_score")
-    def _compute_department_level(self):
-        # Giả sử thresholds 9 = Excellent, 5 = Pass giống như cá nhân
-        icp = self.env["ir.config_parameter"].sudo()
-        excellent = float(
-            icp.get_param(
-                "custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent",
-                default="9",
-            )
-            or 9.0
-        )
-        passed = float(
-            icp.get_param(
-                "custom_adecsol_hr_performance_evaluator.kpi_threshold_pass",
-                default="5",
-            )
-            or 5.0
-        )
-
-        for rec in self:
-            if rec.department_score >= excellent:
-                rec.department_level = "excellent"
-            elif rec.department_score >= passed:
-                rec.department_level = "pass"
-            else:
-                rec.department_level = "fail"
+    # @api.depends("department_score")
+    # def _compute_department_level(self):
+    #     # Giả sử thresholds 9 = Excellent, 5 = Pass giống như cá nhân
+    #     icp = self.env["ir.config_parameter"].sudo()
+    #     excellent = float(
+    #         icp.get_param(
+    #             "custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent",
+    #             default="9",
+    #         )
+    #         or 9.0
+    #     )
+    #     passed = float(
+    #         icp.get_param(
+    #             "custom_adecsol_hr_performance_evaluator.kpi_threshold_pass",
+    #             default="5",
+    #         )
+    #         or 5.0
+    #     )
+    #
+    #     for rec in self:
+    #         if rec.department_score >= excellent:
+    #             rec.department_level = "excellent"
+    #         elif rec.department_score >= passed:
+    #             rec.department_level = "pass"
+    #         else:
+    #             rec.department_level = "fail"
 
     def action_compute_auto_kpi(self):
         engine = self.env["hr.kpi.engine"]
@@ -320,23 +320,72 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             )
         )
 
+        user_ids = employees.mapped("user_id").ids
+        if not user_ids:
+            return []
+        Task = self.env["project.task"].sudo()
+        period_tasks = Task.search([
+            ('user_ids', 'in', user_ids),
+            # ('date_deadline', '>=', self.start_date),
+            # ('date_deadline', '<=', self.end_date),
+            ('project_id', '!=', False),
+        ])
+        
+        # Lấy ID các dự án liên quan
+        project_ids = period_tasks.mapped('project_id').ids
+
         result = {
             "department_name": self.department_id.name or "",
-            "manager_name": (
-                self.department_id.manager_id.name
-                if self.department_id.manager_id
-                else "—"
-            ),
+            # "manager_name": (
+            #     self.department_id.manager_id.name
+            #     if self.department_id.manager_id
+            #     else "—"
+            # ),
+            'project_count': len(project_ids),
             "employee_count": len(employees),
-            "department_score": round(float(self.department_score or 0.0), 2),
-            "department_level": self.department_level or "fail",
+            "dept_kpi_score": round(float(self.dept_kpi_score or 0.0), 2),
+            # "department_score": round(float(self.department_score or 0.0), 2),
+            # "department_level": self.department_level or "fail",
             "employees": [{"id": e.id, "name": e.name} for e in employees],
             "task_summary_by_employee": self._dashboard_task_summary_by_employee(),
             "project_progress": self._dashboard_project_progress(),
             "attendance_count": self._dashboard_attendance_count(),
             "bug_count_by_employee": self._dashboard_bug_count_by_employee(),
+            "quantitative_table": self._get_quantitative_table_data(),
         }
         return result
+
+    def _get_quantitative_table_data(self):
+        self.ensure_one()
+        lines = self.evaluation_line_ids.filtered(
+            lambda l: (
+                not l.is_section
+                and l.kpi_type == "quantitative"
+            )
+        )
+        rows = []
+        for line in lines:
+            target = float(line.target or 0.0)
+            actual = float(line.actual or 0.0)
+            final = float(line.final_score or 0.0)
+
+            if target != 0:
+                variance_pct = round((actual - target) / abs(target) * 100, 1)
+            else:
+                variance_pct = 0.0
+
+            unit = "%" if (line.target_type == "percentage") else ""
+            rows.append(
+                {
+                    "name": line.name or "",
+                    "target": f"{target:g}{unit}",
+                    "actual": f"{actual:g}{unit}",
+                    "variance": variance_pct,
+                    "final_score": round(final, 2),
+                    "direction": line.direction or "higher_better",
+                }
+            )
+        return rows
 
     def _dashboard_task_summary_by_employee(self):
         """
@@ -460,10 +509,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
         # Lấy tất cả tasks trong kỳ có assign nhân viên phòng ban
         Task = self.env["project.task"].sudo()
-        # NOTE: hiện tại đang lấy tất cả tasks có project_id khác False, sau đó sẽ lọc theo project_id và tính toán tiến độ.
         all_tasks = Task.search(
             [
-                # ('user_ids', 'in', user_ids),
+                ('user_ids', 'in', user_ids),
                 # ('date_deadline', '>=', self.start_date),
                 # ('date_deadline', '<=', self.end_date),
                 ("project_id", "!=", False),
@@ -471,6 +519,27 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         )
         if not all_tasks:
             return []
+
+        # # Lấy các dự án mà phòng ban có tham gia trong kỳ này  (gemini solution)
+        # Task = self.env["project.task"].sudo()
+        # period_tasks = Task.search([
+        #     ('user_ids', 'in', user_ids),
+        #     ('date_deadline', '>=', self.start_date),
+        #     ('date_deadline', '<=', self.end_date),
+        #     ('project_id', '!=', False),
+        # ])
+        #
+        # if not period_tasks:
+        #     return []
+        #
+        # # Lấy ID các dự án liên quan
+        # project_ids = period_tasks.mapped('project_id').ids
+        #
+        # # Truy vấn TẤT CẢ tasks của các dự án này (không giới hạn thời gian)
+        # all_tasks = Task.search([
+        #     ('project_id', 'in', project_ids)
+        #     # Bỏ bộ lọc date_deadline đi
+        # ])
 
         # Group theo project
         tasks_by_project = {}
@@ -603,19 +672,24 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             return []
 
         # Query 1 lần tất cả bug tasks trong kỳ
-        bug_tasks = (
-            self.env["project.task"]
-            .sudo()
-            .search(
-                [
-                    # ('task_type', '=', 'bug'),
-                    ("user_ids", "in", user_ids),
-                    ("date_deadline", ">=", self.start_date),
-                    ("date_deadline", "<=", self.end_date),
-                    ("project_id", "!=", False),
-                ]
+        # 1. Kiểm tra xem field 'task_type' có tồn tại trong model project.task hay không
+        if 'task_type' in self.env['project.task']._fields:
+            bug_tasks = (
+                self.env["project.task"]
+                .sudo()
+                .search(
+                    [
+                        ('task_type', '=', 'bug'),
+                        ("user_ids", "in", user_ids),
+                        ("date_deadline", ">=", self.start_date),
+                        ("date_deadline", "<=", self.end_date),
+                        ("project_id", "!=", False),
+                    ]
+                )
             )
-        )
+        else:
+            # 2. Nếu không có field, trả về một recordset rỗng của model đó
+            bug_tasks = self.env['project.task'].browse()
 
         # Group by user_id — 1 task nhiều user → đếm cho từng user
         count_by_user = {}

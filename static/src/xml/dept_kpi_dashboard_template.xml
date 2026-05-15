@@ -68,11 +68,11 @@
       <!-- Scorecard 1: Department Manager -->
       <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--blue">
         <div class="o_dept_kpi_scorecard_icon">
-          <i class="fa fa-user-md"/>
+          <i class="fa fa-tasks"/>
         </div>
         <div class="o_dept_kpi_scorecard_body">
-          <div class="o_dept_kpi_scorecard_label">Department Manager</div>
-          <div class="o_dept_kpi_scorecard_value" t-esc="state.data.manager_name || '—'"/>
+          <div class="o_dept_kpi_scorecard_label">Total Project</div>
+          <div class="o_dept_kpi_scorecard_value" t-esc="state.data.project_count || '—'"/>
           <div class="o_dept_kpi_scorecard_sub" t-esc="state.data.department_name"/>
         </div>
       </div>
@@ -95,9 +95,9 @@
           <i class="fa fa-star"/>
         </div>
         <div class="o_dept_kpi_scorecard_body">
-          <div class="o_dept_kpi_scorecard_label">Department Score</div>
-          <div class="o_dept_kpi_scorecard_value" t-esc="formatScore(state.data.department_score)"/>
-          <div class="o_dept_kpi_scorecard_sub" t-esc="levelLabel(state.data.department_level)"/>
+          <div class="o_dept_kpi_scorecard_label">Department KPI Score</div>
+          <div class="o_dept_kpi_scorecard_value" t-esc="formatScore(state.data.dept_kpi_score)"/>
+          <!-- <div class="o_dept_kpi_scorecard_sub" t-esc="levelLabel(state.data.department_level)"/> -->
         </div>
       </div>
 
@@ -108,7 +108,7 @@
         </div>
         <div class="o_dept_kpi_scorecard_body">
           <div class="o_dept_kpi_scorecard_label">Task Completion Rate</div>
-          <div class="o_dept_kpi_scorecard_value">87%</div>
+          <div class="o_dept_kpi_scorecard_value">--%</div>
           <div class="o_dept_kpi_scorecard_sub">Avg. this period</div>
         </div>
       </div>
@@ -207,6 +207,53 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- ── Row 4: Quantitative Table ── -->
+    <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col" style="margin-top: 20px;">
+      <div class="o_dept_kpi_chart_card">
+        <div class="o_dept_kpi_chart_header">
+          <div class="o_dept_kpi_chart_title">
+            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--blue"/>
+            Detailed Evaluation Log
+          </div>
+          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--blue">Quantitative</span>
+        </div>
+        <div class="o_dept_kpi_chart_body">
+          <div class="o_kpi_table_wrapper">
+            <table class="o_kpi_table" t-if="state.data.quantitative_table and state.data.quantitative_table.length">
+              <thead>
+                <tr>
+                  <th>KPI Measure</th>
+                  <th>Target</th>
+                  <th>Actual</th>
+                  <th>Variance</th>
+                  <th>Status</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="state.data.quantitative_table" t-as="row" t-key="row_index">
+                  <tr>
+                    <td class="o_kpi_table_name" t-esc="row.name"/>
+                    <td>
+                      <span t-if="row.direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
+                      <span t-if="row.direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
+                      <span class="ms-1" t-esc="row.target"/>
+                    </td>
+                    <td t-esc="row.actual"/>
+
+                    <td><span t-att-class="varianceClass(row)" t-esc="formatVariance(row)"/></td>
+                    <td><span t-att-class="statusClass(row)" t-esc="statusText(row)"/></td>
+                    <td><b t-esc="row.final_score"/></td>
+                  </tr>
+                </t>
+              </tbody>
+            </table>
+            <p t-else="" class="o_dept_kpi_empty">No quantitative KPI data available.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div><!-- /o_dept_kpi_body -->
