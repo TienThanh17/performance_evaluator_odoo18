@@ -16,6 +16,20 @@ class PerformanceEvaluationLine(models.Model):
         index=True,
         help="The KPI template line this evaluation line comes from (for traceability).",
     )
+    parent_dept_line_id = fields.Many2one(
+        'hr.department.kpi.line',
+        string='Parent Department KPI Template',
+        ondelete='set null',
+        index=True,
+        help="The department KPI template line linked to this employee KPI line.",
+    )
+    parent_dept_evaluation_line_id = fields.Many2one(
+        'hr.department.evaluation.line',
+        string='Parent Department KPI',
+        ondelete='set null',
+        index=True,
+        help="The department evaluation line generated for the same period.",
+    )
 
     evaluation_id = fields.Many2one(
         'hr.performance.evaluation',
@@ -28,6 +42,12 @@ class PerformanceEvaluationLine(models.Model):
         string='Evaluation State',
         store=False,
         help="Current workflow state of the parent evaluation.",
+    )
+    employee_id = fields.Many2one(
+        'hr.employee',
+        string='Employee',
+        related='evaluation_id.employee_id',
+        store=False,
     )
     key_performance_area = fields.Char(
         string="Key Performance Area",
@@ -71,6 +91,11 @@ class PerformanceEvaluationLine(models.Model):
         string='Target',
         default=0.0,
         help="Target value to be achieved for Quantitative KPIs.",
+    )
+    unit_label = fields.Char(
+        string="Unit",
+        default="",
+        help="Display unit for Target/Actual, e.g. %, tasks, days, score.",
     )
     weight = fields.Float(
         string="Weight",
@@ -326,7 +351,7 @@ class PerformanceEvaluationLine(models.Model):
                 # quantitative: manager doesn't rate in current logic
                 line.manager_edited = False
 
-    @api.depends('target', 'actual', 'target_type', 'kpi_type')
+    @api.depends('target', 'actual', 'target_type', 'kpi_type', 'unit_label')
     def _compute_display(self):
         for rec in self:
             if rec.kpi_type != 'quantitative':
@@ -339,8 +364,10 @@ class PerformanceEvaluationLine(models.Model):
                 rec.target_display = f"{(rec.target or 0.0):g} %"
                 rec.actual_display = f"{(rec.actual or 0.0):g} %"
             else:
-                rec.target_display = f"{(rec.target or 0.0):g}"
-                rec.actual_display = f"{(rec.actual or 0.0):g}"
+                target = f"{(rec.target or 0.0):g}"
+                actual = f"{(rec.actual or 0.0):g}"
+                rec.target_display = f"{target} {rec.unit_label}" if rec.unit_label else target
+                rec.actual_display = f"{actual} {rec.unit_label}" if rec.unit_label else actual
 
     # ------------------------------------------------------------------
     # COMPUTE system_score: depends vào actual + các field liên quan
@@ -417,9 +444,9 @@ class PerformanceEvaluationLine(models.Model):
                     continue
 
                 if line.direction == 'higher_better':
-                    score_ratio = actual / target if target > 0 else 0.0
+                    score_ratio = (actual / target) if target > 0 else 10.0
                 else:
-                    score_ratio = (target / actual) if actual > 0 else 0.0
+                    score_ratio = (target / actual) if actual > 0 else 10.0
 
                 score = min(score_ratio * 10.0, 10.0)
 
@@ -448,6 +475,7 @@ class PerformanceEvaluationLine(models.Model):
                  'manager_rating_score')
     def _compute_final_rating(self):
         for line in self:
+            # scale 10
             if line.kpi_type == 'quantitative':
                 # system_score đã đúng, dùng thẳng
                 line.final_rating = round(min(max(line.system_score or 0.0, 0.0), 10.0), 2)

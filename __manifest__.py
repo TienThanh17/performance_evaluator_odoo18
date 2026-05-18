@@ -22,10 +22,9 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         # ============================== DATA =============================
         'data/ir_config_parameter_data.xml',
         'data/ir_cron_data.xml',
-        'data/email_template_evaluation_alert.xml',
         'data/kpi_sequence.xml',
         'data/kpi_IT_employee_data.xml',
-        'data/kpi_IT_department_data.xml',
+        # 'data/kpi_IT_department_data.xml',
 
         # ============================== VIEWS =============================
         'views/hr_department_kpi_generate_wizard_views.xml',
@@ -37,6 +36,8 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         'views/performance_evaluation.xml',
         'views/performance_report_views.xml',
         'views/hr_score.xml',
+        'views/hr_department.xml',
+        'views/kpi_tree_dashboard_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
@@ -55,6 +56,9 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
             'custom_adecsol_hr_performance_evaluator/static/src/xml/kpi_dashboard_template.xml',
             'custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js',
             'custom_adecsol_hr_performance_evaluator/static/src/xml/dept_kpi_dashboard_template.xml',
+            'custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.scss',
+            'custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.js',
+            'custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml',
         ],
     },
     'installable': True,

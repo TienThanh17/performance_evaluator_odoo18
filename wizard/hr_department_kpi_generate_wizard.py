@@ -38,22 +38,30 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
     end_date = fields.Date(string='End Date', required=True)
     deadline = fields.Date(string='Deadline', required=True)
 
+    def _map_employee_period(self, period):
+        period_map = {
+            'monthly': 'monthly',
+            'quarterly': 'quarterly',
+            'biannual': 'half_yearly',
+            'annual': 'yearly',
+        }
+        return period_map.get(period, period)
+
     @api.onchange('department_kpi_id')
     def _onchange_department_kpi_id(self):
         if self.department_kpi_id and self.department_id and self.period:
-            # Map periods if they differ slightly between hr.kpi and hr.department.kpi
-            period_map = {
-                'monthly': 'monthly',
-                'quarterly': 'quarterly',
-                'biannual': 'half_yearly',
-                'annual': 'yearly'
-            }
-            mapped_period = period_map.get(self.period, self.period)
+            mapped_period = self._map_employee_period(self.period)
             
             kpi = self.env['hr.kpi'].search([
+                ('department_kpi_id', '=', self.department_kpi_id.id),
                 ('department_id', '=', self.department_id.id),
-                ('period', '=', mapped_period)
+                ('period', '=', mapped_period),
             ], limit=1)
+            if not kpi:
+                kpi = self.env['hr.kpi'].search([
+                    ('department_id', '=', self.department_id.id),
+                    ('period', '=', mapped_period),
+                ], limit=1)
             self.kpi_template_id = kpi
 
     @api.onchange('period')
@@ -110,6 +118,20 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             raise ValidationError('Please select a Department KPI Template.')
         if not self.department_id:
             raise ValidationError('The Department KPI Template must have a Department assigned.')
+        report_period = self._map_employee_period(self.period)
+        if self.kpi_template_id:
+            if self.kpi_template_id.department_kpi_id != self.department_kpi_id:
+                raise ValidationError(
+                    _(
+                        'The Employee KPI Template must be linked to the selected Department KPI Template.'
+                    )
+                )
+            if self.kpi_template_id.period != report_period:
+                raise ValidationError(
+                    _(
+                        'The Employee KPI Template period must match the selected Department KPI period.'
+                    )
+                )
 
         dom = [('active', '=', True), ('department_id', '=', self.department_id.id)]
         employees = self.env['hr.employee'].search(dom)
@@ -149,7 +171,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
 
         # 2. Tạo record cho hr.performance.report
         report = self.env['hr.performance.report'].sudo().create({
-            'period': self.period,
+            'period': report_period,
             'start_date': self.start_date,
             'end_date': self.end_date,
             'deadline': self.deadline,
@@ -170,16 +192,24 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             'performance_report_id': report.id,
             'evaluation_line_ids': dept_line_cmds,
         })
+        dept_eval_line_by_template_line = {
+            line.department_kpi_line_id.id: line.id
+            for line in dept_eval.evaluation_line_ids
+            if line.department_kpi_line_id
+        }
 
         # 4. Chạy vòng lặp tạo Evaluations cho các employee (nếu có kpi_template_id)
         count = 0
+        # Gom tất cả evaluation vừa tạo để trigger recompute final_score một lần sau vòng lặp
+        individual_evals = self.env['hr.performance.evaluation']
+
         if self.kpi_template_id:
             Evaluation = self.env['hr.performance.evaluation']
             valid_employees = self.env['hr.employee']
             
             for emp in employees:
                 if self._employee_matches_kpi(emp, self.kpi_template_id):
-                    # Check if evaluation exists
+                    # Kiểm tra tránh tạo evaluation trùng kỳ cho cùng nhân viên
                     exists = Evaluation.search([
                         ('employee_id', '=', emp.id),
                         ('kpi_id', '=', self.kpi_template_id.id),
@@ -190,10 +220,13 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                         valid_employees |= emp
 
             for emp in valid_employees:
-                # the period in hr.performance.evaluation should match hr.kpi
+                # Period của hr.performance.evaluation phải khớp với hr.kpi template
                 emp_period = self.kpi_template_id.period
                 scratch = Evaluation.new({'kpi_id': self.kpi_template_id.id, 'period': emp_period})
-                line_cmds = scratch._prepare_evaluation_line_commands_from_template(self.kpi_template_id)
+                line_cmds = scratch._prepare_evaluation_line_commands_from_template(
+                    self.kpi_template_id,
+                    dept_eval_line_by_template_line=dept_eval_line_by_template_line,
+                )
 
                 evaluation = Evaluation.create({
                     'employee_id': emp.id,
@@ -204,9 +237,19 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                     'deadline': self.deadline,
                     'evaluation_line_ids': line_cmds,
                     'performance_report_id': report.id,
+                    # Gán dept_evaluation_id để tính final_score theo công thức pha trộn
+                    'dept_evaluation_id': dept_eval.id,
                 })
                 self.send_notification(emp, evaluation)
+                # Tích lũy vào recordset để recompute sau vòng lặp
+                individual_evals |= evaluation
                 count += 1
+
+        # Trigger recompute final_score cho toàn bộ evaluations vừa tạo.
+        # Cần thiết vì dept_evaluation_id vừa được gán — Odoo có thể chưa
+        # invalidate cache và trigger store=True ngay trong cùng transaction.
+        if individual_evals:
+            individual_evals._compute_final_score()
 
         return {
             'type': 'ir.actions.client',

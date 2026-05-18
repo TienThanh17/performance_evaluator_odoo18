@@ -9,12 +9,14 @@ class HrKpiEngineDeptExt(models.AbstractModel):
         if not dept_kpi_line.is_auto or (dept_kpi_line.data_source or 'manual') == 'manual':
             return 0.0
 
-        if dept_kpi_line.data_source == 'dept_task_completion':
-            return self._compute_dept_task_completion(department, dept_kpi_line, date_from, date_to)
-        if dept_kpi_line.data_source == 'dept_attendance_rate':
-            return self._compute_dept_attendance_rate(department, dept_kpi_line, date_from, date_to)
-        if dept_kpi_line.data_source == 'dept_avg_individual':
-            return self._compute_dept_avg_individual(department, dept_kpi_line, date_from, date_to)
+        # if dept_kpi_line.data_source == 'dept_task_completion':
+        #     return self._compute_dept_task_completion(department, dept_kpi_line, date_from, date_to)
+        # if dept_kpi_line.data_source == 'dept_attendance_rate':
+        #     return self._compute_dept_attendance_rate(department, dept_kpi_line, date_from, date_to)
+        # if dept_kpi_line.data_source == 'dept_avg_individual':
+        #     return self._compute_dept_avg_individual(department, dept_kpi_line, date_from, date_to)
+        if dept_kpi_line.data_source == 'child_kpi_average':
+            return self._compute_child_kpi_average(department, dept_kpi_line, date_from, date_to)
 
         return 0.0
 
@@ -155,7 +157,7 @@ class HrKpiEngineDeptExt(models.AbstractModel):
     @api.model
     def _compute_dept_avg_individual(self, department, dept_kpi_line, date_from, date_to):
         evals = self.env['hr.performance.evaluation'].sudo().search([
-            ('state', '=', 'approved'),
+            # ('state', '=', 'approved'),
             ('employee_id.department_id', '=', department.id),
             ('start_date', '>=', date_from),
             ('end_date', '<=', date_to),
@@ -172,3 +174,53 @@ class HrKpiEngineDeptExt(models.AbstractModel):
             denominator=10.0,
         )
 
+    @api.model
+    def _compute_child_kpi_average(self, department, dept_kpi_line, date_from, date_to):
+        """Bottom-up category score from linked employee KPI child lines.
+
+        Returns a 0-100 actual score. Department evaluation scoring later maps
+        target=100/actual=83.05 to final_score=8.305 on the existing 0-10 scale.
+        """
+        dept_eval_line = self.env.context.get('department_evaluation_line')
+        if dept_eval_line:
+            dept_eval_line = self.env['hr.department.evaluation.line'].browse(dept_eval_line).exists()
+
+        domain = [
+            ('evaluation_id.employee_id.department_id', '=', department.id),
+            ('evaluation_id.start_date', '>=', date_from),
+            ('evaluation_id.end_date', '<=', date_to),
+            ('is_section', '=', False),
+        ]
+        if dept_eval_line:
+            domain.append(('parent_dept_evaluation_line_id', '=', dept_eval_line.id))
+        else:
+            domain.append(('parent_dept_line_id', '=', dept_kpi_line.id))
+
+        child_lines = self.env['hr.performance.evaluation.line'].sudo().search(domain)
+        if not child_lines:
+            return 0.0
+
+        scores_by_employee = {}
+        for child_line in child_lines:
+            employee = child_line.evaluation_id.employee_id
+            if not employee:
+                continue
+            # scale 10
+            # score = (child_line.final_rating or 0.0) * 10
+            score = (child_line.final_rating or 0.0)
+            weight = child_line.weight or 0.0
+            if weight <= 0.0:
+                continue
+            bucket = scores_by_employee.setdefault(employee.id, {'weighted': 0.0, 'weight': 0.0})
+            bucket['weighted'] += score * weight
+            bucket['weight'] += weight
+
+        employee_scores = [
+            bucket['weighted'] / bucket['weight']
+            for bucket in scores_by_employee.values()
+            if bucket['weight'] > 0.0
+        ]
+        if not employee_scores:
+            return 0.0
+
+        return sum(employee_scores) / len(employee_scores)

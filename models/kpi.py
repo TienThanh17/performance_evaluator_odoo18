@@ -34,6 +34,12 @@ class KPI(models.Model):
         default="monthly",
         help="The evaluation cycle for this KPI template.",
     )
+    # Thêm trường liên kết Header Template Phòng ban để làm gốc lọc dữ liệu
+    department_kpi_id = fields.Many2one(
+        'hr.department.kpi',
+        string='Mẫu KPI Phòng ban Cha',
+        domain="[('department_id', '=', department_id), ('period', '=', period)]"
+    )
 
     @api.constrains('kpi_line_ids')
     def _check_total_weight(self):
@@ -63,6 +69,19 @@ class KPI(models.Model):
                 raise ValidationError(
                     _("The total weight of all KPI lines must equal exactly 100. The current total is %s.") % round(total_weight, 2)
                 )
+
+    @api.constrains('department_kpi_id', 'kpi_line_ids')
+    def _check_kpi_line_parent_dept_lines(self):
+        for kpi in self:
+            for line in kpi.kpi_line_ids.filtered('parent_dept_line_id'):
+                if not kpi.department_kpi_id:
+                    raise ValidationError(
+                        _("Please select a parent Department KPI Template before linking department KPI lines.")
+                    )
+                if line.parent_dept_line_id.department_kpi_id != kpi.department_kpi_id:
+                    raise ValidationError(
+                        _("The selected department KPI line must belong to the parent Department KPI Template.")
+                    )
 
     def copy(self, default=None):
         # 1. Initialize default dictionary

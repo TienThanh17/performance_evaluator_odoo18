@@ -1,0 +1,808 @@
+// kpi_tree_dashboard.scss — Styles cho KPI Tree Dashboard
+// Dùng biến màu riêng để không xung đột với các dashboard khác
+
+$tree-bg: #f0f2f7;
+$tree-card-bg: #ffffff;
+$tree-border: #e2e6ef;
+$tree-primary: #378add;
+$tree-green: #1d9e75;
+$tree-red: #e24b4a;
+$tree-amber: #f5a623;
+$tree-purple: #7c3aed;
+$tree-gray: #8c8c8c;
+$tree-text: #1a1a2e;
+$tree-muted: #6b7280;
+$tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+
+// ── Page Layout ──────────────────────────────────────────────────────────────
+.o_kpi_tree_page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 100vh;
+    background: $tree-bg;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: $tree-text;
+}
+
+// ── Header ───────────────────────────────────────────────────────────────────
+.o_kpi_tree_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: $tree-card-bg;
+    border-bottom: 1px solid $tree-border;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+
+    .o_kpi_tree_brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: $tree-primary;
+
+        .fa {
+            font-size: 1.3rem;
+        }
+    }
+
+    .o_kpi_tree_controls {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .o_kpi_tree_control_group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .o_kpi_tree_label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: $tree-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .o_kpi_tree_select {
+        font-size: 0.82rem;
+        padding: 4px 10px;
+        border: 1px solid $tree-border;
+        border-radius: 6px;
+        background: $tree-bg;
+        color: $tree-text;
+        cursor: pointer;
+
+        &:focus {
+            outline: none;
+            border-color: $tree-primary;
+        }
+    }
+}
+
+// ── Body ─────────────────────────────────────────────────────────────────────
+.o_kpi_tree_body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 24px;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+// ── 6 Metric Cards ───────────────────────────────────────────────────────────
+.o_kpi_tree_metric_row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    flex-shrink: 0;
+
+    @media (max-width: 1200px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    @media (max-width: 700px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.o_kpi_tree_metric_card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: $tree-card-bg;
+    border: 1px solid $tree-border;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: $tree-shadow;
+    cursor: pointer;
+    transition:
+        transform 0.15s,
+        box-shadow 0.15s;
+    border-left: 4px solid transparent;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .metric-icon {
+        font-size: 1.4rem;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .metric-body {
+        min-width: 0;
+    }
+
+    .metric-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: $tree-muted;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .metric-value {
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .metric-sub {
+        font-size: 0.68rem;
+        color: $tree-muted;
+    }
+
+    // Color variants
+    &.card-blue {
+        border-left-color: $tree-primary;
+        .metric-icon {
+            background: #e6f1fb;
+            color: $tree-primary;
+        }
+        .metric-value {
+            color: $tree-primary;
+        }
+    }
+    &.card-green {
+        border-left-color: $tree-green;
+        .metric-icon {
+            background: #e1f5ee;
+            color: $tree-green;
+        }
+        .metric-value {
+            color: $tree-green;
+        }
+    }
+    &.card-amber {
+        border-left-color: $tree-amber;
+        .metric-icon {
+            background: #fef3cd;
+            color: $tree-amber;
+        }
+        .metric-value {
+            color: $tree-amber;
+        }
+    }
+    &.card-red {
+        border-left-color: $tree-red;
+        .metric-icon {
+            background: #fcebeb;
+            color: $tree-red;
+        }
+        .metric-value {
+            color: $tree-red;
+        }
+    }
+    &.card-purple {
+        border-left-color: $tree-purple;
+        .metric-icon {
+            background: #f3e8ff;
+            color: $tree-purple;
+        }
+        .metric-value {
+            color: $tree-purple;
+        }
+    }
+    &.card-gray {
+        border-left-color: $tree-gray;
+        .metric-icon {
+            background: #f3f4f6;
+            color: $tree-gray;
+        }
+        .metric-value {
+            color: $tree-gray;
+        }
+    }
+
+    // Skeleton
+    &.skeleton {
+        pointer-events: none;
+        .sk-title,
+        .sk-value,
+        .sk-sub {
+            background: #e5e7eb;
+            border-radius: 4px;
+            animation: sk-pulse 1.5s infinite;
+        }
+        .sk-title {
+            height: 10px;
+            width: 70%;
+            margin-bottom: 6px;
+        }
+        .sk-value {
+            height: 22px;
+            width: 50%;
+            margin-bottom: 5px;
+        }
+        .sk-sub {
+            height: 8px;
+            width: 60%;
+        }
+    }
+}
+
+@keyframes sk-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.45;
+    }
+}
+
+// ── Main: Tree + Panel ────────────────────────────────────────────────────────
+.o_kpi_tree_main {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: $tree-card-bg;
+    border: 1px solid $tree-border;
+    border-radius: 14px;
+    box-shadow: $tree-shadow;
+    overflow: hidden;
+    min-height: 450px;
+}
+
+// SVG wrap: scrollable horizontal
+.o_kpi_tree_svg_wrap {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 20px 16px;
+
+    &.skeleton-tree {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+
+        .sk-tree-placeholder {
+            text-align: center;
+            color: $tree-muted;
+            .fa {
+                margin-bottom: 12px;
+                opacity: 0.3;
+            }
+            p {
+                font-size: 0.9rem;
+            }
+        }
+    }
+
+    // // 1. Đường nối (Link)
+    // path {
+    //     transition: stroke 0.3s ease;
+    // }
+
+    // // 2. Node chung
+    // .kpi-d3-node {
+    //     transition: transform 0.2s ease;
+
+    //     // Thẻ hình chữ nhật (Card background)
+    //     .kpi-card-rect {
+    //         transition: all 0.3s ease;
+    //         filter: drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.04));
+
+    //         &:hover {
+    //             stroke-width: 2.5px;
+    //             filter: drop-shadow(0px 4px 12px rgba(55, 138, 221, 0.25));
+    //             // Nếu muốn card sáng lên khi hover, có thể chỉnh thêm fill ở đây
+    //         }
+    //     }
+
+    //     // Text Điểm số
+    //     .kpi-score-text {
+    //         font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    //         letter-spacing: 0.02em;
+    //     }
+
+    //     // Text Tên
+    //     .kpi-name-text {
+    //         font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    //         font-weight: 500;
+    //     }
+    // }
+
+    // // 3. Nút Toggle Expand/Collapse (+ / -)
+    // .kpi-toggle-btn {
+    //     circle {
+    //         transition: all 0.2s ease;
+    //         stroke-width: 1.5px;
+    //         stroke: $tree-border;
+    //     }
+
+    //     text {
+    //         user-select: none; // Tránh bôi đen text khi click
+    //     }
+
+    //     &:hover {
+    //         circle {
+    //             fill: #ffffff;
+    //             stroke: $tree-primary;
+    //             stroke-width: 2px;
+    //         }
+    //         text {
+    //             fill: $tree-primary;
+    //         }
+    //     }
+    // }
+}
+
+.o_kpi_tree_svg {
+    .kpi-node {
+        cursor: pointer;
+        transition: opacity 0.15s;
+
+        &:hover {
+            opacity: 0.85;
+        }
+    }
+}
+
+// ── Detail Panel ──────────────────────────────────────────────────────────────
+.o_kpi_tree_detail_panel {
+    width: 260px;
+    flex-shrink: 0;
+    border-left: 1px solid $tree-border;
+    display: flex;
+    flex-direction: column;
+    background: #fafbfc;
+
+    .panel-header {
+        padding: 16px;
+        border-bottom: 1px solid $tree-border;
+        position: relative;
+
+        .panel-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            cursor: pointer;
+            color: $tree-muted;
+            font-size: 0.9rem;
+            &:hover {
+                color: $tree-red;
+            }
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: $tree-text;
+            margin-bottom: 4px;
+            padding-right: 24px;
+        }
+
+        .panel-sub {
+            font-size: 0.78rem;
+            color: $tree-muted;
+        }
+
+        .panel-avatar {
+            text-align: center;
+            margin-bottom: 8px;
+            img {
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 3px solid $tree-border;
+            }
+        }
+    }
+
+    .panel-body {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+    }
+
+    .panel-metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 0.82rem;
+
+        .pm-label {
+            color: $tree-muted;
+        }
+        .pm-value {
+            font-weight: 700;
+            color: $tree-text;
+            &.highlight {
+                color: $tree-primary;
+                font-size: 1rem;
+            }
+        }
+    }
+
+    .panel-formula {
+        font-size: 0.73rem;
+        color: $tree-muted;
+        background: #f3f4f6;
+        padding: 6px 10px;
+        border-radius: 6px;
+        margin: 8px 0;
+        line-height: 1.5;
+    }
+
+    .panel-sparkline {
+        margin-top: 12px;
+        .spark-label {
+            font-size: 0.72rem;
+            color: $tree-muted;
+            margin-bottom: 4px;
+        }
+        .sparkline-svg {
+            width: 100%;
+            height: 40px;
+            display: block;
+        }
+    }
+
+    .panel-note {
+        font-size: 0.68rem;
+        color: #aab0bc;
+        font-style: italic;
+        margin-top: 6px;
+    }
+}
+
+// ── 4 Bottom Panels ───────────────────────────────────────────────────────────
+.o_kpi_tree_panels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    flex-shrink: 0;
+
+    @media (max-width: 1100px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.o_kpi_tree_panel {
+    background: $tree-card-bg;
+    border: 1px solid $tree-border;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: $tree-shadow;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .panel-head {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: $tree-muted;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        .fa {
+            color: $tree-primary;
+        }
+    }
+
+    .panel-empty {
+        font-size: 0.82rem;
+        color: $tree-muted;
+        text-align: center;
+        padding: 12px 0;
+    }
+
+    .panel-note {
+        font-size: 0.68rem;
+        color: #aab0bc;
+        font-style: italic;
+    }
+
+    &.panel-ai {
+        .panel-head .fa {
+            color: $tree-amber;
+        }
+    }
+}
+
+// Risk rows
+.risk-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 0;
+    border-bottom: 1px solid $tree-border;
+    font-size: 0.8rem;
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .risk-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+    }
+    .risk-name {
+        font-weight: 600;
+        color: $tree-text;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .risk-meta {
+        font-size: 0.7rem;
+        color: $tree-muted;
+    }
+    .risk-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 3px;
+        flex-shrink: 0;
+        margin-left: 8px;
+    }
+    .risk-score {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: $tree-text;
+    }
+}
+
+// Dept bar
+.dept-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    margin-bottom: 6px;
+    .dept-name {
+        width: 80px;
+        flex-shrink: 0;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .dept-bar-wrap {
+        flex: 1;
+        height: 8px;
+        background: #f0f2f7;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .dept-bar {
+        height: 100%;
+        background: $tree-primary;
+        border-radius: 10px;
+        transition: width 0.3s;
+    }
+    .dept-score {
+        width: 44px;
+        text-align: right;
+        font-weight: 600;
+        color: $tree-primary;
+        flex-shrink: 0;
+    }
+}
+
+// Miss rows
+.miss-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 5px 0;
+    border-bottom: 1px solid $tree-border;
+    font-size: 0.78rem;
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .miss-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .miss-name {
+        font-weight: 600;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .miss-meta {
+        font-size: 0.68rem;
+        color: $tree-muted;
+    }
+    .tag-missing {
+        flex-shrink: 0;
+        margin-left: 6px;
+        font-size: 0.65rem;
+        background: #fee2e2;
+        color: $tree-red;
+        padding: 2px 7px;
+        border-radius: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+}
+
+// AI insights
+.ai-insight {
+    font-size: 0.8rem;
+    padding: 8px 0;
+    border-bottom: 1px solid $tree-border;
+    &:last-child {
+        border-bottom: none;
+    }
+    .panel-note {
+        margin-top: 3px;
+    }
+}
+
+// ── Badges ────────────────────────────────────────────────────────────────────
+.kpi-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 2px 8px;
+    border-radius: 10px;
+
+    &.badge-excellent {
+        background: #e1f5ee;
+        color: $tree-green;
+    }
+    &.badge-pass {
+        background: #e6f1fb;
+        color: $tree-primary;
+    }
+    &.badge-fail {
+        background: #fcebeb;
+        color: $tree-red;
+    }
+}
+
+// State badges
+.kpi-state-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+
+    &.state-self {
+        background: #f3f4f6;
+        color: $tree-gray;
+    }
+    &.state-manager {
+        background: #fef3cd;
+        color: $tree-amber;
+    }
+    &.state-done {
+        background: #e1f5ee;
+        color: $tree-green;
+    }
+    &.state-cancel {
+        background: #fcebeb;
+        color: $tree-red;
+    }
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: $tree-muted;
+    flex: 1;
+
+    .fa {
+        margin-bottom: 16px;
+        opacity: 0.35;
+    }
+    p {
+        font-size: 0.9rem;
+        margin: 4px 0;
+    }
+}
+
+// ── D3 KPI Node Styles ────────────────────────────────────────────────────────
+.d3-kpi-container {
+    svg {
+        overflow: visible;
+    }
+
+    .kpi-d3-node {
+        .kpi-card-rect {
+            transition:
+                stroke-width 0.2s ease,
+                filter 0.2s ease;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.06));
+        }
+
+        &:hover .kpi-card-rect {
+            stroke-width: 2.5px;
+            filter: drop-shadow(0 6px 16px rgba(55, 138, 221, 0.22));
+        }
+
+        .kpi-score-text {
+            font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        .kpi-name-text {
+            font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+        }
+    }
+
+    .kpi-toggle-btn {
+        cursor: pointer;
+
+        circle {
+            transition: all 0.2s ease;
+        }
+
+        &:hover {
+            circle {
+                // opacity: 0.85;
+                // r: 10;
+                fill: #ffffff;
+                stroke: $tree-primary;
+                stroke-width: 2px;
+            }
+
+            text {
+                fill: $tree-primary;
+            }
+        }
+    }
+
+    // Avatar fallback: ẩn nếu image load thành công
+    image[href]:not([href=""]) ~ .kpi-avatar-fallback,
+    image[href]:not([href=""]) ~ .kpi-avatar-initials {
+        display: none;
+    }
+}

@@ -7,15 +7,24 @@ class HREmployee(models.Model):
     performance_score = fields.Float(
         string="Performance Score",
         compute='_compute_performance_score',
-        store=True
+        # store=True
     )
 
+    # 1. Thêm trường One2many để Odoo có thể theo dõi dữ liệu thay đổi
+    evaluation_ids = fields.One2many(
+        'hr.performance.evaluation',
+        'employee_id',
+        string="Evaluations"
+    )
+
+    # 2. Khai báo @api.depends dựa trên trường One2many
+    @api.depends('evaluation_ids.performance_score', 'evaluation_ids.deadline', 'evaluation_ids.start_date')
     def _compute_performance_score(self):
         for employee in self:
             # Fetch the most recent performance evaluation for this employee
             evaluation = self.env['hr.performance.evaluation'].search([
                 ('employee_id', '=', employee.id)
-            ], order='start_date asc', limit=1)
+            ], order='start_date desc', limit=1)
 
             if evaluation:
                 # Check if the evaluation deadline has passed
