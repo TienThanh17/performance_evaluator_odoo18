@@ -11,7 +11,9 @@
                         <group>
                             <field name="department_kpi_id" required="1" readonly="1"/>
                             <field name="department_id" />
-                            <field name="kpi_template_id" />
+                            <field name="kpi_template_id"
+                                   domain="[('department_id', '=', department_id), ('department_kpi_id', '=', department_kpi_id)]"
+                                   options="{'no_create': True}"/>
                         </group>
                         <group>
                             <field name="period" required="1"/>

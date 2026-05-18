@@ -16,8 +16,8 @@ This document summarizes the business flow and key models for the module. It is 
 7. **Manager Evaluation**: Managers review, override ratings if necessary, and add feedback.
 8. **Finalization**: HR completes/approves the evaluations.
    - **Individual Level**: `final_score` is computed by blending the individual's `performance_score` with the department's `dept_kpi_score` using the configured `dept_weight`.
-   - **Department Level**: The department's raw KPI score is stored but no longer serves as a standalone "grade" for the department; instead, `avg_final_score` on the department profile provides a real-time summary of team performance.
-9. **Dashboard**: Users can view performance analytics via the "Performance Dashboard" (JS/OWL component) which pulls data from these models.
+   - **Department Level**: The department's raw KPI score (`dept_kpi_score`) is stored and used to influence team members' scores.
+9. **Analytics**: Users can view performance metrics via 4 distinct dashboards: Individual, Department, Report Hub, and the hierarchical KPI Tree.
 
 ---
 
@@ -26,11 +26,11 @@ This document summarizes the business flow and key models for the module. It is 
 ### `hr.kpi` (Employee Template)
 - **Purpose**: Master template for employee KPIs.
 - **Key Fields**:
-    - `name`: Template name.
-    - `period`: monthly, quarterly, biannual, annual.
+    - `period`: `monthly`, `quarterly`, `half_yearly`, `yearly`.
     - `department_id` / `job_id`: Target filters.
+    - `department_kpi_id`: Link to parent Department KPI Template.
     - `kpi_line_ids`: O2M to `hr.kpi.line`.
-- **Validation**: Total weight of non-section lines must be approximately 100% (tolerance 0.1).
+- **Validation**: Total weight of non-section lines must equal 100% (with a `tolerance` of 0.1).
 
 ### `hr.kpi.line` (Template Line)
 - **Purpose**: Defines a specific metric.
@@ -43,87 +43,84 @@ This document summarizes the business flow and key models for the module. It is 
 
 ### `hr.performance.evaluation` (Employee Evaluation)
 - **Purpose**: The actual evaluation instance for an employee.
-- **States**: `self_evaluation` -> `manager_evaluating` -> `completed` -> `cancel`.
+- **States**: `self_evaluation`, `manager_evaluating`, `completed`, `cancel`.
 - **Key Fields**:
-    - `employee_id`, `kpi_id`, `performance_report_id`.
-    - `dept_evaluation_id`: Link to the department-level evaluation.
     - `performance_score`: Weighted average of individual KPI lines.
-    - `final_score`: The blended final result. 
-      - **Formula**: `dept_kpi_score × dept_weight + performance_score × (1 - dept_weight)`.
-      - Falls back to `performance_score` if no department evaluation is linked or if it is cancelled.
-    - `performance_level` / `final_level`: excellent, pass, fail (computed based on thresholds).
-- **Methods**: `action_compute_auto_kpi()`, `_compute_final_score()`, `get_dashboard_data()`.
+    - `final_score`: The blended result: `(Dept Score × Dept Weight) + (Individual Score × Individual Weight)`.
+    - `dept_evaluation_id`: Link to the department-level evaluation.
+    - `performance_level` / `final_level`: `excellent`, `pass`, `fail` (derived from scores).
+- **Methods**: `action_compute_auto_kpi()`, `_compute_final_score()`, `get_dashboard_data()`, `get_kpi_tree_data()`.
 
 ### `hr.performance.evaluation.line` (Evaluation Line)
 - **Purpose**: Instance of a KPI for a specific employee and period.
-- **Scoring**:
-    - `performance_score`: Computed based on `actual` vs `target` or `manager_rating`.
-    - `final_rating`: The rating used for the weighted average calculation of the parent evaluation.
+- **Key Fields**:
+    - `actual`: Collected value for quantitative KPIs.
+    - `system_score`: Rule-based score (0-10) computed by the engine.
+    - `final_rating`: Final score used in the summary (weighted by `weight`).
 
 ---
 
 ## Department Performance Models
 
 ### `hr.department.kpi` (Department Template)
-- **Purpose**: Defines how a department is evaluated and its weight in individual scores.
-- **Fields**:
-    - `dept_weight`: Contribution of the department score to an individual's final score (e.g., 0.4 = 40% Dept / 60% Individual).
-    - `individual_weight`: Inverse of `dept_weight` (1.0 - `dept_weight`).
-    - `alpha` / `beta`: **[DEPRECATED]** Old blending weights for a centralized department score.
+- **Purpose**: Defines department-specific KPIs and blending weights.
+- **Key Fields**:
+    - `period`: `monthly`, `quarterly`, `biannual`, `annual`.
+    - `dept_weight`: Contribution of department score (default 0.4).
+    - `individual_weight`: Computed as `1.0 - dept_weight`.
+
+### `hr.department.kpi.line` (Dept Template Line)
+- **Data Sources**: `manual`, `dept_task_completion`, `dept_attendance_rate`, `dept_avg_individual`.
 
 ### `hr.department.performance.evaluation` (Dept Evaluation)
 - **Calculation**:
     - `dept_kpi_score`: Weighted average of department-specific KPI lines.
-    - `get_dept_kpi_score()`: Public method to safely retrieve the score (returns 0.0 if cancelled).
-    - `department_score` / `department_level` / `avg_individual_score`: **[DEPRECATED]** No longer used for the primary performance result.
+    - `get_dept_kpi_score()`: Public method for score blending.
 
 ---
 
 ## KPI Engine (`hr.kpi.engine`)
 
-The engine is an `AbstractModel` providing centralized computation logic:
-
-### Employee Sources:
-1. **`done_task`**: Count of tasks with `stage_id.is_done_stage=True` and `date_deadline` in range.
-2. **`task_on_time`**: % of done tasks where `done_date` <= `date_deadline`.
-3. **`late_days`**: Counts days where the first check-in is after the calendar start time (considering `late_grace_minutes`).
-4. **`attendance_full`**: Complex calculation of Expected Work Days vs Worked Days vs Approved Leave vs Unpaid Leave.
-
-### Department Sources (Extension):
-1. **`dept_task_completion`**: Aggregate on-time completion rate for all tasks assigned to department employees.
-2. **`dept_attendance_rate`**: Average attendance rate across all department employees.
-3. **`dept_avg_individual`**: Average of all individual performance scores within the department for the period.
+Centralized logic for computing "Actual" values:
+1. **`done_task`**: Count of completed tasks within the deadline.
+2. **`task_on_time`**: % of tasks where `done_date` <= `date_deadline`.
+3. **`late_days`**: Score = `10.0 - (late_days * 1.0)`, minimum 0.
+4. **`attendance_full`**: 
+   - Unpaid leaves -> 0 score.
+   - 0 leave days -> 10 points.
+   - 1-5 leave days -> Graduated penalty (9, 8, 7, 6, 5 points).
+   - >5 leave days -> 0 score.
 
 ---
 
 ## Global Configuration (`res.config.settings`)
 - `kpi_threshold_excellent`: Default 9.0.
 - `kpi_threshold_pass`: Default 5.0.
-- `late_grace_minutes`: Buffer for check-in.
-- `deadline_reminder_days`: For automated email/chatter reminders.
+- `late_grace_minutes`: Default 30.
+- `deadline_reminder_days`: Default 3.
 
 ---
 
 ## Data Aggregation (`hr.performance.report`)
-- **Batching**: Links multiple employee/department evaluations together for a single period.
-- **Reminders**: Cron job `_cron_send_deadline_reminder` sends notifications to employees.
+- **Batching**: Links multiple employee and department evaluations together.
+- **Infographic Hub**: Entry point for the Report Hub dashboard.
 
 ---
 
 ## Wizards & Automation
 
 ### `hr.department.kpi.generate.wizard`
-- **Purpose**: Creates department and individual evaluations in one batch.
-- **Refactored Logic**: 
-    - Creates the `hr.department.performance.evaluation` record first.
-    - Injects the `dept_evaluation_id` into each generated `hr.performance.evaluation`.
-    - Explicitly triggers `_compute_final_score()` on all created records to ensure persistence.
+- **Purpose**: Creates department and individual evaluations in a single batch.
+- **Logic**: Creates the department record first, then links all employee evaluations to its ID.
+
+### Automation
+- **Cron Jobs**: Automated computation (`_cron_compute_auto_kpi`) and deadline reminders (`_cron_send_deadline_reminder`).
 
 ---
 
 ## UI Components & Dashboards
 
-The module features a rich interactive layer built with OWL (Odoo Web Library) and Chart.js.
+The module provides four distinct analytical views built with OWL, Chart.js, and D3.js.
 
 ### 1. Individual Dashboard (`kpi_individual_dashboard`)
 - **Accessibility**: Available via the "Dashboard" menu under KPI Employee.
@@ -155,21 +152,20 @@ The module features a rich interactive layer built with OWL (Odoo Web Library) a
 ## View Structure & Enhancements
 
 ### Kanban Visuals
-Employee evaluations (`hr.performance.evaluation`) use a custom Kanban card layout:
-- **Trophy Indicator**: A large circular progress bar representing the `performance_score`.
-- **Themed Sidebars**: Color-coded based on performance level (Blue/Excellent, Green/Pass, Red/Fail).
-- **Quick Info**: Displays job position, department, and period clearly.
+- **Circular Progress**: Custom widget showing `performance_score`.
+- **Themed Sidebars**: Color-coded based on performance levels.
 
 ### Custom Form Widgets
-- **`kpi_one2many`**: Optimized list view for evaluation lines with section support and mirrored editing logic.
-- **`kpi_description_icon`**: A tooltip/icon widget to show KPI descriptions without cluttering the list.
-- **`priority_onchange`**: Enhances the standard priority (stars) widget to trigger immediate score recomputations.
-- **`kpi_badge_class`**: Dynamic CSS classes applied to badges for visual consistency across forms and lists.
+- **`kpi_one2many`**: Optimized list view with mirrored editing (Self -> Manager).
+- **`kpi_badge_class`**: Dynamic CSS classes for level badges.
+- **`kpi_description_icon`**: Tooltips for KPI definitions.
 
 ---
 
-## Model Extensions
-- **`hr.employee`**: Shows `performance_score` (and potentially `final_score`) from the latest evaluation.
-- **`hr.department`**: 
-    - `avg_final_score`: Real-time average of all `completed` individual `final_score`s in the department.
-    - `department_score` / `department_level`: **[DEPRECATED]** Kept for historical data visibility in Debug Mode.
+## Technical Enhancements
+- **Auto-Mirroring**: During self-evaluation, employee ratings are automatically copied to manager ratings.
+- **Localization**: Full support for `_t()` translation.
+- **Model Extensions**: 
+    - `hr.employee`: Stores latest performance result.
+    - `hr.department`: `avg_final_score` provides real-time team averages.
+ults.

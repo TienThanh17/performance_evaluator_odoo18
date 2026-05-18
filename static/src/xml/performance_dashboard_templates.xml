@@ -9,7 +9,7 @@
                     <h1 class="pd-title">
                         <t t-esc="state.departmentName"/>
                     </h1>
-                    <p class="pd-subtitle">Departmental Performance Overview</p>
+                    <p class="pd-subtitle">Employee KPI Analytics</p>
                 </div>
 
                 <div class="pd-header-right">
@@ -70,8 +70,10 @@
                         <div class="pd-scorecard-body">
                             <div class="pd-scorecard-label">Pass Rate</div>
                             <div class="pd-scorecard-value">
-                                <t t-esc="state.passRate"/>
-                                <span class="pd-scorecard-unit">%</span>
+                                <t t-esc="state.passCount"/>
+
+                                <span class="pd-scorecard-unit"> /                                    <t t-esc="state.totalEmployees"/>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -106,7 +108,7 @@
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--blue"/>
                                 <!-- Điểm Hiệu Suất theo Nhân Viên -->
-                                <span>Performance Score by Employee</span>
+                                <span>Individual KPI Score by Employee</span>
                             </div>
                             <span class="pd-chart-badge pd-chart-badge--blue">Bar</span>
                         </div>
@@ -136,7 +138,7 @@
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--blue"/>
                                 <!-- Đi Làm Đầy Đủ — Số Ngày Có Mặt -->
-                                
+
                                 <span>Attendance — Days Present</span>
                             </div>
                             <span class="pd-chart-badge pd-chart-badge--blue">Doughnut</span>
@@ -213,6 +215,13 @@
                 <div class="pd-roster-section">
                     <div class="pd-roster-header">
                         <h2>Team Roster</h2>
+                        <button class="pd-btn-approve-all" t-att-disabled="!approvableCount || state.approvingAll" t-on-click="approveAllEvaluations">
+                            <i t-attf-class="fa #{state.approvingAll ? 'fa-spinner fa-spin' : 'fa-check-circle'}"/>
+                            <span>
+                                <t t-if="state.approvingAll">Approving...</t>
+                                <t t-else="">Approve All</t>
+                            </span>
+                        </button>
                     </div>
                     <t t-if="state.evaluations.length > 0">
                         <table class="pd-table">
@@ -220,7 +229,7 @@
                                 <tr>
                                     <th>EMPLOYEE</th>
                                     <th>ROLE</th>
-                                    <th>PERFORMANCE SCORE</th>
+                                    <th>INDIVIDUAL KPI SCORE</th>
                                     <th>RESULT</th>
                                     <th>STATUS</th>
                                     <th>ACTION</th>
@@ -282,14 +291,17 @@
                                                     <i class="fa fa-clock-o"/>
                                                     SELF EVAL</t>
                                                 <t t-elif="ev.state === 'manager_evaluating'">
-                                                    <i class="fa fa-spinner fa-spin"/>
-                                                    MANAGER EVALUATING</t>
+                                                    <i class="fa fa-spinner fa-spin pd-manager-eval-status"/>
+                                                    <span class="pd-manager-eval-status">MANAGER EVALUATING</span>
+                                                </t>
                                                 <t t-elif="ev.state === 'completed'">
-                                                    <i class="fa fa-check-circle"/>
-                                                    COMPLETED</t>
+                                                    <i class="fa fa-check-circle pd-completed-status"/>
+                                                    <span class="pd-completed-status">COMPLETED</span>
+                                                </t>
                                                 <t t-elif="ev.state === 'cancel'">
                                                     <i class="fa fa-ban"/>
-                                                    CANCELLED</t>
+                                                    <span class="pd-cancel-status">CANCELLED</span>
+                                                </t>
                                             </span>
                                         </td>
                                         <td>

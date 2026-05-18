@@ -9,7 +9,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     name = fields.Char(compute="_compute_name", store=True)
     department_id = fields.Many2one("hr.department", required=True)
     department_kpi_id = fields.Many2one(
-        "hr.department.kpi", required=True, string="Department KPI"
+        "hr.department.kpi", required=True, string="Department KPI Template"
     )
     performance_report_id = fields.Many2one("hr.performance.report", ondelete="cascade")
 
@@ -37,49 +37,6 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         store=True,
         help="Điểm từ KPI riêng phòng ban (trung bình có trọng số các line)",
     )
-    # # ── DEPRECATED: avg_individual_score — individual scores now live on hr.performance.evaluation ──
-    # avg_individual_score = fields.Float(
-    #     compute="_compute_avg_individual_score",
-    #     store=True,
-    #     deprecated=True,
-    #     groups="base.group_no_one",
-    #     help="[DEPRECATED] Individual scores now computed on hr.performance.evaluation.final_score. "
-    #     "Average performance_score of approved employees in the period.",
-    # )
-    # # ── DEPRECATED: alpha / beta related fields — replaced by dept_weight on hr.department.kpi ──
-    # alpha = fields.Float(
-    #     related="department_kpi_id.alpha",
-    #     deprecated=True,
-    #     groups="base.group_no_one",
-    # )
-    # beta = fields.Float(
-    #     related="department_kpi_id.beta",
-    #     deprecated=True,
-    #     groups="base.group_no_one",
-    # )
-    #
-    # # ── DEPRECATED: department_score — final score now belongs to each individual ──
-    # department_score = fields.Float(
-    #     compute="_compute_department_score",
-    #     store=True,
-    #     deprecated=True,
-    #     groups="base.group_no_one",
-    #     help="[DEPRECATED] Final score now computed per individual via hr.performance.evaluation.final_score. "
-    #     "Formula was: α × dept_kpi_score + β × avg_individual_score.",
-    # )
-    #
-    # # ── DEPRECATED: department_level — level now computed from individual final_score ──
-    # department_level = fields.Selection(
-    #     [
-    #         ("excellent", "Excellent"),
-    #         ("pass", "Pass"),
-    #         ("fail", "Fail"),
-    #     ],
-    #     compute="_compute_department_level",
-    #     store=True,
-    #     deprecated=True,
-    #     groups="base.group_no_one",
-    # )
 
     has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_rating_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
@@ -187,7 +144,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             for line in evaluation.evaluation_line_ids:
                 if not line.is_auto or line.is_section:
                     continue
-                actual = engine.compute_for_department(
+                actual = engine.with_context(
+                    department_evaluation_line=line.id
+                ).compute_for_department(
                     evaluation.department_id,
                     line.department_kpi_line_id,
                     evaluation.start_date,
@@ -278,6 +237,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "target_type": "value",
                             "direction": "higher_better",
                             "target": 0.0,
+                            "unit_label": "",
                             "weight": 0.0,
                             "is_auto": False,
                             "data_source": "manual",
@@ -296,7 +256,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "kpi_type": line.kpi_type,
                         "target_type": line.target_type,
                         "direction": line.direction,
-                        "target": line.target,
+                        "target": 100.0
+                        if line.data_source == "child_kpi_average" and not line.target
+                        else line.target,
+                        "unit_label": line.unit_label
+                        or ("điểm" if line.data_source == "child_kpi_average" else ""),
                         "weight": line.weight,
                         "is_auto": bool(line.is_auto),
                         "data_source": line.data_source,
@@ -370,7 +334,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             final = float(line.final_score or 0.0)
 
             if target != 0:
-                variance_pct = round((actual - target) / abs(target) * 100, 1)
+                variance_pct = round((actual - target) / abs(target) * 100, 2)
             else:
                 variance_pct = 0.0
 

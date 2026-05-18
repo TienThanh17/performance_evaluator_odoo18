@@ -241,6 +241,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         super.setup();
         this.orm = useService("orm");
         this.actionService = useService("action");
+        this.notification = useService("notification");
 
         // Chart canvas refs
         this.refChartScore = useRef("chartScore");
@@ -259,13 +260,15 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             periodLabel: "",
             totalEmployees: 0,
             avgScore: "0.0",
-            passRate: "0",
+            // passRate: "0",
+            passCount: "0",
             evaluations: [],
             period: "",
             startDate: "",
             endDate: "",
             deadline: "",
             active: true,
+            approvingAll: false,
             chartData: null, // data từ get_report_dashboard_data
         });
 
@@ -305,6 +308,12 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     }
 
     // ── Data loader ───────────────────────────────────────────────────────────
+    get approvableCount() {
+        return this.state.evaluations.filter(
+            (ev) => ev.state === "manager_evaluating",
+        ).length;
+    }
+
     async _loadDashboardData() {
         const record = this.props.record;
         const data = record.data;
@@ -333,7 +342,8 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         if (!evalIds.length) {
             this.state.totalEmployees = 0;
             this.state.avgScore = "0.0";
-            this.state.passRate = "0";
+            // this.state.passRate = "0";
+            this.state.passCount = "0";
             this.state.evaluations = [];
             this.state.chartData = null;
             return;
@@ -365,9 +375,10 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
         this.state.totalEmployees = total;
         this.state.avgScore = total ? (scoreSum / total).toFixed(2) : "0.0";
-        this.state.passRate = total
-            ? Math.round((passCount / total) * 100).toString()
-            : "0";
+        // this.state.passRate = total
+        //     ? Math.round((passCount / total) * 100).toString()
+        //     : "0";
+        this.state.passCount = passCount;
         this.state.evaluations = evaluations;
 
         // Lấy chart data từ Python
@@ -401,7 +412,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         this._renderQualitativeCharts(d.qualitative_charts || []);
     }
 
-    // ── Chart Score: Performance Score per Employee — bar ─────────────────────
+    // ── Chart Score: Individual KPI Score per Employee — bar ─────────────────────
     _chartScoreConfig(employees) {
         const names = employees.map((e) => e.name);
         const scores = employees.map((e) => e.score);
@@ -414,7 +425,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                 labels: names,
                 datasets: [
                     {
-                        label: "Performance Score",
+                        label: _t("Individual KPI Score"),
                         data: scores,
                         backgroundColor: scores.map((s) =>
                             s >= 9
@@ -443,7 +454,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                         max: 10, // Tăng max lên 11 (hoặc 10.5) để đường kẻ 10 không bị sát mép trên cùng
                         title: {
                             display: true,
-                            text: _t("Performance Score"),
+                            text: _t("Individual KPI Score"),
                             font: { size: 11 },
                         },
                         grid: { color: "rgba(0,0,0,0.05)" },
@@ -839,6 +850,37 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             [reportId],
         );
         if (action) this.actionService.doAction(action);
+    }
+
+    async approveAllEvaluations() {
+        const evalIds = this.state.evaluations
+            .filter((ev) => ev.state === "manager_evaluating")
+            .map((ev) => ev.id);
+
+        if (!evalIds.length || this.state.approvingAll) return;
+
+        this.state.approvingAll = true;
+        try {
+            await this.orm.call(
+                "hr.performance.evaluation",
+                "action_approve",
+                [evalIds],
+            );
+            await this.props.record.load();
+            await this._loadDashboardData();
+            this.notification.add(_t("All manager evaluations were approved."), {
+                type: "success",
+            });
+        } catch (error) {
+            this.notification.add(
+                error?.data?.message ||
+                    error?.message ||
+                    _t("Could not approve evaluations."),
+                { type: "danger" },
+            );
+        } finally {
+            this.state.approvingAll = false;
+        }
     }
 
     openEvaluation(evalId) {

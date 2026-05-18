@@ -85,10 +85,6 @@
                                 </field>
                             </page>
                         </notebook>
-                        <div style="text-align:center; margin-top:16px;">
-                            <button name="action_send_email" type="object"
-                                    string="Send Email Notification" class="btn-primary"/>
-                        </div>
                     </sheet>
                     <chatter/>
                 </form>

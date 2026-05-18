@@ -72,7 +72,7 @@
         <div class="metric-icon"><i class="fa fa-globe"/></div>
         <div class="metric-body">
           <div class="metric-label">KPI Công ty</div>
-          <div class="metric-value" t-esc="formatScore(state.data.company.avg_final_score)"/>
+          <div class="metric-value" t-esc="formatScore(state.data.company.dept_kpi_score)"/>
           <div class="metric-sub">/ 100 điểm</div>
         </div>
       </div>
@@ -143,7 +143,7 @@
       <div t-else="" class="empty-state">
         <i class="fa fa-sitemap fa-3x"/>
         <p>Chưa có dữ liệu KPI cho kỳ này.</p>
-        <p>Hãy tạo evaluation từ menu KPI Employee hoặc chọn kỳ khác.</p>
+        <p>Hãy tạo phiếu đánh giá từ menu mẫu KPI Phòng ban hoặc chọn kỳ khác.</p>
       </div>
 
       <!-- ── Detail Panel (bên phải) ── -->
@@ -181,8 +181,8 @@
           <!-- ── Company detail ── -->
           <t t-if="state.selectedNode.type === 'company'">
             <div class="panel-metric">
-              <span class="pm-label">KPI trung bình:</span>
-              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_final_score) + ' / 100'"/>
+              <span class="pm-label">KPI phòng ban:</span>
+              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score) + ' / 100'"/>
             </div>
             <div class="panel-metric">
               <span class="pm-label">Tổng nhân sự:</span>
@@ -201,10 +201,6 @@
 
           <!-- ── Dept detail ── -->
           <t t-elif="state.selectedNode.type === 'dept'">
-            <div class="panel-metric">
-              <span class="pm-label">KPI trung bình NV:</span>
-              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_final_score) + ' / 100'"/>
-            </div>
             <div class="panel-metric">
               <span class="pm-label">KPI phòng ban:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score) + ' / 100'"/>
@@ -297,10 +293,10 @@
             <div class="dept-name" t-esc="dept.name"/>
             <div class="dept-bar-wrap">
               <div class="dept-bar"
-                t-att-style="'width:' + Math.min(100, (dept.avg_final_score || 0) * 10) + '%;'">
+                t-att-style="'width:' + Math.min(100, (dept.dept_kpi_score || 0) * 10) + '%;'">
               </div>
             </div>
-            <div class="dept-score" t-esc="((dept.avg_final_score || 0) * 10).toFixed(1) + '%'"/>
+            <div class="dept-score" t-esc="((dept.dept_kpi_score || 0) * 10).toFixed(1) + '%'"/>
           </div>
         </t>
         <div class="panel-note">* Trọng số đóng góp hardcode — cần cấu hình</div>

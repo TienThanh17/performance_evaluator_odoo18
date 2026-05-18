@@ -77,6 +77,8 @@
                                 <field name="target" readonly="is_employee"/>
                                 <field name="target_type" invisible="kpi_type != 'quantitative'"
                                        readonly="not is_manager and not is_department_manager"/>
+                                <field name="unit_label" invisible="kpi_type != 'quantitative'"
+                                       readonly="not is_manager and not is_department_manager"/>
                                 <field name="direction" invisible="kpi_type != 'quantitative'"
                                        readonly="not is_manager and not is_department_manager"/>
                             </group>
@@ -90,7 +92,7 @@
                              ============================ -->
                         <group string="Scoring" invisible="is_section">
                             <field name="final_rating_badge_class" invisible="1"/>
-                            <field name="final_rating_badge_text" string="Final Rating"
+                            <field name="final_rating_badge_text" string="Score"
                                    widget="badge" readonly="1"
                                    decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
                                    decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
@@ -340,19 +342,33 @@
                             <group colspan="2" class="custom_performance_col">
                                 <field name="performance_visual" nolabel="1" readonly="1"/>
                                 <div class="overall_score_box text-center">
-                                    <div class="score_value font-weight-bold"
-                                         style="font-size: 28px; color: #7c3aed;">
-                                        <field name="final_score" readonly="1"/>
-                                    </div>
-                                    <div class="text-uppercase small fw-bold mb-2"
-                                         style="color: #7c3aed;">Final Score
-                                    </div>
+
                                     <div class="d-flex justify-content-center">
-                                        <field name="final_level" widget="badge"
-                                               decoration-info="final_level == 'excellent'"
-                                               decoration-success="final_level == 'pass'"
-                                               decoration-danger="final_level == 'fail'"
+                                        <field name="performance_level" widget="badge"
+                                               decoration-info="performance_level == 'excellent'"
+                                               decoration-success="performance_level == 'pass'"
+                                               decoration-danger="performance_level == 'fail'"
                                                class="o_custom_level_badge"/>
+                                    </div>
+
+                                    <div class="score_value font-weight-bold d-flex align-items-baseline justify-content-center gap-2 mt-1"
+                                         style="font-size: 24px; color: #7c3aed;">
+
+                                        <label for="performance_score" string="Individual KPI Score"
+                                               class="text-uppercase small fw-bold mb-0 text-nowrap"
+                                               style="color: #7c3aed;"/>
+
+                                        <field name="performance_score" readonly="1" nolabel="1" class="w-auto mb-0"/>
+                                    </div>
+
+                                    <div class="score_value font-weight-bold d-flex align-items-baseline justify-content-center gap-2 mt-4"
+                                         style="font-size: 24px; color: #7c3aed;">
+
+                                        <label for="final_score" string="Final KPI Score"
+                                               class="text-uppercase small fw-bold mb-0 text-nowrap"
+                                               style="color: #7c3aed;"/>
+
+                                        <field name="final_score" readonly="1" nolabel="1" class="w-auto mb-0"/>
                                     </div>
                                 </div>
                             </group>
@@ -413,7 +429,7 @@
                                        context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
                                           decoration-bf="is_section">
-<!--                                        <field name="sequence" widget="handle" />-->
+                                        <!--                                        <field name="sequence" widget="handle" />-->
                                         <field name="is_section" column_invisible="1"/>
                                         <field name="is_auto" column_invisible="1"/>
 
@@ -425,9 +441,16 @@
                                                invisible="is_section"
                                                optional="show"/>
 
+                                        <field name="parent_dept_evaluation_line_id"
+                                               invisible="is_section"
+                                               optional="show"/>
+
                                         <field name="kpi_type" invisible="is_section"
                                                readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
-                                        <field name="target_type" optional="show"
+                                        <field name="target_type" optional="hide"
+                                               invisible="is_section or kpi_type != 'quantitative'"
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
+                                        <field name="unit_label" optional="show"
                                                invisible="is_section or kpi_type != 'quantitative'"
                                                readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="data_source" optional="hide"
@@ -486,10 +509,11 @@
                                                invisible="is_section or kpi_type != 'score'"
                                                readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager"/>
 
-                                        <field name="weight" invisible="is_section" readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
+                                        <field name="weight" invisible="is_section"
+                                               readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"/>
                                         <field name="manager_edited" column_invisible="1"/>
                                         <field name="final_rating_badge_class" column_invisible="1"/>
-                                        <field name="final_rating_badge_text" readonly="1"
+                                        <field name="final_rating_badge_text" readonly="1" string="Score"
                                                widget="badge"
                                                decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
                                                decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"

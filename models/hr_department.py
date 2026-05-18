@@ -22,15 +22,16 @@ class HrDepartment(models.Model):
     #     groups="base.group_no_one",
     # )
 
-    # ── MỚI: avg_final_score — trung bình final_score cá nhân của phòng ban ──
-    # Không store=True vì đây là summary realtime, không cần lưu DB.
-    # Dùng để BGĐ so sánh tổng thể giữa các phòng ban.
-    avg_final_score = fields.Float(
-        string="Average Final Score",
-        compute="_compute_avg_final_score",
-        help="Average final_score of all employees in this department "
-        "whose evaluations are in completed state. "
-        "Used to compare overall performance across departments.",
+    dept_kpi_score = fields.Float(
+        string="Department KPI Score",
+        compute="_compute_dept_kpi_score",
+        help="Latest department KPI score from department performance evaluations.",
+    )
+
+    department_evaluation_ids = fields.One2many(
+        "hr.department.performance.evaluation",
+        "department_id",
+        string="Department Evaluations",
     )
 
     # def _compute_department_score_custom(self):
@@ -51,29 +52,39 @@ class HrDepartment(models.Model):
     #             rec.department_score = 0.0
     #             rec.department_level = False
 
-    @api.depends_context("company")
-    def _compute_avg_final_score(self):
-        """Tính trung bình final_score của tất cả nhân viên trong phòng ban
-        có evaluation ở trạng thái 'completed' và final_score > 0.
-
-        Không lọc theo kỳ cụ thể — lấy tất cả completed evaluations
-        để phản ánh toàn bộ lịch sử đánh giá.
-        """
+    @api.depends(
+        "department_evaluation_ids.dept_kpi_score",
+        "department_evaluation_ids.end_date",
+        "department_evaluation_ids.start_date",
+        "department_evaluation_ids.state",
+    )
+    def _compute_dept_kpi_score(self):
         for dept in self:
-            # Lấy tất cả evaluations completed của nhân viên trong phòng
-            # State hợp lệ của hr.performance.evaluation: 'completed' (không có 'approved')
-            evals = (
-                self.env["hr.performance.evaluation"]
-                .sudo()
-                .search(
-                    [
-                        ("employee_id.department_id", "=", dept.id),
-                        ("state", "=", "completed"),
-                        ("final_score", ">", 0),
-                    ]
-                )
+            evaluation = self.env["hr.department.performance.evaluation"].search(
+                [
+                    ("department_id", "=", dept.id),
+                    ("state", "!=", "cancel"),
+                ],
+                order="end_date desc, start_date desc, id desc",
+                limit=1,
             )
-            if evals:
-                dept.avg_final_score = sum(evals.mapped("final_score")) / len(evals)
-            else:
-                dept.avg_final_score = 0.0
+            dept.dept_kpi_score = (
+                evaluation.get_dept_kpi_score() if evaluation else 0.0
+            )
+
+    def action_department_score_view(self):
+        """Open department KPI evaluations related to the current department."""
+        self.ensure_one()
+        return {
+            "name": "Department KPI Score",
+            "domain": [("department_id", "=", self.id)],
+            "res_model": "hr.department.performance.evaluation",
+            "type": "ir.actions.act_window",
+            "view_id": False,
+            "view_mode": "list,form",
+            "help": """<p class="oe_view_nocontent_create">
+                        Click to create a new department performance evaluation.
+                       </p>""",
+            "limit": 80,
+            "context": {"default_department_id": self.id},
+        }

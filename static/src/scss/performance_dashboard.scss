@@ -482,6 +482,38 @@ $dept-shadow-hover: 0 6px 24px rgba(3, 103, 176, 0.18);
                 color: #111827;
                 margin: 0;
             }
+
+            .pd-btn-approve-all {
+                height: 34px;
+                padding: 0 14px;
+                border: none;
+                border-radius: 8px;
+                background: #22c55e;
+                color: #fff;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-size: 13px;
+                font-weight: 700;
+                white-space: nowrap;
+                cursor: pointer;
+                transition: background .2s, box-shadow .2s, transform .2s;
+
+                &:hover:not(:disabled) {
+                    background: #16a34a;
+                    box-shadow: 0 4px 10px rgba(34, 197, 94, .22);
+                    transform: translateY(-1px);
+                }
+
+                &:disabled {
+                    background: #d1d5db;
+                    color: #6b7280;
+                    cursor: not-allowed;
+                    box-shadow: none;
+                    transform: none;
+                }
+            }
         }
 
         table.pd-table {
@@ -640,6 +672,18 @@ $dept-shadow-hover: 0 6px 24px rgba(3, 103, 176, 0.18);
                 background: #e0e7ff;
                 color: #3b5bdb;
             }
+        }
+
+        .pd-manager-eval-status {
+            color: $dept-amber;
+        }
+
+        .pd-completed-status {
+            color: $dept-green-light;
+        }
+
+        .pd-cancel-status {
+            color: $dept-red;
         }
 
         .pd-btn-attention {

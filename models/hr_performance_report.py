@@ -115,6 +115,7 @@ class HrPerformanceReport(models.Model):
                                 "target_type": line.target_type,
                                 "direction": line.direction,
                                 "weight": line.weight,
+                                "unit_label": line.unit_label,
                                 "is_auto": line.is_auto,
                                 "data_source": line.data_source,
                                 "is_section": line.is_section,
@@ -123,27 +124,6 @@ class HrPerformanceReport(models.Model):
 
                     # 4. Compute if auto
                     new_eval.action_compute_auto_kpi()
-
-    def action_send_email(self):
-        # Ensure the template exists
-        mail_template = self.env.ref(
-            "custom_adecsol_hr_performance_evaluator.email_template_evaluation_alert",
-            raise_if_not_found=False,
-        )
-        if mail_template:
-            for employee in self.employee_id:
-                # Create a specific context for the employee
-                ctx = {
-                    "default_model": "hr.performance.report",
-                    "default_res_id": self.id,
-                    "default_use_template": True,
-                    "default_template_id": mail_template.id,
-                    "force_send": True,
-                    "email_to": employee.work_email,
-                    "employee_name": employee.name,
-                }
-                # Send the email with the specific context
-                mail_template.with_context(ctx).send_mail(self.id, force_send=True)
 
     @api.depends("employee_id")
     def _compute_email_to(self):

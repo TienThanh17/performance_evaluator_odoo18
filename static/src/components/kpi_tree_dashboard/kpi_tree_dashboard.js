@@ -62,7 +62,7 @@ export class KpiTreeDashboard extends Component {
         // Company node
         if (type === "company") {
             console.log("d.company", d.company);
-            return Math.round((d.company.avg_final_score || 0) * 10 * 10) / 10;
+            return Math.round((d.company.dept_kpi_score || 0) * 10 * 10) / 10;
         }
 
         // Dept node
@@ -70,7 +70,7 @@ export class KpiTreeDashboard extends Component {
             const s =
                 this.state.metric === "dept"
                     ? nodeData.dept_kpi_score || 0
-                    : nodeData.avg_final_score || 0;
+                    : nodeData.dept_kpi_score || 0;
             return Math.round(s * 10 * 10) / 10;
         }
         // Emp node
@@ -81,6 +81,7 @@ export class KpiTreeDashboard extends Component {
                     : this.state.metric === "dept"
                       ? nodeData.dept_kpi_score || 0
                       : nodeData.final_score || 0;
+            // scale 10
             return Math.round(s * 10 * 10) / 10;
         }
         return 0;
@@ -417,11 +418,82 @@ export class KpiTreeDashboard extends Component {
         if (!treeData) return;
 
         // Khởi tạo kích thước layout
-        const nodeWidth = 140;
-        const nodeHeight = 120;
         const root = d3.hierarchy(treeData);
 
-        const treeLayout = d3.tree().nodeSize([nodeWidth, nodeHeight]);
+        // Hàm tính card width — nhận d object (dùng chung cho cả nodeSize lẫn vẽ node)
+        const ORG_PAD = 10;
+        const ORG_ICON_W = 44;
+        const getOrgCardWidth = (d) => {
+            const name = d.data
+                ? d.data.name || d.data.rawData?.name || ""
+                : d || "";
+            return Math.max(
+                160,
+                Math.min(260, name.length * 7 + ORG_ICON_W + ORG_PAD * 2 + 16),
+            );
+        };
+
+        const AVT = 32,
+            PAD = 10,
+            GAP = 8;
+        const getEmpCardWidth = (d) => {
+            const name = d.data
+                ? d.data.rawData?.name || d.data.name || ""
+                : d || "";
+            return Math.max(
+                140,
+                Math.min(220, name.length * 6.5 + AVT + GAP + PAD * 2 + 20),
+            );
+        };
+
+        // Tính max width để nodeSize không bị chật
+        // Tính max emp card width để nodeSize vừa đủ cho emp layer
+        let maxEmpW = 140;
+        root.each((d) => {
+            if (d.data._type === "emp") {
+                maxEmpW = Math.max(maxEmpW, getEmpCardWidth(d));
+            }
+        });
+
+        const empSlotW = maxEmpW + 20; // khoảng cách tâm-tâm giữa các emp
+        const nodeHeight = 150;
+        const MIN_NODE_GAP = 24;
+        const DEPT_GROUP_GAP = 36;
+        const getNodeCardWidth = (d) =>
+            d.data._type === "emp" ? getEmpCardWidth(d) : getOrgCardWidth(d);
+        const getMinSeparation = (a, b, gap = MIN_NODE_GAP) =>
+            (getNodeCardWidth(a) / 2 + getNodeCardWidth(b) / 2 + gap) /
+            empSlotW;
+
+        const treeLayout = d3
+            .tree()
+            .nodeSize([empSlotW, nodeHeight])
+            .separation((a, b) => {
+                // Emp cùng dept: 1 slot; emp khác dept chỉ nới vừa đủ theo width card.
+                if (a.data._type === "emp" && b.data._type === "emp") {
+                    const base = a.parent === b.parent ? 1 : 1.2;
+                    return Math.max(
+                        base,
+                        getMinSeparation(
+                            a,
+                            b,
+                            a.parent === b.parent ? MIN_NODE_GAP : DEPT_GROUP_GAP,
+                        ),
+                    );
+                }
+                if (a.data._type === "dept" && b.data._type === "dept") {
+                    const bothExpanded = Boolean(a.children && b.children);
+                    return Math.max(
+                        bothExpanded ? 1.15 : 1,
+                        getMinSeparation(
+                            a,
+                            b,
+                            bothExpanded ? DEPT_GROUP_GAP : MIN_NODE_GAP,
+                        ),
+                    );
+                }
+                return Math.max(1, getMinSeparation(a, b));
+            });
         treeLayout(root);
 
         // Tính toán bounding box để canvas luôn fit hoặc scroll
@@ -437,10 +509,10 @@ export class KpiTreeDashboard extends Component {
         const svg = d3
             .select(container)
             .append("svg")
-            .attr("width", x1 - x0 + nodeWidth * 2)
+            .attr("width", x1 - x0 + empSlotW * 2)
             .attr("height", y1 + nodeHeight * 2)
             .append("g")
-            .attr("transform", `translate(${-(x0 - nodeWidth)}, 60)`);
+            .attr("transform", `translate(${-(x0 - empSlotW)}, 60)`);
 
         // 1. Vẽ Link (Đường nối)
         const link = svg
@@ -484,13 +556,31 @@ export class KpiTreeDashboard extends Component {
             });
 
         // 3. Render nội dung thẻ Node (Rect + Text)
-        node.append("rect")
-        .attr("class", "kpi-card-rect")
-            .attr("x", -56)
-            .attr("y", -26)
-            .attr("width", 112)
-            .attr("height", 52)
-            .attr("rx", (d) => (d.data._type === "emp" ? 26 : 8)) // Cong tròn cho nhân viên
+        // === COMPANY & DEPT NODES ===
+        const orgNodes = node.filter((d) => d.data._type !== "emp");
+
+        // Card rect (company/dept)
+        // Dynamic width cho dept/company theo tên
+        // const ORG_PAD = 10;
+        // const ORG_ICON_W = 44; // vùng icon bên trái (circle + gap)
+        // const getOrgCardWidth = (d) => {
+        //     const name = d.data.name || d.data.rawData?.name || "";
+        //     return Math.max(
+        //         160,
+        //         Math.min(260, name.length * 7 + ORG_ICON_W + ORG_PAD * 2 + 16),
+        //     );
+        // };
+        const orgCardH = 72;
+
+        // Card rect (company/dept)
+        orgNodes
+            .append("rect")
+            .attr("class", "kpi-card-rect")
+            .attr("x", (d) => -getOrgCardWidth(d) / 2)
+            .attr("y", -orgCardH / 2)
+            .attr("width", (d) => getOrgCardWidth(d))
+            .attr("height", orgCardH)
+            .attr("rx", 10)
             .attr("fill", (d) =>
                 this.levelBg(this.nodeScore(d.data.rawData, d.data._type)),
             )
@@ -499,68 +589,188 @@ export class KpiTreeDashboard extends Component {
             )
             .attr("stroke-width", 1.5);
 
-        // node.append("text")
-        //     .attr("dy", "-0.2em")
-        //     .attr("text-anchor", "middle")
-        //     .attr("font-size", 16)
-        //     .attr("font-weight", 700)
-        //     .attr("fill", d => this.levelColor(this.nodeScore(d.data.rawData)))
-        //     .text(d => `${this.nodeScore(d.data.rawData)}%`);
+        // Icon background circle (left side)
+        orgNodes
+            .append("circle")
+            .attr("cx", (d) => -getOrgCardWidth(d) / 2 + ORG_PAD + 18)
+            .attr("cy", 0)
+            .attr("r", 18)
+            .attr("fill", (d) =>
+                this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
+            )
+            .attr("opacity", 0.12);
 
-        // node.append("text")
-        //     .attr("dy", "1.2em")
-        //     .attr("text-anchor", "middle")
-        //     .attr("font-size", 10)
-        //     .attr("fill", d => this.levelColor(this.nodeScore(d.data.rawData)))
-        //     .text(d => {
-        //         const name = d.data.name;
-        //         return name.length > 12 ? name.slice(0, 12) + '…' : name;
-        //     });
-
-        // Text Điểm số
-        node.append("text")
-            .attr("class", "kpi-score-text")
-            .attr("dy", "-0.2em")
+        // Icon symbol
+        orgNodes
+            .append("text")
+            .attr("x", (d) => -getOrgCardWidth(d) / 2 + ORG_PAD + 18)
+            .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
-            .attr("font-size", "16px") // Thêm px để chắc chắn Odoo không override
-            .attr("font-weight", 700)
+            .attr("font-family", "FontAwesome")
+            .attr("font-size", "16px")
+            .attr("fill", (d) =>
+                this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
+            )
+            .text((d) => (d.data._type === "company" ? "\uf0ac" : "\uf1ad"));
+
+        // Tên node (trên, bên phải icon)
+        const orgTextX = (d) => -getOrgCardWidth(d) / 2 + ORG_PAD + ORG_ICON_W;
+        orgNodes
+            .append("text")
+            .attr("class", "kpi-name-text")
+            .attr("x", orgTextX)
+            .attr("y", -10)
+            .attr("text-anchor", "start")
+            .attr("font-size", "14px")
+            .attr("font-weight", 600)
+            .attr("fill", "#6b7280")
+            .text((d) => {
+                const name = d.data.name || d.data.rawData?.name || "—";
+                // Tính max chars dựa trên width thực tế của text area
+                const textAreaW = getOrgCardWidth(d) - ORG_ICON_W - ORG_PAD * 2;
+                const maxChars = Math.floor(textAreaW / 7);
+                return name.length > maxChars
+                    ? name.slice(0, maxChars) + "…"
+                    : name;
+            });
+
+        // Điểm (dưới, bên phải icon)
+        orgNodes
+            .append("text")
+            .attr("class", "kpi-score-text")
+            .attr("x", orgTextX)
+            .attr("y", 14)
+            .attr("text-anchor", "start")
+            .attr("font-size", "18px")
+            .attr("font-weight", 800)
             .attr("fill", (d) =>
                 this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
             )
             .text((d) => {
                 const score = this.nodeScore(d.data.rawData, d.data._type);
-                console.log("score", score);
-                // Đảm bảo không render chữ 'undefined%' hay 'NaN%'
                 return score != null ? `${score}%` : "—";
             });
 
-        // Text Tên
-        node.append("text")
-            .attr("class", "kpi-name-text")
-            .attr("dy", "1.2em")
-            .attr("text-anchor", "middle")
-            .attr("font-size", "11px")
-            // UX Típ: Bạn có thể đổi fill thành "#333" (xám đậm) để chữ dễ đọc hơn trên nền màu
-            .attr("fill", (d) =>
-                d.data._type === "emp"
-                    ? "#4b5563"
-                    : this.levelColor(
-                          this.nodeScore(d.data.rawData, d.data._type),
-                      ),
-            )
-            .text((d) => {
-                // FALLBACK THẦN THÁNH: Ưu tiên name, nếu không có thì tìm display_name, cuối cùng là Unknown
-                const name =
-                    d.data.name ||
-                    d.data.rawData?.name ||
-                    d.data.rawData?.display_name ||
-                    "Chưa có tên";
+        // === EMPLOYEE NODES ===
+        const empNodes = node.filter((d) => d.data._type === "emp");
 
-                // Safe check length
-                return name.length > 12 ? name.slice(0, 12) + "…" : name;
+        // Layout: avatar trái (32px) + padding + text phải
+        // Card width động theo tên
+        // const AVT = 32; // avatar size
+        // const PAD = 10; // padding trong card
+        // const GAP = 8; // khoảng cách avatar - text
+        // const getEmpCardWidth = (d) => {
+        //     const name = d.data.rawData?.name || d.data.name || "";
+        //     return Math.max(
+        //         140,
+        //         Math.min(220, name.length * 6.5 + AVT + GAP + PAD * 2 + 20),
+        //     );
+        // };
+        const cardH = 60;
+
+        // Card rect
+        empNodes
+            .append("rect")
+            .attr("class", "kpi-card-rect")
+            .attr("x", (d) => -getEmpCardWidth(d) / 2)
+            .attr("y", -cardH / 2)
+            .attr("width", (d) => getEmpCardWidth(d))
+            .attr("height", cardH)
+            .attr("rx", 10)
+            .attr("fill", (d) =>
+                this.levelBg(this.nodeScore(d.data.rawData, d.data._type)),
+            )
+            .attr("stroke", (d) =>
+                this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
+            )
+            .attr("stroke-width", 1.5);
+
+        // Avatar — dùng foreignObject để border-radius hoạt động, không cần clipPath
+        empNodes
+            .append("foreignObject")
+            .attr("x", (d) => -getEmpCardWidth(d) / 2 + PAD)
+            .attr("y", -AVT / 2)
+            .attr("width", AVT)
+            .attr("height", AVT)
+            .append("xhtml:div")
+            .style("width", AVT + "px")
+            .style("height", AVT + "px")
+            .style("border-radius", "6px")
+            .style("overflow", "hidden")
+            .style(
+                "background",
+                (d) =>
+                    this.levelColor(
+                        this.nodeScore(d.data.rawData, d.data._type),
+                    ) + "22",
+            )
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("justify-content", "center")
+            .style("font-size", "10px")
+            .style("font-weight", "700")
+            .style("color", (d) =>
+                this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
+            )
+            .each(function (d) {
+                const avatarUrl = d.data.rawData?.avatar_url;
+                const name = d.data.rawData?.name || d.data.name || "?";
+                const initials = name
+                    .trim()
+                    .split(" ")
+                    .map((p) => p[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase();
+                const div = d3.select(this);
+                if (avatarUrl) {
+                    div.append("xhtml:img")
+                        .attr("src", avatarUrl)
+                        .style("width", AVT + "px")
+                        .style("height", AVT + "px")
+                        .style("object-fit", "cover")
+                        .style("display", "block");
+                } else {
+                    div.text(initials);
+                }
             });
 
-        // 4. Vẽ icon Toggle (+/-) cho Department Node
+        // Text x bắt đầu từ: -cardWidth/2 + PAD + AVT + GAP
+        const textX = (d) => -getEmpCardWidth(d) / 2 + PAD + AVT + GAP;
+
+        // Tên nhân viên (trên)
+        empNodes
+            .append("text")
+            .attr("class", "kpi-name-text")
+            .attr("x", textX)
+            .attr("y", -7)
+            .attr("text-anchor", "start")
+            .attr("font-size", "14px")
+            .attr("font-weight", 600)
+            .attr("fill", "#4b5563")
+            .text((d) => {
+                const name = d.data.rawData?.name || d.data.name || "—";
+                return name.length > 18 ? name.slice(0, 18) + "…" : name;
+            });
+
+        // Điểm (dưới tên)
+        empNodes
+            .append("text")
+            .attr("class", "kpi-score-text")
+            .attr("x", textX)
+            .attr("y", 12)
+            .attr("text-anchor", "start")
+            .attr("font-size", "15px")
+            .attr("font-weight", 800)
+            .attr("fill", (d) =>
+                this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
+            )
+            .text((d) => {
+                const score = this.nodeScore(d.data.rawData, d.data._type);
+                return score != null ? `${score}%` : "—";
+            });
+
+        // ── 4. Vẽ icon Toggle (+/-) cho Department Node ──────────────────────
         const deptNodes = node.filter(
             (d) =>
                 d.data._type === "dept" &&
@@ -570,10 +780,14 @@ export class KpiTreeDashboard extends Component {
         const toggleBtn = deptNodes
             .append("g")
             .attr("class", "kpi-toggle-btn")
-            .attr("transform", "translate(44, -18)")
+            .attr(
+                "transform",
+                (d) =>
+                    `translate(${getOrgCardWidth(d) / 2 - 2}, ${-orgCardH / 2 + 8})`,
+            )
             .on("click", (event, d) => {
                 event.stopPropagation();
-                this.toggleDept(d.data.rawData.id); // Tái sử dụng hàm toggleDept
+                this.toggleDept(d.data.rawData.id);
             });
 
         toggleBtn
@@ -585,10 +799,10 @@ export class KpiTreeDashboard extends Component {
 
         toggleBtn
             .append("text")
-            .attr("dy", "0.3em")
+            .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
             .attr("fill", "white")
-            .attr("font-size", 12)
+            .attr("font-size", 13)
             .attr("font-weight", 700)
             .text((d) => (d.children ? "−" : "+"));
     }

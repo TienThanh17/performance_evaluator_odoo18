@@ -52,6 +52,11 @@ class KPIline(models.Model):
         help="Target value to be achieved for Quantitative KPIs. Use the Target Type to indicate Value or Percentage.",
     )
     target_display = fields.Char(string="Target", compute="_compute_display", store=False)
+    unit_label = fields.Char(
+        string="Unit",
+        default="",
+        help="Display unit for Target/Actual, e.g. %, tasks, days, score.",
+    )
     weight = fields.Float(
         string='Weight',
         default=10.0,
@@ -62,6 +67,18 @@ class KPIline(models.Model):
         string='KPI',
         required=True,
         ondelete='cascade',
+    )
+    parent_dept_kpi_id = fields.Many2one(
+        'hr.department.kpi',
+        string='Parent Department KPI Template',
+        related='kpi_id.department_kpi_id',
+        store=False,
+    )
+    # Thêm trường liên kết giữa Line Nhân viên và Line Phòng ban
+    parent_dept_line_id = fields.Many2one(
+        'hr.department.kpi.line',
+        string='Thuộc chỉ tiêu Phòng ban',
+        # Trường này sẽ được lọc trực tiếp trên giao diện XML bằng thuộc tính parent
     )
     description = fields.Html(
         string="Description",
@@ -123,7 +140,23 @@ class KPIline(models.Model):
                 rec.kpi_type == 'quantitative' and (rec.data_source in special_sources)
             )
 
-    @api.depends('target', 'target_type', 'kpi_type')
+    def _get_default_unit_label(self):
+        self.ensure_one()
+        if self.target_type == 'percentage':
+            return '%'
+        return {
+            'done_task': 'task',
+            'task_on_time': '%',
+            'late_days': 'ngày',
+            'attendance_full': 'ngày',
+        }.get(self.data_source or 'manual', '')
+
+    @api.onchange('target_type', 'data_source')
+    def _onchange_unit_label(self):
+        for rec in self:
+            rec.unit_label = rec._get_default_unit_label()
+
+    @api.depends('target', 'target_type', 'kpi_type', 'unit_label')
     def _compute_display(self):
         for rec in self:
             if rec.display_type or rec.is_section:
@@ -137,7 +170,8 @@ class KPIline(models.Model):
                 # hiển thị 90% thay vì 90.0
                 rec.target_display = f"{(rec.target or 0.0):g}%"
             else:
-                rec.target_display = f"{(rec.target or 0.0):g}"
+                target = f"{(rec.target or 0.0):g}"
+                rec.target_display = f"{target} {rec.unit_label}" if rec.unit_label else target
 
     @api.depends('is_section')
     def _compute_display_type(self):
@@ -151,6 +185,21 @@ class KPIline(models.Model):
                 continue
             if rec.kpi_type == 'quantitative' and (rec.target or 0.0) < 0.0:
                 raise ValidationError("For Quantitative KPI type, Target must be greater than or equal 0.")
+
+    @api.constrains('parent_dept_line_id', 'parent_dept_kpi_id', 'is_section')
+    def _check_parent_dept_line(self):
+        for rec in self:
+            parent_line = rec.parent_dept_line_id
+            if not parent_line:
+                continue
+            if rec.is_section or rec.display_type:
+                raise ValidationError(_("Section lines cannot be linked to department KPI lines."))
+            if parent_line.is_section:
+                raise ValidationError(_("Please select a KPI item, not a department section."))
+            if not rec.parent_dept_kpi_id:
+                raise ValidationError(_("Please select a parent Department KPI Template before linking department KPI lines."))
+            if parent_line.department_kpi_id != rec.parent_dept_kpi_id:
+                raise ValidationError(_("The selected department KPI line must belong to the parent Department KPI Template."))
 
     def write(self, vals):
         # Keep consistency for section rows on update.

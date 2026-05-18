@@ -1,77 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-<t t-name="performance_evaluator.KpiDashboardStandalone">
-<div class="o_kpi_dashboard_page">
+  <t t-name="performance_evaluator.KpiDashboardStandalone">
+    <div class="o_kpi_dashboard_page">
 
       <!-- Selector Bar -->
-  <div class="o_kpi_selector_bar">
-    <div class="o_kpi_selector_left">
-      <i class="fa fa-tachometer o_kpi_selector_icon"/>
-      <span class="o_kpi_selector_title">Individual Performance Dashboard</span>
-    </div>
-    <div class="o_kpi_selector_right">
+      <div class="o_kpi_selector_bar">
+        <div class="o_kpi_selector_left">
+          <i class="fa fa-tachometer o_kpi_selector_icon"/>
+          <span class="o_kpi_selector_title">Individual Performance Dashboard</span>
+        </div>
+        <div class="o_kpi_selector_right">
           <!-- Bộ lọc Department & Employee (Chỉ dành cho Manager) -->
-      <t t-if="state.isManager || state.isHR || state.isAdmin">
+          <t t-if="state.isManager || state.isHR || state.isAdmin">
             <!-- Chọn phòng ban -->
-        <label class="o_kpi_selector_label">Department:</label>
-        <select class="o_kpi_selector_select o_kpi_dept_select" t-on-change="onSelectDepartment">
-          <option t-if="state.isHR || state.isAdmin" value="">All Departments</option>
-          <t t-foreach="state.departments" t-as="dept" t-key="dept.id">
-            <option t-att-value="dept.id"
-                    t-att-selected="dept.id === state.selectedDepartmentId"
-                    t-esc="dept.name"/>
-          </t>
-        </select>
+            <label class="o_kpi_selector_label">Department:</label>
+            <select class="o_kpi_selector_select o_kpi_dept_select" t-on-change="onSelectDepartment">
+              <option t-if="state.isHR || state.isAdmin" value="">All Departments</option>
+              <t t-foreach="state.departments" t-as="dept" t-key="dept.id">
+                <option t-att-value="dept.id" t-att-selected="dept.id === state.selectedDepartmentId" t-esc="dept.name"/>
+              </t>
+            </select>
 
             <!-- Chọn nhân viên (Data đã được lọc) -->
-        <label class="o_kpi_selector_label">Employee:</label>
-        <select class="o_kpi_selector_select o_kpi_employee_select" t-on-change="onSelectEmployee">
-          <t t-foreach="state.filteredEmployees" t-as="emp" t-key="emp.id">
-            <option t-att-value="emp.id"
-                    t-att-selected="emp.id === state.selectedEmployeeId"
-                    t-esc="emp.name"/>
+            <label class="o_kpi_selector_label">Employee:</label>
+            <select class="o_kpi_selector_select o_kpi_employee_select" t-on-change="onSelectEmployee">
+              <t t-foreach="state.filteredEmployees" t-as="emp" t-key="emp.id">
+                <option t-att-value="emp.id" t-att-selected="emp.id === state.selectedEmployeeId" t-esc="emp.name"/>
+              </t>
+            </select>
           </t>
-        </select>
-      </t>
 
           <!-- Chọn kỳ đánh giá (Hiển thị nếu nhân viên đó có dữ liệu) -->
-      <t t-if="state.evaluations.length">
-        <label class="o_kpi_selector_label">Evaluation:</label>
-        <select class="o_kpi_selector_select o_kpi_eval_select" t-on-change="onSelectEval">
-          <t t-foreach="state.evaluations" t-as="ev" t-key="ev.id">
-            <option t-att-value="ev.id"
-                    t-att-selected="ev.id === state.selectedEvaluationId"
-                    t-esc="evalOptionLabel(ev)"/>
+          <t t-if="state.evaluations.length">
+            <label class="o_kpi_selector_label">Evaluation:</label>
+            <select class="o_kpi_selector_select o_kpi_eval_select" t-on-change="onSelectEval">
+              <t t-foreach="state.evaluations" t-as="ev" t-key="ev.id">
+                <option t-att-value="ev.id" t-att-selected="ev.id === state.selectedEvaluationId" t-esc="evalOptionLabel(ev)"/>
+              </t>
+            </select>
           </t>
-        </select>
-      </t>
-    </div>
-  </div>
+        </div>
+      </div>
 
       <!-- Loading -->
-  <div t-if="state.phase === 'evals' || state.phase === 'dashboard'" class="o_kpi_loading">
-    <div class="o_kpi_spinner"/>
-    <p>Loading…</p>
-  </div>
+      <div t-if="state.phase === 'evals' || state.phase === 'dashboard'" class="o_kpi_loading">
+        <div class="o_kpi_spinner"/>
+        <p>Loading…</p>
+      </div>
 
       <!-- Error -->
-  <div t-elif="state.phase === 'error'" class="o_kpi_error_state">
-    <i class="fa fa-exclamation-triangle fa-2x"/>
-    <p t-esc="state.errorMsg"/>
-  </div>
+      <div t-elif="state.phase === 'error'" class="o_kpi_error_state">
+        <i class="fa fa-exclamation-triangle fa-2x"/>
+        <p t-esc="state.errorMsg"/>
+      </div>
 
       <!-- Empty state -->
-  <div t-elif="!state.data" class="o_kpi_empty_state">
-    <i class="fa fa-bar-chart fa-3x"/>
-    <p>No performance evaluations found.</p>
-  </div>
+      <div t-elif="!state.data" class="o_kpi_empty_state">
+        <i class="fa fa-bar-chart fa-3x"/>
+        <p>No performance evaluations found.</p>
+      </div>
 
       <!-- Dashboard body -->
-  <div t-else="" class="o_kpi_dashboard">
+      <div t-else="" class="o_kpi_dashboard">
 
         <!-- Header -->
-    <div class="o_kpi_header">
+        <!-- <div class="o_kpi_header">
       <div class="o_kpi_header_left">
         <h2 class="o_kpi_title">
           <t t-esc="state.data.employee_name"/>
@@ -82,36 +76,92 @@
           <t t-esc="state.data.start_date"/> → <t t-esc="state.data.end_date"/>
         </p>
       </div>
-      <div class="o_kpi_score_card">
-        <div class="o_kpi_score_ring" t-att-style="scoreRingStyle">
-          <div class="o_kpi_score_inner">
-            <span class="o_kpi_score_value" t-esc="scoreText"/>
-          </div>
-        </div>
-        <div class="o_kpi_score_meta">
-          <span class="o_kpi_score_label">KPI Score</span>
-          <span t-att-class="levelClass" t-esc="levelLabel"/>
-        </div>
-      </div>
 
-      <!-- Final Score card — hiển thị điểm pha trộn cá nhân + phòng ban -->
-      <div class="o_kpi_score_card" style="margin-left: 16px;">
-        <div class="o_kpi_score_ring"
-             style="background: conic-gradient(#7c3aed 0%, #e5e7eb 0);"
-             t-att-style="'background: conic-gradient(#7c3aed ' + Math.min((state.data.final_score || 0) * 10, 100) + '%, #e5e7eb 0)'">
-          <div class="o_kpi_score_inner">
-            <span class="o_kpi_score_value" style="color:#7c3aed;" t-esc="finalScoreText"/>
+      <div class="o_kpi_formula_cards">
+        <div class="o_kpi_summary_card o_kpi_summary_card_input">
+          <div class="o_kpi_summary_label">Individual KPI</div>
+          <div class="o_kpi_summary_score">
+            <span t-esc="scoreText"/>
           </div>
+          <span t-att-class="levelClass" t-esc="levelLabel"/>
+          <div class="o_kpi_summary_weight" t-esc="'Weight: ' + individualWeightText"/>
         </div>
-        <div class="o_kpi_score_meta">
-          <span class="o_kpi_score_label">Final Score</span>
+
+        <div class="o_kpi_formula_operator">+</div>
+
+        <div class="o_kpi_summary_card o_kpi_summary_card_input" t-att-title="deptTooltip">
+          <div class="o_kpi_summary_label">Department KPI</div>
+          <div t-att-class="'o_kpi_summary_score ' + (state.data.has_dept_evaluation ? '' : 'o_kpi_summary_score_na')">
+            <span t-esc="deptScoreText"/>
+          </div>
+          <span t-att-class="deptStatusClass" t-esc="deptStatusLabel"/>
+          <div class="o_kpi_summary_weight" t-esc="'Weight: ' + deptWeightText"/>
+        </div>
+
+        <div class="o_kpi_formula_operator o_kpi_formula_operator_result">=</div>
+
+        <div class="o_kpi_summary_card o_kpi_summary_card_final">
+          <div class="o_kpi_summary_label">Final KPI Score</div>
+          <div class="o_kpi_summary_score">
+            <span t-esc="finalScoreText"/>
+          </div>
           <span t-att-class="finalLevelClass" t-esc="finalLevelLabel"/>
+          <div class="o_kpi_summary_formula" t-esc="formulaText"/>
         </div>
       </div>
-    </div>
+    </div> -->
+
+        <div class="o_kpi_header_cards">
+
+          <div class="o_kpi_summary_card o_kpi_summary_card_profile">
+            <h2 class="o_kpi_title">
+              <t t-esc="state.data.employee_name"/>
+              <span class="o_kpi_period_badge" t-esc="periodLabel(state.data.period)"/>
+            </h2>
+            <p class="o_kpi_dates">
+              <i class="fa fa-calendar me-1"/>
+              <t t-esc="state.data.start_date"/>
+ →              <t t-esc="state.data.end_date"/>
+            </p>
+          </div>
+
+          <div class="o_kpi_formula_operator"> </div>
+
+          <div class="o_kpi_summary_card o_kpi_summary_card_input">
+            <div class="o_kpi_summary_label">Individual KPI</div>
+            <div class="o_kpi_summary_score">
+              <span t-esc="scoreText"/>
+            </div>
+            <span t-att-class="levelClass" t-esc="levelLabel"/>
+            <div class="o_kpi_summary_weight" t-esc="'Weight: ' + individualWeightText"/>
+          </div>
+
+          <div class="o_kpi_formula_operator">+</div>
+
+          <div class="o_kpi_summary_card o_kpi_summary_card_input" t-att-title="deptTooltip">
+            <div class="o_kpi_summary_label">Department KPI</div>
+            <div t-att-class="'o_kpi_summary_score ' + (state.data.has_dept_evaluation ? '' : 'o_kpi_summary_score_na')">
+              <span t-esc="deptScoreText"/>
+            </div>
+            <!-- <span t-att-class="deptStatusClass" t-esc="deptStatusLabel"/> -->
+            <div class="o_kpi_summary_weight" t-esc="'Weight: ' + deptWeightText"/>
+          </div>
+
+          <div class="o_kpi_formula_operator o_kpi_formula_operator_result">=</div>
+
+          <div class="o_kpi_summary_card o_kpi_summary_card_final">
+            <div class="o_kpi_summary_label">Final KPI Score</div>
+            <div class="o_kpi_summary_score">
+              <span t-esc="finalScoreText"/>
+            </div>
+            <!-- <span t-att-class="finalLevelClass" t-esc="finalLevelLabel"/> -->
+            <div class="o_kpi_summary_formula" t-esc="formulaText"/>
+          </div>
+
+        </div>
 
         <!-- Row 1: Task Completion + Punctuality -->
-    <div class="o_kpi_row o_kpi_row_2col">
+        <div class="o_kpi_row o_kpi_row_2col">
 
           <!--      <div class="o_kpi_card o_kpi_chart_card">-->
           <!--        <div class="o_kpi_card_header">-->
@@ -120,8 +170,7 @@
           <!--          <span class="o_kpi_target_badge">Target: <b t-esc="state.data.task_completion.target
           + '%'"/></span>-->
           <!--        </div>-->
-          <!--        <div class="o_kpi_chart_container"
-          t-if="state.data.task_completion.labels.length">-->
+          <!--        <div class="o_kpi_chart_container" t-if="state.data.task_completion.labels.length">-->
           <!--          <canvas t-ref="taskChart" height="160"/>-->
           <!--        </div>-->
           <!--        <p t-else="" class="o_kpi_chart_note o_kpi_muted">No task data for this
@@ -129,141 +178,156 @@
           <!--        <p class="o_kpi_chart_note">% of tasks completed on time per day</p>-->
           <!--      </div>-->
 
-        <div class="o_kpi_card o_kpi_chart_card">
-        <div class="o_kpi_card_header">
-          <span class="o_kpi_card_title"><i class="fa fa-check-square-o"/> Task Completion</span>
-          <span class="o_kpi_target_badge">Total Task: <b t-esc="state.data.done_tasks_by_day.total"/></span>
-        </div>
-        <div class="o_kpi_chart_container" t-if="state.data.done_tasks_by_day.labels.length">
-          <canvas t-ref="doneTasksChart" height="160"/>
-        </div>
-        <p t-else="" class="o_kpi_chart_note o_kpi_muted">No task data for this period.</p>
-        <p class="o_kpi_chart_note">Cumulative tasks completed vs Target</p>
-      </div>
+          <div class="o_kpi_card o_kpi_chart_card">
+            <div class="o_kpi_card_header">
+              <span class="o_kpi_card_title">
+                <i class="fa fa-check-square-o"/>
+ Task Completion</span>
+              <span class="o_kpi_target_badge">Total Task: <b t-esc="state.data.done_tasks_by_day.total"/>
+              </span>
+            </div>
+            <div class="o_kpi_chart_container" t-if="state.data.done_tasks_by_day.labels.length">
+              <canvas t-ref="doneTasksChart" height="160"/>
+            </div>
+            <p t-else="" class="o_kpi_chart_note o_kpi_muted">No task data for this period.</p>
+            <p class="o_kpi_chart_note">Cumulative tasks completed vs Target</p>
+          </div>
 
-      <div class="o_kpi_card o_kpi_chart_card">
-        <div class="o_kpi_card_header">
-          <span class="o_kpi_card_title"><i class="fa fa-clock-o"/> Punctuality Log</span>
-          <span class="o_kpi_target_badge o_kpi_target_warn">
+          <div class="o_kpi_card o_kpi_chart_card">
+            <div class="o_kpi_card_header">
+              <span class="o_kpi_card_title">
+                <i class="fa fa-clock-o"/>
+ Punctuality Log</span>
+              <span class="o_kpi_target_badge o_kpi_target_warn">
             Start: <b t-esc="formatHour(state.data.punctuality_log.expected_hour)"/>
-          </span>
-        </div>
-        <div class="o_kpi_chart_container" t-if="state.data.punctuality_log.labels.length">
-          <canvas t-ref="punctualityChart" height="160"/>
-        </div>
-        <p t-else="" class="o_kpi_chart_note o_kpi_muted">No attendance data for this period.</p>
-        <p class="o_kpi_chart_note">First check-in time per day (h)</p>
-      </div>
+              </span>
+            </div>
+            <div class="o_kpi_chart_container" t-if="state.data.punctuality_log.labels.length">
+              <canvas t-ref="punctualityChart" height="160"/>
+            </div>
+            <p t-else="" class="o_kpi_chart_note o_kpi_muted">No attendance data for this period.</p>
+            <p class="o_kpi_chart_note">First check-in time per day (h)</p>
+          </div>
 
-    </div>
+        </div>
 
         <!-- Row 2: Spider Web + Attendance Overview -->
-    <div class="o_kpi_row" style="display: grid; grid-template-columns: 7fr 3fr; gap: 20px;">
+        <div class="o_kpi_row" style="display: grid; grid-template-columns: 7fr 3fr; gap: 20px;">
 
           <!-- Competency Spider Web -->
-      <div class="o_kpi_card o_kpi_spider_card" t-if="state.data.spider_web.labels.length">
-        <div class="o_kpi_card_header">
-          <span class="o_kpi_card_title"><i class="fa fa-bullseye"/> Competency Chart</span>
-        </div>
-        <div class="o_kpi_spider_body">
-          <div class="o_kpi_chart_container o_kpi_chart_radar">
-            <canvas t-ref="spiderChart"/>
-          </div>
-          <div class="o_kpi_spider_legend">
-            <t t-foreach="state.data.spider_web.labels" t-as="label" t-key="label">
-              <div class="o_kpi_spider_legend_item">
-                <span class="o_kpi_spider_legend_label" t-esc="label"/>
-                <span class="o_kpi_spider_legend_score"
-                      t-esc="state.data.spider_web.scores[label_index] + ' / 10'"/>
+          <div class="o_kpi_card o_kpi_spider_card" t-if="state.data.spider_web.labels.length">
+            <div class="o_kpi_card_header">
+              <span class="o_kpi_card_title">
+                <i class="fa fa-bullseye"/>
+ Competency Chart</span>
+            </div>
+            <div class="o_kpi_spider_body">
+              <div class="o_kpi_chart_container o_kpi_chart_radar">
+                <canvas t-ref="spiderChart"/>
               </div>
-            </t>
+              <div class="o_kpi_spider_legend">
+                <t t-foreach="state.data.spider_web.labels" t-as="label" t-key="label">
+                  <div class="o_kpi_spider_legend_item">
+                    <span class="o_kpi_spider_legend_label" t-esc="label"/>
+                    <span class="o_kpi_spider_legend_score" t-esc="state.data.spider_web.scores[label_index] + ' / 10'"/>
+                  </div>
+                </t>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="o_kpi_card o_kpi_spider_card" t-else="">
-        <p class="o_kpi_empty">No competency data available.</p>
-      </div>
+          <div class="o_kpi_card o_kpi_spider_card" t-else="">
+            <p class="o_kpi_empty">No competency data available.</p>
+          </div>
 
           <!-- Attendance Overview -->
-      <div class="o_kpi_card o_kpi_attendance_card">
-        <div class="o_kpi_card_header">
-          <span class="o_kpi_card_title"><i class="fa fa-pie-chart"/> Attendance Overview</span>
-        </div>
-        <div class="o_kpi_attendance_body" t-if="state.data.attendance_full and state.data.attendance_full.summary.expected_work_days > 0">
-          <div class="o_kpi_chart_container o_kpi_chart_doughnut" style="position: relative; height: 180px; width: 100%; display: flex; align-items: center; justify-content: center;">
-            <canvas t-ref="attendanceChart"/>
+          <div class="o_kpi_card o_kpi_attendance_card">
+            <div class="o_kpi_card_header">
+              <span class="o_kpi_card_title">
+                <i class="fa fa-pie-chart"/>
+ Attendance Overview</span>
+            </div>
+            <div class="o_kpi_attendance_body" t-if="state.data.attendance_full and state.data.attendance_full.summary.expected_work_days > 0">
+              <div class="o_kpi_chart_container o_kpi_chart_doughnut" style="position: relative; height: 180px; width: 100%; display: flex; align-items: center; justify-content: center;">
+                <canvas t-ref="attendanceChart"/>
                 <!-- Center Text for Doughnut Chart -->
-            <div style="position: absolute; text-align: center; pointer-events: none;">
-              <div style="font-size: 24px; font-weight: bold; color: #1e293b;" t-esc="state.data.attendance_full.summary.expected_work_days"></div>
-              <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Total Days</div>
-            </div>
-          </div>
-          <div class="o_kpi_attendance_legend" style="margin-top: 15px;">
-            <div class="o_kpi_spider_legend_item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span class="o_kpi_spider_legend_label" style="display: flex; align-items: center;">
-                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: #3b82f6; margin-right: 8px;"></span>
+                <div style="position: absolute; text-align: center; pointer-events: none;">
+                  <div style="font-size: 24px; font-weight: bold; color: #1e293b;" t-esc="state.data.attendance_full.summary.expected_work_days"></div>
+                  <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Total Days</div>
+                </div>
+              </div>
+              <div class="o_kpi_attendance_legend" style="margin-top: 15px;">
+                <div class="o_kpi_spider_legend_item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span class="o_kpi_spider_legend_label" style="display: flex; align-items: center;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: #3b82f6; margin-right: 8px;"></span>
                 Days Present
-              </span>
-              <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_full.summary.worked_days"/>
-            </div>
-            <div class="o_kpi_spider_legend_item" style="display: flex; justify-content: space-between; align-items: center;">
-              <span class="o_kpi_spider_legend_label" style="display: flex; align-items: center;">
-                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: #e2e8f0; margin-right: 8px;"></span>
+                  </span>
+                  <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_full.summary.worked_days"/>
+                </div>
+                <div class="o_kpi_spider_legend_item" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="o_kpi_spider_legend_label" style="display: flex; align-items: center;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: #e2e8f0; margin-right: 8px;"></span>
                 Days Absent
-              </span>
-              <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_full.summary.expected_work_days - state.data.attendance_full.summary.worked_days"/>
+                  </span>
+                  <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_full.summary.expected_work_days - state.data.attendance_full.summary.worked_days"/>
+                </div>
+              </div>
             </div>
+            <p t-else="" class="o_kpi_empty" style="padding: 20px;">No attendance data available.</p>
           </div>
-        </div>
-        <p t-else="" class="o_kpi_empty" style="padding: 20px;">No attendance data available.</p>
-      </div>
 
-    </div>
+        </div>
 
         <!-- Row 3: Quantitative Table -->
-    <div class="o_kpi_row" style="margin-top: 20px;">
-      <div class="o_kpi_card o_kpi_table_card o_kpi_card_full">
-        <div class="o_kpi_card_header">
-          <span class="o_kpi_card_title"><i class="fa fa-table"/> Detailed Evaluation Log</span>
-              <!-- Optional Export button if needed: <button class="btn btn-primary btn-sm"><i
-              class="fa fa-download"/> Export PDF</button> -->
-        </div>
-        <div class="o_kpi_table_wrapper">
-          <table class="o_kpi_table" t-if="state.data.quantitative_table.length">
-            <thead>
-              <tr>
-                <th>KPI Measure</th>
-                <th>Target</th>
-                <th>Actual</th>
-                <th>Variance</th>
-                <th>Status</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <t t-foreach="state.data.quantitative_table" t-as="row" t-key="row_index">
-                <tr>
-                  <td class="o_kpi_table_name" t-esc="row.name"/>
-                  <td>
-                    <span t-if="row.direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
-                    <span t-if="row.direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
-                    <span class="ms-1" t-esc="row.target"/>
-                  </td>
-                  <td t-esc="row.actual"/>
+        <div class="o_kpi_row" style="margin-top: 20px;">
+          <div class="o_kpi_card o_kpi_table_card o_kpi_card_full">
+            <div class="o_kpi_card_header">
+              <span class="o_kpi_card_title">
+                <i class="fa fa-table"/>
+ Detailed Evaluation Log</span>
+              <!-- Optional Export button if needed: <button class="btn btn-primary btn-sm"><i class="fa fa-download"/> Export PDF</button> -->
+            </div>
+            <div class="o_kpi_table_wrapper">
+              <table class="o_kpi_table" t-if="state.data.quantitative_table.length">
+                <thead>
+                  <tr>
+                    <th>KPI Measure</th>
+                    <th>Target</th>
+                    <th>Actual</th>
+                    <th>Variance</th>
+                    <th>Status</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <t t-foreach="state.data.quantitative_table" t-as="row" t-key="row_index">
+                    <tr>
+                      <td class="o_kpi_table_name" t-esc="row.name"/>
+                      <td>
+                        <span t-if="row.direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
+                        <span t-if="row.direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
+                        <span class="ms-1" t-esc="row.target"/>
+                      </td>
+                      <td t-esc="row.actual"/>
 
-                  <td><span t-att-class="varianceClass(row)" t-esc="formatVariance(row)"/></td>
-                  <td><span t-att-class="statusClass(row)" t-esc="statusText(row)"/></td>
-                  <td><b t-esc="row.final_score"/></td>
-                </tr>
-              </t>
-            </tbody>
-          </table>
-          <p t-else="" class="o_kpi_empty">No quantitative KPI data available.</p>
+                      <td>
+                        <span t-att-class="varianceClass(row)" t-esc="formatVariance(row)"/>
+                      </td>
+                      <td>
+                        <span t-att-class="statusClass(row)" t-esc="statusText(row)"/>
+                      </td>
+                      <td>
+                        <b t-esc="row.final_score"/>
+                      </td>
+                    </tr>
+                  </t>
+                </tbody>
+              </table>
+              <p t-else="" class="o_kpi_empty">No quantitative KPI data available.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
-</t>
+  </t>
 
 </templates>

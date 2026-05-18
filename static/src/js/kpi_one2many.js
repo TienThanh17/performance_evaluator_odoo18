@@ -4,8 +4,195 @@ import { registry } from "@web/core/registry";
 import { makeContext } from "@web/core/context";
 import { X2ManyField, x2ManyField } from "@web/views/fields/x2many/x2many_field";
 import { ListRenderer } from "@web/views/list/list_renderer";
+import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { useService } from "@web/core/utils/hooks";
 import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
+import { Component, onMounted, onPatched, onWillPatch, useRef, xml } from "@odoo/owl";
+
+function parseChildKpiRows(rawRows) {
+    if (!rawRows) {
+        return [];
+    }
+    if (Array.isArray(rawRows)) {
+        return rawRows;
+    }
+    try {
+        const rows = JSON.parse(rawRows);
+        return Array.isArray(rows) ? rows : [];
+    } catch {
+        return [];
+    }
+}
+
+function buildChildKpiMatrix(childRows) {
+    const employees = [];
+    const employeeMap = new Map();
+    const indicators = [];
+    const indicatorMap = new Map();
+
+    for (const row of childRows) {
+        const employeeKey = String(row.employee_id || row.employee || "-");
+        if (!employeeMap.has(employeeKey)) {
+            const employee = {
+                key: employeeKey,
+                name: row.employee || "-",
+            };
+            employeeMap.set(employeeKey, employee);
+            employees.push(employee);
+        }
+
+        const indicatorKey = String(row.child_kpi_id || row.child_kpi || "-");
+        if (!indicatorMap.has(indicatorKey)) {
+            const indicator = {
+                key: indicatorKey,
+                name: row.child_kpi || "-",
+                weight: row.weight || 0,
+                scoresByEmployee: {},
+            };
+            indicatorMap.set(indicatorKey, indicator);
+            indicators.push(indicator);
+        } else if (!indicatorMap.get(indicatorKey).weight && row.weight) {
+            indicatorMap.get(indicatorKey).weight = row.weight;
+        }
+        indicatorMap.get(indicatorKey).scoresByEmployee[employeeKey] = row.final_rating;
+    }
+
+    return { employees, indicators };
+}
+
+function buildChildTemplateMatrix(childRows) {
+    const templates = [];
+    const templateMap = new Map();
+    const indicators = [];
+    const indicatorMap = new Map();
+
+    for (const row of childRows) {
+        const templateKey = String(row.kpi_template_id || row.kpi_template || "-");
+        if (!templateMap.has(templateKey)) {
+            const template = {
+                key: templateKey,
+                name: row.kpi_template || "-",
+                jobName: row.job_name || "",
+            };
+            templateMap.set(templateKey, template);
+            templates.push(template);
+        }
+
+        const indicatorKey = String(row.child_kpi || row.child_kpi_id || "-");
+        if (!indicatorMap.has(indicatorKey)) {
+            const indicator = {
+                key: indicatorKey,
+                name: row.child_kpi || "-",
+                weight: row.weight || 0,
+                cellsByTemplate: {},
+            };
+            indicatorMap.set(indicatorKey, indicator);
+            indicators.push(indicator);
+        } else if (!indicatorMap.get(indicatorKey).weight && row.weight) {
+            indicatorMap.get(indicatorKey).weight = row.weight;
+        }
+        indicatorMap.get(indicatorKey).cellsByTemplate[templateKey] = {
+            name: row.child_kpi || "-",
+            weight: row.weight || 0,
+        };
+    }
+
+    return { templates, indicators };
+}
+
+function formatChildNumber(value) {
+    const number = Number(value || 0);
+    if (!Number.isFinite(number)) {
+        return "";
+    }
+    return number.toFixed(2).replace(/\.?0+$/, "");
+}
+
+function formatChildScore(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+        return "-";
+    }
+    // scale 10
+    // return `${formatChildNumber(number * 10)}đ`;
+    return `${formatChildNumber(number)}đ`;
+}
+
+function formatChildWeight(value) {
+    const formattedValue = formatChildNumber(value);
+    return formattedValue ? `${formattedValue}%` : "-";
+}
+
+function appendMatrixCell(grid, text, className = "") {
+    const item = document.createElement("span");
+    item.className = className;
+    item.textContent = text;
+    grid.appendChild(item);
+    return item;
+}
+
+function renderChildKpiMatrixGrid(container, childRows) {
+    const { employees, indicators } = buildChildKpiMatrix(childRows);
+    if (!employees.length || !indicators.length) {
+        return;
+    }
+
+    const grid = document.createElement("div");
+    grid.className = "o_kpi_child_inline_grid o_kpi_child_matrix_grid";
+    grid.style.gridTemplateColumns = `minmax(220px, 2fr) minmax(90px, 0.6fr) repeat(${employees.length}, minmax(120px, 1fr))`;
+    container.appendChild(grid);
+
+    appendMatrixCell(grid, "KPI Indicator", "o_kpi_child_matrix_header o_kpi_child_title");
+    appendMatrixCell(grid, "Weight", "o_kpi_child_matrix_header o_kpi_child_number");
+    for (const employee of employees) {
+        appendMatrixCell(
+            grid,
+            employee.name,
+            "o_kpi_child_matrix_header o_kpi_child_employee_header"
+        );
+    }
+
+    for (const indicator of indicators) {
+        appendMatrixCell(grid, `- ${indicator.name}`, "o_kpi_child_title");
+        appendMatrixCell(
+            grid,
+            formatChildWeight(indicator.weight),
+            "o_kpi_child_number o_kpi_child_weight"
+        );
+        for (const employee of employees) {
+            const score = indicator.scoresByEmployee[employee.key];
+            appendMatrixCell(
+                grid,
+                score === undefined ? "-" : formatChildScore(score),
+                "o_kpi_child_number o_kpi_child_score"
+            );
+        }
+    }
+}
+
+function renderChildTemplateMatrixGrid(container, childRows) {
+    const { indicators } = buildChildTemplateMatrix(childRows);
+    if (!indicators.length) {
+        return;
+    }
+
+    const grid = document.createElement("div");
+    grid.className = "o_kpi_child_inline_grid o_kpi_child_matrix_grid o_kpi_child_template_matrix_grid";
+    grid.style.gridTemplateColumns = "minmax(220px, 2fr) minmax(90px, 0.6fr)";
+    container.appendChild(grid);
+
+    appendMatrixCell(grid, "KPI Indicator", "o_kpi_child_matrix_header o_kpi_child_title");
+    appendMatrixCell(grid, "Weight", "o_kpi_child_matrix_header o_kpi_child_number");
+
+    for (const indicator of indicators) {
+        appendMatrixCell(grid, `- ${indicator.name}`, "o_kpi_child_title");
+        appendMatrixCell(
+            grid,
+            formatChildWeight(indicator.weight),
+            "o_kpi_child_number o_kpi_child_weight"
+        );
+    }
+}
 
 /**
  * KPI list renderer:
@@ -25,6 +212,9 @@ class KPIListRenderer extends ListRenderer {
 
 //        console.log("KPIListRenderer setup 1:", { section_field: context.section_field, title_field: context.title_field });
 //        console.log("KPIListRenderer setup 2:", { discriminant: this.discriminant, titleField: this.titleField });
+        onWillPatch(() => this.removeChildKpiRows());
+        onMounted(() => this.renderChildKpiRows());
+        onPatched(() => this.renderChildKpiRows());
     }
 
     onClickSortColumn(column) {
@@ -50,6 +240,73 @@ class KPIListRenderer extends ListRenderer {
     isInlineEditable(record) {
         // Only sections are inline editable
         return this.props.editable;
+    }
+
+    getChildKpiRows(record) {
+        return parseChildKpiRows(record.data?.child_line_rows_json);
+    }
+
+    getChildTemplateRows(record) {
+        return parseChildKpiRows(record.data?.child_template_rows_json);
+    }
+
+    removeChildKpiRows() {
+        const tbody = this.tableRef?.el?.querySelector("tbody");
+        if (!tbody) {
+            return;
+        }
+        tbody.querySelectorAll(".o_kpi_child_inline_row").forEach((row) => row.remove());
+    }
+
+    renderChildKpiRows() {
+        const tbody = this.tableRef?.el?.querySelector("tbody");
+        if (!tbody || this.props.list?.isGrouped) {
+            return;
+        }
+        this.removeChildKpiRows();
+
+        for (const record of this.props.list.records || []) {
+            if (this.isSection(record)) {
+                continue;
+            }
+            const childRows = this.getChildKpiRows(record);
+            const childTemplateRows = childRows.length ? [] : this.getChildTemplateRows(record);
+            if (!childRows.length && !childTemplateRows.length) {
+                continue;
+            }
+
+            const parentRow = [...tbody.querySelectorAll("tr.o_data_row")].find(
+                (row) => row.dataset.id === String(record.id)
+            );
+            if (!parentRow) {
+                continue;
+            }
+
+            const matrixRow = this.makeChildKpiMatrixRow({
+                childRows,
+                childTemplateRows,
+                colSpan: parentRow.children.length || 1,
+            });
+            parentRow.insertAdjacentElement("afterend", matrixRow);
+        }
+    }
+
+    makeChildKpiMatrixRow({ childRows = [], childTemplateRows = [], colSpan = 1 }) {
+        const tr = document.createElement("tr");
+        tr.className = "o_kpi_child_inline_row o_kpi_child_inline_data_row";
+
+        const td = document.createElement("td");
+        td.colSpan = colSpan;
+        td.className = "o_kpi_child_inline_cell";
+        tr.appendChild(td);
+
+        if (childRows.length) {
+            renderChildKpiMatrixGrid(td, childRows);
+        } else {
+            renderChildTemplateMatrixGrid(td, childTemplateRows);
+        }
+
+        return tr;
     }
 
     getRowClass(record) {
@@ -219,6 +476,60 @@ class KPIOne2ManyField extends X2ManyField {
     }
 }
 
+class KPIChildMatrixField extends Component {
+    static template = xml/* xml */ `
+        <div class="o_kpi_child_inline_row o_kpi_child_inline_data_row o_kpi_child_field_widget">
+            <div t-ref="matrixRoot" class="o_kpi_child_inline_cell"></div>
+        </div>
+    `;
+    static props = {
+        ...standardFieldProps,
+    };
+
+    setup() {
+        this.matrixRoot = useRef("matrixRoot");
+        onMounted(() => this.renderMatrix());
+        onPatched(() => this.renderMatrix());
+    }
+
+    renderMatrix() {
+        const container = this.matrixRoot.el;
+        if (!container) {
+            return;
+        }
+        container.replaceChildren();
+        const childRows = parseChildKpiRows(this.props.record.data?.[this.props.name]);
+        renderChildKpiMatrixGrid(container, childRows);
+    }
+}
+
+class KPIChildTemplateMatrixField extends Component {
+    static template = xml/* xml */ `
+        <div class="o_kpi_child_inline_row o_kpi_child_inline_data_row o_kpi_child_field_widget">
+            <div t-ref="matrixRoot" class="o_kpi_child_inline_cell"></div>
+        </div>
+    `;
+    static props = {
+        ...standardFieldProps,
+    };
+
+    setup() {
+        this.matrixRoot = useRef("matrixRoot");
+        onMounted(() => this.renderMatrix());
+        onPatched(() => this.renderMatrix());
+    }
+
+    renderMatrix() {
+        const container = this.matrixRoot.el;
+        if (!container) {
+            return;
+        }
+        container.replaceChildren();
+        const childRows = parseChildKpiRows(this.props.record.data?.[this.props.name]);
+        renderChildTemplateMatrixGrid(container, childRows);
+    }
+}
+
 /**
  * KPI template widget (hr.kpi.line only)
  */
@@ -226,4 +537,14 @@ registry.category("fields").add("kpi_one2many", {
     ...x2ManyField,
     component: KPIOne2ManyField,
     additionalClasses: [...(x2ManyField.additionalClasses || []), "o_field_one2many"],
+});
+
+registry.category("fields").add("kpi_child_matrix", {
+    component: KPIChildMatrixField,
+    supportedTypes: ["text", "char"],
+});
+
+registry.category("fields").add("kpi_child_template_matrix", {
+    component: KPIChildTemplateMatrixField,
+    supportedTypes: ["text", "char"],
 });

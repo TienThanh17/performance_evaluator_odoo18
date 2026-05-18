@@ -426,6 +426,54 @@ export class KpiDashboard extends Component {
         return "o_kpi_level_badge o_kpi_level_" + level;
     }
 
+    get deptScoreText() {
+        if (!this.state.data || !this.state.data.has_dept_evaluation) return "N/A";
+        return (this.state.data.dept_kpi_score || 0).toFixed(1);
+    }
+
+    get individualWeightText() {
+        const weight = this.state.data ? this.state.data.individual_weight : 1;
+        return Math.round((weight || 0) * 100) + "%";
+    }
+
+    get deptWeightText() {
+        const weight = this.state.data ? this.state.data.dept_weight : 0;
+        return Math.round((weight || 0) * 100) + "%";
+    }
+
+    get deptStatusClass() {
+        const level = this._levelFromScore(
+            this.state.data ? this.state.data.dept_kpi_score : 0,
+        );
+        return "o_kpi_level_badge o_kpi_level_" + level;
+    }
+
+    get deptStatusLabel() {
+        if (!this.state.data || !this.state.data.has_dept_evaluation) return "N/A";
+        const level = this._levelFromScore(this.state.data.dept_kpi_score || 0);
+        const labels = { excellent: "Excellent", pass: "Pass", fail: "Fail" };
+        return labels[level];
+    }
+
+    get deptTooltip() {
+        if (this.state.data?.has_dept_evaluation) {
+            return _t("Department score participates in the final KPI formula.");
+        }
+        return _t(
+            "No department evaluation is linked. The individual KPI receives 100% weight.",
+        );
+    }
+
+    get formulaText() {
+        return `${this.individualWeightText} Individual + ${this.deptWeightText} Department`;
+    }
+
+    _levelFromScore(score) {
+        if (score >= 9) return "excellent";
+        if (score >= 5) return "pass";
+        return "fail";
+    }
+
     // ── Final Score helpers (dùng cho breakdown section trong template) ────────
     get finalScoreText() {
         // Trả về final_score đã được làm tròn 2 chữ số thập phân
@@ -439,7 +487,7 @@ export class KpiDashboard extends Component {
     }
 
     get finalLevelLabel() {
-        // Hiển thị label xết loại của final_score
+        if (this.state.data?.final_level_label) return this.state.data.final_level_label;
         const level = this.state.data ? this.state.data.final_level : "fail";
         const labels = { excellent: "Excellent", pass: "Pass", fail: "Fail" };
         return labels[level] || level;
