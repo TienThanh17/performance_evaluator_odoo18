@@ -13,8 +13,8 @@ import { loadJS } from "@web/core/assets";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Thresholds: thang 0-10 từ res.config.settings
-// final_score, performance_score: thang 0-10
-// Khi hiển thị trên UI nhân 10 để ra thang 0-100 dạng %
+// Backend trả toàn bộ score ở thang 0-10. Muốn đổi UI sang thang 100 sau này
+// thì chỉnh score_scale.display_multiplier/base/suffix ở backend hoặc helper formatScore().
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class KpiTreeDashboard extends Component {
@@ -30,14 +30,11 @@ export class KpiTreeDashboard extends Component {
             data: null, // response từ get_kpi_tree_data()
             selectedNode: null, // { type: 'company'|'dept'|'emp', id, data }
             expandedDepts: new Set(), // Set of department id — MỞ HẾT khi load
-            metric: "final", // 'final' | 'perf' | 'dept'
             selectedPeriod: null, // { start, end, label }
         });
 
         onMounted(async () => {
-            // Khuyên dùng: Tải file d3.js về thư mục static/lib của module
-            // await loadJS("/custom_adecsol_hr_performance_evaluator/static/lib/d3.v7.min.js");
-            await loadJS("https://d3js.org/d3.v7.min.js");
+            await loadJS("/custom_adecsol_hr_performance_evaluator/static/src/vendor/d3.v7.min.js");
             this.loadData(); // Giữ nguyên logic gọi RPC của bạn
         });
 
@@ -51,50 +48,32 @@ export class KpiTreeDashboard extends Component {
     // ── Getters ───────────────────────────────────────────────────────────────
 
     /**
-     * Tính điểm để hiển thị trên node (thang 0-100 cho %)
-     * Vì backend trả final_score / performance_score theo thang 0-10
+     * Tính điểm gốc cho node theo thang 0-10.
+     * Quy tắc dashboard: company = avg dept KPI, dept = dept KPI, employee = KPI cá nhân.
      */
     nodeScore(nodeData, type) {
         const d = this.state.data;
-        console.log("d", d);
         if (!d) return 0;
-        // debugger
-        // Company node
         if (type === "company") {
-            console.log("d.company", d.company);
-            return Math.round((d.company.dept_kpi_score || 0) * 10 * 10) / 10;
+            return this.roundScore(d.company.dept_kpi_score || 0);
         }
-
-        // Dept node
         if (type === "dept") {
-            const s =
-                this.state.metric === "dept"
-                    ? nodeData.dept_kpi_score || 0
-                    : nodeData.dept_kpi_score || 0;
-            return Math.round(s * 10 * 10) / 10;
+            return this.roundScore(nodeData.dept_kpi_score || 0);
         }
-        // Emp node
         if (type === "emp") {
-            const s =
-                this.state.metric === "perf"
-                    ? nodeData.performance_score || 0
-                    : this.state.metric === "dept"
-                      ? nodeData.dept_kpi_score || 0
-                      : nodeData.final_score || 0;
-            // scale 10
-            return Math.round(s * 10 * 10) / 10;
+            return this.roundScore(nodeData.performance_score || 0);
         }
         return 0;
     }
 
     /**
-     * levelColor dựa trên score đã nhân ×10 (thang 0-100) và threshold ×10
+     * So màu trực tiếp bằng score thang 0-10 để đồng bộ với threshold backend.
      */
     levelColor(score) {
         const t = this.state.data?.thresholds;
         if (!t) return "#B4B2A9";
-        const exc = t.excellent * 10;
-        const pass = t.pass * 10;
+        const exc = t.excellent;
+        const pass = t.pass;
         if (score >= exc) return "#1D9E75";
         if (score >= pass) return "#378ADD";
         if (score <= 0) return "#B4B2A9";
@@ -104,8 +83,8 @@ export class KpiTreeDashboard extends Component {
     levelBg(score) {
         const t = this.state.data?.thresholds;
         if (!t) return "#F1EFE8";
-        const exc = t.excellent * 10;
-        const pass = t.pass * 10;
+        const exc = t.excellent;
+        const pass = t.pass;
         if (score >= exc) return "#E1F5EE";
         if (score >= pass) return "#E6F1FB";
         if (score <= 0) return "#F1EFE8";
@@ -230,7 +209,7 @@ export class KpiTreeDashboard extends Component {
         this.state.loading = true;
         try {
             const data = await this.orm.call(
-                "hr.performance.evaluation",
+                "hr.department.performance.evaluation",
                 "get_kpi_tree_data",
                 [],
                 { period_start: periodStart, period_end: periodEnd },
@@ -300,19 +279,25 @@ export class KpiTreeDashboard extends Component {
         this.state.expandedDepts = s;
     };
 
-    onMetricChange = (ev) => {
-        this.state.metric = ev.target.value;
-    };
-
     closePanel = () => {
         this.state.selectedNode = null;
     };
 
     // ── Template helpers ──────────────────────────────────────────────────────
 
+    roundScore(val) {
+        return Math.round((Number(val) || 0) * 10) / 10;
+    }
+
     formatScore(val) {
         if (val == null) return "—";
-        return (val * 10).toFixed(1);
+        const scale = this.state.data?.score_scale || {
+            display_multiplier: 1,
+            suffix: " / 10",
+        };
+        // Chỉ đổi multiplier/suffix ở score_scale nếu sau này muốn hiển thị thang 100.
+        const score = (Number(val) || 0) * (scale.display_multiplier || 1);
+        return `${score.toFixed(1)}${scale.suffix || ""}`;
     }
 
     formatPct(val) {
@@ -325,37 +310,13 @@ export class KpiTreeDashboard extends Component {
         return val.toFixed(1) + "%";
     }
 
-    get metricLabel() {
-        return (
-            {
-                final: "Điểm cuối (Final)",
-                perf: "KPI cá nhân",
-                dept: "KPI phòng ban",
-            }[this.state.metric] || "Điểm cuối"
-        );
+    scoreBarWidth(val) {
+        const base = this.state.data?.score_scale?.base || 10;
+        return Math.max(0, Math.min(100, ((Number(val) || 0) / base) * 100));
     }
 
     get layout() {
         return this.computeLayout();
-    }
-
-    // Sparkline hardcode (6 điểm mẫu cho detail panel)
-    get sparklinePoints() {
-        return [4.5, 5.0, 6.2, 5.8, 7.1, 6.5];
-    }
-
-    sparklinePath(points) {
-        const w = 120,
-            h = 40;
-        const max = Math.max(...points, 10);
-        const min = Math.min(...points, 0);
-        const range = max - min || 1;
-        const coords = points.map((v, i) => {
-            const x = (i / (points.length - 1)) * w;
-            const y = h - ((v - min) / range) * h;
-            return `${x},${y}`;
-        });
-        return `M ${coords.join(" L ")}`;
     }
 
     // Initials từ tên nhân viên (cho fallback avatar)
@@ -414,7 +375,6 @@ export class KpiTreeDashboard extends Component {
         container.innerHTML = ""; // Xóa SVG cũ khi vẽ lại
 
         const treeData = this.prepareD3Data();
-        console.log("treeData", treeData);
         if (!treeData) return;
 
         // Khởi tạo kích thước layout
@@ -524,7 +484,9 @@ export class KpiTreeDashboard extends Component {
             .data(root.links())
             .join("path")
             .attr("stroke", (d) =>
-                this.levelColor(this.nodeScore(d.target.data.rawData)),
+                this.levelColor(
+                    this.nodeScore(d.target.data.rawData, d.target.data._type),
+                ),
             )
             .attr("stroke-dasharray", (d) =>
                 d.target.data._type === "emp" ? "3 2" : "4 2",
@@ -648,7 +610,7 @@ export class KpiTreeDashboard extends Component {
             )
             .text((d) => {
                 const score = this.nodeScore(d.data.rawData, d.data._type);
-                return score != null ? `${score}%` : "—";
+                return score != null ? this.formatScore(score) : "—";
             });
 
         // === EMPLOYEE NODES ===
@@ -767,7 +729,7 @@ export class KpiTreeDashboard extends Component {
             )
             .text((d) => {
                 const score = this.nodeScore(d.data.rawData, d.data._type);
-                return score != null ? `${score}%` : "—";
+                return score != null ? this.formatScore(score) : "—";
             });
 
         // ── 4. Vẽ icon Toggle (+/-) cho Department Node ──────────────────────

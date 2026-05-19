@@ -122,7 +122,7 @@
                     <group>
                         <group string="Scores">
                             <group>
-                                <field name="dept_kpi_score" string="Department KPI Score"
+                                <field name="dept_kpi_score" string="Department KPI Score" widget="badge"
                                        readonly="1"/>
                                 <!--                                <field name="avg_individual_score" string="Average Individual Score"-->
                                 <!--                                    readonly="1" />-->

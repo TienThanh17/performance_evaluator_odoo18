@@ -25,16 +25,6 @@
           </t>
         </select>
       </div>
-
-      <!-- Metric Selector -->
-      <div class="o_kpi_tree_control_group" t-if="!state.loading">
-        <label class="o_kpi_tree_label">Hiển thị:</label>
-        <select class="o_kpi_tree_select" t-on-change="onMetricChange">
-          <option value="final" t-att-selected="state.metric === 'final'">Điểm cuối (Final)</option>
-          <option value="perf" t-att-selected="state.metric === 'perf'">KPI cá nhân</option>
-          <option value="dept" t-att-selected="state.metric === 'dept'">KPI phòng ban</option>
-        </select>
-      </div>
     </div>
   </div>
 
@@ -73,28 +63,27 @@
         <div class="metric-body">
           <div class="metric-label">KPI Công ty</div>
           <div class="metric-value" t-esc="formatScore(state.data.company.dept_kpi_score)"/>
-          <div class="metric-sub">/ 100 điểm</div>
+          <div class="metric-sub">TB KPI phòng ban</div>
         </div>
       </div>
 
-      <!-- Card 2: KPI Hoạt động (REAL DATA — pass_rate = % đạt + xuất sắc) -->
+      <!-- Card 2: KPI Tài chính -->
+      <div class="o_kpi_tree_metric_card card-amber" t-on-click="selectCompanyNode">
+        <div class="metric-icon"><i class="fa fa-usd"/></div>
+        <div class="metric-body">
+          <div class="metric-label">KPI Tài chính</div>
+          <div class="metric-value">—</div>
+          <div class="metric-sub">Không có dữ liệu</div>
+        </div>
+      </div>
+
+      <!-- Card 3: KPI Hoạt động (REAL DATA — pass_rate = % đạt + xuất sắc) -->
       <div class="o_kpi_tree_metric_card card-green" t-on-click="selectCompanyNode">
         <div class="metric-icon"><i class="fa fa-check-circle"/></div>
         <div class="metric-body">
           <div class="metric-label">KPI Hoạt động</div>
           <div class="metric-value" t-esc="formatPassRate(state.data.company.pass_rate)"/>
           <div class="metric-sub">% đạt &amp; xuất sắc</div>
-        </div>
-      </div>
-
-      <!-- Card 3: KPI Tài chính (HARDCODE — chưa tích hợp) -->
-      <div class="o_kpi_tree_metric_card card-amber">
-        <div class="metric-icon"><i class="fa fa-usd"/></div>
-        <div class="metric-body">
-          <div class="metric-label">KPI Tài chính</div>
-          <div class="metric-value">—</div>
-          <!-- HARDCODE: Chưa tích hợp module kế toán -->
-          <div class="metric-sub">Chưa tích hợp</div>
         </div>
       </div>
 
@@ -115,17 +104,6 @@
           <div class="metric-label">Thiếu dữ liệu</div>
           <div class="metric-value" t-esc="state.data.missing_data_kpis.length"/>
           <div class="metric-sub">KPI chưa nhập</div>
-        </div>
-      </div>
-
-      <!-- Card 6: Cảnh báo logic (HARDCODE từ backend = 2) -->
-      <div class="o_kpi_tree_metric_card card-gray" t-on-click="selectCompanyNode">
-        <div class="metric-icon"><i class="fa fa-bell"/></div>
-        <div class="metric-body">
-          <div class="metric-label">Cảnh báo logic</div>
-          <div class="metric-value" t-esc="state.data.logic_warnings"/>
-          <!-- HARDCODE: logic_warnings = 2 — chưa có engine kiểm tra -->
-          <div class="metric-sub">Cần kiểm tra</div>
         </div>
       </div>
 
@@ -182,7 +160,7 @@
           <t t-if="state.selectedNode.type === 'company'">
             <div class="panel-metric">
               <span class="pm-label">KPI phòng ban:</span>
-              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score) + ' / 100'"/>
+              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
             <div class="panel-metric">
               <span class="pm-label">Tổng nhân sự:</span>
@@ -203,30 +181,28 @@
           <t t-elif="state.selectedNode.type === 'dept'">
             <div class="panel-metric">
               <span class="pm-label">KPI phòng ban:</span>
-              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score) + ' / 100'"/>
+              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
             <div class="panel-metric">
               <span class="pm-label">Nhân viên:</span>
               <span class="pm-value" t-esc="state.selectedNode.data.employee_count"/>
             </div>
-            <div class="panel-formula">
-              Công thức: dept_kpi × w_dept + avg_cá_nhân × (1 − w_dept)
+            <div class="panel-metric">
+              <span class="pm-label">KPI cá nhân TB:</span>
+              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_performance_score)"/>
             </div>
-            <!-- Sparkline HARDCODE -->
-            <div class="panel-sparkline">
-              <div class="spark-label">Trend (hardcode mẫu) *</div>
-              <svg width="120" height="40" class="sparkline-svg">
-                <path t-att-d="sparklinePath(sparklinePoints)" fill="none" stroke="#378ADD" stroke-width="2"/>
-              </svg>
-              <div class="panel-note">* Trend hardcode — cần get_kpi_trend()</div>
+            <div class="panel-metric">
+              <span class="pm-label">Điểm cuối TB:</span>
+              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_final_score)"/>
             </div>
+            <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div>
           </t>
 
           <!-- ── Employee detail ── -->
           <t t-elif="state.selectedNode.type === 'emp'">
             <div class="panel-metric">
               <span class="pm-label">Final Score:</span>
-              <span class="pm-value highlight" t-esc="formatScore(state.selectedNode.data.final_score) + ' / 100'"/>
+              <span class="pm-value highlight" t-esc="formatScore(state.selectedNode.data.final_score)"/>
             </div>
             <div class="panel-metric">
               <span class="pm-label">KPI cá nhân:</span>
@@ -237,23 +213,14 @@
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
             <div class="panel-formula">
-              <t t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/> × 0.4 +
-              <t t-esc="formatScore(state.selectedNode.data.performance_score)"/> × 0.6 =
-              <b><t t-esc="formatScore(state.selectedNode.data.final_score)"/></b>
+              Điểm cuối đã được tính từ KPI cá nhân và KPI phòng ban theo trọng số template.
             </div>
             <div class="panel-metric">
               <span class="pm-label">Trạng thái:</span>
               <span t-att-class="stateBadgeClass(state.selectedNode.data.state)"
                     t-esc="stateBadgeLabel(state.selectedNode.data.state)"/>
             </div>
-            <!-- Sparkline HARDCODE -->
-            <div class="panel-sparkline">
-              <div class="spark-label">Trend (hardcode mẫu) *</div>
-              <svg width="120" height="40" class="sparkline-svg">
-                <path t-att-d="sparklinePath(sparklinePoints)" fill="none" stroke="#1D9E75" stroke-width="2"/>
-              </svg>
-              <div class="panel-note">* Trend hardcode — cần get_kpi_trend()</div>
-            </div>
+            <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div>
           </t>
 
         </div>
@@ -275,7 +242,7 @@
                 <span class="risk-meta"><t t-esc="item.dept_name"/> · <t t-esc="item.employee_name"/></span>
               </div>
               <div class="risk-right">
-                <span class="risk-score" t-esc="(item.score * 10).toFixed(1) + '%'"/>
+                <span class="risk-score" t-esc="formatScore(item.score)"/>
                 <span t-att-class="levelBadgeClass(item.level)" t-esc="item.level"/>
               </div>
             </div>
@@ -284,22 +251,20 @@
         <div t-else="" class="panel-empty">Không có KPI rủi ro</div>
       </div>
 
-      <!-- Panel 2: Đóng góp phòng ban (score REAL DATA, trọng số HARDCODE) -->
+      <!-- Panel 2: Đóng góp phòng ban theo điểm KPI phòng ban trong kỳ -->
       <div class="o_kpi_tree_panel">
         <div class="panel-head"><i class="fa fa-building"/> Đóng góp phòng ban</div>
-        <!-- Ghi chú: Score lấy từ real data; trọng số đóng góp hardcode (chưa có config) -->
         <t t-foreach="state.data.departments" t-as="dept" t-key="dept.id">
           <div class="dept-row">
             <div class="dept-name" t-esc="dept.name"/>
             <div class="dept-bar-wrap">
               <div class="dept-bar"
-                t-att-style="'width:' + Math.min(100, (dept.dept_kpi_score || 0) * 10) + '%;'">
+                t-att-style="'width:' + scoreBarWidth(dept.dept_kpi_score) + '%;'">
               </div>
             </div>
-            <div class="dept-score" t-esc="((dept.dept_kpi_score || 0) * 10).toFixed(1) + '%'"/>
+            <div class="dept-score" t-esc="formatScore(dept.dept_kpi_score)"/>
           </div>
         </t>
-        <div class="panel-note">* Trọng số đóng góp hardcode — cần cấu hình</div>
       </div>
 
       <!-- Panel 3: KPI thiếu dữ liệu (REAL DATA) -->
@@ -319,22 +284,15 @@
         <div t-else="" class="panel-empty">Tất cả KPI đã có dữ liệu ✓</div>
       </div>
 
-      <!-- Panel 4: Insight điều hành AI (FULL HARDCODE) -->
+      <!-- Panel 4: Insight điều hành AI -->
       <div class="o_kpi_tree_panel panel-ai">
-        <div class="panel-head"><i class="fa fa-lightbulb-o"/> Insight điều hành AI</div>
-        <!-- HARDCODE: Dữ liệu mẫu — tích hợp AI sau -->
-        <div class="ai-insight">
-          <i class="fa fa-arrow-up text-success"/> Phòng ban có KPI tăng mạnh nhất tháng này: <b>IT Development</b>
-          <div class="panel-note">Dữ liệu mẫu — tích hợp AI sau</div>
-        </div>
-        <div class="ai-insight">
-          <i class="fa fa-exclamation text-warning"/> 2 nhân viên có nguy cơ không đạt KPI cuối kỳ
-          <div class="panel-note">Dữ liệu mẫu — tích hợp AI sau</div>
-        </div>
-        <div class="ai-insight">
-          <i class="fa fa-clock-o text-danger"/> Tỷ lệ chấm công phòng Sales giảm 12% so với kỳ trước
-          <div class="panel-note">Dữ liệu mẫu — tích hợp AI sau</div>
-        </div>
+        <div class="panel-head"><i class="fa fa-lightbulb-o"/> Insight điều hành</div>
+        <t t-if="state.data.ai_insights and state.data.ai_insights.length">
+          <t t-foreach="state.data.ai_insights" t-as="insight" t-key="insight_index">
+            <div class="ai-insight" t-esc="insight.text or insight"/>
+          </t>
+        </t>
+        <div t-else="" class="panel-empty">Không có dữ liệu insight</div>
       </div>
 
     </div><!-- /o_kpi_tree_panels -->
