@@ -4,7 +4,7 @@
 <t t-name="performance_evaluator.KpiTreeDashboard">
 <div class="o_kpi_tree_page">
 
-  <!-- ══ Header Bar ══ -->
+      <!-- ══ Header Bar ══ -->
   <div class="o_kpi_tree_header">
     <div class="o_kpi_tree_brand">
       <i class="fa fa-sitemap"/>
@@ -12,7 +12,7 @@
     </div>
 
     <div class="o_kpi_tree_controls">
-      <!-- Period Selector -->
+          <!-- Period Selector -->
       <div class="o_kpi_tree_control_group" t-if="!state.loading and state.data and state.data.available_periods.length">
         <label class="o_kpi_tree_label">Kỳ:</label>
         <select class="o_kpi_tree_select" t-on-change="onPeriodChange">
@@ -28,9 +28,9 @@
     </div>
   </div>
 
-  <!-- ══ Loading State ══ -->
+      <!-- ══ Loading State ══ -->
   <div t-if="state.loading" class="o_kpi_tree_body">
-    <!-- Skeleton 6 cards -->
+        <!-- Skeleton 6 cards -->
     <div class="o_kpi_tree_metric_row">
       <t t-foreach="[1,2,3,4,5,6]" t-as="i" t-key="i">
         <div class="o_kpi_tree_metric_card skeleton">
@@ -40,7 +40,7 @@
         </div>
       </t>
     </div>
-    <!-- Skeleton tree placeholder -->
+        <!-- Skeleton tree placeholder -->
     <div class="o_kpi_tree_main">
       <div class="o_kpi_tree_svg_wrap skeleton-tree">
         <div class="sk-tree-placeholder">
@@ -51,23 +51,23 @@
     </div>
   </div>
 
-  <!-- ══ Dashboard Body ══ -->
+      <!-- ══ Dashboard Body ══ -->
   <div t-elif="!state.loading and state.data" class="o_kpi_tree_body">
 
-    <!-- ── 6 Metric Cards ── -->
+        <!-- ── 6 Metric Cards ── -->
     <div class="o_kpi_tree_metric_row">
 
-      <!-- Card 1: KPI Công ty (REAL DATA) -->
+          <!-- Card 1: KPI Công ty (REAL DATA) -->
       <div class="o_kpi_tree_metric_card card-blue" t-on-click="selectCompanyNode">
         <div class="metric-icon"><i class="fa fa-globe"/></div>
         <div class="metric-body">
           <div class="metric-label">KPI Công ty</div>
           <div class="metric-value" t-esc="formatScore(state.data.company.dept_kpi_score)"/>
-          <div class="metric-sub">TB KPI phòng ban</div>
+          <div class="metric-sub">Trung bình KPI phòng ban</div>
         </div>
       </div>
 
-      <!-- Card 2: KPI Tài chính -->
+          <!-- Card 2: KPI Tài chính -->
       <div class="o_kpi_tree_metric_card card-amber" t-on-click="selectCompanyNode">
         <div class="metric-icon"><i class="fa fa-usd"/></div>
         <div class="metric-body">
@@ -77,71 +77,73 @@
         </div>
       </div>
 
-      <!-- Card 3: KPI Hoạt động (REAL DATA — pass_rate = % đạt + xuất sắc) -->
+          <!-- Card 3: KPI Hoạt động (REAL DATA — số nhân viên đạt + xuất sắc) -->
       <div class="o_kpi_tree_metric_card card-green" t-on-click="selectCompanyNode">
         <div class="metric-icon"><i class="fa fa-check-circle"/></div>
         <div class="metric-body">
-          <div class="metric-label">KPI Hoạt động</div>
-          <div class="metric-value" t-esc="formatPassRate(state.data.company.pass_rate)"/>
-          <div class="metric-sub">% đạt &amp; xuất sắc</div>
+          <div class="metric-label">NHÂN VIÊN ĐẠT CHỈ TIÊU</div>
+          <div class="metric-value">
+              <t t-esc="state.data.company.pass_employee_count"/> / <t t-esc="state.data.company.total_employees"/>
+          </div>
+          <div class="metric-sub">Nhân viên đạt &amp; xuất sắc</div>
         </div>
       </div>
 
-      <!-- Card 4: KPI Rủi ro (REAL DATA) -->
+          <!-- Card 4: KPI Rủi ro (REAL DATA) -->
       <div class="o_kpi_tree_metric_card card-red" t-on-click="selectCompanyNode">
         <div class="metric-icon"><i class="fa fa-exclamation-triangle"/></div>
         <div class="metric-body">
           <div class="metric-label">KPI Rủi ro</div>
-          <div class="metric-value" t-esc="state.data.risk_kpis.length"/>
+          <div class="metric-value" t-esc="riskLineCount()"/>
           <div class="metric-sub">KPI điểm thấp</div>
         </div>
       </div>
 
-      <!-- Card 5: KPI Thiếu dữ liệu (REAL DATA) -->
+          <!-- Card 5: KPI Thiếu dữ liệu (REAL DATA) -->
       <div class="o_kpi_tree_metric_card card-purple" t-on-click="selectCompanyNode">
         <div class="metric-icon"><i class="fa fa-database"/></div>
         <div class="metric-body">
-          <div class="metric-label">Thiếu dữ liệu</div>
-          <div class="metric-value" t-esc="state.data.missing_data_kpis.length"/>
+          <div class="metric-label">KPI Thiếu dữ liệu</div>
+          <div class="metric-value" t-esc="missingDataLineCount()"/>
           <div class="metric-sub">KPI chưa nhập</div>
         </div>
       </div>
 
     </div>
 
-    <!-- ── Main: Tree + Detail Panel ── -->
+        <!-- ── Main: Tree + Detail Panel ── -->
     <div class="o_kpi_tree_main">
 
-      <!-- ── SVG Tree ── -->
+          <!-- ── SVG Tree ── -->
       <div class="o_kpi_tree_svg_wrap" t-if="state.data.departments.length > 0">
-        <div t-ref="d3_container" class="w-100 h-100 d3-kpi-container"></div>
+        <div t-ref="d3_container" class="d3-kpi-container"></div>
       </div>
 
-      <!-- Empty State -->
+          <!-- Empty State -->
       <div t-else="" class="empty-state">
         <i class="fa fa-sitemap fa-3x"/>
         <p>Chưa có dữ liệu KPI cho kỳ này.</p>
         <p>Hãy tạo phiếu đánh giá từ menu mẫu KPI Phòng ban hoặc chọn kỳ khác.</p>
       </div>
 
-      <!-- ── Detail Panel (bên phải) ── -->
+          <!-- ── Detail Panel (bên phải) ── -->
       <div class="o_kpi_tree_detail_panel" t-if="state.selectedNode">
         <div class="panel-header">
           <span class="panel-close" t-on-click="closePanel"><i class="fa fa-times"/></span>
 
-          <!-- type = company -->
+              <!-- type = company -->
           <t t-if="state.selectedNode.type === 'company'">
             <div class="panel-title"><i class="fa fa-globe"/> Công ty</div>
             <div class="panel-sub">Tổng quan toàn công ty</div>
           </t>
 
-          <!-- type = dept -->
+              <!-- type = dept -->
           <t t-elif="state.selectedNode.type === 'dept'">
             <div class="panel-title"><i class="fa fa-building"/> <t t-esc="state.selectedNode.data.name"/></div>
             <div class="panel-sub" t-esc="state.selectedNode.data.manager_name or 'Chưa có quản lý'"/>
           </t>
 
-          <!-- type = emp -->
+              <!-- type = emp -->
           <t t-elif="state.selectedNode.type === 'emp'">
             <div class="panel-avatar">
               <img t-att-src="state.selectedNode.data.avatar_url"
@@ -156,10 +158,10 @@
 
         <div class="panel-body">
 
-          <!-- ── Company detail ── -->
+              <!-- ── Company detail ── -->
           <t t-if="state.selectedNode.type === 'company'">
             <div class="panel-metric">
-              <span class="pm-label">KPI phòng ban:</span>
+              <span class="pm-label">KPI phòng ban trung bình:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
             <div class="panel-metric">
@@ -171,13 +173,13 @@
               <span class="pm-value" t-esc="state.selectedNode.data.total_depts"/>
             </div>
             <div class="panel-metric">
-              <span class="pm-label">Tỷ lệ đạt:</span>
-              <span class="pm-value" t-esc="formatPassRate(state.selectedNode.data.pass_rate)"/>
+              <span class="pm-label">Nhân viên đạt:</span>
+              <span class="pm-value" t-esc="state.selectedNode.data.pass_employee_count"/>
             </div>
             <div class="panel-note">* Trend theo quý sẽ cập nhật sau</div>
           </t>
 
-          <!-- ── Dept detail ── -->
+              <!-- ── Dept detail ── -->
           <t t-elif="state.selectedNode.type === 'dept'">
             <div class="panel-metric">
               <span class="pm-label">KPI phòng ban:</span>
@@ -187,21 +189,21 @@
               <span class="pm-label">Nhân viên:</span>
               <span class="pm-value" t-esc="state.selectedNode.data.employee_count"/>
             </div>
-            <div class="panel-metric">
-              <span class="pm-label">KPI cá nhân TB:</span>
+            <!-- <div class="panel-metric">
+              <span class="pm-label">KPI cá nhân trung bình:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_performance_score)"/>
-            </div>
-            <div class="panel-metric">
+            </div> -->
+            <!-- <div class="panel-metric">
               <span class="pm-label">Điểm cuối TB:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_final_score)"/>
-            </div>
+            </div> -->
             <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div>
           </t>
 
-          <!-- ── Employee detail ── -->
+              <!-- ── Employee detail ── -->
           <t t-elif="state.selectedNode.type === 'emp'">
             <div class="panel-metric">
-              <span class="pm-label">Final Score:</span>
+              <span class="pm-label">Điểm thưởng:</span>
               <span class="pm-value highlight" t-esc="formatScore(state.selectedNode.data.final_score)"/>
             </div>
             <div class="panel-metric">
@@ -213,7 +215,7 @@
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
             <div class="panel-formula">
-              Điểm cuối đã được tính từ KPI cá nhân và KPI phòng ban theo trọng số template.
+              Điểm thưởng được tính từ KPI cá nhân và KPI phòng ban theo trọng số.
             </div>
             <div class="panel-metric">
               <span class="pm-label">Trạng thái:</span>
@@ -226,20 +228,24 @@
         </div>
       </div>
 
-    </div><!-- /o_kpi_tree_main -->
+    </div><!--
+        /o_kpi_tree_main -->
 
-    <!-- ── 4 Panels phía dưới ── -->
+        <!-- ── 4 Panels phía dưới ── -->
     <div class="o_kpi_tree_panels">
 
-      <!-- Panel 1: Top KPI rủi ro (REAL DATA) -->
+          <!-- Panel 1: Top KPI rủi ro (REAL DATA) -->
       <div class="o_kpi_tree_panel">
         <div class="panel-head"><i class="fa fa-exclamation-triangle"/> Top KPI Rủi ro</div>
-        <t t-if="state.data.risk_kpis.length > 0">
-          <t t-foreach="state.data.risk_kpis" t-as="item" t-key="item_index">
-            <div class="risk-row">
+        <t t-if="riskLineCount() > 0">
+          <t t-foreach="topRiskLines()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.line_id || item_index)">
+            <div class="risk-row risk-row-clickable" t-on-click="() => this.openRiskLine(item)">
               <div class="risk-info">
-                <span class="risk-name" t-esc="item.kpi_name"/>
-                <span class="risk-meta"><t t-esc="item.dept_name"/> · <t t-esc="item.employee_name"/></span>
+                <div class="issue-title-line">
+                  <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Cá nhân'"/>
+                  <span class="risk-name" t-esc="item.kpi_name"/>
+                </div>
+                <span class="risk-meta" t-esc="issueMeta(item)"/>
               </div>
               <div class="risk-right">
                 <span class="risk-score" t-esc="formatScore(item.score)"/>
@@ -247,11 +253,17 @@
               </div>
             </div>
           </t>
+          <button t-if="riskLineCount() > 5"
+                  type="button"
+                  class="risk-view-all-btn"
+                  t-on-click="openRiskModal">
+            Xem tất cả rủi ro (<t t-esc="riskLineCount()"/>)
+          </button>
         </t>
         <div t-else="" class="panel-empty">Không có KPI rủi ro</div>
       </div>
 
-      <!-- Panel 2: Đóng góp phòng ban theo điểm KPI phòng ban trong kỳ -->
+          <!-- Panel 2: Đóng góp phòng ban theo điểm KPI phòng ban trong kỳ -->
       <div class="o_kpi_tree_panel">
         <div class="panel-head"><i class="fa fa-building"/> Đóng góp phòng ban</div>
         <t t-foreach="state.data.departments" t-as="dept" t-key="dept.id">
@@ -267,24 +279,33 @@
         </t>
       </div>
 
-      <!-- Panel 3: KPI thiếu dữ liệu (REAL DATA) -->
+          <!-- Panel 3: KPI thiếu dữ liệu (REAL DATA) -->
       <div class="o_kpi_tree_panel">
         <div class="panel-head"><i class="fa fa-database"/> KPI Thiếu dữ liệu</div>
-        <t t-if="state.data.missing_data_kpis.length > 0">
-          <t t-foreach="state.data.missing_data_kpis" t-as="item" t-key="item_index">
-            <div class="miss-row">
+        <t t-if="missingDataLineCount() > 0">
+          <t t-foreach="topMissingDataLines()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.line_id || item_index)">
+            <div class="miss-row miss-row-clickable" t-on-click="() => this.openMissingDataLine(item)">
               <div class="miss-info">
-                <span class="miss-name" t-esc="item.kpi_name"/>
-                <span class="miss-meta"><t t-esc="item.dept_name"/> · <t t-esc="item.employee_name"/></span>
+                <div class="issue-title-line">
+                  <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Cá nhân'"/>
+                  <span class="miss-name" t-esc="item.kpi_name"/>
+                </div>
+                <span class="miss-meta" t-esc="issueMeta(item)"/>
               </div>
               <span class="tag-missing">Thiếu dữ liệu</span>
             </div>
           </t>
+          <button t-if="missingDataLineCount() > 5"
+                  type="button"
+                  class="missing-view-all-btn"
+                  t-on-click="openMissingDataModal">
+            Xem tất cả thiếu dữ liệu (<t t-esc="missingDataLineCount()"/>)
+          </button>
         </t>
         <div t-else="" class="panel-empty">Tất cả KPI đã có dữ liệu ✓</div>
       </div>
 
-      <!-- Panel 4: Insight điều hành AI -->
+          <!-- Panel 4: Insight điều hành AI -->
       <div class="o_kpi_tree_panel panel-ai">
         <div class="panel-head"><i class="fa fa-lightbulb-o"/> Insight điều hành</div>
         <t t-if="state.data.ai_insights and state.data.ai_insights.length">
@@ -295,11 +316,74 @@
         <div t-else="" class="panel-empty">Không có dữ liệu insight</div>
       </div>
 
-    </div><!-- /o_kpi_tree_panels -->
+    </div><!--
+        /o_kpi_tree_panels -->
 
-  </div><!-- /o_kpi_tree_body -->
+    <div t-if="state.showRiskModal" class="o_kpi_tree_modal_backdrop">
+      <div class="o_kpi_tree_modal">
+        <div class="o_kpi_tree_modal_header">
+          <div>
+            <div class="modal-title">Tất cả KPI rủi ro</div>
+            <div class="modal-subtitle"><t t-esc="riskLineCount()"/> KPI line đang fail trong kỳ này</div>
+          </div>
+          <button type="button" class="modal-close-btn" t-on-click="closeRiskModal">
+            <i class="fa fa-times"/>
+          </button>
+        </div>
+        <div class="o_kpi_tree_modal_body">
+          <t t-foreach="allRiskLines()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.line_id || item_index)">
+            <div class="risk-modal-row" t-on-click="() => this.openRiskLine(item)">
+              <div class="risk-modal-main">
+                <div class="issue-title-line">
+                  <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Cá nhân'"/>
+                  <span class="risk-name" t-esc="item.kpi_name"/>
+                </div>
+                <span class="risk-meta" t-esc="issueMeta(item)"/>
+              </div>
+              <div class="risk-modal-right">
+                <span class="risk-score" t-esc="formatScore(item.score)"/>
+                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.level"/>
+              </div>
+            </div>
+          </t>
+        </div>
+      </div>
+    </div>
 
-  <!-- ══ Empty (no data at all) ══ -->
+    <div t-if="state.showMissingDataModal" class="o_kpi_tree_modal_backdrop">
+      <div class="o_kpi_tree_modal">
+        <div class="o_kpi_tree_modal_header">
+          <div>
+            <div class="modal-title">Tất cả KPI thiếu dữ liệu</div>
+            <div class="modal-subtitle"><t t-esc="missingDataLineCount()"/> KPI line cần bổ sung dữ liệu/cấu hình</div>
+          </div>
+          <button type="button" class="modal-close-btn" t-on-click="closeMissingDataModal">
+            <i class="fa fa-times"/>
+          </button>
+        </div>
+        <div class="o_kpi_tree_modal_body">
+          <t t-foreach="allMissingDataLines()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.line_id || item_index)">
+            <div class="missing-modal-row" t-on-click="() => this.openMissingDataLine(item)">
+              <div class="missing-modal-main">
+                <div class="issue-title-line">
+                  <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Cá nhân'"/>
+                  <span class="miss-name" t-esc="item.kpi_name"/>
+                </div>
+                <span class="miss-meta" t-esc="issueMeta(item)"/>
+              </div>
+              <div class="missing-modal-right">
+                <span class="tag-missing">Thiếu dữ liệu</span>
+              </div>
+            </div>
+          </t>
+        </div>
+      </div>
+    </div>
+
+  </div><!--
+      /o_kpi_tree_body -->
+
+      <!-- ══ Empty (no data at all) ══ -->
   <div t-elif="!state.loading and !state.data" class="o_kpi_tree_body">
     <div class="empty-state">
       <i class="fa fa-sitemap fa-3x"/>
@@ -308,7 +392,8 @@
     </div>
   </div>
 
-</div><!-- /o_kpi_tree_page -->
+</div><!--
+    /o_kpi_tree_page -->
 </t>
 
 </templates>

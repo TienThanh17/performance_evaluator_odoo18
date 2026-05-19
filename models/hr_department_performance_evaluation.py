@@ -1,5 +1,7 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+import logging
 
+_logger = logging.getLogger(__name__)
 
 class HrDepartmentPerformanceEvaluation(models.Model):
     _name = "hr.department.performance.evaluation"
@@ -719,9 +721,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "avg_final_score": 0.0,
                         "total_employees": 0,
                         "total_depts": 0,
-                        "pass_rate": 0.0,
+                        "pass_employee_count": 0,
                     },
                     "departments": [],
+                    "risk_lines": [],
+                    "missing_data_lines": [],
                     "risk_kpis": [],
                     "missing_data_kpis": [],
                     "logic_warnings": [],
@@ -836,19 +840,19 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
             for dept_id, info in dept_map.items():
                 dept = info["dept"]
-                dept_evals = info["evals"]
+                employee_evals = info["evals"]
                 dept_eval = dept_eval_by_dept.get(dept_id)
                 dept_kpi = dept_eval.get_dept_kpi_score() if dept_eval else 0.0
 
                 pass_count = sum(
-                    1 for ev in dept_evals if (ev.final_level or "fail") != "fail"
+                    1 for ev in employee_evals if (ev.final_level or "fail") != "fail"
                 )
                 total_pass_count += pass_count
-                total_emp_count += len(dept_evals)
+                total_emp_count += len(employee_evals)
                 total_dept_kpi_scores.append(dept_kpi)
 
                 employees = []
-                for ev in dept_evals:
+                for ev in employee_evals:
                     emp = ev.employee_id
                     emp_dept_eval = ev.dept_evaluation_id or dept_eval
                     emp_dept_kpi = (
@@ -877,14 +881,15 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
                 # Điểm trung bình cấp phòng ban dùng cho detail panel, vẫn giữ thang 0-10.
                 avg_performance_score = (
-                    sum(ev.performance_score or 0.0 for ev in dept_evals)
-                    / len(dept_evals)
-                    if dept_evals
+                    sum(ev.performance_score or 0.0 for ev in employee_evals)
+                    / len(employee_evals)
+                    if employee_evals
                     else 0.0
                 )
                 avg_final_score = (
-                    sum(ev.final_score or 0.0 for ev in dept_evals) / len(dept_evals)
-                    if dept_evals
+                    sum(ev.final_score or 0.0 for ev in employee_evals)
+                    / len(employee_evals)
+                    if employee_evals
                     else 0.0
                 )
 
@@ -896,7 +901,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "dept_kpi_score": round(float(dept_kpi), 2),
                         "avg_performance_score": round(float(avg_performance_score), 2),
                         "avg_final_score": round(float(avg_final_score), 2),
-                        "employee_count": len(dept_evals),
+                        "employee_count": len(employee_evals),
                         "employees": employees,
                     }
                 )
@@ -910,9 +915,6 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 if total_dept_kpi_scores
                 else 0.0
             )
-            pass_rate = (
-                (total_pass_count / total_emp_count * 100.0) if total_emp_count else 0.0
-            )
             company_avg_performance = (
                 sum(total_performance_scores) / len(total_performance_scores)
                 if total_performance_scores
@@ -924,59 +926,144 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 else 0.0
             )
 
-            # ── Risk KPIs: top 5 evaluation.line có final_rating thấp nhất ───
+            # ── Risk KPIs: tất cả KPI cá nhân + phòng ban bị fail theo threshold pass
             EvalLine = self.env["hr.performance.evaluation.line"].sudo()
-            risk_lines = EvalLine.search(
+            DeptEvalLine = self.env["hr.department.evaluation.line"].sudo()
+            employee_risk_line_records = EvalLine.search(
                 [
                     ("evaluation_id", "in", evals.ids),
                     ("is_section", "=", False),
-                    ("kpi_type", "=", "quantitative"),
+                    ("final_rating", "<", threshold_pass),
                 ],
-                order="final_rating asc",
-                limit=5,
+                order="final_rating asc, id asc",
+            )
+            department_risk_line_records = DeptEvalLine.search(
+                [
+                    ("evaluation_id", "in", dept_evals.ids),
+                    ("is_section", "=", False),
+                    ("final_score", "<", threshold_pass),
+                ],
+                order="final_score asc, id asc",
             )
 
-            risk_kpis = []
-            for line in risk_lines:
+            risk_lines = []
+            for line in employee_risk_line_records:
                 ev = line.evaluation_id
-                level = "fail"
                 score = float(line.final_rating or 0.0)
-                if score >= threshold_excellent:
-                    level = "excellent"
-                elif score >= threshold_pass:
-                    level = "pass"
-                risk_kpis.append(
+                risk_lines.append(
                     {
+                        "source_type": "employee",
+                        "source_label": "Cá nhân",
+                        "line_model": "hr.performance.evaluation.line",
+                        "line_id": line.id,
+                        "evaluation_model": "hr.performance.evaluation",
+                        "evaluation_id": ev.id,
+                        "evaluation_name": ev.name or "",
                         "kpi_name": line.key_performance_area or "",
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": ev.employee_id.name if ev.employee_id else "",
                         "score": round(score, 2),
-                        "level": level,
+                        "level": "fail",
+                        "kpi_type": line.kpi_type or "",
                     }
                 )
+            for line in department_risk_line_records:
+                ev = line.evaluation_id
+                score = float(line.final_score or 0.0)
+                risk_lines.append(
+                    {
+                        "source_type": "department",
+                        "source_label": "Phòng ban",
+                        "line_model": "hr.department.evaluation.line",
+                        "line_id": line.id,
+                        "evaluation_model": "hr.department.performance.evaluation",
+                        "evaluation_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "kpi_name": line.name or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": "",
+                        "score": round(score, 2),
+                        "level": "fail",
+                        "kpi_type": line.kpi_type or "",
+                    }
+                )
+            risk_lines.sort(
+                key=lambda item: (
+                    item.get("score") or 0.0,
+                    item.get("source_type") or "",
+                    item.get("line_id") or 0,
+                )
+            )
+            risk_kpis = risk_lines[:5]
 
-            # ── Missing data KPIs: top 5 manual quantitative với actual=0 ────
-            missing_lines = EvalLine.search(
+            # ── Missing data KPIs: KPI cá nhân + phòng ban thiếu dữ liệu actual
+            employee_missing_line_records = EvalLine.search(
                 [
                     ("evaluation_id", "in", evals.ids),
                     ("is_section", "=", False),
-                    ("is_auto", "=", False),
+                    ("is_auto", "=", True),
+                    ("is_special_scoring", "=", False),
                     ("kpi_type", "=", "quantitative"),
-                    ("actual", "=", 0.0),
+                    # ("direction", "=", "higher_better"),
+                    ("actual", "=", False),
                 ],
-                limit=5,
+                order="id asc",
+            )
+            department_missing_line_records = DeptEvalLine.search(
+                [
+                    ("evaluation_id", "in", dept_evals.ids),
+                    ("is_section", "=", False),
+                    ("is_auto", "=", True),
+                    ("kpi_type", "=", "quantitative"),
+                    ("actual", "=", False),
+                ],
+                order="id asc",
             )
 
-            missing_data_kpis = []
-            for line in missing_lines:
+            missing_data_lines = []
+            for line in employee_missing_line_records:
                 ev = line.evaluation_id
-                missing_data_kpis.append(
+                missing_data_lines.append(
                     {
+                        "source_type": "employee",
+                        "source_label": "Cá nhân",
+                        "line_model": "hr.performance.evaluation.line",
+                        "line_id": line.id,
+                        "evaluation_model": "hr.performance.evaluation",
+                        "evaluation_id": ev.id,
+                        "evaluation_name": ev.name or "",
                         "kpi_name": line.key_performance_area or "",
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": ev.employee_id.name if ev.employee_id else "",
+                        "kpi_type": line.kpi_type or "",
                     }
                 )
+            for line in department_missing_line_records:
+                ev = line.evaluation_id
+                missing_data_lines.append(
+                    {
+                        "source_type": "department",
+                        "source_label": "Phòng ban",
+                        "line_model": "hr.department.evaluation.line",
+                        "line_id": line.id,
+                        "evaluation_model": "hr.department.performance.evaluation",
+                        "evaluation_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "kpi_name": line.name or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": "",
+                        "kpi_type": line.kpi_type or "",
+                    }
+                )
+            missing_data_lines.sort(
+                key=lambda item: (
+                    item.get("source_type") or "",
+                    item.get("dept_name") or "",
+                    item.get("employee_name") or "",
+                    item.get("line_id") or 0,
+                )
+            )
+            missing_data_kpis = missing_data_lines[:5]
 
             return {
                 "period": current_period,
@@ -988,9 +1075,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     "avg_final_score": round(company_avg_final, 2),
                     "total_employees": total_emp_count,
                     "total_depts": len(departments),
-                    "pass_rate": round(pass_rate, 1),
+                    "pass_employee_count": total_pass_count,
                 },
                 "departments": departments,
+                "risk_lines": risk_lines,
+                "missing_data_lines": missing_data_lines,
                 "risk_kpis": risk_kpis,
                 "missing_data_kpis": missing_data_kpis,
                 "logic_warnings": [],
@@ -1015,9 +1104,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     "avg_final_score": 0.0,
                     "total_employees": 0,
                     "total_depts": 0,
-                    "pass_rate": 0.0,
+                    "pass_employee_count": 0,
                 },
                 "departments": [],
+                "risk_lines": [],
+                "missing_data_lines": [],
                 "risk_kpis": [],
                 "missing_data_kpis": [],
                 "logic_warnings": [],
