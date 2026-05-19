@@ -19,7 +19,8 @@ class HrDepartmentEvaluationLine(models.Model):
             ("binary", "Binary"),
             ("rating", "Rating"),
             ("score", "Score"),
-        ], string=_("KPI Type")
+        ],
+        string=_("KPI Type"),
     )
     target = fields.Float()
     target_type = fields.Selection([("value", "Value"), ("percentage", "Percentage")])

@@ -13,8 +13,8 @@ import { loadJS } from "@web/core/assets";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Thresholds: thang 0-10 từ res.config.settings
-// final_score, performance_score: thang 0-10
-// Khi hiển thị trên UI nhân 10 để ra thang 0-100 dạng %
+// Backend trả toàn bộ score ở thang 0-10. Muốn đổi UI sang thang 100 sau này
+// thì chỉnh score_scale.display_multiplier/base/suffix ở backend hoặc helper formatScore().
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class KpiTreeDashboard extends Component {
@@ -23,21 +23,27 @@ export class KpiTreeDashboard extends Component {
 
     setup() {
         this.orm = useService("orm");
+        this.actionService = useService("action");
         this.d3Container = useRef("d3_container");
+        this.treeAnimationMs = 360;
+        this.pendingToggleDeptId = null;
+        this.pendingToggleMode = null;
+        this._lastTreeRenderKey = null;
 
         this.state = useState({
             loading: true,
             data: null, // response từ get_kpi_tree_data()
             selectedNode: null, // { type: 'company'|'dept'|'emp', id, data }
             expandedDepts: new Set(), // Set of department id — MỞ HẾT khi load
-            metric: "final", // 'final' | 'perf' | 'dept'
             selectedPeriod: null, // { start, end, label }
+            showRiskModal: false,
+            showMissingDataModal: false,
         });
 
         onMounted(async () => {
-            // Khuyên dùng: Tải file d3.js về thư mục static/lib của module
-            // await loadJS("/custom_adecsol_hr_performance_evaluator/static/lib/d3.v7.min.js");
-            await loadJS("https://d3js.org/d3.v7.min.js");
+            await loadJS(
+                "/custom_adecsol_hr_performance_evaluator/static/src/vendor/d3.v7.min.js",
+            );
             this.loadData(); // Giữ nguyên logic gọi RPC của bạn
         });
 
@@ -51,52 +57,35 @@ export class KpiTreeDashboard extends Component {
     // ── Getters ───────────────────────────────────────────────────────────────
 
     /**
-     * Tính điểm để hiển thị trên node (thang 0-100 cho %)
-     * Vì backend trả final_score / performance_score theo thang 0-10
+     * Tính điểm gốc cho node theo thang 0-10.
+     * Quy tắc dashboard: company = avg dept KPI, dept = dept KPI, employee = KPI cá nhân.
      */
     nodeScore(nodeData, type) {
         const d = this.state.data;
-        console.log("d", d);
         if (!d) return 0;
-        // debugger
-        // Company node
         if (type === "company") {
-            console.log("d.company", d.company);
-            return Math.round((d.company.dept_kpi_score || 0) * 10 * 10) / 10;
+            return this.roundScore(d.company.dept_kpi_score || 0);
         }
-
-        // Dept node
         if (type === "dept") {
-            const s =
-                this.state.metric === "dept"
-                    ? nodeData.dept_kpi_score || 0
-                    : nodeData.dept_kpi_score || 0;
-            return Math.round(s * 10 * 10) / 10;
+            // return this.roundScore(nodeData.dept_kpi_score || 0);
+            return nodeData.dept_kpi_score || 0;
         }
-        // Emp node
         if (type === "emp") {
-            const s =
-                this.state.metric === "perf"
-                    ? nodeData.performance_score || 0
-                    : this.state.metric === "dept"
-                      ? nodeData.dept_kpi_score || 0
-                      : nodeData.final_score || 0;
-            // scale 10
-            return Math.round(s * 10 * 10) / 10;
+            return this.roundScore(nodeData.performance_score || 0);
         }
         return 0;
     }
 
     /**
-     * levelColor dựa trên score đã nhân ×10 (thang 0-100) và threshold ×10
+     * So màu trực tiếp bằng score thang 0-10 để đồng bộ với threshold backend.
      */
     levelColor(score) {
         const t = this.state.data?.thresholds;
         if (!t) return "#B4B2A9";
-        const exc = t.excellent * 10;
-        const pass = t.pass * 10;
-        if (score >= exc) return "#1D9E75";
-        if (score >= pass) return "#378ADD";
+        const exc = t.excellent;
+        const pass = t.pass;
+        if (score >= exc) return "#378ADD";
+        if (score >= pass) return "#1D9E75";
         if (score <= 0) return "#B4B2A9";
         return "#E24B4A";
     }
@@ -104,10 +93,10 @@ export class KpiTreeDashboard extends Component {
     levelBg(score) {
         const t = this.state.data?.thresholds;
         if (!t) return "#F1EFE8";
-        const exc = t.excellent * 10;
-        const pass = t.pass * 10;
-        if (score >= exc) return "#E1F5EE";
-        if (score >= pass) return "#E6F1FB";
+        const exc = t.excellent;
+        const pass = t.pass;
+        if (score >= exc) return "#E6F1FB";
+        if (score >= pass) return "#E1F5EE";
         if (score <= 0) return "#F1EFE8";
         return "#FCEBEB";
     }
@@ -230,7 +219,7 @@ export class KpiTreeDashboard extends Component {
         this.state.loading = true;
         try {
             const data = await this.orm.call(
-                "hr.performance.evaluation",
+                "hr.department.performance.evaluation",
                 "get_kpi_tree_data",
                 [],
                 { period_start: periodStart, period_end: periodEnd },
@@ -292,7 +281,10 @@ export class KpiTreeDashboard extends Component {
 
     toggleDept = (deptId) => {
         const s = new Set(this.state.expandedDepts);
-        if (s.has(deptId)) {
+        const isExpanded = s.has(deptId);
+        this.pendingToggleDeptId = deptId;
+        this.pendingToggleMode = isExpanded ? "collapse" : "expand";
+        if (isExpanded) {
             s.delete(deptId);
         } else {
             s.add(deptId);
@@ -300,19 +292,80 @@ export class KpiTreeDashboard extends Component {
         this.state.expandedDepts = s;
     };
 
-    onMetricChange = (ev) => {
-        this.state.metric = ev.target.value;
-    };
-
     closePanel = () => {
         this.state.selectedNode = null;
     };
 
+    openRiskModal = () => {
+        this.state.showRiskModal = true;
+    };
+
+    closeRiskModal = () => {
+        this.state.showRiskModal = false;
+    };
+
+    openRiskLine = async (riskLine) => {
+        if (!riskLine?.line_id) return;
+        this.state.showRiskModal = false;
+        this.state.showMissingDataModal = false;
+        await this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: riskLine.kpi_name || "Risk KPI",
+            res_model: riskLine.line_model || "hr.performance.evaluation.line",
+            res_id: riskLine.line_id,
+            views: [[false, "form"]],
+            target: "current",
+            context: {
+                active_id: riskLine.evaluation_id,
+                active_model:
+                    riskLine.evaluation_model || "hr.performance.evaluation",
+            },
+        });
+    };
+
+    openMissingDataModal = () => {
+        this.state.showMissingDataModal = true;
+    };
+
+    closeMissingDataModal = () => {
+        this.state.showMissingDataModal = false;
+    };
+
+    openMissingDataLine = async (missingLine) => {
+        if (!missingLine?.line_id) return;
+        this.state.showRiskModal = false;
+        this.state.showMissingDataModal = false;
+        await this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: missingLine.kpi_name || "Missing KPI Data",
+            res_model: missingLine.line_model || "hr.performance.evaluation.line",
+            res_id: missingLine.line_id,
+            views: [[false, "form"]],
+            target: "current",
+            context: {
+                active_id: missingLine.evaluation_id,
+                active_model:
+                    missingLine.evaluation_model || "hr.performance.evaluation",
+            },
+        });
+    };
+
     // ── Template helpers ──────────────────────────────────────────────────────
+
+    roundScore(val) {
+        return Math.round((Number(val) || 0) * 10) / 10;
+    }
 
     formatScore(val) {
         if (val == null) return "—";
-        return (val * 10).toFixed(1);
+        const scale = this.state.data?.score_scale || {
+            display_multiplier: 1,
+            suffix: " / 10",
+        };
+        // Chỉ đổi multiplier/suffix ở score_scale nếu sau này muốn hiển thị thang 100.
+        const score = (Number(val) || 0) * (scale.display_multiplier || 1);
+        // return `${score.toFixed(2)}${scale.suffix || ""}`;
+        return `${score}${scale.suffix || ""}`;
     }
 
     formatPct(val) {
@@ -320,42 +373,51 @@ export class KpiTreeDashboard extends Component {
         return (val * 100).toFixed(1) + "%";
     }
 
-    formatPassRate(val) {
-        if (val == null) return "—";
-        return val.toFixed(1) + "%";
+    issueMeta(item) {
+        const parts = [item?.dept_name, item?.employee_name, item?.evaluation_name];
+        return parts.filter(Boolean).join(" · ");
     }
 
-    get metricLabel() {
+    sourceBadgeClass(item) {
+        const source = item?.source_type || "employee";
+        return `source-badge source-${source}`;
+    }
+
+    allRiskLines() {
+        return this.state.data?.risk_lines || this.state.data?.risk_kpis || [];
+    }
+
+    topRiskLines() {
+        return this.allRiskLines().slice(0, 5);
+    }
+
+    riskLineCount() {
+        return this.allRiskLines().length;
+    }
+
+    allMissingDataLines() {
         return (
-            {
-                final: "Điểm cuối (Final)",
-                perf: "KPI cá nhân",
-                dept: "KPI phòng ban",
-            }[this.state.metric] || "Điểm cuối"
+            this.state.data?.missing_data_lines ||
+            this.state.data?.missing_data_kpis ||
+            []
         );
+    }
+
+    topMissingDataLines() {
+        return this.allMissingDataLines().slice(0, 5);
+    }
+
+    missingDataLineCount() {
+        return this.allMissingDataLines().length;
+    }
+
+    scoreBarWidth(val) {
+        const base = this.state.data?.score_scale?.base || 10;
+        return Math.max(0, Math.min(100, ((Number(val) || 0) / base) * 100));
     }
 
     get layout() {
         return this.computeLayout();
-    }
-
-    // Sparkline hardcode (6 điểm mẫu cho detail panel)
-    get sparklinePoints() {
-        return [4.5, 5.0, 6.2, 5.8, 7.1, 6.5];
-    }
-
-    sparklinePath(points) {
-        const w = 120,
-            h = 40;
-        const max = Math.max(...points, 10);
-        const min = Math.min(...points, 0);
-        const range = max - min || 1;
-        const coords = points.map((v, i) => {
-            const x = (i / (points.length - 1)) * w;
-            const y = h - ((v - min) / range) * h;
-            return `${x},${y}`;
-        });
-        return `M ${coords.join(" L ")}`;
     }
 
     // Initials từ tên nhân viên (cho fallback avatar)
@@ -368,6 +430,21 @@ export class KpiTreeDashboard extends Component {
     }
 
     // ── BIẾN ĐỔI DỮ LIỆU THÀNH DẠNG HIERARCHY CHO D3 ──
+    getTreeRenderKey() {
+        const data = this.state.data;
+        if (!data) return "";
+        const expandedIds = [...this.state.expandedDepts].sort((a, b) => a - b);
+        const deptShape = (data.departments || [])
+            .map((dept) => `${dept.id}:${dept.employees?.length || 0}`)
+            .join("|");
+        return [
+            data.period?.start || "",
+            data.period?.end || "",
+            expandedIds.join(","),
+            deptShape,
+        ].join("::");
+    }
+
     prepareD3Data() {
         const d = this.state.data;
         if (!d) return null;
@@ -411,10 +488,128 @@ export class KpiTreeDashboard extends Component {
     // ── LOGIC VẼ D3.JS CHÍNH ──
     renderD3Tree() {
         const container = this.d3Container.el;
-        container.innerHTML = ""; // Xóa SVG cũ khi vẽ lại
+        const renderKey = this.getTreeRenderKey();
+        const hasCurrentSvg = container.querySelector(
+            "svg.o_kpi_tree_svg_current",
+        );
+        if (renderKey === this._lastTreeRenderKey && hasCurrentSvg) {
+            return;
+        }
+        this._lastTreeRenderKey = renderKey;
+
+        const d3Container = d3.select(container);
+        const toggledDeptId = this.pendingToggleDeptId;
+        const toggleMode = this.pendingToggleMode;
+        d3Container.selectAll("svg.o_kpi_tree_svg_exiting").remove();
+        const exitingSvg = d3Container
+            .selectAll("svg.o_kpi_tree_svg_current")
+            .classed("o_kpi_tree_svg_current", false)
+            .classed("o_kpi_tree_svg_exiting", true)
+            .style("position", "absolute")
+            .style("top", "0")
+            .style("left", "0")
+            .style("pointer-events", "none")
+            .style("z-index", "0");
+
+        if (toggleMode === "collapse" && toggledDeptId) {
+            exitingSvg.each((_, index, nodes) => {
+                const oldSvg = d3.select(nodes[index]);
+                let deptDatum = null;
+                oldSvg
+                    .selectAll(".kpi-d3-node")
+                    .filter(
+                        (d) =>
+                            d?.data?._type === "dept" &&
+                            d.data.rawData?.id === toggledDeptId,
+                    )
+                    .each((d) => {
+                        deptDatum = d;
+                    });
+
+                if (!deptDatum) {
+                    oldSvg
+                        .transition()
+                        .duration(this.treeAnimationMs)
+                        .ease(d3.easeCubicOut)
+                        .style("opacity", 0)
+                        .remove();
+                    return;
+                }
+
+                const isChildOfCollapsedDept = (d) => {
+                    let parent = d?.parent;
+                    while (parent) {
+                        if (
+                            parent.data?._type === "dept" &&
+                            parent.data.rawData?.id === toggledDeptId
+                        ) {
+                            return true;
+                        }
+                        parent = parent.parent;
+                    }
+                    return false;
+                };
+
+                // Khi collapse, node con chạy ngược về đúng vị trí node cha trước khi biến mất.
+                oldSvg
+                    .selectAll(".kpi-d3-node")
+                    .filter(isChildOfCollapsedDept)
+                    .transition()
+                    .duration(this.treeAnimationMs)
+                    .ease(d3.easeCubicInOut)
+                    .attr(
+                        "transform",
+                        `translate(${deptDatum.x},${deptDatum.y}) scale(0.72)`,
+                    )
+                    .style("opacity", 0);
+
+                oldSvg
+                    .selectAll(".kpi-d3-node")
+                    .filter((d) => !isChildOfCollapsedDept(d))
+                    .transition()
+                    .duration(this.treeAnimationMs)
+                    .ease(d3.easeCubicOut)
+                    .style("opacity", 0.25);
+
+                oldSvg
+                    .selectAll("path")
+                    .filter((d) => isChildOfCollapsedDept(d.target))
+                    .transition()
+                    .duration(this.treeAnimationMs)
+                    .ease(d3.easeCubicInOut)
+                    .attr(
+                        "d",
+                        d3
+                            .linkVertical()
+                            .x(() => deptDatum.x)
+                            .y(() => deptDatum.y),
+                    )
+                    .attr("stroke-opacity", 0);
+
+                oldSvg
+                    .selectAll("path")
+                    .filter((d) => !isChildOfCollapsedDept(d.target))
+                    .transition()
+                    .duration(this.treeAnimationMs)
+                    .ease(d3.easeCubicOut)
+                    .attr("stroke-opacity", 0.08);
+
+                oldSvg
+                    .transition()
+                    .duration(this.treeAnimationMs + 40)
+                    .remove();
+            });
+        } else {
+            exitingSvg
+                .transition()
+                .duration(this.treeAnimationMs)
+                .ease(d3.easeCubicOut)
+                .style("opacity", 0)
+                .style("transform", "translateY(-6px) scale(0.98)")
+                .remove();
+        }
 
         const treeData = this.prepareD3Data();
-        console.log("treeData", treeData);
         if (!treeData) return;
 
         // Khởi tạo kích thước layout
@@ -477,7 +672,9 @@ export class KpiTreeDashboard extends Component {
                         getMinSeparation(
                             a,
                             b,
-                            a.parent === b.parent ? MIN_NODE_GAP : DEPT_GROUP_GAP,
+                            a.parent === b.parent
+                                ? MIN_NODE_GAP
+                                : DEPT_GROUP_GAP,
                         ),
                     );
                 }
@@ -496,6 +693,19 @@ export class KpiTreeDashboard extends Component {
             });
         treeLayout(root);
 
+        const toggledDeptNode = toggledDeptId
+            ? root
+                  .descendants()
+                  .find(
+                      (d) =>
+                          d.data._type === "dept" &&
+                          d.data.rawData?.id === toggledDeptId,
+                  )
+            : null;
+        const animationOrigin = toggledDeptNode || root;
+        this.pendingToggleDeptId = null;
+        this.pendingToggleMode = null;
+
         // Tính toán bounding box để canvas luôn fit hoặc scroll
         let x0 = Infinity,
             x1 = -x0,
@@ -506,25 +716,49 @@ export class KpiTreeDashboard extends Component {
             if (d.y > y1) y1 = d.y;
         });
 
+        const contentWidth = Math.ceil(x1 - x0 + empSlotW * 2);
+        const contentHeight = Math.ceil(y1 + nodeHeight * 2);
+        const viewportWidth = container.parentElement?.clientWidth || 0;
+        const svgWidth = Math.max(contentWidth, viewportWidth);
+
+        // Gán width thật vào container để .o_kpi_tree_svg_wrap tạo scroll ngang ổn định.
+        container.style.position = "relative";
+        container.style.width = `${svgWidth}px`;
+        container.style.minWidth = `${svgWidth}px`;
+        container.style.minHeight = `${contentHeight}px`;
+
         const svg = d3
             .select(container)
             .append("svg")
-            .attr("width", x1 - x0 + empSlotW * 2)
-            .attr("height", y1 + nodeHeight * 2)
+            .attr("class", "o_kpi_tree_svg_current")
+            .attr("width", svgWidth)
+            .attr("height", contentHeight)
+            .style("position", "relative")
+            .style("z-index", "1")
+            .style("opacity", 0);
+
+        svg.transition()
+            .duration(this.treeAnimationMs)
+            .ease(d3.easeCubicOut)
+            .style("opacity", 1);
+
+        const canvas = svg
             .append("g")
             .attr("transform", `translate(${-(x0 - empSlotW)}, 60)`);
 
         // 1. Vẽ Link (Đường nối)
-        const link = svg
+        const link = canvas
             .append("g")
             .attr("fill", "none")
-            .attr("stroke-opacity", 0.5)
+            .attr("stroke-opacity", 0)
             .attr("stroke-width", 1.5)
             .selectAll("path")
             .data(root.links())
             .join("path")
             .attr("stroke", (d) =>
-                this.levelColor(this.nodeScore(d.target.data.rawData)),
+                this.levelColor(
+                    this.nodeScore(d.target.data.rawData, d.target.data._type),
+                ),
             )
             .attr("stroke-dasharray", (d) =>
                 d.target.data._type === "emp" ? "3 2" : "4 2",
@@ -537,13 +771,24 @@ export class KpiTreeDashboard extends Component {
                     .y((d) => d.y),
             );
 
+        link.transition()
+            .duration(this.treeAnimationMs)
+            .delay(80)
+            .ease(d3.easeCubicOut)
+            .attr("stroke-opacity", 0.5);
+
         // 2. Vẽ Node
-        const node = svg
+        const node = canvas
             .append("g")
             .selectAll("g")
             .data(root.descendants())
             .join("g")
-            .attr("transform", (d) => `translate(${d.x},${d.y})`)
+            .attr(
+                "transform",
+                () =>
+                    `translate(${animationOrigin.x},${animationOrigin.y}) scale(0.88)`,
+            )
+            .style("opacity", 0)
             .attr("class", "kpi-d3-node")
             .style("cursor", "pointer")
             .on("click", (event, d) => {
@@ -554,6 +799,13 @@ export class KpiTreeDashboard extends Component {
                     },
                 });
             });
+
+        node.transition()
+            .duration(this.treeAnimationMs)
+            .delay((d) => d.depth * 45)
+            .ease(d3.easeCubicOut)
+            .style("opacity", 1)
+            .attr("transform", (d) => `translate(${d.x},${d.y}) scale(1)`);
 
         // 3. Render nội dung thẻ Node (Rect + Text)
         // === COMPANY & DEPT NODES ===
@@ -648,7 +900,7 @@ export class KpiTreeDashboard extends Component {
             )
             .text((d) => {
                 const score = this.nodeScore(d.data.rawData, d.data._type);
-                return score != null ? `${score}%` : "—";
+                return score != null ? this.formatScore(score) : "—";
             });
 
         // === EMPLOYEE NODES ===
@@ -767,7 +1019,7 @@ export class KpiTreeDashboard extends Component {
             )
             .text((d) => {
                 const score = this.nodeScore(d.data.rawData, d.data._type);
-                return score != null ? `${score}%` : "—";
+                return score != null ? this.formatScore(score) : "—";
             });
 
         // ── 4. Vẽ icon Toggle (+/-) cho Department Node ──────────────────────

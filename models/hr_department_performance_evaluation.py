@@ -1,5 +1,7 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+import logging
 
+_logger = logging.getLogger(__name__)
 
 class HrDepartmentPerformanceEvaluation(models.Model):
     _name = "hr.department.performance.evaluation"
@@ -288,15 +290,17 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         if not user_ids:
             return []
         Task = self.env["project.task"].sudo()
-        period_tasks = Task.search([
-            ('user_ids', 'in', user_ids),
-            # ('date_deadline', '>=', self.start_date),
-            # ('date_deadline', '<=', self.end_date),
-            ('project_id', '!=', False),
-        ])
-        
+        period_tasks = Task.search(
+            [
+                ("user_ids", "in", user_ids),
+                # ('date_deadline', '>=', self.start_date),
+                # ('date_deadline', '<=', self.end_date),
+                ("project_id", "!=", False),
+            ]
+        )
+
         # Lấy ID các dự án liên quan
-        project_ids = period_tasks.mapped('project_id').ids
+        project_ids = period_tasks.mapped("project_id").ids
 
         result = {
             "department_name": self.department_id.name or "",
@@ -305,7 +309,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             #     if self.department_id.manager_id
             #     else "—"
             # ),
-            'project_count': len(project_ids),
+            "project_count": len(project_ids),
             "employee_count": len(employees),
             "dept_kpi_score": round(float(self.dept_kpi_score or 0.0), 2),
             # "department_score": round(float(self.department_score or 0.0), 2),
@@ -322,10 +326,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     def _get_quantitative_table_data(self):
         self.ensure_one()
         lines = self.evaluation_line_ids.filtered(
-            lambda l: (
-                not l.is_section
-                and l.kpi_type == "quantitative"
-            )
+            lambda l: not l.is_section and l.kpi_type == "quantitative"
         )
         rows = []
         for line in lines:
@@ -475,7 +476,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         Task = self.env["project.task"].sudo()
         all_tasks = Task.search(
             [
-                ('user_ids', 'in', user_ids),
+                ("user_ids", "in", user_ids),
                 # ('date_deadline', '>=', self.start_date),
                 # ('date_deadline', '<=', self.end_date),
                 ("project_id", "!=", False),
@@ -637,13 +638,13 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
         # Query 1 lần tất cả bug tasks trong kỳ
         # 1. Kiểm tra xem field 'task_type' có tồn tại trong model project.task hay không
-        if 'task_type' in self.env['project.task']._fields:
+        if "task_type" in self.env["project.task"]._fields:
             bug_tasks = (
                 self.env["project.task"]
                 .sudo()
                 .search(
                     [
-                        ('task_type', '=', 'bug'),
+                        ("task_type", "=", "bug"),
                         ("user_ids", "in", user_ids),
                         ("date_deadline", ">=", self.start_date),
                         ("date_deadline", "<=", self.end_date),
@@ -653,7 +654,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             )
         else:
             # 2. Nếu không có field, trả về một recordset rỗng của model đó
-            bug_tasks = self.env['project.task'].browse()
+            bug_tasks = self.env["project.task"].browse()
 
         # Group by user_id — 1 task nhiều user → đếm cho từng user
         count_by_user = {}
@@ -674,3 +675,445 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             )
 
         return result
+
+    @api.model
+    def get_kpi_tree_data(self, period_start=None, period_end=None):
+        """Trả về toàn bộ dữ liệu cho KPI Tree Dashboard theo một RPC duy nhất.
+
+        Quy ước quan trọng: toàn bộ điểm trong payload này giữ nguyên thang 0-10.
+        Frontend chỉ format lại cách hiển thị, không tự nhân sang thang 100.
+        """
+        try:
+            Evaluation = self.env["hr.performance.evaluation"].sudo()
+            DeptEvaluation = self.env["hr.department.performance.evaluation"].sudo()
+            ICP = self.env["ir.config_parameter"].sudo()
+            score_scale = {
+                "base": 10,
+                "display_multiplier": 1,
+                "suffix": " / 10",
+            }
+
+            # ── Thresholds (thang 0-10) ───────────────────────────────────────
+            threshold_excellent = float(
+                ICP.get_param(
+                    "custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent",
+                    default="9",
+                )
+                or 9.0
+            )
+            threshold_pass = float(
+                ICP.get_param(
+                    "custom_adecsol_hr_performance_evaluator.kpi_threshold_pass",
+                    default="5",
+                )
+                or 5.0
+            )
+
+            def _empty_response(period=None):
+                """Tạo response rỗng nhưng đủ key để OWL không bị crash khi render."""
+                return {
+                    "period": period or {"start": "", "end": "", "label": ""},
+                    "available_periods": available_periods,
+                    "score_scale": score_scale,
+                    "company": {
+                        "dept_kpi_score": 0.0,
+                        "avg_performance_score": 0.0,
+                        "avg_final_score": 0.0,
+                        "total_employees": 0,
+                        "total_depts": 0,
+                        "pass_employee_count": 0,
+                    },
+                    "departments": [],
+                    "risk_lines": [],
+                    "missing_data_lines": [],
+                    "risk_kpis": [],
+                    "missing_data_kpis": [],
+                    "logic_warnings": [],
+                    "financial_kpis": [],
+                    "ai_insights": [],
+                    "trends": [],
+                    "thresholds": {
+                        "excellent": threshold_excellent,
+                        "pass": threshold_pass,
+                    },
+                }
+
+            # ── Available periods ─────────────────────────────────────────────
+            # Lấy tối đa 12 kỳ có dữ liệu cá nhân hoặc phòng ban để dropdown không bỏ sót kỳ.
+            self.env.cr.execute("""
+                SELECT DISTINCT start_date, end_date FROM (
+                    SELECT start_date, end_date
+                    FROM hr_performance_evaluation
+                    WHERE start_date IS NOT NULL AND end_date IS NOT NULL
+                    UNION
+                    SELECT start_date, end_date
+                    FROM hr_department_performance_evaluation
+                    WHERE start_date IS NOT NULL AND end_date IS NOT NULL
+                ) AS kpi_periods
+                ORDER BY start_date DESC
+                LIMIT 12
+            """)
+            period_rows = self.env.cr.fetchall()
+
+            available_periods = []
+            for sd, ed in period_rows:
+                label = sd.strftime("T%m/%Y") if sd else str(sd)
+                available_periods.append(
+                    {
+                        "start": str(sd),
+                        "end": str(ed),
+                        "label": label,
+                    }
+                )
+
+            if not available_periods:
+                return _empty_response()
+
+            # ── Xác định kỳ hiện tại ─────────────────────────────────────────
+            if period_start and period_end:
+                current_period = {"start": period_start, "end": period_end}
+                # Tìm label tương ứng
+                from datetime import datetime
+
+                try:
+                    sd_obj = datetime.strptime(period_start, "%Y-%m-%d")
+                    current_period["label"] = sd_obj.strftime("T%m/%Y")
+                except Exception:
+                    current_period["label"] = period_start
+            else:
+                current_period = available_periods[0]
+                period_start = current_period["start"]
+                period_end = current_period["end"]
+
+            # ── Lấy tất cả evaluations trong kỳ ─────────────────────────────
+            evals = Evaluation.search(
+                [
+                    ("start_date", "=", period_start),
+                    ("end_date", "=", period_end),
+                    ("state", "!=", "cancel"),
+                ]
+            )
+
+            # Lấy phiếu KPI phòng ban đúng kỳ, tránh dùng field latest-period trên hr.department.
+            dept_evals = DeptEvaluation.search(
+                [
+                    ("start_date", "=", period_start),
+                    ("end_date", "=", period_end),
+                    ("state", "!=", "cancel"),
+                ],
+                order="end_date desc, start_date desc, id desc",
+            )
+            dept_eval_by_dept = {}
+            for dept_eval in dept_evals:
+                dept = dept_eval.department_id
+                if dept and dept.id not in dept_eval_by_dept:
+                    dept_eval_by_dept[dept.id] = dept_eval
+
+            if not evals and not dept_eval_by_dept:
+                return _empty_response(current_period)
+
+            # ── Nhóm theo phòng ban ───────────────────────────────────────────
+            dept_map = {}  # dept_id → {'dept': hr.department record, 'evals': list}
+            for ev in evals:
+                dept = ev.department_id
+                if not dept:
+                    continue
+                if dept.id not in dept_map:
+                    dept_map[dept.id] = {"dept": dept, "evals": []}
+                dept_map[dept.id]["evals"].append(ev)
+
+            # Thêm các phòng ban có phiếu KPI phòng ban nhưng chưa có phiếu cá nhân trong kỳ.
+            for dept_id, dept_eval in dept_eval_by_dept.items():
+                if dept_id not in dept_map:
+                    dept_map[dept_id] = {
+                        "dept": dept_eval.department_id,
+                        "evals": [],
+                    }
+
+            # ── Build departments list ────────────────────────────────────────
+            departments = []
+            total_dept_kpi_scores = []
+            total_performance_scores = []
+            total_final_scores = []
+            total_pass_count = 0
+            total_emp_count = 0
+
+            for dept_id, info in dept_map.items():
+                dept = info["dept"]
+                employee_evals = info["evals"]
+                dept_eval = dept_eval_by_dept.get(dept_id)
+                dept_kpi = dept_eval.get_dept_kpi_score() if dept_eval else 0.0
+
+                pass_count = sum(
+                    1 for ev in employee_evals if (ev.final_level or "fail") != "fail"
+                )
+                total_pass_count += pass_count
+                total_emp_count += len(employee_evals)
+                total_dept_kpi_scores.append(dept_kpi)
+
+                employees = []
+                for ev in employee_evals:
+                    emp = ev.employee_id
+                    emp_dept_eval = ev.dept_evaluation_id or dept_eval
+                    emp_dept_kpi = (
+                        emp_dept_eval.get_dept_kpi_score() if emp_dept_eval else 0.0
+                    )
+                    performance_score = float(ev.performance_score or 0.0)
+                    final_score = float(ev.final_score or 0.0)
+                    total_performance_scores.append(performance_score)
+                    total_final_scores.append(final_score)
+                    employees.append(
+                        {
+                            "id": ev.id,
+                            "employee_id": emp.id,
+                            "name": emp.name or "",
+                            "job": emp.job_id.name if emp.job_id else "",
+                            "avatar_url": f"/web/image/hr.employee/{emp.id}/image_128"
+                            if emp.id
+                            else "",
+                            "final_score": round(final_score, 2),
+                            "performance_score": round(performance_score, 2),
+                            "dept_kpi_score": round(float(emp_dept_kpi), 2),
+                            "final_level": ev.final_level or "fail",
+                            "state": ev.state or "",
+                        }
+                    )
+
+                # Điểm trung bình cấp phòng ban dùng cho detail panel, vẫn giữ thang 0-10.
+                avg_performance_score = (
+                    sum(ev.performance_score or 0.0 for ev in employee_evals)
+                    / len(employee_evals)
+                    if employee_evals
+                    else 0.0
+                )
+                avg_final_score = (
+                    sum(ev.final_score or 0.0 for ev in employee_evals)
+                    / len(employee_evals)
+                    if employee_evals
+                    else 0.0
+                )
+
+                departments.append(
+                    {
+                        "id": dept_id,
+                        "name": dept.name or "",
+                        "manager_name": dept.manager_id.name if dept.manager_id else "",
+                        "dept_kpi_score": round(float(dept_kpi), 2),
+                        "avg_performance_score": round(float(avg_performance_score), 2),
+                        "avg_final_score": round(float(avg_final_score), 2),
+                        "employee_count": len(employee_evals),
+                        "employees": employees,
+                    }
+                )
+
+            # Sort departments theo dept_kpi_score desc
+            departments.sort(key=lambda d: d["dept_kpi_score"], reverse=True)
+
+            # ── Company summary ───────────────────────────────────────────────
+            company_dept_kpi = (
+                sum(total_dept_kpi_scores) / len(total_dept_kpi_scores)
+                if total_dept_kpi_scores
+                else 0.0
+            )
+            company_avg_performance = (
+                sum(total_performance_scores) / len(total_performance_scores)
+                if total_performance_scores
+                else 0.0
+            )
+            company_avg_final = (
+                sum(total_final_scores) / len(total_final_scores)
+                if total_final_scores
+                else 0.0
+            )
+
+            # ── Risk KPIs: tất cả KPI cá nhân + phòng ban bị fail theo threshold pass
+            EvalLine = self.env["hr.performance.evaluation.line"].sudo()
+            DeptEvalLine = self.env["hr.department.evaluation.line"].sudo()
+            employee_risk_line_records = EvalLine.search(
+                [
+                    ("evaluation_id", "in", evals.ids),
+                    ("is_section", "=", False),
+                    ("final_rating", "<", threshold_pass),
+                ],
+                order="final_rating asc, id asc",
+            )
+            department_risk_line_records = DeptEvalLine.search(
+                [
+                    ("evaluation_id", "in", dept_evals.ids),
+                    ("is_section", "=", False),
+                    ("final_score", "<", threshold_pass),
+                ],
+                order="final_score asc, id asc",
+            )
+
+            risk_lines = []
+            for line in employee_risk_line_records:
+                ev = line.evaluation_id
+                score = float(line.final_rating or 0.0)
+                risk_lines.append(
+                    {
+                        "source_type": "employee",
+                        "source_label": "Cá nhân",
+                        "line_model": "hr.performance.evaluation.line",
+                        "line_id": line.id,
+                        "evaluation_model": "hr.performance.evaluation",
+                        "evaluation_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "kpi_name": line.key_performance_area or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": ev.employee_id.name if ev.employee_id else "",
+                        "score": round(score, 2),
+                        "level": "fail",
+                        "kpi_type": line.kpi_type or "",
+                    }
+                )
+            for line in department_risk_line_records:
+                ev = line.evaluation_id
+                score = float(line.final_score or 0.0)
+                risk_lines.append(
+                    {
+                        "source_type": "department",
+                        "source_label": "Phòng ban",
+                        "line_model": "hr.department.evaluation.line",
+                        "line_id": line.id,
+                        "evaluation_model": "hr.department.performance.evaluation",
+                        "evaluation_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "kpi_name": line.name or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": "",
+                        "score": round(score, 2),
+                        "level": "fail",
+                        "kpi_type": line.kpi_type or "",
+                    }
+                )
+            risk_lines.sort(
+                key=lambda item: (
+                    item.get("score") or 0.0,
+                    item.get("source_type") or "",
+                    item.get("line_id") or 0,
+                )
+            )
+            risk_kpis = risk_lines[:5]
+
+            # ── Missing data KPIs: KPI cá nhân + phòng ban thiếu dữ liệu actual
+            employee_missing_line_records = EvalLine.search(
+                [
+                    ("evaluation_id", "in", evals.ids),
+                    ("is_section", "=", False),
+                    ("is_auto", "=", True),
+                    ("is_special_scoring", "=", False),
+                    ("kpi_type", "=", "quantitative"),
+                    # ("direction", "=", "higher_better"),
+                    ("actual", "=", False),
+                ],
+                order="id asc",
+            )
+            department_missing_line_records = DeptEvalLine.search(
+                [
+                    ("evaluation_id", "in", dept_evals.ids),
+                    ("is_section", "=", False),
+                    ("is_auto", "=", True),
+                    ("kpi_type", "=", "quantitative"),
+                    ("actual", "=", False),
+                ],
+                order="id asc",
+            )
+
+            missing_data_lines = []
+            for line in employee_missing_line_records:
+                ev = line.evaluation_id
+                missing_data_lines.append(
+                    {
+                        "source_type": "employee",
+                        "source_label": "Cá nhân",
+                        "line_model": "hr.performance.evaluation.line",
+                        "line_id": line.id,
+                        "evaluation_model": "hr.performance.evaluation",
+                        "evaluation_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "kpi_name": line.key_performance_area or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": ev.employee_id.name if ev.employee_id else "",
+                        "kpi_type": line.kpi_type or "",
+                    }
+                )
+            for line in department_missing_line_records:
+                ev = line.evaluation_id
+                missing_data_lines.append(
+                    {
+                        "source_type": "department",
+                        "source_label": "Phòng ban",
+                        "line_model": "hr.department.evaluation.line",
+                        "line_id": line.id,
+                        "evaluation_model": "hr.department.performance.evaluation",
+                        "evaluation_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "kpi_name": line.name or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": "",
+                        "kpi_type": line.kpi_type or "",
+                    }
+                )
+            missing_data_lines.sort(
+                key=lambda item: (
+                    item.get("source_type") or "",
+                    item.get("dept_name") or "",
+                    item.get("employee_name") or "",
+                    item.get("line_id") or 0,
+                )
+            )
+            missing_data_kpis = missing_data_lines[:5]
+
+            return {
+                "period": current_period,
+                "available_periods": available_periods,
+                "score_scale": score_scale,
+                "company": {
+                    "dept_kpi_score": round(company_dept_kpi, 2),
+                    "avg_performance_score": round(company_avg_performance, 2),
+                    "avg_final_score": round(company_avg_final, 2),
+                    "total_employees": total_emp_count,
+                    "total_depts": len(departments),
+                    "pass_employee_count": total_pass_count,
+                },
+                "departments": departments,
+                "risk_lines": risk_lines,
+                "missing_data_lines": missing_data_lines,
+                "risk_kpis": risk_kpis,
+                "missing_data_kpis": missing_data_kpis,
+                "logic_warnings": [],
+                "financial_kpis": [],
+                "ai_insights": [],
+                "trends": [],
+                "thresholds": {
+                    "excellent": threshold_excellent,
+                    "pass": threshold_pass,
+                },
+            }
+
+        except Exception as e:
+            _logger.exception("get_kpi_tree_data failed: %s", str(e))
+            return {
+                "period": {"start": "", "end": "", "label": ""},
+                "available_periods": [],
+                "score_scale": {"base": 10, "display_multiplier": 1, "suffix": " / 10"},
+                "company": {
+                    "dept_kpi_score": 0.0,
+                    "avg_performance_score": 0.0,
+                    "avg_final_score": 0.0,
+                    "total_employees": 0,
+                    "total_depts": 0,
+                    "pass_employee_count": 0,
+                },
+                "departments": [],
+                "risk_lines": [],
+                "missing_data_lines": [],
+                "risk_kpis": [],
+                "missing_data_kpis": [],
+                "logic_warnings": [],
+                "financial_kpis": [],
+                "ai_insights": [],
+                "trends": [],
+                "thresholds": {"excellent": 9.0, "pass": 5.0},
+            }

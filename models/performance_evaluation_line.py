@@ -3,50 +3,50 @@ from odoo.exceptions import UserError, ValidationError
 
 
 class PerformanceEvaluationLine(models.Model):
-    _name = 'hr.performance.evaluation.line'
-    _description = 'Performance Evaluation Line'
-    _order = 'sequence, id'
+    _name = "hr.performance.evaluation.line"
+    _description = "Performance Evaluation Line"
+    _order = "sequence, id"
 
     # Optional: keep a backlink to the KPI template line that generated this evaluation line.
     # This makes the mapping explicit and allows future sync/update.
     kpi_line_id = fields.Many2one(
-        'hr.kpi.line',
-        string='KPI Template Line',
-        ondelete='set null',
+        "hr.kpi.line",
+        string="KPI Template Line",
+        ondelete="set null",
         index=True,
         help="The KPI template line this evaluation line comes from (for traceability).",
     )
     parent_dept_line_id = fields.Many2one(
-        'hr.department.kpi.line',
-        string='Parent Department KPI Template',
-        ondelete='set null',
+        "hr.department.kpi.line",
+        string="Parent Department KPI Template",
+        ondelete="set null",
         index=True,
         help="The department KPI template line linked to this employee KPI line.",
     )
     parent_dept_evaluation_line_id = fields.Many2one(
-        'hr.department.evaluation.line',
-        string='Parent Department KPI',
-        ondelete='set null',
+        "hr.department.evaluation.line",
+        string="Parent Department KPI",
+        ondelete="set null",
         index=True,
         help="The department evaluation line generated for the same period.",
     )
 
     evaluation_id = fields.Many2one(
-        'hr.performance.evaluation',
+        "hr.performance.evaluation",
         string="Performance Evaluation",
-        ondelete='cascade',
+        ondelete="cascade",
         help="The evaluation record that this line belongs to.",
     )
     evaluation_state = fields.Selection(
-        related='evaluation_id.state',
-        string='Evaluation State',
+        related="evaluation_id.state",
+        string="Evaluation State",
         store=False,
         help="Current workflow state of the parent evaluation.",
     )
     employee_id = fields.Many2one(
-        'hr.employee',
-        string='Employee',
-        related='evaluation_id.employee_id',
+        "hr.employee",
+        string="Employee",
+        related="evaluation_id.employee_id",
         store=False,
     )
     key_performance_area = fields.Char(
@@ -56,39 +56,39 @@ class PerformanceEvaluationLine(models.Model):
     )
     kpi_type = fields.Selection(
         selection=[
-            ('quantitative', 'Quantitative'),
-            ('binary', 'Binary'),
-            ('rating', 'Rating'),
-            ('score', 'Score'),
+            ("quantitative", "Quantitative"),
+            ("binary", "Binary"),
+            ("rating", "Rating"),
+            ("score", "Score"),
         ],
-        string='KPI Type',
-        default='quantitative',
+        string="KPI Type",
+        default="quantitative",
         required=True,
         help="How this KPI line is evaluated: Quantitative (Target vs Actual), Binary (Yes/No), Rating (0–5), or Score (0–10).",
     )
 
     target_type = fields.Selection(
         selection=[
-            ('value', 'Value'),
-            ('percentage', 'Percentage'),
+            ("value", "Value"),
+            ("percentage", "Percentage"),
         ],
-        string='Target Type',
+        string="Target Type",
         required=True,
-        default='value',
+        default="value",
         help="Controls the unit for Target/Actual. If Percentage, values are 0–100.",
     )
     direction = fields.Selection(
         selection=[
-            ('higher_better', 'Higher is Better'),
-            ('lower_better', 'Lower is Better'),
+            ("higher_better", "Higher is Better"),
+            ("lower_better", "Lower is Better"),
         ],
-        string='Direction',
-        default='higher_better',
+        string="Direction",
+        default="higher_better",
         required=True,
         help="For Quantitative KPIs: choose whether a higher actual value is better or a lower actual value is better.",
     )
     target = fields.Float(
-        string='Target',
+        string="Target",
         default=0.0,
         help="Target value to be achieved for Quantitative KPIs.",
     )
@@ -104,23 +104,23 @@ class PerformanceEvaluationLine(models.Model):
     )
 
     is_auto = fields.Boolean(
-        string='Auto Compute',
+        string="Auto Compute",
         default=False,
-        compute='_compute_auto',
+        compute="_compute_auto",
         store=True,
         help="Enable to let the system automatically compute Actual values from the selected Data Source.",
     )
 
     data_source = fields.Selection(
         selection=[
-            ('manual', 'Manual'),
-            ('done_task', 'Done Task'),
-            ('task_on_time', 'Task On Time'),
-            ('late_days', 'Late Days'),
-            ('attendance_full', 'Attendance Full'),
+            ("manual", "Manual"),
+            ("done_task", "Done Task"),
+            ("task_on_time", "Task On Time"),
+            ("late_days", "Late Days"),
+            ("attendance_full", "Attendance Full"),
         ],
-        string='Data Source',
-        default='manual',
+        string="Data Source",
+        default="manual",
         required=False,
         help="Where the system gets the Actual value from when Auto Compute is enabled.",
     )
@@ -187,7 +187,7 @@ class PerformanceEvaluationLine(models.Model):
     is_special_scoring = fields.Boolean(
         string="Special Scoring",
         compute="_compute_is_special_scoring",
-        store=False,
+        store=True,
         help="Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).",
     )
 
@@ -208,7 +208,7 @@ class PerformanceEvaluationLine(models.Model):
     )
 
     # Binary: use these fields for self vs manager.
-    _BINARY_YN = [('yes', 'Yes'), ('no', 'No')]
+    _BINARY_YN = [("yes", "Yes"), ("no", "No")]
     employee_rating_binary = fields.Selection(
         selection=_BINARY_YN,
         string="Employee Rating (Binary)",
@@ -221,18 +221,25 @@ class PerformanceEvaluationLine(models.Model):
     )
 
     # Rating: 0..5 selection.
-    _RATING_0_5 = [('0', '0'), ('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5')]
+    _RATING_0_5 = [
+        ("0", "0"),
+        ("1", "1"),
+        ("2", "2"),
+        ("3", "3"),
+        ("4", "4"),
+        ("5", "5"),
+    ]
     employee_rating_selection = fields.Selection(
         selection=_RATING_0_5,
         string="Employee Rating (0-5)",
         help="Employee self-assessment for Rating KPIs (0–5).",
-        default='0',
+        default="0",
     )
     manager_rating_selection = fields.Selection(
         selection=_RATING_0_5,
         string="Manager Rating (0-5)",
         help="Manager assessment for Rating KPIs (0–5).",
-        default='0',
+        default="0",
     )
 
     # Score KPI: employee self score and manager final score (0..10)
@@ -259,15 +266,18 @@ class PerformanceEvaluationLine(models.Model):
     )
 
     final_rating = fields.Float(
-        string="Final Rating", compute='_compute_final_rating', store=True, digits=(16, 1)
-        , help="Final rating (0–10) used in the evaluation summary.",
+        string="Final Rating",
+        compute="_compute_final_rating",
+        store=True,
+        digits=(16, 1),
+        help="Final rating (0–10) used in the evaluation summary.",
     )
 
+    # Always-formatted text for UI badge rendering (keeps 0.0 visible).
     final_rating_badge_text = fields.Char(
         string="Final Rating",
         compute="_compute_final_rating_badge_text",
         store=False,
-        help="Always-formatted text for UI badge rendering (keeps 0.0 visible).",
     )
 
     final_rating_badge_class = fields.Char(
@@ -289,17 +299,21 @@ class PerformanceEvaluationLine(models.Model):
         help="Additional details or guidance for this evaluation line.",
     )
 
-    is_manager = fields.Boolean(related='evaluation_id.is_manager', store=False)
-    is_hr = fields.Boolean(related='evaluation_id.is_hr', store=False)
-    is_employee = fields.Boolean(related='evaluation_id.is_employee', store=False)
-    is_current_user = fields.Boolean(related='evaluation_id.is_current_user', store=False)
-    is_department_manager = fields.Boolean(related='evaluation_id.is_department_manager', store=False)
+    is_manager = fields.Boolean(related="evaluation_id.is_manager", store=False)
+    is_hr = fields.Boolean(related="evaluation_id.is_hr", store=False)
+    is_employee = fields.Boolean(related="evaluation_id.is_employee", store=False)
+    is_current_user = fields.Boolean(
+        related="evaluation_id.is_current_user", store=False
+    )
+    is_department_manager = fields.Boolean(
+        related="evaluation_id.is_department_manager", store=False
+    )
 
     is_section = fields.Boolean(default=False)
     display_type = fields.Selection(
         selection=[
-            ('line_section', 'Section'),
-            ('line_note', 'Note'),
+            ("line_section", "Section"),
+            ("line_note", "Note"),
         ],
         default=False,
         compute="_compute_display_type",
@@ -312,72 +326,93 @@ class PerformanceEvaluationLine(models.Model):
         help="Controls the order of lines in the evaluation (drag & drop).",
     )
 
-    @api.depends('kpi_type', 'data_source')
+    @api.depends("kpi_type", "data_source")
     def _compute_auto(self):
         for rec in self:
-            rec.is_auto = bool(rec.kpi_type == 'quantitative' and rec.data_source != 'manual')
-
-    @api.depends('kpi_type', 'data_source')
-    def _compute_is_special_scoring(self):
-        special_sources = {'late_days', 'attendance_full'}
-        for rec in self:
-            rec.is_special_scoring = bool(
-                rec.kpi_type == 'quantitative' and (rec.data_source in special_sources)
+            rec.is_auto = bool(
+                rec.kpi_type == "quantitative" and rec.data_source != "manual"
             )
 
-    @api.depends('is_section')
+    @api.depends("kpi_type", "data_source")
+    def _compute_is_special_scoring(self):
+        special_sources = {"late_days", "attendance_full"}
+        for rec in self:
+            rec.is_special_scoring = bool(
+                rec.kpi_type == "quantitative" and (rec.data_source in special_sources)
+            )
+
+    @api.depends("is_section")
     def _compute_display_type(self):
         for rec in self:
-            rec.display_type = 'line_section' if rec.is_section else False
+            rec.display_type = "line_section" if rec.is_section else False
 
     @api.depends(
-        'kpi_type',
-        'employee_rating_binary', 'employee_rating_selection', 'employee_rating_score',
-        'manager_rating_binary', 'manager_rating_selection', 'manager_rating_score',
+        "kpi_type",
+        "employee_rating_binary",
+        "employee_rating_selection",
+        "employee_rating_score",
+        "manager_rating_binary",
+        "manager_rating_selection",
+        "manager_rating_score",
     )
     def _compute_manager_edited(self):
         for line in self:
-            if line.kpi_type == 'binary':
+            if line.kpi_type == "binary":
                 line.manager_edited = bool(line.manager_rating_binary) and (
-                        line.manager_rating_binary != line.employee_rating_binary)
-            elif line.kpi_type == 'rating':
+                    line.manager_rating_binary != line.employee_rating_binary
+                )
+            elif line.kpi_type == "rating":
                 line.manager_edited = bool(line.manager_rating_selection) and (
-                        line.manager_rating_selection != line.employee_rating_selection)
-            elif line.kpi_type == 'score':
+                    line.manager_rating_selection != line.employee_rating_selection
+                )
+            elif line.kpi_type == "score":
                 # If employee score is 0/default but manager changed it to something else, this becomes True.
                 line.manager_edited = (line.manager_rating_score is not None) and (
-                        line.manager_rating_score != (line.employee_rating_score or 0))
+                    line.manager_rating_score != (line.employee_rating_score or 0)
+                )
             else:
                 # quantitative: manager doesn't rate in current logic
                 line.manager_edited = False
 
-    @api.depends('target', 'actual', 'target_type', 'kpi_type', 'unit_label')
+    @api.depends("target", "actual", "target_type", "kpi_type", "unit_label")
     def _compute_display(self):
         for rec in self:
-            if rec.kpi_type != 'quantitative':
-                rec.target_display = ''
-                rec.actual_display = ''
+            if rec.kpi_type != "quantitative":
+                rec.target_display = ""
+                rec.actual_display = ""
                 continue
 
-            if rec.target_type == 'percentage':
+            if rec.target_type == "percentage":
                 # hiển thị 90% thay vì 90.0
                 rec.target_display = f"{(rec.target or 0.0):g} %"
                 rec.actual_display = f"{(rec.actual or 0.0):g} %"
             else:
                 target = f"{(rec.target or 0.0):g}"
                 actual = f"{(rec.actual or 0.0):g}"
-                rec.target_display = f"{target} {rec.unit_label}" if rec.unit_label else target
-                rec.actual_display = f"{actual} {rec.unit_label}" if rec.unit_label else actual
+                rec.target_display = (
+                    f"{target} {rec.unit_label}" if rec.unit_label else target
+                )
+                rec.actual_display = (
+                    f"{actual} {rec.unit_label}" if rec.unit_label else actual
+                )
 
     # ------------------------------------------------------------------
     # COMPUTE system_score: depends vào actual + các field liên quan
     # ------------------------------------------------------------------
     @api.depends(
-        'actual', 'target', 'kpi_type', 'direction',
-        'employee_rating_binary', 'employee_rating_selection', 'employee_rating_score',
-        'manager_rating_binary', 'manager_rating_selection', 'manager_rating_score',
-        'data_source',
-        'attendance_has_unpaid_leave', 'attendance_unpaid_leave_days',
+        "actual",
+        "target",
+        "kpi_type",
+        "direction",
+        "employee_rating_binary",
+        "employee_rating_selection",
+        "employee_rating_score",
+        "manager_rating_binary",
+        "manager_rating_selection",
+        "manager_rating_score",
+        "data_source",
+        "attendance_has_unpaid_leave",
+        "attendance_unpaid_leave_days",
     )
     def _compute_system_score(self):
         """
@@ -400,11 +435,11 @@ class PerformanceEvaluationLine(models.Model):
             actual = line.actual or 0.0
             target = line.target or 0.0
 
-            if line.kpi_type == 'quantitative':
+            if line.kpi_type == "quantitative":
                 # Special case: attendance late days KPI uses a penalty-based scoring.
                 # - 0 late days -> 10
                 # - each late day -> -1
-                if (line.data_source or 'manual') == 'late_days':
+                if (line.data_source or "manual") == "late_days":
                     late_days = int(round(actual)) if actual else 0
                     score = 10.0 - (late_days * 1.0)
                     score = max(0.0, score)
@@ -416,11 +451,13 @@ class PerformanceEvaluationLine(models.Model):
                 #   unpaid leave -> 0
                 #   0 leave days -> 10
                 #   1 -> 9, 2 -> 8, 3 -> 7, 4 -> 6, 5 -> 5, else 0
-                if (line.data_source or 'manual') == 'attendance_full':
+                if (line.data_source or "manual") == "attendance_full":
                     if line.attendance_has_unpaid_leave:
                         score = 0.0
                     else:
-                        leave_days = int(round(line.attendance_unpaid_leave_days or 0.0))
+                        leave_days = int(
+                            round(line.attendance_unpaid_leave_days or 0.0)
+                        )
                         if leave_days <= 0:
                             score = 10.0
                         elif leave_days == 1:
@@ -443,25 +480,29 @@ class PerformanceEvaluationLine(models.Model):
                     line.system_score = 0.0
                     continue
 
-                if line.direction == 'higher_better':
+                if line.direction == "higher_better":
                     score_ratio = (actual / target) if target > 0 else 10.0
                 else:
                     score_ratio = (target / actual) if actual > 0 else 10.0
 
                 score = min(score_ratio * 10.0, 10.0)
 
-            elif line.kpi_type == 'rating':
+            elif line.kpi_type == "rating":
                 # Ưu tiên manager nếu đã có, fallback về employee
-                raw = line.manager_rating_selection or line.employee_rating_selection or '0'
+                raw = (
+                    line.manager_rating_selection
+                    or line.employee_rating_selection
+                    or "0"
+                )
                 rating = float(raw)
                 score = (rating / 5.0) * 10.0
 
-            elif line.kpi_type == 'binary':
+            elif line.kpi_type == "binary":
                 # Tương tự cho binary
                 val = line.manager_rating_binary or line.employee_rating_binary
-                score = 10.0 if val == 'yes' else 0.0
+                score = 10.0 if val == "yes" else 0.0
 
-            elif line.kpi_type == 'score':
+            elif line.kpi_type == "score":
                 # Tương tự cho score
                 val = line.manager_rating_score or line.employee_rating_score or 0
                 score = float(val)
@@ -471,36 +512,45 @@ class PerformanceEvaluationLine(models.Model):
     # ------------------------------------------------------------------
     # COMPUTE final_rating depends on kpi_type
     # ------------------------------------------------------------------
-    @api.depends('kpi_type', 'system_score', 'manager_rating_binary', 'manager_rating_selection',
-                 'manager_rating_score')
+    @api.depends(
+        "kpi_type",
+        "system_score",
+        "manager_rating_binary",
+        "manager_rating_selection",
+        "manager_rating_score",
+    )
     def _compute_final_rating(self):
         for line in self:
             # scale 10
-            if line.kpi_type == 'quantitative':
+            if line.kpi_type == "quantitative":
                 # system_score đã đúng, dùng thẳng
-                line.final_rating = round(min(max(line.system_score or 0.0, 0.0), 10.0), 2)
+                line.final_rating = round(
+                    min(max(line.system_score or 0.0, 0.0), 10.0), 2
+                )
             else:
                 # Với binary/rating/score: final_rating = system_score (manager đã được ưu tiên trong system_score)
-                line.final_rating = round(min(max(line.system_score or 0.0, 0.0), 10.0), 2)
+                line.final_rating = round(
+                    min(max(line.system_score or 0.0, 0.0), 10.0), 2
+                )
 
-    @api.depends('final_rating')
+    @api.depends("final_rating")
     def _compute_final_rating_badge_class(self):
-        excellent, passed = self.env['res.config.settings'].get_thresholds()
+        excellent, passed = self.env["res.config.settings"].get_thresholds()
         for line in self:
             score = line.final_rating or 0.0
             if score >= excellent:
-                line.final_rating_badge_class = 'o_kpi_badge_excellent'
+                line.final_rating_badge_class = "o_kpi_badge_excellent"
             elif score >= passed:
-                line.final_rating_badge_class = 'o_kpi_badge_pass'
+                line.final_rating_badge_class = "o_kpi_badge_pass"
             else:
-                line.final_rating_badge_class = 'o_kpi_badge_fail'
+                line.final_rating_badge_class = "o_kpi_badge_fail"
 
-    @api.depends('final_rating')
+    @api.depends("final_rating")
     def _compute_final_rating_badge_text(self):
         for line in self:
             rating = line.final_rating
             if rating == 0:
-                line.final_rating_badge_text = '0'
+                line.final_rating_badge_text = "0"
             elif rating == 10 or rating % 1 == 0:
                 line.final_rating_badge_text = f"{int(rating)}"
             else:
@@ -524,7 +574,9 @@ class PerformanceEvaluationLine(models.Model):
     #     self.employee_rating_score = 0
     #     self.manager_rating_score = 0
 
-    @api.onchange('employee_rating_binary', 'employee_rating_selection', 'employee_rating_score')
+    @api.onchange(
+        "employee_rating_binary", "employee_rating_selection", "employee_rating_score"
+    )
     def _onchange_employee_rating_autofill_manager(self):
         """In self evaluation state, mirror employee self-rating into manager rating.
 
@@ -536,15 +588,15 @@ class PerformanceEvaluationLine(models.Model):
         - We only mirror while the parent evaluation is in self evaluation.
         """
         # New (unsaved) one2many lines might not have evaluation_id yet in some cases.
-        if self.evaluation_id and self.evaluation_id.state != 'self_evaluation':
+        if self.evaluation_id and self.evaluation_id.state != "self_evaluation":
             return
 
         for line in self:
-            if line.kpi_type == 'binary' and line.employee_rating_binary:
+            if line.kpi_type == "binary" and line.employee_rating_binary:
                 line.manager_rating_binary = line.employee_rating_binary
-            elif line.kpi_type == 'rating' and line.employee_rating_selection:
+            elif line.kpi_type == "rating" and line.employee_rating_selection:
                 line.manager_rating_selection = line.employee_rating_selection
-            elif line.kpi_type == 'score' and line.employee_rating_score is not None:
+            elif line.kpi_type == "score" and line.employee_rating_score is not None:
                 line.manager_rating_score = line.employee_rating_score
 
     # ------------------------------------------------------------------
@@ -557,28 +609,39 @@ class PerformanceEvaluationLine(models.Model):
     #             if (rec.actual or 0.0) < 0 or (rec.actual or 0.0) > 100:
     #                 raise ValidationError("Actual must be between 0 and 100 for percentage KPIs")
 
-    @api.constrains('manager_rating_selection', 'kpi_type')
+    @api.constrains("manager_rating_selection", "kpi_type")
     def _check_manager_rating_selection_range(self):
         for rec in self:
-            if rec.kpi_type == 'rating':
-                if rec.manager_rating_selection and rec.manager_rating_selection not in dict(self._RATING_0_5):
-                    raise ValidationError("Manager rating selection must be between 0 and 5.")
+            if rec.kpi_type == "rating":
+                if (
+                    rec.manager_rating_selection
+                    and rec.manager_rating_selection not in dict(self._RATING_0_5)
+                ):
+                    raise ValidationError(
+                        "Manager rating selection must be between 0 and 5."
+                    )
 
-    @api.constrains('employee_rating_score', 'manager_rating_score', 'kpi_type')
+    @api.constrains("employee_rating_score", "manager_rating_score", "kpi_type")
     def _check_score_range(self):
         for rec in self:
-            if rec.kpi_type == 'score':
+            if rec.kpi_type == "score":
                 if not 0 <= (rec.employee_rating_score or 0) <= 10:
                     raise ValidationError("Employee score must be between 0 and 10.")
                 if not 0 <= (rec.manager_rating_score or 0) <= 10:
                     raise ValidationError("Manager score must be between 0 and 10.")
 
-    @api.constrains('employee_rating_value', 'manager_rating_value')
+    @api.constrains("employee_rating_value", "manager_rating_value")
     def _check_value_ratings_range(self):
         for rec in self:
-            if rec.employee_rating_value is not None and not 0.0 <= rec.employee_rating_value <= 10.0:
+            if (
+                rec.employee_rating_value is not None
+                and not 0.0 <= rec.employee_rating_value <= 10.0
+            ):
                 raise ValidationError("Employee rating value must be between 0 and 10.")
-            if rec.manager_rating_value is not None and not 0.0 <= rec.manager_rating_value <= 10.0:
+            if (
+                rec.manager_rating_value is not None
+                and not 0.0 <= rec.manager_rating_value <= 10.0
+            ):
                 raise ValidationError("Manager rating value must be between 0 and 10.")
 
     def _mirror_employee_to_manager_vals(self, vals, vals_before=None):
@@ -589,14 +652,23 @@ class PerformanceEvaluationLine(models.Model):
         vals = dict(vals or {})
         vals_before = dict(vals_before or vals)
         for line in self:
-            if line.evaluation_id and line.evaluation_id.state != 'self_evaluation':
+            if line.evaluation_id and line.evaluation_id.state != "self_evaluation":
                 continue
-            if line.kpi_type == 'binary' and 'employee_rating_binary' in vals_before:
-                vals.setdefault('manager_rating_binary', vals_before.get('employee_rating_binary'))
-            elif line.kpi_type == 'rating' and 'employee_rating_selection' in vals_before:
-                vals.setdefault('manager_rating_selection', vals_before.get('employee_rating_selection'))
-            elif line.kpi_type == 'score' and 'employee_rating_score' in vals_before:
-                vals.setdefault('manager_rating_score', vals_before.get('employee_rating_score'))
+            if line.kpi_type == "binary" and "employee_rating_binary" in vals_before:
+                vals.setdefault(
+                    "manager_rating_binary", vals_before.get("employee_rating_binary")
+                )
+            elif (
+                line.kpi_type == "rating" and "employee_rating_selection" in vals_before
+            ):
+                vals.setdefault(
+                    "manager_rating_selection",
+                    vals_before.get("employee_rating_selection"),
+                )
+            elif line.kpi_type == "score" and "employee_rating_score" in vals_before:
+                vals.setdefault(
+                    "manager_rating_score", vals_before.get("employee_rating_score")
+                )
         return vals
 
     @api.model_create_multi
@@ -604,45 +676,53 @@ class PerformanceEvaluationLine(models.Model):
         """Keep section consistency and append new lines by sequence when not provided."""
         seq_step = 10
 
-        eval_ids = {vals.get('evaluation_id') for vals in vals_list if vals.get('evaluation_id')}
+        eval_ids = {
+            vals.get("evaluation_id") for vals in vals_list if vals.get("evaluation_id")
+        }
         max_seq_by_eval = {}
         if eval_ids:
             lines = self.search_read(
-                [('evaluation_id', 'in', list(eval_ids))],
-                ['evaluation_id', 'sequence'],
-                order='sequence desc',
+                [("evaluation_id", "in", list(eval_ids))],
+                ["evaluation_id", "sequence"],
+                order="sequence desc",
             )
             for l in lines:
-                eid = l['evaluation_id'][0] if l.get('evaluation_id') else False
+                eid = l["evaluation_id"][0] if l.get("evaluation_id") else False
                 if eid and eid not in max_seq_by_eval:
-                    max_seq_by_eval[eid] = l.get('sequence') or 0
+                    max_seq_by_eval[eid] = l.get("sequence") or 0
 
         for vals in vals_list:
-            if vals.get('display_type') and 'is_section' not in vals:
-                vals['is_section'] = True
+            if vals.get("display_type") and "is_section" not in vals:
+                vals["is_section"] = True
 
-            evaluation_id = vals.get('evaluation_id')
-            if evaluation_id and not vals.get('sequence'):
+            evaluation_id = vals.get("evaluation_id")
+            if evaluation_id and not vals.get("sequence"):
                 current_max = max_seq_by_eval.get(evaluation_id)
                 if current_max is None:
                     current_max = 0
-                vals['sequence'] = current_max + seq_step
-                max_seq_by_eval[evaluation_id] = vals['sequence']
+                vals["sequence"] = current_max + seq_step
+                max_seq_by_eval[evaluation_id] = vals["sequence"]
 
             # Add: mirror employee->manager at create time too
-            kpi_type = vals.get('kpi_type')
-            if kpi_type == 'binary' and 'employee_rating_binary' in vals:
-                vals.setdefault('manager_rating_binary', vals.get('employee_rating_binary'))
-            elif kpi_type == 'rating' and 'employee_rating_selection' in vals:
-                vals.setdefault('manager_rating_selection', vals.get('employee_rating_selection'))
-            elif kpi_type == 'score' and 'employee_rating_score' in vals:
-                vals.setdefault('manager_rating_score', vals.get('employee_rating_score'))
+            kpi_type = vals.get("kpi_type")
+            if kpi_type == "binary" and "employee_rating_binary" in vals:
+                vals.setdefault(
+                    "manager_rating_binary", vals.get("employee_rating_binary")
+                )
+            elif kpi_type == "rating" and "employee_rating_selection" in vals:
+                vals.setdefault(
+                    "manager_rating_selection", vals.get("employee_rating_selection")
+                )
+            elif kpi_type == "score" and "employee_rating_score" in vals:
+                vals.setdefault(
+                    "manager_rating_score", vals.get("employee_rating_score")
+                )
 
         return super().create(vals_list)
 
     def write(self, vals):
         # 1. Đảm bảo tính nhất quán cho các dòng Section
-        if vals.get('display_type') and 'is_section' not in vals:
+        if vals.get("display_type") and "is_section" not in vals:
             vals = dict(vals, is_section=True)
 
         # Lưu lại bản sao dữ liệu GỐC trước khi bị mirror can thiệp
@@ -658,21 +738,33 @@ class PerformanceEvaluationLine(models.Model):
         user = self.env.user
 
         # Chặn toàn bộ hành động sửa trên phiếu đã bị hủy
-        if any(line.evaluation_id.state in ['cancel', 'completed'] for line in self):
-            raise UserError(_("You cannot modify lines of a canceled or completed evaluation."))
+        if any(line.evaluation_id.state in ["cancel", "completed"] for line in self):
+            raise UserError(
+                _("You cannot modify lines of a canceled or completed evaluation.")
+            )
 
         # Các cờ (flags) định danh
-        is_manager_group = user.has_group('custom_adecsol_hr_performance_evaluator.group_manager')
-        is_own_evaluation = all(line.evaluation_id.employee_id.user_id == user for line in self)
+        is_manager_group = user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_manager"
+        )
+        is_own_evaluation = all(
+            line.evaluation_id.employee_id.user_id == user for line in self
+        )
 
         # Phân loại các trường dữ liệu
         manager_fields = {
-            'manager_rating_value', 'manager_rating_binary', 'manager_rating_selection',
-            'manager_rating_score', 'manager_comment',
+            "manager_rating_value",
+            "manager_rating_binary",
+            "manager_rating_selection",
+            "manager_rating_score",
+            "manager_comment",
         }
         employee_fields = {
-            'employee_rating_value', 'employee_rating_binary', 'employee_rating_selection',
-            'employee_rating_score', 'employee_comment',
+            "employee_rating_value",
+            "employee_rating_binary",
+            "employee_rating_selection",
+            "employee_rating_score",
+            "employee_comment",
         }
 
         # Xác định xem người dùng đang CHỦ ĐỘNG sửa nhóm trường nào trên giao diện (kiểm tra từ vals_before)
@@ -684,32 +776,49 @@ class PerformanceEvaluationLine(models.Model):
         # =====================================================================
         if editing_employee_fields:
             if not is_own_evaluation:
-                raise UserError(_("Only the employee being evaluated can edit self-rating and comments."))
+                raise UserError(
+                    _(
+                        "Only the employee being evaluated can edit self-rating and comments."
+                    )
+                )
 
-            if any(line.evaluation_id.state != 'self_evaluation' for line in self):
-                raise UserError(_("Employee fields can only be edited in the Self Evaluation state."))
+            if any(line.evaluation_id.state != "self_evaluation" for line in self):
+                raise UserError(
+                    _(
+                        "Employee fields can only be edited in the Self Evaluation state."
+                    )
+                )
 
         # =====================================================================
         # LOGIC 2: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA MANAGER
         # =====================================================================
         if editing_manager_fields:
             if not is_manager_group:
-                raise UserError(_("You do not have the required Manager access to edit manager fields."))
+                raise UserError(
+                    _(
+                        "You do not have the required Manager access to edit manager fields."
+                    )
+                )
 
-            if any(line.evaluation_id.state != 'manager_evaluating' for line in self):
-                raise UserError(_("Manager rating is only editable in the Manager Evaluating state."))
+            if any(line.evaluation_id.state != "manager_evaluating" for line in self):
+                raise UserError(
+                    _(
+                        "Manager rating is only editable in the Manager Evaluating state."
+                    )
+                )
 
         return super().write(vals)
 
     def action_open_popup(self):
         self.ensure_one()
         return {
-            'name': _('Edit KPI Line'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'hr.performance.evaluation.line',
-            'res_id': self.id,
-            'view_mode': 'form',
-            'view_id': self.env.ref(
-                'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup').id,
-            'target': 'new',
+            "name": _("Edit KPI Line"),
+            "type": "ir.actions.act_window",
+            "res_model": "hr.performance.evaluation.line",
+            "res_id": self.id,
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup"
+            ).id,
+            "target": "new",
         }
