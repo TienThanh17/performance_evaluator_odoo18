@@ -131,6 +131,7 @@
                         <strong>Trừ 1 điểm:</strong> Cho mỗi lần phát hiện vi phạm quy định giờ giấc
                         làm việc. </li>
                 </ul>
+                <p>Cột <strong>Thực Tế</strong> thể hiện cho số ngày đi trễ</p>
             </field>
             <field name="kpi_type">quantitative</field>
             <field name="direction">lower_better</field>
