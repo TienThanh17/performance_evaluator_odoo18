@@ -133,7 +133,7 @@
               <span t-esc="scoreText"/>
             </div>
             <span t-att-class="levelClass" t-esc="levelLabel"/>
-            <div class="o_kpi_summary_weight" t-esc="'Weight: ' + individualWeightText"/>
+            <div class="o_kpi_summary_weight" t-esc="'Trọng số: ' + individualWeightText"/>
           </div>
 
           <div class="o_kpi_formula_operator">+</div>
@@ -144,7 +144,7 @@
               <span t-esc="deptScoreText"/>
             </div>
             <!-- <span t-att-class="deptStatusClass" t-esc="deptStatusLabel"/> -->
-            <div class="o_kpi_summary_weight" t-esc="'Weight: ' + deptWeightText"/>
+            <div class="o_kpi_summary_weight" t-esc="'Trọng số: ' + deptWeightText"/>
           </div>
 
           <div class="o_kpi_formula_operator o_kpi_formula_operator_result">=</div>

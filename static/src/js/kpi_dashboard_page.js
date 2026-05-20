@@ -44,7 +44,6 @@ const COLOR_RED = "#ef4444";
 const COLOR_INDIGO = "#6366f1";
 
 // Group that grants manager-level access
-const EMPLOYEE_GROUP = "custom_adecsol_hr_performance_evaluator.group_employee";
 const MANAGER_GROUP = "custom_adecsol_hr_performance_evaluator.group_manager";
 const HR_GROUP = "custom_adecsol_hr_performance_evaluator.group_hr";
 const ADMIN_GROUP = "custom_adecsol_hr_performance_evaluator.group_admin";
@@ -76,7 +75,6 @@ export class KpiDashboard extends Component {
             employee_id: passedEmployeeId, // Dashboard sẽ lấy ID này để gọi xuống Python filter data
             passedEvaluationId: passedEvaluationId,
             phase: "evals", // "evals" | "dashboard" | "done" | "error"
-            isEmployee: false,
             isManager: false,
             isHR: false,
             isAdmin: false,
@@ -98,14 +96,13 @@ export class KpiDashboard extends Component {
             // await loadJS("https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js");
 
             // Chạy song song tất cả các kiểm tra quyền
-            const [isEmployee, isManager, isHR, isAdmin] = await Promise.all([
-                user.hasGroup(EMPLOYEE_GROUP),
+            const [isManager, isHR, isAdmin] = await Promise.all([
                 user.hasGroup(MANAGER_GROUP),
                 user.hasGroup(HR_GROUP),
                 user.hasGroup(ADMIN_GROUP),
             ]);
 
-            Object.assign(this.state, { isEmployee, isManager, isHR, isAdmin });
+            Object.assign(this.state, { isManager, isHR, isAdmin });
 
             // 2. If manager, prefetch the employee list
             if (this.state.isManager || this.state.isHR || this.state.isAdmin) {
@@ -156,19 +153,10 @@ export class KpiDashboard extends Component {
                 { limit: 1 },
             );
 
-            let myDepartmentId = null;
-            if (myEmployee.length && myEmployee[0].department_id) {
-                myDepartmentId = myEmployee[0].department_id[0];
-            }
-
             // 2. Load danh sách phòng ban
             let deptDomain = [["active", "=", true]];
             if (this.state.isManager && !this.state.isHR && !this.state.isAdmin) {
-                if (myDepartmentId) {
-                    deptDomain.push(["id", "=", myDepartmentId]);
-                } else {
-                    deptDomain.push(["id", "=", 0]);
-                }
+                deptDomain.push(["manager_id.user_id", "=", user.userId]);
             }
 
             const departments = await this.orm.searchRead(
@@ -178,12 +166,13 @@ export class KpiDashboard extends Component {
                 { order: "name asc" },
             );
             this.state.departments = departments;
+            const managerDepartmentIds = departments.map((dept) => dept.id);
 
             // 3. Load toàn bộ nhân viên (kèm theo department_id)
             let empDomain = [["active", "=", true]];
             if (this.state.isManager && !this.state.isHR && !this.state.isAdmin) {
-                if (myDepartmentId) {
-                    empDomain.push(["department_id", "=", myDepartmentId]);
+                if (managerDepartmentIds.length) {
+                    empDomain.push(["department_id", "in", managerDepartmentIds]);
                 } else {
                     empDomain.push(["id", "=", 0]);
                 }
@@ -286,6 +275,8 @@ export class KpiDashboard extends Component {
                 this.state.selectedEmployeeId
             ) {
                 domain = [["employee_id", "=", this.state.selectedEmployeeId]];
+            } else if (this.state.isManager && !this.state.isHR && !this.state.isAdmin) {
+                domain = [["id", "=", 0]];
             } else if (this.state.employee_id) {
                 // Được truyền thẳng employee_id từ context (ví dụ: mở từ form nhân viên)
                 domain = [["employee_id", "=", this.state.employee_id]];
@@ -344,7 +335,9 @@ export class KpiDashboard extends Component {
 
             // this._renderCharts();
         } catch (e) {
-            this.state.errorMsg = _t("Could not load dashboard data.");
+            console.error("KPI Dashboard: could not load dashboard data", e);
+            this.state.errorMsg =
+                e?.data?.message || e?.message || _t("Could not load dashboard data.");
             this.state.phase = "error";
         }
     }
@@ -465,7 +458,7 @@ export class KpiDashboard extends Component {
     }
 
     get formulaText() {
-        return `${this.individualWeightText} Individual + ${this.deptWeightText} Department`;
+        return `${this.individualWeightText} Cá nhân + ${this.deptWeightText} Phòng ban`;
     }
 
     _levelFromScore(score) {

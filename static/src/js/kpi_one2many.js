@@ -8,6 +8,7 @@ import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { useService } from "@web/core/utils/hooks";
 import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 import { Component, onMounted, onPatched, onWillPatch, useRef, xml } from "@odoo/owl";
+import { _t } from "@web/core/l10n/translation";
 
 function parseChildKpiRows(rawRows) {
     if (!rawRows) {
@@ -142,8 +143,8 @@ function renderChildKpiMatrixGrid(container, childRows) {
     grid.style.gridTemplateColumns = `minmax(220px, 2fr) minmax(90px, 0.6fr) repeat(${employees.length}, minmax(120px, 1fr))`;
     container.appendChild(grid);
 
-    appendMatrixCell(grid, "KPI Indicator", "o_kpi_child_matrix_header o_kpi_child_title");
-    appendMatrixCell(grid, "Weight", "o_kpi_child_matrix_header o_kpi_child_number");
+    appendMatrixCell(grid, _t("KPI con"), "o_kpi_child_matrix_header o_kpi_child_title");
+    appendMatrixCell(grid, _t("Trọng số"), "o_kpi_child_matrix_header o_kpi_child_number");
     for (const employee of employees) {
         appendMatrixCell(
             grid,
@@ -544,7 +545,7 @@ registry.category("fields").add("kpi_child_matrix", {
     supportedTypes: ["text", "char"],
 });
 
-registry.category("fields").add("kpi_child_template_matrix", {
+registry.category("fields").add("kpi_childKPI Indicatoremplate_matrix", {
     component: KPIChildTemplateMatrixField,
     supportedTypes: ["text", "char"],
 });

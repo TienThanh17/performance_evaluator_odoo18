@@ -73,7 +73,7 @@
         <div class="o_dept_kpi_scorecard_body">
           <div class="o_dept_kpi_scorecard_label">Total Project</div>
           <div class="o_dept_kpi_scorecard_value" t-esc="state.data.project_count || '—'"/>
-          <div class="o_dept_kpi_scorecard_sub" t-esc="state.data.department_name"/>
+          <!-- <div class="o_dept_kpi_scorecard_sub" t-esc="state.data.department_name"/> -->
         </div>
       </div>
 
@@ -85,7 +85,7 @@
         <div class="o_dept_kpi_scorecard_body">
           <div class="o_dept_kpi_scorecard_label">Total Employees</div>
           <div class="o_dept_kpi_scorecard_value" t-esc="state.data.employee_count"/>
-          <div class="o_dept_kpi_scorecard_sub">Active members</div>
+          <!-- <div class="o_dept_kpi_scorecard_sub">Active members</div> -->
         </div>
       </div>
 
@@ -102,16 +102,16 @@
       </div>
 
       <!-- Scorecard 4: Placeholder -->
-      <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--purple">
-        <div class="o_dept_kpi_scorecard_icon">
-          <i class="fa fa-trophy"/>
-        </div>
-        <div class="o_dept_kpi_scorecard_body">
-          <div class="o_dept_kpi_scorecard_label">Task Completion Rate</div>
-          <div class="o_dept_kpi_scorecard_value">--%</div>
-          <div class="o_dept_kpi_scorecard_sub">Avg. this period</div>
-        </div>
-      </div>
+     <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard&#45;&#45;purple">
+       <div class="o_dept_kpi_scorecard_icon">
+         <i class="fa fa-trophy"/>
+       </div>
+       <div class="o_dept_kpi_scorecard_body">
+         <div class="o_dept_kpi_scorecard_label">Task Completion Rate</div>
+         <div class="o_dept_kpi_scorecard_value">&#45;&#45;%</div>
+         <div class="o_dept_kpi_scorecard_sub">Avg. this period</div>
+       </div>
+     </div>
 
     </div>
 
