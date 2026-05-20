@@ -186,7 +186,7 @@ class KPIline(models.Model):
             if rec.kpi_type == 'quantitative' and (rec.target or 0.0) < 0.0:
                 raise ValidationError("For Quantitative KPI type, Target must be greater than or equal 0.")
 
-    @api.constrains('parent_dept_line_id', 'parent_dept_kpi_id', 'is_section')
+    @api.constrains('parent_dept_line_id', 'kpi_id', 'is_section')
     def _check_parent_dept_line(self):
         for rec in self:
             parent_line = rec.parent_dept_line_id
@@ -196,9 +196,11 @@ class KPIline(models.Model):
                 raise ValidationError(_("Section lines cannot be linked to department KPI lines."))
             if parent_line.is_section:
                 raise ValidationError(_("Please select a KPI item, not a department section."))
-            if not rec.parent_dept_kpi_id:
+            
+            parent_dept_kpi = rec.kpi_id.department_kpi_id
+            if not parent_dept_kpi:
                 raise ValidationError(_("Please select a parent Department KPI Template before linking department KPI lines."))
-            if parent_line.department_kpi_id != rec.parent_dept_kpi_id:
+            if parent_line.department_kpi_id != parent_dept_kpi:
                 raise ValidationError(_("The selected department KPI line must belong to the parent Department KPI Template."))
 
     def write(self, vals):
