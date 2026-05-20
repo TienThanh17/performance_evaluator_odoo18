@@ -11,11 +11,10 @@
     <!-- Parent: performance_evaluator (khai báo trong views/kpi_view.xml) -->
     <menuitem
         id="menu_kpi_tree_dashboard"
-        name="KPI Tree"
+        name="Dashboard"
         action="action_kpi_tree_dashboard"
         parent="performance_evaluator"
-        sequence="5" />
-<!--        groups="custom_adecsol_hr_performance_evaluator.group_manager,-->
-<!--                custom_adecsol_hr_performance_evaluator.group_hr"-->
-<!--    />-->
+        sequence="5"
+        groups="custom_adecsol_hr_performance_evaluator.group_hr"
+    />
 </odoo>

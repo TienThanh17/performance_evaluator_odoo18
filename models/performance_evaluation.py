@@ -771,12 +771,17 @@ class PerformanceEvaluation(models.Model):
         perf_label = selection_dict.get(perf_key, perf_key)
 
         final_key = evaluation.final_level or "fail"
-        dept_eval = evaluation.dept_evaluation_id
+        # Employees can open their own individual dashboard, but they do not
+        # have read access to department evaluations. Read only the linked
+        # department score/weight with sudo so the dashboard can show the
+        # already-computed final KPI breakdown without exposing the model.
+        dept_eval = evaluation.sudo().dept_evaluation_id.sudo()
         dept_score = dept_eval.get_dept_kpi_score() if dept_eval else 0.0
         has_dept_evaluation = bool(dept_eval and dept_eval.state != "cancel")
+        dept_kpi = dept_eval.department_kpi_id.sudo() if has_dept_evaluation else False
         dept_weight = (
-            dept_eval.department_kpi_id.dept_weight
-            if has_dept_evaluation and dept_eval.department_kpi_id
+            dept_kpi.dept_weight
+            if has_dept_evaluation and dept_kpi
             else 0.0
         )
         individual_weight = 1.0 - dept_weight

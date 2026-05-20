@@ -5,6 +5,9 @@ import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
 import { _t } from "@web/core/l10n/translation";
 
+const MANAGER_GROUP = "custom_adecsol_hr_performance_evaluator.group_manager";
+const HR_GROUP = "custom_adecsol_hr_performance_evaluator.group_hr";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Colour palette — mirrors SCSS $dept-primary / $dept-green etc.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -161,6 +164,8 @@ export class DeptKpiDashboard extends Component {
         this.state = useState({
             phase: "loading",           // "loading" | "done" | "empty" | "error"
             errorMsg: "",
+            isManager: false,
+            isHR: false,
             departments: [],
             selectedDepartmentId: null,
             evaluations: [],
@@ -171,7 +176,12 @@ export class DeptKpiDashboard extends Component {
         this._charts = {};
 
         onWillStart(async () => {
-            await loadChartJs();
+            const [isManager, isHR] = await Promise.all([
+                user.hasGroup(MANAGER_GROUP),
+                user.hasGroup(HR_GROUP),
+                loadChartJs(),
+            ]);
+            Object.assign(this.state, { isManager, isHR });
             await this._loadDepartments();
         });
 
@@ -231,9 +241,14 @@ export class DeptKpiDashboard extends Component {
     // ── Data loaders ─────────────────────────────────────────────────────────
     async _loadDepartments() {
         try {
+            const domain = [["active", "=", true]];
+            if (this.state.isManager && !this.state.isHR) {
+                domain.push(["manager_id.user_id", "=", user.userId]);
+            }
+
             const depts = await this.orm.searchRead(
                 "hr.department",
-                [["active", "=", true]],
+                domain,
                 ["id", "name", "manager_id"],
                 { order: "name asc" }
             );
