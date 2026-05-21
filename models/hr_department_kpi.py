@@ -22,8 +22,8 @@ class HrDepartmentKpi(models.Model):
     dept_weight = fields.Float(
         string=_("Department Bonus Weight"),
         default=0.4,
-        help="The contribution rate of the department's KPI to the employee's final score. "
-        "Example: 0.4 means final_score = dept×40% + individual×60%. "
+        help="The contribution rate of the department's KPI to the employee's bonus score. "
+        "Example: 40% means bonus score = department × 40% + individual × 60%. "
         "Must be in the range (0%, 100%).",
         required=True,
     )
@@ -31,8 +31,8 @@ class HrDepartmentKpi(models.Model):
     individual_weight = fields.Float(
         string=_("Individual Bonus Weight"),
         default=0.6,
-        help="The contribution rate of the individual's KPI to the final score. "
-        "Example: 0.6 means final_score = dept×40% + individual×60%. "
+        help="The contribution rate of the individual's KPI to the bonus score. "
+        "Example: 60% means bonus score = department × 40% + individual × 60%. "
         "Must be in the range (0%, 100%).",
         required=True,
     )

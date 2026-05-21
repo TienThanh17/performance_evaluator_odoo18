@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-19 09:10+0000\n"
-"PO-Revision-Date: 2026-05-19 09:10+0000\n"
+"POT-Creation-Date: 2026-05-21 01:49+0000\n"
+"PO-Revision-Date: 2026-05-21 01:49+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -100,13 +100,13 @@ msgstr " công việc"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/performance_dashboard_form.js:0
 msgid "%s %s"
-msgstr "%s %s"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/performance_dashboard_form.js:0
 msgid "%s / %s"
-msgstr "%s / %s"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -124,12 +124,7 @@ msgstr "%s: %s lần trễ"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "* Trend theo quý sẽ cập nhật sau"
-msgstr "* Trend theo quý sẽ cập nhật sau"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_form
-msgid "0.4 means dept score contributes 40%, individual 60%"
-msgstr "0,4 có nghĩa là điểm của phòng ban đóng góp 40%, điểm cá nhân đóng góp 60%"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:mail.template,body_html:custom_adecsol_hr_performance_evaluator.email_template_evaluation_alert
@@ -215,7 +210,13 @@ msgstr "<span class=\"o_perf_label\">Kết quả:</span>"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_form
 msgid "<span class=\"o_perf_suffix\">/ 10</span>"
-msgstr "<span class=\"o_perf_suffix\">/ 10</span>"
+msgstr ""
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/wizard/hr_department_kpi_generate_wizard.py:0
+msgid "A department performance evaluation already exists for this period."
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -254,12 +255,6 @@ msgstr "Hành động cần thực hiện: Đã nộp bản đánh giá hiệu s
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_report__active
 msgid "Active"
 msgstr "Đang hoạt động"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#. odoo-javascript
-#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/dept_kpi_dashboard_template.xml:0
-msgid "Active members"
-msgstr "Thành viên đang hoạt động"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__activity_ids
@@ -428,9 +423,10 @@ msgstr "Chấm công đầy đủ"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__attendance_has_unpaid_leave
 msgid "Attendance Full metric: True if leave days exceed approved leave days."
-msgstr "Số liệu đi làm đầy đủ: Đúng nếu số ngày nghỉ phép vượt quá số ngày nghỉ phép được duyệt."
-"Chấm công Số liệu đầy đủ: Đúng nếu số ngày nghỉ vượt quá số ngày nghỉ đã "
-"được phê duyệt."
+msgstr ""
+"Số liệu đi làm đầy đủ: Đúng nếu số ngày nghỉ phép vượt quá số ngày nghỉ phép"
+" được duyệt.Chấm công Số liệu đầy đủ: Đúng nếu số ngày nghỉ vượt quá số ngày"
+" nghỉ đã được phê duyệt."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__attendance_unpaid_leave_days
@@ -440,8 +436,9 @@ msgstr "Chấm công Số liệu đầy đủ: số ngày dự kiến ​​tr�
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__attendance_expected_days
 msgid "Attendance Full metric: expected work days from working schedule."
-msgstr "Số liệu đi làm đầy đủ: số ngày làm việc dự kiến từ lịch làm việc."
-"Chấm công Số liệu đầy đủ: số ngày làm việc dự kiến ​​kể từ lịch làm việc."
+msgstr ""
+"Số liệu đi làm đầy đủ: số ngày làm việc dự kiến từ lịch làm việc.Chấm công "
+"Số liệu đầy đủ: số ngày làm việc dự kiến ​​kể từ lịch làm việc."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__attendance_worked_days
@@ -488,21 +485,10 @@ msgid "Auto Compute"
 msgstr "Tự động tính toán"
 
 #. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__beta
-msgid "Average Individual Weight (β)"
-msgstr "Trọng lượng cá nhân trung bình (β)"
-
-#. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/performance_dashboard_templates.xml:0
 msgid "Average Score"
 msgstr "Điểm trung bình"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#. odoo-javascript
-#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/dept_kpi_dashboard_template.xml:0
-msgid "Avg. this period"
-msgstr "Trung bình kỳ này"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -533,6 +519,11 @@ msgstr "Nhị phân"
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_report__body
 msgid "Body of Email"
 msgstr "Nội dung email"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_form
+msgid "Bonus Calculation Weights"
+msgstr "Trọng số tính điểm thưởng"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -612,7 +603,7 @@ msgstr "JSON Dữ liệu mẫu KPI Con"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Chưa có dữ liệu KPI cho kỳ này."
-msgstr "Chưa có dữ liệu KPI cho kỳ này."
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -676,7 +667,7 @@ msgstr "Cấu hình"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.res_config_settings_view_form_inherit_kpi_thresholds
 msgid "Configure the tolerance for late arrivals."
-msgstr "Cấu hình sai số cho phép đối với trường hợp đi muộn (phút)"
+msgstr "Cấu hình sai số cho phép đối với trường hợp đi muộn"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__sequence
@@ -695,9 +686,11 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__target_type
 msgid "Controls the unit for Target/Actual. If Percentage, values are 0–100."
-msgstr "Kiểm soát đơn vị cho Mục tiêu/Thực tế. Nếu là Phần trăm, các giá trị nằm trong khoảng 0-100."
-"Kiểm soát đơn vị cho Mục tiêu/Thực tế. Nếu Phần trăm, giá trị là 0–100.Kiểm "
-"soát đơn vị cho Mục tiêu/Thực tế. Nếu Phần trăm, giá trị là 0–100."
+msgstr ""
+"Kiểm soát đơn vị cho Mục tiêu/Thực tế. Nếu là Phần trăm, các giá trị nằm "
+"trong khoảng 0-100.Kiểm soát đơn vị cho Mục tiêu/Thực tế. Nếu Phần trăm, giá"
+" trị là 0–100.Kiểm soát đơn vị cho Mục tiêu/Thực tế. Nếu Phần trăm, giá trị "
+"là 0–100."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -762,13 +755,14 @@ msgstr "Trạng thái quy trình làm việc hiện tại của đánh giá gố
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Công ty"
-msgstr "Công ty"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.ui.menu,name:custom_adecsol_hr_performance_evaluator.menu_kpi_department_dashboard
 #: model:ir.ui.menu,name:custom_adecsol_hr_performance_evaluator.menu_kpi_individual_dashboard
+#: model:ir.ui.menu,name:custom_adecsol_hr_performance_evaluator.menu_kpi_tree_dashboard
 msgid "Dashboard"
-msgstr "Dashboard"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__data_source
@@ -839,6 +833,19 @@ msgid "Department"
 msgstr "Phòng ban"
 
 #. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_department_kpi.py:0
+#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__dept_weight
+msgid "Department Bonus Weight"
+msgstr "Trọng số KPI phòng ban"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_department_kpi.py:0
+msgid "Department Bonus Weight must be greater than 0% and less than 100%."
+msgstr "Trọng số Thưởng Phòng ban phải lớn hơn 0% và nhỏ hơn 100%."
+
+#. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__dept_evaluation_id
 msgid "Department Evaluation"
 msgstr "Đánh giá phòng ban"
@@ -869,7 +876,10 @@ msgid "Department KPI Dashboard"
 msgstr "KPI Dashboard Phòng ban"
 
 #. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/kpi_line.py:0
 #: model:ir.model,name:custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_line
+#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_kpi_line__parent_dept_line_id
 msgid "Department KPI Line"
 msgstr "Dòng KPI Phòng ban"
 
@@ -887,16 +897,6 @@ msgstr "Điểm KPI Phòng ban"
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__department_kpi_id
 msgid "Department KPI Template"
 msgstr "Mẫu KPI của Phòng ban"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_form
-msgid "Department KPI Weight"
-msgstr "Trọng số KPI phòng ban"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__alpha
-msgid "Department KPI Weight (α)"
-msgstr "Trọng số KPI của Phòng ban (α)"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.actions.act_window,name:custom_adecsol_hr_performance_evaluator.action_hr_department_kpi
@@ -1005,7 +1005,8 @@ msgstr "Loại hiển thị"
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_kpi_line__unit_label
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__unit_label
 msgid "Display unit for Target/Actual, e.g. %, tasks, days, score."
-msgstr "Đơn vị hiển thị cho Mục tiêu/Thực tế, ví dụ: %, công việc, ngày, điểm."
+msgstr ""
+"Đơn vị hiển thị cho Mục tiêu/Thực tế, ví dụ: %, công việc, ngày, điểm."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -1142,7 +1143,8 @@ msgstr "Điểm nhân viên theo thời gian"
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation_line.py:0
 msgid "Employee fields can only be edited in the Self Evaluation state."
-msgstr "Các trường của nhân viên chỉ có thể được chỉnh sửa ở trạng thái Tự Đánh giá."
+msgstr ""
+"Các trường của nhân viên chỉ có thể được chỉnh sửa ở trạng thái Tự Đánh giá."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__employee_comment
@@ -1302,17 +1304,18 @@ msgstr "Không đạt"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation.py:0
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/kpi_dashboard_template.xml:0
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__final_score
-#: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_form
-msgid "Final KPI Score"
+msgid "Final Bonus Score"
 msgstr "Điểm thưởng KPI"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__final_score_badge_text
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__final_rating
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__final_rating_badge_text
-msgid "Score"
+msgid "Final Rating"
 msgstr "Điểm"
 
 #. module: custom_adecsol_hr_performance_evaluator
@@ -1323,13 +1326,11 @@ msgstr "Lớp Huy hiệu Xếp hạng Cuối cùng"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__final_level
-#: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_list
 msgid "Final Result"
 msgstr "Kết quả cuối cùng"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__final_score
-#: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_list
 msgid "Final Score"
 msgstr "Điểm cuối cùng"
 
@@ -1337,14 +1338,6 @@ msgstr "Điểm cuối cùng"
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__final_rating
 msgid "Final rating (0–10) used in the evaluation summary."
 msgstr "Xếp hạng cuối cùng (0–10) được sử dụng trong bản tóm tắt đánh giá."
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__final_score
-msgid ""
-"Final result based on: (Department Score × Weight) + (Individual Score × "
-"Weight). If Department data is missing, only the Individual Score is used."
-msgstr ""
-"Kết quả cuối cùng dựa trên: (Điểm của Phòng ban × Trọng số) + (Điểm cá nhân × Trọng số). Nếu dữ liệu của Phòng ban bị thiếu thì chỉ sử dụng Điểm cá nhân."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -1402,6 +1395,11 @@ msgid ""
 msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
+#: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_form
+msgid "General Information"
+msgstr ""
+
+#. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_generate_wizard_form
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_generate_wizard_form
 msgid "Generate"
@@ -1446,7 +1444,7 @@ msgstr "Nhóm theo"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:res.groups,name:custom_adecsol_hr_performance_evaluator.group_hr
 msgid "HR"
-msgstr "Nhân sự"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model,name:custom_adecsol_hr_performance_evaluator.model_hr_kpi_engine
@@ -1537,7 +1535,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Hãy tạo phiếu đánh giá từ menu mẫu KPI Phòng ban hoặc chọn kỳ khác."
-msgstr "Hãy tạo phiếu đánh giá từ menu mẫu KPI Phòng ban hoặc chọn kỳ khác."
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__id
@@ -1552,7 +1550,7 @@ msgstr "Hãy tạo phiếu đánh giá từ menu mẫu KPI Phòng ban hoặc ch�
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__id
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_report__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -1592,6 +1590,19 @@ msgid "If checked, some messages have a delivery error."
 msgstr "Nếu được chọn, một số tin nhắn có lỗi gửi."
 
 #. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_department_kpi.py:0
+#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__individual_weight
+msgid "Individual Bonus Weight"
+msgstr "Trọng số cá nhân"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_department_kpi.py:0
+msgid "Individual Bonus Weight must be greater than 0% and less than 100%."
+msgstr "Trọng số Thưởng Cá nhân phải lớn hơn 0% và nhỏ hơn 100%."
+
+#. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/kpi_dashboard_template.xml:0
 msgid "Individual KPI"
@@ -1609,7 +1620,7 @@ msgstr "Dashboard KPI cá nhân"
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__performance_score
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_form
 msgid "Individual KPI Score"
-msgstr "Điểm trung bình"
+msgstr "Điểm KPI cá nhân"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -1624,7 +1635,6 @@ msgid "Individual Performance Dashboard"
 msgstr "Dashboard Hiệu suất cá nhân"
 
 #. module: custom_adecsol_hr_performance_evaluator
-#: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_form
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_list
 msgid "Individual Weight"
 msgstr "Trọng số cá nhân"
@@ -1641,7 +1651,7 @@ msgstr "Thông tin"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Insight điều hành"
-msgstr "Insight điều hành"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__is_auto
@@ -1706,13 +1716,13 @@ msgstr "Vị trí công việc"
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__kpi_id
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_form
 msgid "KPI"
-msgstr "KPI"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI Công ty"
-msgstr "KPI Công ty"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.ui.menu,name:custom_adecsol_hr_performance_evaluator.department_performance_evaluation
@@ -1809,7 +1819,7 @@ msgstr "Cài đặt"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI Rủi ro"
-msgstr "KPI Rủi ro"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_employee_form
@@ -1819,7 +1829,6 @@ msgid "KPI Score"
 msgstr "Điểm KPI"
 
 #. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi__name
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_generate_wizard__kpi_id
 #: model:ir.ui.menu,name:custom_adecsol_hr_performance_evaluator.menu_kpi_template
 msgid "KPI Template"
@@ -1834,11 +1843,10 @@ msgstr "Dòng mẫu KPI"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI Thiếu dữ liệu"
-msgstr "KPI Thiếu dữ liệu"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.actions.client,name:custom_adecsol_hr_performance_evaluator.action_kpi_tree_dashboard
-#: model:ir.ui.menu,name:custom_adecsol_hr_performance_evaluator.menu_kpi_tree_dashboard
 msgid "KPI Tree"
 msgstr "Dashboard"
 
@@ -1861,19 +1869,25 @@ msgstr "Loại KPI"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI Tài chính"
-msgstr "KPI Tài chính"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI chưa nhập"
-msgstr "KPI chưa nhập"
+msgstr ""
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/kpi_child_matrix_utils.js:0
+msgid "KPI con"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI cá nhân:"
-msgstr "KPI cá nhân:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model,name:custom_adecsol_hr_performance_evaluator.model_hr_kpi
@@ -1896,13 +1910,13 @@ msgstr "Dòng KPI đang chưa đạt trong kỳ này"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI phòng ban trung bình:"
-msgstr "KPI phòng ban trung bình:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI phòng ban:"
-msgstr "KPI phòng ban:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi_generate_wizard__kpi_template_id
@@ -1928,7 +1942,7 @@ msgstr "Ngưỡng KPI"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI điểm thấp"
-msgstr "KPI điểm thấp"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_form
@@ -1948,25 +1962,25 @@ msgstr "Lĩnh vực hoạt động chính"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Không có KPI rủi ro"
-msgstr "Không có KPI rủi ro"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Không có dữ liệu"
-msgstr "Không có dữ liệu"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Không có dữ liệu insight"
-msgstr "Không có dữ liệu insight"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Không thể tải dữ liệu KPI."
-msgstr "Không thể tải dữ liệu KPI."
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__kpi_line_ids
@@ -1977,13 +1991,13 @@ msgstr "Dòng KPI"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi_line__kpi_type
 msgid "Kpi Type"
-msgstr "Loại Kpi"
+msgstr "Loại KPI"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Kỳ:"
-msgstr "Kỳ:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__write_uid
@@ -2054,8 +2068,9 @@ msgstr "Biểu đồ dây"
 msgid ""
 "Link to the department KPI evaluation for the same period. Used to blend "
 "dept_kpi_score into the individual final_score."
-msgstr "Liên kết đến đánh giá KPI của phòng ban trong cùng kỳ. "
-"Được sử dụng để kết hợp điểm KPI phòng ban vào điểm thưởng của cá nhân."
+msgstr ""
+"Liên kết đến đánh giá KPI của phòng ban trong cùng kỳ. Được sử dụng để kết "
+"hợp điểm KPI phòng ban vào điểm thưởng của cá nhân."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -2172,14 +2187,16 @@ msgstr "Đánh giá của Trưởng phòng về Xếp hạng KPI (0–5)."
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__manager_comment
 msgid "Manager notes, feedback, or justification for the final assessment."
-msgstr "Ghi chú, phản hồi hoặc giải trình của quản lý cho bản đánh giá cuối cùng."
-"Ghi chú, phản hồi hoặc giải trình của Trưởng phòng cho đánh giá cuối cùng."
+msgstr ""
+"Ghi chú, phản hồi hoặc giải trình của quản lý cho bản đánh giá cuối cùng.Ghi"
+" chú, phản hồi hoặc giải trình của Trưởng phòng cho đánh giá cuối cùng."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation_line.py:0
 msgid "Manager rating is only editable in the Manager Evaluating state."
-msgstr "Chỉ có thể chỉnh sửa xếp hạng của quản lý ở trạng thái Quản lý Đánh giá."
+msgstr ""
+"Chỉ có thể chỉnh sửa xếp hạng của quản lý ở trạng thái Quản lý Đánh giá."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__manager_rating_score
@@ -2233,20 +2250,18 @@ msgid "My Activity Deadline"
 msgstr "Hạn chót hoạt động của tôi"
 
 #. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi__department_kpi_id
-msgid "Mẫu KPI Phòng ban Cha"
-msgstr "Mẫu KPI Phòng ban Cha"
-
-#. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "NHÂN VIÊN ĐẠT CHỈ TIÊU"
-msgstr "NHÂN VIÊN ĐẠT CHỈ TIÊU"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/kpi.py:0
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__name
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__name
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__name
+#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi__name
 msgid "Name"
 msgstr "Tên"
 
@@ -2282,19 +2297,19 @@ msgstr "Loại hoạt động tiếp theo"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Nhân viên đạt & xuất sắc"
-msgstr "Nhân viên đạt & xuất sắc"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Nhân viên đạt:"
-msgstr "Nhân viên đạt:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Nhân viên:"
-msgstr "Nhân viên:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_department_evaluation_line__manager_rating_binary__no
@@ -2302,6 +2317,12 @@ msgstr "Nhân viên:"
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_performance_evaluation_line__manager_rating_binary__no
 msgid "No"
 msgstr "Không Đạt"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/wizard/hr_department_kpi_generate_wizard.py:0
+msgid "No active employees found in this department."
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -2327,7 +2348,8 @@ msgstr "Không có sẵn dữ liệu năng lực."
 msgid ""
 "No department evaluation is linked. The individual KPI receives 100% weight."
 msgstr ""
-"Không có sự liên kết giữa phiếu đánh giá KPI phòng ban và chỉ số KPI cá nhân. Chỉ số KPI cá nhân được tính trọng số 100%."
+"Không có sự liên kết giữa phiếu đánh giá KPI phòng ban và chỉ số KPI cá "
+"nhân. Chỉ số KPI cá nhân được tính trọng số 100%."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -2335,8 +2357,9 @@ msgstr ""
 msgid ""
 "No department evaluations found. Please select a department or create an "
 "evaluation."
-msgstr "Không tìm thấy đánh giá nào của phòng ban. Vui lòng chọn một phòng ban hoặc tạo một "
-"đánh giá."
+msgstr ""
+"Không tìm thấy đánh giá nào của phòng ban. Vui lòng chọn một phòng ban hoặc "
+"tạo một đánh giá."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -2438,7 +2461,8 @@ msgstr "Số lượng task"
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation_line.py:0
 msgid "Only the employee being evaluated can edit self-rating and comments."
-msgstr "Chỉ nhân viên được đánh giá mới có thể chỉnh sửa tự xếp hạng và nhận xét."
+msgstr ""
+"Chỉ nhân viên được đánh giá mới có thể chỉnh sửa tự xếp hạng và nhận xét."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_performance_evaluation_form
@@ -2480,10 +2504,21 @@ msgid "Parent Department KPI"
 msgstr "KPI Phòng ban cha"
 
 #. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/kpi.py:0
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/kpi_line.py:0
+#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi__department_kpi_id
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_line__parent_dept_kpi_id
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__parent_dept_line_id
 msgid "Parent Department KPI Template"
-msgstr "Mẫu KPI Phòng ban cha"
+msgstr "Mẫu KPI Phòng ban Cha"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/kpi_line.py:0
+#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_line__parent_dept_line_id
+msgid "Parent KPI"
+msgstr "Thuộc chỉ tiêu Phòng ban"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_performance_evaluation__final_level__pass
@@ -2574,6 +2609,7 @@ msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/dept_kpi_dashboard_template.xml:0
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/performance_dashboard_templates.xml:0
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__period
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi_generate_wizard__period
@@ -2596,9 +2632,16 @@ msgstr "Vui lòng trả lời tất cả các dòng KPI nhị phân trước khi
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation.py:0
 msgid "Please provide Employee Score for all Score KPI lines before submit."
-msgstr "Vui lòng cung cấp Điểm Nhân viên cho tất cả các dòng Điểm KPI trước khi nộp."
-"Vui lòng cung cấp điểm số của nhân viên cho tất cả các chỉ số KPI trước khi "
-"gửi."
+msgstr ""
+"Vui lòng cung cấp Điểm Nhân viên cho tất cả các dòng Điểm KPI trước khi "
+"nộp.Vui lòng cung cấp điểm số của nhân viên cho tất cả các chỉ số KPI trước "
+"khi gửi."
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/wizard/hr_department_kpi_generate_wizard.py:0
+msgid "Please select a Department KPI Template."
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -2614,6 +2657,7 @@ msgid ""
 "Please select a parent Department KPI Template before linking department KPI"
 " lines."
 msgstr ""
+"Vui lòng chọn một Mẫu KPI Phòng ban cấp cha trước khi liên kết các dòng KPI phòng ban."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -2706,6 +2750,8 @@ msgid "Responsible User"
 msgstr "Người dùng có trách nhiệm"
 
 #. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation.py:0
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__performance_level
 msgid "Result"
 msgstr "Kết quả"
@@ -2771,11 +2817,6 @@ msgstr "Điểm >= giá trị này (và < Xuất sắc) được coi là Đạt.
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_res_config_settings__kpi_threshold_excellent
 msgid "Score >= this value is considered Excellent."
 msgstr "Điểm >= giá trị này được coi là Xuất sắc."
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_form
-msgid "Score Weights"
-msgstr "Trọng số Điểm"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.res_config_settings_view_form_inherit_kpi_thresholds
@@ -2980,7 +3021,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Số phòng ban:"
-msgstr "Số phòng ban:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -3038,12 +3079,6 @@ msgstr "Hoàn thành Task"
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/dept_kpi_dashboard_template.xml:0
-msgid "Task Completion Rate"
-msgstr "Tỷ lệ hoàn thành Task"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#. odoo-javascript
-#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/dept_kpi_dashboard_template.xml:0
 msgid "Task Distribution by Employee"
 msgstr "Task đóng góp bởi nhân viên"
 
@@ -3074,10 +3109,11 @@ msgstr "Trường kỹ thuật cho các dòng phần/ghi chú. Bắt nguồn t�
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__final_rating_badge_class
 msgid "Technical field used by the UI to colorize final_rating as a badge."
-msgstr "Trường kỹ thuật được giao diện sử dụng để tô màu final_rating dưới dạng huy hiệu."
-"Trường kỹ thuật được giao diện người dùng sử dụng để tô màu xếp hạng cuối "
-"cùng làm huy hiệu.Trường kỹ thuật được giao diện người dùng sử dụng để tô "
-"màu xếp hạng cuối cùng làm huy hiệu."
+msgstr ""
+"Trường kỹ thuật được giao diện sử dụng để tô màu final_rating dưới dạng huy "
+"hiệu.Trường kỹ thuật được giao diện người dùng sử dụng để tô màu xếp hạng "
+"cuối cùng làm huy hiệu.Trường kỹ thuật được giao diện người dùng sử dụng để "
+"tô màu xếp hạng cuối cùng làm huy hiệu."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__performance_badge_class
@@ -3143,6 +3179,26 @@ msgid "The KPI title (or the section header name if this is a Section)."
 msgstr "Tiêu đề KPI (hoặc tên tiêu đề phần nếu đây là Phần)."
 
 #. module: custom_adecsol_hr_performance_evaluator
+#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__dept_weight
+msgid ""
+"The contribution rate of the department's KPI to the employee's bonus score."
+" Example: 40% means bonus score = department × 40% + individual × 60%. Must "
+"be in the range (0%, 100%)."
+msgstr ""
+"Tỷ lệ đóng góp của KPI phòng ban vào điểm thưởng của nhân viên."
+"Ví dụ: 40% nghĩa là điểm thưởng = phòng ban × 40% + cá nhân × 60%. Phải nằm trong khoảng (0%, 100%)."
+
+#. module: custom_adecsol_hr_performance_evaluator
+#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__individual_weight
+msgid ""
+"The contribution rate of the individual's KPI to the bonus score. Example: "
+"60% means bonus score = department × 40% + individual × 60%. Must be in the "
+"range (0%, 100%)."
+msgstr ""
+"Tỷ lệ đóng góp của KPI cá nhân vào điểm thưởng của nhân viên."
+"Ví dụ: 60% nghĩa là điểm thưởng = phòng ban × 40% + cá nhân × 60%. Phải nằm trong khoảng (0%, 100%)."
+
+#. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__parent_dept_line_id
 msgid "The department KPI template line linked to this employee KPI line."
 msgstr "Dòng mẫu KPI phòng ban được liên kết với dòng KPI nhân viên này."
@@ -3186,12 +3242,34 @@ msgstr "Bản ghi đánh giá mà dòng này thuộc về."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation.py:0
+#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__final_score
+msgid ""
+"The final score used for bonus calculation, blended from: (Department Score "
+"× Weight) + (Individual Score × Weight). "
+msgstr ""
+"Kết quả cuối cùng dựa trên: (Điểm của Phòng ban × Trọng số) + (Điểm cá nhân "
+"× Trọng số). Nếu dữ liệu của Phòng ban bị thiếu thì chỉ sử dụng Điểm cá "
+"nhân."
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/kpi.py:0
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/kpi_line.py:0
 msgid ""
 "The selected department KPI line must belong to the parent Department KPI "
 "Template."
 msgstr ""
+"Dòng KPI phòng ban được chọn phải thuộc về Mẫu KPI Phòng ban cấp cha."
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-python
+#: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_department_kpi.py:0
+msgid ""
+"The sum of Department Bonus Weight and Individual Bonus Weight must be "
+"exactly 100%."
+msgstr ""
+"Tổng của Trọng số Thưởng Phòng ban và Trọng số Thưởng Cá nhân phải bằng đúng 100%."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -3212,12 +3290,7 @@ msgstr "Người dùng đã tạo bản ghi đánh giá này."
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Thiếu dữ liệu"
-msgstr "Thiếu dữ liệu"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_line__parent_dept_line_id
-msgid "Thuộc chỉ tiêu Phòng ban"
-msgstr "Thuộc chỉ tiêu Phòng ban"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -3242,7 +3315,7 @@ msgstr "Tiêu đề KPI"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Top KPI Rủi ro"
-msgstr "Top KPI Rủi ro"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -3292,23 +3365,19 @@ msgstr "Tổng: %s"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Trung bình KPI phòng ban"
-msgstr "Trung bình KPI phòng ban"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Trạng thái:"
-msgstr "Trạng thái:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__dept_weight
-msgid "Trọng số KPI phòng ban"
-msgstr "Trọng số KPI phòng ban"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__individual_weight
-msgid "Trọng số cá nhân"
-msgstr "Trọng số cá nhân"
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/kpi_child_matrix_utils.js:0
+msgid "Trọng số"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__activity_exception_decoration
@@ -3320,50 +3389,42 @@ msgstr "Loại hoạt động ngoại lệ được ghi lại."
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi_line__name
 msgid "Tên Tiêu Chí"
-msgstr "Tên Tiêu Chí"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Tất cả KPI rủi ro"
-msgstr "Tất cả KPI rủi ro"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Tất cả KPI thiếu dữ liệu"
-msgstr "Tất cả KPI thiếu dữ liệu"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Tất cả KPI đã có dữ liệu ✓"
-msgstr "Tất cả KPI đã có dữ liệu ✓"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Tổng nhân sự:"
-msgstr "Tổng nhân sự:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Tổng quan toàn công ty"
-msgstr "Tổng quan toàn công ty"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_department_evaluation_line__data_source__child_kpi_average
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_department_kpi_line__data_source__child_kpi_average
 msgid "Tự động tổng hợp từ KPI con"
-msgstr "Tự động tổng hợp từ KPI con"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__dept_weight
-msgid ""
-"Tỷ lệ đóng góp của KPI phòng ban vào điểm cuối cùng của nhân viên. Ví dụ: "
-"0.4 nghĩa là final_score = dept×40% + cá_nhân×60%. Phải nằm trong khoảng "
-"(0.0, 1.0)."
 msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
@@ -3405,7 +3466,7 @@ msgstr "Phương sai"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Vui lòng kiểm tra lại kết nối hoặc liên hệ quản trị viên."
-msgstr "Vui lòng kiểm tra lại kết nối hoặc liên hệ quản trị viên."
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__website_message_ids
@@ -3470,13 +3531,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Xem tất cả rủi ro ("
-msgstr "Xem tất cả rủi ro ("
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Xem tất cả thiếu dữ liệu ("
-msgstr "Xem tất cả thiếu dữ liệu ("
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -3505,7 +3566,8 @@ msgstr "Đạt"
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation.py:0
 msgid "You can only approve evaluations in manager evaluating state."
-msgstr "Bạn chỉ có thể phê duyệt các bản đánh giá ở trạng thái quản lý đánh giá."
+msgstr ""
+"Bạn chỉ có thể phê duyệt các bản đánh giá ở trạng thái quản lý đánh giá."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -3517,13 +3579,16 @@ msgstr "Bạn chỉ có thể gửi đánh giá ở trạng thái tự đánh gi
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation_line.py:0
 msgid "You cannot modify lines of a canceled or completed evaluation."
-msgstr "Bạn không thể sửa đổi các dòng của một bản đánh giá đã hủy hoặc hoàn thành."
+msgstr ""
+"Bạn không thể sửa đổi các dòng của một bản đánh giá đã hủy hoặc hoàn thành."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation_line.py:0
 msgid "You do not have the required Manager access to edit manager fields."
-msgstr "Bạn không có quyền Truy cập quản lý bắt buộc để chỉnh sửa các trường của quản lý."
+msgstr ""
+"Bạn không có quyền Truy cập quản lý bắt buộc để chỉnh sửa các trường của "
+"quản lý."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -3541,37 +3606,38 @@ msgstr "điểm"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:mail.template,subject:custom_adecsol_hr_performance_evaluator.email_template_evaluation_alert
 msgid "{{object.subject}}"
-msgstr "{{object.subject}}"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Đang tải dữ liệu KPI..."
-msgstr "Đang tải dữ liệu KPI..."
+msgstr ""
+
+#. module: custom_adecsol_hr_performance_evaluator
+#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__dept_kpi_score
+msgid "Điểm KPI phòng ban"
+msgstr ""
+"Điểm từ KPI riêng phòng ban (trung bình có trọng số các line)Điểm từ KPI "
+"dành riêng cho phòng ban (trung bình có số dòng quan trọng)"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Điểm thưởng được tính từ KPI cá nhân và KPI phòng ban theo trọng số."
-msgstr "Điểm thưởng được tính từ KPI cá nhân và KPI phòng ban theo trọng số."
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Điểm thưởng:"
-msgstr "Điểm thưởng:"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__dept_kpi_score
-msgid "Điểm từ KPI riêng phòng ban (trung bình có trọng số các line)"
-msgstr "Điểm từ KPI riêng phòng ban (trung bình có trọng số các line)"
-"Điểm từ KPI dành riêng cho phòng ban (trung bình có số dòng quan trọng)"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Đóng góp phòng ban"
-msgstr "Đóng góp phòng ban"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -3584,3 +3650,225 @@ msgstr "_ Tất cả Phòng _"
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/xml/performance_dashboard_templates.xml:0
 msgid "— N/A"
 msgstr "N/A"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Jan"
+msgstr "Thg 1"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Feb"
+msgstr "Thg 2"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Mar"
+msgstr "Thg 3"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Apr"
+msgstr "Thg 4"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "May"
+msgstr "Thg 5"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Jun"
+msgstr "Thg 6"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Jul"
+msgstr "Thg 7"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Aug"
+msgstr "Thg 8"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Sep"
+msgstr "Thg 9"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Oct"
+msgstr "Thg 10"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Nov"
+msgstr "Thg 11"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Dec"
+msgstr "Thg 12"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "⭐ Excellent"
+msgstr "⭐ Xuất sắc"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "✓ Pass"
+msgstr "✓ Đạt"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "✗ Fail"
+msgstr "✗ Không đạt"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Failed to load departments."
+msgstr "Không thể tải danh sách phòng ban."
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Failed to load evaluations."
+msgstr "Không thể tải danh sách đánh giá."
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Failed to load dashboard data."
+msgstr "Không thể tải dữ liệu bảng thông tin."
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Pending"
+msgstr "Đang chờ"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Total (line)"
+msgstr "Tổng cộng (đường)"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Number of Tasks"
+msgstr "Số lượng công việc"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Total"
+msgstr "Tổng cộng"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Completion (%)"
+msgstr "Tỷ lệ hoàn thành (%)"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Progress (%)"
+msgstr "Tiến độ (%)"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Progress"
+msgstr "Tiến độ"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Done"
+msgstr "Đã xong"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "tasks"
+msgstr "công việc"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Attendance Count"
+msgstr "Số lần chấm công"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Số lần chấm công"
+msgstr "Số lần chấm công"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Nhân viên"
+msgstr "Nhân viên"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "lần"
+msgstr "lần"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Bug Count"
+msgstr "Số lượng lỗi"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Number of Bugs"
+msgstr "Số lượng lỗi"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Employee"
+msgstr "Nhân viên"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "bugs"
+msgstr "lỗi"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Score (0-10)"
+msgstr "Điểm số (0-10)"
+
+#. module: custom_adecsol_hr_performance_evaluator
+#. odoo-javascript
+#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/js/dept_kpi_dashboard.js:0
+msgid "Month"
+msgstr "Tháng"

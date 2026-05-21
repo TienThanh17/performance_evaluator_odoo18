@@ -74,7 +74,7 @@ function buildChartDData(bugData) {
 
 /** Chart E — line: score over timeline (one line per employee) */
 function buildChartEData(employees) {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const months = [_t("Jan"), _t("Feb"), _t("Mar"), _t("Apr"), _t("May"), _t("Jun"), _t("Jul"), _t("Aug"), _t("Sep"), _t("Oct"), _t("Nov"), _t("Dec")];
     const datasets = employees.map((e, i) => {
         const color = POINT_COLORS[i % POINT_COLORS.length];
         return {
@@ -219,7 +219,7 @@ export class DeptKpiDashboard extends Component {
     }
 
     levelLabel(lvl) {
-        return { excellent: "⭐ Excellent", pass: "✓ Pass", fail: "✗ Fail" }[lvl] || "—";
+        return { excellent: _t("⭐ Excellent"), pass: _t("✓ Pass"), fail: _t("✗ Fail") }[lvl] || "—";
     }
 
     // ── Quantitative Table Helpers ───────────────────────────────────────────
@@ -269,7 +269,7 @@ export class DeptKpiDashboard extends Component {
                 this.state.phase = "empty";
             }
         } catch (e) {
-            this.state.errorMsg = "Failed to load departments.";
+            this.state.errorMsg = _t("Failed to load departments.");
             this.state.phase = "error";
         }
     }
@@ -296,7 +296,7 @@ export class DeptKpiDashboard extends Component {
                 this.state.phase = "empty";
             }
         } catch (e) {
-            this.state.errorMsg = "Failed to load evaluations.";
+            this.state.errorMsg = _t("Failed to load evaluations.");
             this.state.phase = "error";
         }
     }
@@ -319,7 +319,7 @@ export class DeptKpiDashboard extends Component {
             await this._renderAllCharts();
         } catch (e) {
             console.error("DeptKpiDashboard: _loadDashboardData", e);
-            this.state.errorMsg = "Failed to load dashboard data.";
+            this.state.errorMsg = _t("Failed to load dashboard data.");
             this.state.phase = "error";
         }
     }
@@ -371,7 +371,7 @@ export class DeptKpiDashboard extends Component {
                 labels: names,
                 datasets: [
                     {
-                        label: "Completed",
+                        label: _t("Completed"),
                         data: done,
                         backgroundColor: C_GREEN + "cc",
                         borderColor: C_GREEN,
@@ -379,7 +379,7 @@ export class DeptKpiDashboard extends Component {
                         stack: "tasks",
                     },
                     {
-                        label: "Pending",
+                        label: _t("Pending"),
                         data: pending,
                         backgroundColor: C_AMBER + "99",
                         borderColor: C_AMBER,
@@ -388,7 +388,7 @@ export class DeptKpiDashboard extends Component {
                     },
                     // Annotation lines: total & completed threshold
                     {
-                        label: "Total (line)",
+                        label: _t("Total (line)"),
                         data: total,
                         type: "line",
                         borderColor: C_BLUE,
@@ -404,14 +404,14 @@ export class DeptKpiDashboard extends Component {
                 ],
             },
             options: {
-                ...baseBarOpts("Number of Tasks"),
+                ...baseBarOpts(_t("Number of Tasks")),
                 plugins: {
                     ...baseBarOpts().plugins,
                     tooltip: {
                         callbacks: {
                             afterBody: (items) => {
                                 const idx = items[0].dataIndex;
-                                return [`Total: ${total[idx]}`];
+                                return [`${_t("Total")}: ${total[idx]}`];
                             },
                         },
                     },
@@ -432,7 +432,7 @@ export class DeptKpiDashboard extends Component {
             data: {
                 labels: projects,
                 datasets: [{
-                    label: "Completion (%)",
+                    label: _t("Completion (%)"),
                     data: pct,
                     backgroundColor: pct.map((v) =>
                         v >= 80 ? C_GREEN + "cc" :
@@ -447,12 +447,12 @@ export class DeptKpiDashboard extends Component {
                 }],
             },
             options: {
-                ...baseBarOpts("Progress (%)"),
+                ...baseBarOpts(_t("Progress (%)")),
                 scales: {
                     ...baseBarOpts().scales,
                     y: {
                         min: 0, max: 100,
-                        title: { display: true, text: "Progress (%)", font: { size: 11 } },
+                        title: { display: true, text: _t("Progress (%)"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
                         ticks: { callback: (v) => v + "%", font: { size: 10 } },
                     },
@@ -464,8 +464,8 @@ export class DeptKpiDashboard extends Component {
                             label: (c) => {
                                 const i = c.dataIndex;
                                 return [
-                                    `Progress: ${pct[i]}%`,
-                                    `Done: ${done[i]} / ${totals[i]} tasks`,
+                                    `${_t("Progress")}: ${pct[i]}%`,
+                                    `${_t("Done")}: ${done[i]} / ${totals[i]} ${_t("tasks")}`,
                                 ];
                             },
                         },
@@ -485,7 +485,7 @@ export class DeptKpiDashboard extends Component {
             data: {
                 labels: data.map((d) => d.name),
                 datasets: [{
-                    label: "Attendance Count",
+                    label: _t("Attendance Count"),
                     data: data.map((d) => d.count),
                     borderColor: C_TEAL,
                     backgroundColor: C_TEAL + "22",
@@ -498,16 +498,16 @@ export class DeptKpiDashboard extends Component {
                 }],
             },
             options: {
-                ...baseLineOpts("Số lần chấm công", "Nhân viên"),
+                ...baseLineOpts(_t("Số lần chấm công"), _t("Nhân viên")),
                 scales: {
                     x: {
-                        title: { display: true, text: "Nhân viên", font: { size: 11 } },
+                        title: { display: true, text: _t("Nhân viên"), font: { size: 11 } },
                         grid: { display: false },
                         ticks: { font: { size: 11 } },
                     },
                     y: {
                         beginAtZero: true,
-                        title: { display: true, text: "Số lần chấm công", font: { size: 11 } },
+                        title: { display: true, text: _t("Số lần chấm công"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
                         ticks: { stepSize: 1, font: { size: 10 } },
                     },
@@ -516,7 +516,7 @@ export class DeptKpiDashboard extends Component {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: (c) => `${c.label}: ${c.parsed.y} lần`,
+                            label: (c) => `${c.label}: ${c.parsed.y} ${_t("lần")}`,
                         },
                     },
                 },
@@ -534,7 +534,7 @@ export class DeptKpiDashboard extends Component {
             data: {
                 labels: data.map((d) => d.name),
                 datasets: [{
-                    label: "Bug Count",
+                    label: _t("Bug Count"),
                     data: data.map((d) => d.bugs),
                     borderColor: C_AMBER,
                     backgroundColor: C_AMBER + "22",
@@ -547,12 +547,12 @@ export class DeptKpiDashboard extends Component {
                 }],
             },
             options: {
-                ...baseLineOpts("Number of Bugs", "Employee"),
+                ...baseLineOpts(_t("Number of Bugs"), _t("Employee")),
                 plugins: {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: (c) => `${c.label}: ${c.parsed.y} bugs`,
+                            label: (c) => `${c.label}: ${c.parsed.y} ${_t("bugs")}`,
                         },
                     },
                 },
@@ -560,7 +560,7 @@ export class DeptKpiDashboard extends Component {
                     ...baseLineOpts().scales,
                     y: {
                         beginAtZero: true,
-                        title: { display: true, text: "Bug Count", font: { size: 11 } },
+                        title: { display: true, text: _t("Bug Count"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
                         ticks: { stepSize: 1, font: { size: 10 } },
                     },
@@ -578,16 +578,16 @@ export class DeptKpiDashboard extends Component {
             type: "line",
             data: { labels, datasets },
             options: {
-                ...baseLineOpts("Score (0-10)", "Month"),
+                ...baseLineOpts(_t("Score (0-10)"), _t("Month")),
                 scales: {
                     x: {
-                        title: { display: true, text: "Month", font: { size: 11 } },
+                        title: { display: true, text: _t("Month"), font: { size: 11 } },
                         grid: { display: false },
                         ticks: { font: { size: 11 } },
                     },
                     y: {
                         min: 0, max: 10,
-                        title: { display: true, text: "Score (0-10)", font: { size: 11 } },
+                        title: { display: true, text: _t("Score (0-10)"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
                         ticks: { stepSize: 1, font: { size: 10 } },
                     },
