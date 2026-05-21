@@ -91,7 +91,8 @@
 
         <div class="o_kpi_summary_card o_kpi_summary_card_input" t-att-title="deptTooltip">
           <div class="o_kpi_summary_label">Department KPI</div>
-          <div t-att-class="'o_kpi_summary_score ' + (state.data.has_dept_evaluation ? '' : 'o_kpi_summary_score_na')">
+          <div t-att-class="'o_kpi_summary_score ' + (state.data.has_dept_evaluation ? '' :
+        'o_kpi_summary_score_na')">
             <span t-esc="deptScoreText"/>
           </div>
           <span t-att-class="deptStatusClass" t-esc="deptStatusLabel"/>
@@ -114,15 +115,18 @@
         <div class="o_kpi_header_cards">
 
           <div class="o_kpi_summary_card o_kpi_summary_card_profile">
-            <h2 class="o_kpi_title">
-              <t t-esc="state.data.employee_name"/>
-              <span class="o_kpi_period_badge" t-esc="periodLabel(state.data.period)"/>
-            </h2>
             <p class="o_kpi_dates">
               <i class="fa fa-calendar me-1"/>
               <t t-esc="state.data.start_date"/>
- →              <t t-esc="state.data.end_date"/>
+              →
+              <t t-esc="state.data.end_date"/>
+              <span class="o_kpi_period_badge ms-2" t-esc="periodLabel(state.data.period)"/>
             </p>
+            <h2 class="o_kpi_title">
+              <t t-esc="state.data.employee_name"/>
+              <span t-att-class="levelClass" t-esc="levelLabel"/>
+            </h2>
+
           </div>
 
           <div class="o_kpi_formula_operator"> </div>
@@ -132,7 +136,6 @@
             <div class="o_kpi_summary_score">
               <span t-esc="scoreText"/>
             </div>
-            <span t-att-class="levelClass" t-esc="levelLabel"/>
             <div class="o_kpi_summary_weight" t-esc="'Trọng số: ' + individualWeightText"/>
           </div>
 
@@ -150,7 +153,7 @@
           <div class="o_kpi_formula_operator o_kpi_formula_operator_result">=</div>
 
           <div class="o_kpi_summary_card o_kpi_summary_card_final">
-            <div class="o_kpi_summary_label">Final KPI Score</div>
+            <div class="o_kpi_summary_label">Final Bonus Score</div>
             <div class="o_kpi_summary_score">
               <span t-esc="finalScoreText"/>
             </div>
@@ -170,7 +173,8 @@
           <!--          <span class="o_kpi_target_badge">Target: <b t-esc="state.data.task_completion.target
           + '%'"/></span>-->
           <!--        </div>-->
-          <!--        <div class="o_kpi_chart_container" t-if="state.data.task_completion.labels.length">-->
+          <!--        <div class="o_kpi_chart_container"
+          t-if="state.data.task_completion.labels.length">-->
           <!--          <canvas t-ref="taskChart" height="160"/>-->
           <!--        </div>-->
           <!--        <p t-else="" class="o_kpi_chart_note o_kpi_muted">No task data for this
@@ -284,7 +288,8 @@
               <span class="o_kpi_card_title">
                 <i class="fa fa-table"/>
  Detailed Evaluation Log</span>
-              <!-- Optional Export button if needed: <button class="btn btn-primary btn-sm"><i class="fa fa-download"/> Export PDF</button> -->
+              <!-- Optional Export button if needed: <button class="btn btn-primary btn-sm"><i
+              class="fa fa-download"/> Export PDF</button> -->
             </div>
             <div class="o_kpi_table_wrapper">
               <table class="o_kpi_table" t-if="state.data.quantitative_table.length">

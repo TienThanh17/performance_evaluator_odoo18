@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -18,57 +18,60 @@ class HrDepartmentKpi(models.Model):
         required=True,
     )
 
-    # ── DEPRECATED: alpha / beta (old dept-score blending mechanism) ──────────
-    # Kept in DB for backward compatibility. Hidden from all UI views.
-    alpha = fields.Float(
-        string="Department KPI Weight (α)",
-        default=0.5,
-        deprecated=True,
-        groups="base.group_no_one",
-        help="[DEPRECATED] Replaced by dept_weight. "
-        "Weight applied to the department KPI score. α + β must equal 1.0.",
-    )
-    beta = fields.Float(
-        string="Average Individual Weight (β)",
-        default=0.5,
-        deprecated=True,
-        groups="base.group_no_one",
-        help="[DEPRECATED] Replaced by dept_weight. "
-        "Weight applied to the average employee performance score. α + β must equal 1.0.",
-    )
-    # ─────────────────────────────────────────────────────────────────────────
-
     # ── NEW: dept_weight for individual final_score formula ───────────────────
     dept_weight = fields.Float(
-        string="Trọng số KPI phòng ban",
+        string=_("Department Bonus Weight"),
         default=0.4,
-        help="Tỷ lệ đóng góp của KPI phòng ban vào điểm cuối cùng của nhân viên. "
-        "Ví dụ: 0.4 nghĩa là final_score = dept×40% + cá_nhân×60%. "
-        "Phải nằm trong khoảng (0.0, 1.0).",
+        help="The contribution rate of the department's KPI to the employee's final score. "
+        "Example: 0.4 means final_score = dept×40% + individual×60%. "
+        "Must be in the range (0%, 100%).",
+        required=True,
     )
 
     individual_weight = fields.Float(
-        string="Trọng số cá nhân",
-        compute="_compute_individual_weight",
+        string=_("Individual Bonus Weight"),
+        default=0.6,
+        help="The contribution rate of the individual's KPI to the final score. "
+        "Example: 0.6 means final_score = dept×40% + individual×60%. "
+        "Must be in the range (0%, 100%).",
+        required=True,
     )
-    # ─────────────────────────────────────────────────────────────────────────
 
     kpi_line_ids = fields.One2many("hr.department.kpi.line", "department_kpi_id")
 
     # ── Constraints ───────────────────────────────────────────────────────────
-    @api.constrains("dept_weight")
-    def _check_dept_weight(self):
+    @api.constrains("dept_weight", "individual_weight")
+    def _check_weights(self):
         for rec in self:
             if not (0.0 < rec.dept_weight < 1.0):
                 raise ValidationError(
-                    "Trọng số KPI phòng ban phải lớn hơn 0 và nhỏ hơn 1."
+                    _(
+                        "Department Bonus Weight must be greater than 0% and less than 100%."
+                    )
+                )
+            if not (0.0 < rec.individual_weight < 1.0):
+                raise ValidationError(
+                    _(
+                        "Individual Bonus Weight must be greater than 0% and less than 100%."
+                    )
+                )
+            if abs(rec.dept_weight + rec.individual_weight - 1.0) > 0.0001:
+                raise ValidationError(
+                    _(
+                        "The sum of Department Bonus Weight and Individual Bonus Weight must be exactly 100%."
+                    )
                 )
 
-    # ── Computes ──────────────────────────────────────────────────────────────
-    @api.depends("dept_weight")
-    def _compute_individual_weight(self):
+    # ── Onchanges ─────────────────────────────────────────────────────────────
+    @api.onchange("dept_weight")
+    def _onchange_dept_weight(self):
         for rec in self:
             rec.individual_weight = 1.0 - rec.dept_weight
+
+    @api.onchange("individual_weight")
+    def _onchange_individual_weight(self):
+        for rec in self:
+            rec.dept_weight = 1.0 - rec.individual_weight
 
     # ── Copy ──────────────────────────────────────────────────────────────────
     def copy(self, default=None):

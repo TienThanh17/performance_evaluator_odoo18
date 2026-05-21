@@ -64,15 +64,23 @@ export class KpiTreeDashboard extends Component {
         const d = this.state.data;
         if (!d) return 0;
         if (type === "company") {
-            return this.roundScore(d.company.dept_kpi_score || 0);
+            return d.company.dept_kpi_score || 0;
         }
         if (type === "dept") {
-            // return this.roundScore(nodeData.dept_kpi_score || 0);
             return nodeData.dept_kpi_score || 0;
         }
         if (type === "emp") {
-            return this.roundScore(nodeData.performance_score || 0);
+            return nodeData.performance_score || 0;
         }
+        // if (type === "company") {
+        //     return this.roundScore(d.company.dept_kpi_score || 0);
+        // }
+        // if (type === "dept") {
+        //     return this.roundScore(nodeData.dept_kpi_score || 0);
+        // }
+        // if (type === "emp") {
+        //     return this.roundScore(nodeData.performance_score || 0);
+        // }
         return 0;
     }
 

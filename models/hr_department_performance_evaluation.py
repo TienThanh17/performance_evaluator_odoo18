@@ -4,6 +4,11 @@ import logging
 _logger = logging.getLogger(__name__)
 
 class HrDepartmentPerformanceEvaluation(models.Model):
+    """Department Performance Evaluation.
+
+    This model handles the assessment of department KPIs during a specific evaluation period,
+    linking individual employees' performance to the department's overall achievements.
+    """
     _name = "hr.department.performance.evaluation"
     _description = "Department Performance Evaluation"
     _inherit = ["mail.thread", "mail.activity.mixin"]
@@ -37,7 +42,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     dept_kpi_score = fields.Float(
         compute="_compute_dept_kpi_score",
         store=True,
-        help="Điểm từ KPI riêng phòng ban (trung bình có trọng số các line)",
+        help="Điểm KPI phòng ban",
     )
 
     has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)

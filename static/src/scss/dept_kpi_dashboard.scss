@@ -260,6 +260,11 @@ $dept-shadow-hover:  0 6px 24px rgba(3, 103, 176, 0.18);
     text-overflow: ellipsis;
   }
 
+  .o_dept_kpi_scorecard_value--sm {
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
   .o_dept_kpi_scorecard_sub {
     font-size: 11px;
     color: $dept-muted;

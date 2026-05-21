@@ -34,7 +34,7 @@
                                        invisible="kpi_type != 'quantitative' or is_special_scoring"/>
                                 <field name="weight"/>
                             </group>
-                            <group string="Auto Compute">
+                            <group string="Auto Compute" invisible="kpi_type != 'quantitative'">
                                 <field name="is_auto" readonly="1" invisible="kpi_type != 'quantitative'"/>
                                 <field name="data_source" invisible="kpi_type != 'quantitative'"/>
                                 <field name="is_special_scoring" invisible="not is_special_scoring"/>
