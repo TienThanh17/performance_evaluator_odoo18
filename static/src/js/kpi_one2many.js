@@ -4,201 +4,18 @@ import { registry } from "@web/core/registry";
 import { makeContext } from "@web/core/context";
 import { X2ManyField, x2ManyField } from "@web/views/fields/x2many/x2many_field";
 import { ListRenderer } from "@web/views/list/list_renderer";
-import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { useService } from "@web/core/utils/hooks";
-import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
-import { Component, onMounted, onPatched, onWillPatch, useRef, xml } from "@odoo/owl";
-import { _t } from "@web/core/l10n/translation";
-
-function parseChildKpiRows(rawRows) {
-    if (!rawRows) {
-        return [];
-    }
-    if (Array.isArray(rawRows)) {
-        return rawRows;
-    }
-    try {
-        const rows = JSON.parse(rawRows);
-        return Array.isArray(rows) ? rows : [];
-    } catch {
-        return [];
-    }
-}
-
-function buildChildKpiMatrix(childRows) {
-    const employees = [];
-    const employeeMap = new Map();
-    const indicators = [];
-    const indicatorMap = new Map();
-
-    for (const row of childRows) {
-        const employeeKey = String(row.employee_id || row.employee || "-");
-        if (!employeeMap.has(employeeKey)) {
-            const employee = {
-                key: employeeKey,
-                name: row.employee || "-",
-            };
-            employeeMap.set(employeeKey, employee);
-            employees.push(employee);
-        }
-
-        const indicatorKey = String(row.child_kpi_id || row.child_kpi || "-");
-        if (!indicatorMap.has(indicatorKey)) {
-            const indicator = {
-                key: indicatorKey,
-                name: row.child_kpi || "-",
-                weight: row.weight || 0,
-                scoresByEmployee: {},
-            };
-            indicatorMap.set(indicatorKey, indicator);
-            indicators.push(indicator);
-        } else if (!indicatorMap.get(indicatorKey).weight && row.weight) {
-            indicatorMap.get(indicatorKey).weight = row.weight;
-        }
-        indicatorMap.get(indicatorKey).scoresByEmployee[employeeKey] = row.final_rating;
-    }
-
-    return { employees, indicators };
-}
-
-function buildChildTemplateMatrix(childRows) {
-    const templates = [];
-    const templateMap = new Map();
-    const indicators = [];
-    const indicatorMap = new Map();
-
-    for (const row of childRows) {
-        const templateKey = String(row.kpi_template_id || row.kpi_template || "-");
-        if (!templateMap.has(templateKey)) {
-            const template = {
-                key: templateKey,
-                name: row.kpi_template || "-",
-                jobName: row.job_name || "",
-            };
-            templateMap.set(templateKey, template);
-            templates.push(template);
-        }
-
-        const indicatorKey = String(row.child_kpi || row.child_kpi_id || "-");
-        if (!indicatorMap.has(indicatorKey)) {
-            const indicator = {
-                key: indicatorKey,
-                name: row.child_kpi || "-",
-                weight: row.weight || 0,
-                cellsByTemplate: {},
-            };
-            indicatorMap.set(indicatorKey, indicator);
-            indicators.push(indicator);
-        } else if (!indicatorMap.get(indicatorKey).weight && row.weight) {
-            indicatorMap.get(indicatorKey).weight = row.weight;
-        }
-        indicatorMap.get(indicatorKey).cellsByTemplate[templateKey] = {
-            name: row.child_kpi || "-",
-            weight: row.weight || 0,
-        };
-    }
-
-    return { templates, indicators };
-}
-
-function formatChildNumber(value) {
-    const number = Number(value || 0);
-    if (!Number.isFinite(number)) {
-        return "";
-    }
-    return number.toFixed(2).replace(/\.?0+$/, "");
-}
-
-function formatChildScore(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) {
-        return "-";
-    }
-    // scale 10
-    // return `${formatChildNumber(number * 10)}đ`;
-    return `${formatChildNumber(number)}đ`;
-}
-
-function formatChildWeight(value) {
-    const formattedValue = formatChildNumber(value);
-    return formattedValue ? `${formattedValue}%` : "-";
-}
-
-function appendMatrixCell(grid, text, className = "") {
-    const item = document.createElement("span");
-    item.className = className;
-    item.textContent = text;
-    grid.appendChild(item);
-    return item;
-}
-
-function renderChildKpiMatrixGrid(container, childRows) {
-    const { employees, indicators } = buildChildKpiMatrix(childRows);
-    if (!employees.length || !indicators.length) {
-        return;
-    }
-
-    const grid = document.createElement("div");
-    grid.className = "o_kpi_child_inline_grid o_kpi_child_matrix_grid";
-    grid.style.gridTemplateColumns = `minmax(220px, 2fr) minmax(90px, 0.6fr) repeat(${employees.length}, minmax(120px, 1fr))`;
-    container.appendChild(grid);
-
-    appendMatrixCell(grid, _t("KPI con"), "o_kpi_child_matrix_header o_kpi_child_title");
-    appendMatrixCell(grid, _t("Trọng số"), "o_kpi_child_matrix_header o_kpi_child_number");
-    for (const employee of employees) {
-        appendMatrixCell(
-            grid,
-            employee.name,
-            "o_kpi_child_matrix_header o_kpi_child_employee_header"
-        );
-    }
-
-    for (const indicator of indicators) {
-        appendMatrixCell(grid, `- ${indicator.name}`, "o_kpi_child_title");
-        appendMatrixCell(
-            grid,
-            formatChildWeight(indicator.weight),
-            "o_kpi_child_number o_kpi_child_weight"
-        );
-        for (const employee of employees) {
-            const score = indicator.scoresByEmployee[employee.key];
-            appendMatrixCell(
-                grid,
-                score === undefined ? "-" : formatChildScore(score),
-                "o_kpi_child_number o_kpi_child_score"
-            );
-        }
-    }
-}
-
-function renderChildTemplateMatrixGrid(container, childRows) {
-    const { indicators } = buildChildTemplateMatrix(childRows);
-    if (!indicators.length) {
-        return;
-    }
-
-    const grid = document.createElement("div");
-    grid.className = "o_kpi_child_inline_grid o_kpi_child_matrix_grid o_kpi_child_template_matrix_grid";
-    grid.style.gridTemplateColumns = "minmax(220px, 2fr) minmax(90px, 0.6fr)";
-    container.appendChild(grid);
-
-    appendMatrixCell(grid, "KPI Indicator", "o_kpi_child_matrix_header o_kpi_child_title");
-    appendMatrixCell(grid, "Weight", "o_kpi_child_matrix_header o_kpi_child_number");
-
-    for (const indicator of indicators) {
-        appendMatrixCell(grid, `- ${indicator.name}`, "o_kpi_child_title");
-        appendMatrixCell(
-            grid,
-            formatChildWeight(indicator.weight),
-            "o_kpi_child_number o_kpi_child_weight"
-        );
-    }
-}
+import { onMounted, onPatched, onWillPatch } from "@odoo/owl";
+import {
+    parseChildKpiRows,
+    renderChildKpiMatrixGrid,
+    renderChildTemplateMatrixGrid,
+} from "./kpi_child_matrix_utils";
 
 /**
  * KPI list renderer:
  * - Section rows (is_section=true) are inline editable and look like headers
- * - KPI rows (is_section=false) are not inline editable; click opens popup
+ * - Rows keep the default editable flow; Add KPI still opens popup on creation
  */
 class KPIListRenderer extends ListRenderer {
     setup() {
@@ -213,9 +30,16 @@ class KPIListRenderer extends ListRenderer {
 
 //        console.log("KPIListRenderer setup 1:", { section_field: context.section_field, title_field: context.title_field });
 //        console.log("KPIListRenderer setup 2:", { discriminant: this.discriminant, titleField: this.titleField });
-        onWillPatch(() => this.removeChildKpiRows());
+        this.scrollSnapshot = null;
+        onWillPatch(() => {
+            this.captureScrollPosition({ force: false });
+            this.removeChildKpiRows();
+        });
         onMounted(() => this.renderChildKpiRows());
-        onPatched(() => this.renderChildKpiRows());
+        onPatched(() => {
+            this.renderChildKpiRows();
+            this.restoreScrollPosition();
+        });
     }
 
     onClickSortColumn(column) {
@@ -239,8 +63,114 @@ class KPIListRenderer extends ListRenderer {
     }
 
     isInlineEditable(record) {
-        // Only sections are inline editable
         return this.props.editable;
+    }
+
+    getScrollableContainers() {
+        const containers = [];
+        const seen = new Set();
+        let el = this.tableRef?.el;
+
+        while (el) {
+            const style = window.getComputedStyle(el);
+            const canScrollY = /(auto|scroll)/.test(style.overflowY);
+            const canScrollX = /(auto|scroll)/.test(style.overflowX);
+            if (
+                el.scrollTop ||
+                el.scrollLeft ||
+                (canScrollY && el.scrollHeight > el.clientHeight) ||
+                (canScrollX && el.scrollWidth > el.clientWidth)
+            ) {
+                containers.push(el);
+                seen.add(el);
+            }
+            el = el.parentElement;
+        }
+
+        const scrollingElement = document.scrollingElement || document.documentElement;
+        if (scrollingElement && !seen.has(scrollingElement)) {
+            containers.push(scrollingElement);
+        }
+        return containers;
+    }
+
+    captureScrollPosition({ force = true } = {}) {
+        if (!force && this.scrollSnapshot?.length) {
+            return;
+        }
+        this.scrollSnapshot = this.getScrollableContainers().map((el) => ({
+            el,
+            top: el.scrollTop,
+            left: el.scrollLeft,
+        }));
+    }
+
+    restoreScrollPosition() {
+        if (!this.scrollSnapshot?.length) {
+            return;
+        }
+        const snapshot = this.scrollSnapshot;
+        const restore = () => {
+            for (const item of snapshot) {
+                if (item.el.isConnected) {
+                    item.el.scrollTop = item.top;
+                    item.el.scrollLeft = item.left;
+                }
+            }
+        };
+        restore();
+        requestAnimationFrame(() => {
+            restore();
+            requestAnimationFrame(() => {
+                restore();
+                if (this.scrollSnapshot === snapshot) {
+                    this.scrollSnapshot = null;
+                }
+            });
+        });
+    }
+
+    focus(el) {
+        if (!el) {
+            return;
+        }
+        this.captureScrollPosition({ force: false });
+        try {
+            el.focus({ preventScroll: true });
+        } catch {
+            el.focus();
+        }
+        if (
+            ["text", "search", "url", "tel", "password", "textarea"].includes(el.type) &&
+            el.selectionStart === el.selectionEnd
+        ) {
+            el.selectionStart = 0;
+            el.selectionEnd = el.value.length;
+        }
+        this.restoreScrollPosition();
+    }
+
+    onClickCapture(record, ev) {
+        this.captureScrollPosition({ force: true });
+        return super.onClickCapture(record, ev);
+    }
+
+    onButtonCellClicked(record, column, ev) {
+        this.captureScrollPosition({ force: true });
+        try {
+            return super.onButtonCellClicked(record, column, ev);
+        } finally {
+            this.restoreScrollPosition();
+        }
+    }
+
+    async onCellClicked(record, column, ev) {
+        this.captureScrollPosition({ force: true });
+        try {
+            return await super.onCellClicked(record, column, ev);
+        } finally {
+            this.restoreScrollPosition();
+        }
     }
 
     getChildKpiRows(record) {
@@ -360,7 +290,7 @@ class KPIOne2ManyField extends X2ManyField {
 
     setup() {
         super.setup();
-        // We want to be able to open a record when clicking on KPI rows
+        // Keep popup support available for x2many flows that call openRecord.
         this.canOpenRecord = true;
         this.orm = useService("orm");
     }
@@ -409,8 +339,6 @@ class KPIOne2ManyField extends X2ManyField {
             }
         }
 
-        console.log('this.props', this.props)
-
         const model = additionalContext.resModel || this.props.record.data[this.props.name]?.resModel;
         const action = {
             type: "ir.actions.act_window",
@@ -430,104 +358,6 @@ class KPIOne2ManyField extends X2ManyField {
                 }
             },
         });
-
-//        // ==========================================
-//        // FIX ODOO 18: Lấy list object từ widget
-//        // ==========================================
-//        const list = this.list || this.props.record.data[this.props.name];
-//
-//        // 2. Tạo record ảo trong bộ nhớ của list
-//        const record = await list.addNewRecord({ context: additionalContext });
-//
-//        let isSaved = false;
-//
-//        // 3. Mở Dialog với record ảo vừa tạo
-//        this.env.services.dialog.add(FormViewDialog, {
-//            resModel: list.resModel,
-//            resId: false,
-//            record: record, // Ép Dialog dùng record ảo
-//            context: additionalContext,
-//            viewId: formViewId || false,
-//            onRecordSaved: async () => {
-//                isSaved = true;
-//            },
-//        }, {
-//            onClose: async () => {
-//                // Nếu đóng form mà chưa save, dọn dẹp record ảo để không bị dòng trống
-//                if (!isSaved) {
-//                    try {
-//                        // Odoo 18 Data Model xử lý xóa record chưa lưu
-//                        if (typeof record.discard === 'function') {
-//                            await record.discard();
-//                        } else if (typeof list.removeRecord === 'function') {
-//                            await list.removeRecord(record);
-//                        } else {
-//                            // Fallback thủ công
-//                            const index = list.records.indexOf(record);
-//                            if (index > -1) {
-//                                list.records.splice(index, 1);
-//                            }
-//                        }
-//                    } catch (e) {
-//                        console.warn("Could not remove the empty record");
-//                    }
-//                }
-//            }
-//        });
-    }
-}
-
-class KPIChildMatrixField extends Component {
-    static template = xml/* xml */ `
-        <div class="o_kpi_child_inline_row o_kpi_child_inline_data_row o_kpi_child_field_widget">
-            <div t-ref="matrixRoot" class="o_kpi_child_inline_cell"></div>
-        </div>
-    `;
-    static props = {
-        ...standardFieldProps,
-    };
-
-    setup() {
-        this.matrixRoot = useRef("matrixRoot");
-        onMounted(() => this.renderMatrix());
-        onPatched(() => this.renderMatrix());
-    }
-
-    renderMatrix() {
-        const container = this.matrixRoot.el;
-        if (!container) {
-            return;
-        }
-        container.replaceChildren();
-        const childRows = parseChildKpiRows(this.props.record.data?.[this.props.name]);
-        renderChildKpiMatrixGrid(container, childRows);
-    }
-}
-
-class KPIChildTemplateMatrixField extends Component {
-    static template = xml/* xml */ `
-        <div class="o_kpi_child_inline_row o_kpi_child_inline_data_row o_kpi_child_field_widget">
-            <div t-ref="matrixRoot" class="o_kpi_child_inline_cell"></div>
-        </div>
-    `;
-    static props = {
-        ...standardFieldProps,
-    };
-
-    setup() {
-        this.matrixRoot = useRef("matrixRoot");
-        onMounted(() => this.renderMatrix());
-        onPatched(() => this.renderMatrix());
-    }
-
-    renderMatrix() {
-        const container = this.matrixRoot.el;
-        if (!container) {
-            return;
-        }
-        container.replaceChildren();
-        const childRows = parseChildKpiRows(this.props.record.data?.[this.props.name]);
-        renderChildTemplateMatrixGrid(container, childRows);
     }
 }
 
@@ -538,14 +368,4 @@ registry.category("fields").add("kpi_one2many", {
     ...x2ManyField,
     component: KPIOne2ManyField,
     additionalClasses: [...(x2ManyField.additionalClasses || []), "o_field_one2many"],
-});
-
-registry.category("fields").add("kpi_child_matrix", {
-    component: KPIChildMatrixField,
-    supportedTypes: ["text", "char"],
-});
-
-registry.category("fields").add("kpi_childKPI Indicatoremplate_matrix", {
-    component: KPIChildTemplateMatrixField,
-    supportedTypes: ["text", "char"],
 });

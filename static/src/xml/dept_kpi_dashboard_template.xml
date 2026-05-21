@@ -101,15 +101,14 @@
         </div>
       </div>
 
-      <!-- Scorecard 4: Placeholder -->
+      <!-- Scorecard 4: Period -->
      <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard&#45;&#45;purple">
        <div class="o_dept_kpi_scorecard_icon">
-         <i class="fa fa-trophy"/>
+         <i class="fa fa-calendar-check-o"/>
        </div>
        <div class="o_dept_kpi_scorecard_body">
-         <div class="o_dept_kpi_scorecard_label">Task Completion Rate</div>
-         <div class="o_dept_kpi_scorecard_value">&#45;&#45;%</div>
-         <div class="o_dept_kpi_scorecard_sub">Avg. this period</div>
+         <div class="o_dept_kpi_scorecard_label">Period</div>
+         <div class="o_dept_kpi_scorecard_value o_dept_kpi_scorecard_value--sm" t-esc="state.data.period_label || '—'"/>
        </div>
      </div>
 

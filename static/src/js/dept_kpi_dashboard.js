@@ -25,6 +25,14 @@ const POINT_COLORS = [
     "#ec4899", "#14b8a6",
 ];
 
+function formatPeriodLabel(dateStr) {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    const year = d.getFullYear();
+    const monthName = d.toLocaleDateString("en-US", { month: "long" });
+    return `${_t(monthName)} / ${year}`;
+}
+
 /** Chart A — stacked bar: total vs done tasks per employee */
 function buildChartAData(employeeStats) {
     const names = employeeStats.map((e) => e.name);
@@ -302,6 +310,7 @@ export class DeptKpiDashboard extends Component {
                 "get_dashboard_data",
                 [evaluation.id],
             );
+            data.period_label = formatPeriodLabel(evaluation.start_date);
 
             this.state.data = data;
             this.state.phase = "done";

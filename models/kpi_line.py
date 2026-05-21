@@ -70,14 +70,15 @@ class KPIline(models.Model):
     )
     parent_dept_kpi_id = fields.Many2one(
         'hr.department.kpi',
-        string='Parent Department KPI Template',
+        string=_('Parent Department KPI Template'),
         related='kpi_id.department_kpi_id',
         store=False,
     )
     # Thêm trường liên kết giữa Line Nhân viên và Line Phòng ban
     parent_dept_line_id = fields.Many2one(
         'hr.department.kpi.line',
-        string='Thuộc chỉ tiêu Phòng ban',
+        string=_("Parent KPI"),
+        help=_("Department KPI Line")
         # Trường này sẽ được lọc trực tiếp trên giao diện XML bằng thuộc tính parent
     )
     description = fields.Html(

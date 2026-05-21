@@ -116,7 +116,7 @@
                         <group>
                             <field name="start_date" readonly="state != 'draft'"/>
                             <field name="end_date" readonly="state != 'draft'"/>
-                            <field name="deadline" readonly="state != 'draft'"/>
+                            <!-- <field name="deadline" readonly="state != 'draft'"/> -->
                         </group>
                     </group>
                     <group>

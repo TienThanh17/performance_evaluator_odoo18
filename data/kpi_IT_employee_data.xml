@@ -88,6 +88,7 @@
                 </p>
             </field>
             <field name="kpi_type">quantitative</field>
+            <field name="unit_label">%</field>
             <field name="target_type">percentage</field>
             <field name="direction">higher_better</field>
             <field name="target">100.0</field>

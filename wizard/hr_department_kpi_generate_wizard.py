@@ -115,7 +115,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
         self.ensure_one()
 
         if not self.department_kpi_id:
-            raise ValidationError('Please select a Department KPI Template.')
+            raise ValidationError(_('Please select a Department KPI Template.'))
         if not self.department_id:
             raise ValidationError('The Department KPI Template must have a Department assigned.')
         report_period = self._map_employee_period(self.period)
@@ -142,7 +142,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                 'tag': 'display_notification',
                 'params': {
                     'title': 'Warning',
-                    'message': 'No active employees found in this department.',
+                    'message': _('No active employees found in this department.'),
                     'type': 'warning',
                     'sticky': False,
                 }
@@ -163,7 +163,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                 'tag': 'display_notification',
                 'params': {
                     'title': 'No new data',
-                    'message': 'A department performance evaluation already exists for this period.',
+                    'message': _('A department performance evaluation already exists for this period.'),
                     'type': 'danger',
                     'sticky': False,
                 }
@@ -256,7 +256,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             'tag': 'display_notification',
             'params': {
                 'title': 'Thành công',
-                'message': f'Đã tạo 1 Department Evaluation và {count} Individual Evaluations cho kỳ {self.period}.',
+                'message': f'Created 1 Department Evaluation and {count} Individual Evaluations for the {self.period} period.',
                 'type': 'success',
                 'sticky': False,
                 'next': {'type': 'ir.actions.act_window_close'},

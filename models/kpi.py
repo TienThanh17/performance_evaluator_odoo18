@@ -6,7 +6,7 @@ class KPI(models.Model):
     _name = 'hr.kpi'
     _description = 'KPI for Department'
 
-    name = fields.Char(string='KPI Template', required=True)
+    name = fields.Char(string=_('Name'), required=True)
     kpi_line_ids = fields.One2many(
         'hr.kpi.line',
         'kpi_id',
@@ -37,7 +37,7 @@ class KPI(models.Model):
     # Thêm trường liên kết Header Template Phòng ban để làm gốc lọc dữ liệu
     department_kpi_id = fields.Many2one(
         'hr.department.kpi',
-        string='Mẫu KPI Phòng ban Cha',
+        string=_('Parent Department KPI Template'),
         domain="[('department_id', '=', department_id), ('period', '=', period)]"
     )
 

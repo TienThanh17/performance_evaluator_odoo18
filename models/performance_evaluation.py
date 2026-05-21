@@ -1,8 +1,9 @@
-from markupsafe import Markup
-from odoo import models, fields, api, _
-from odoo.exceptions import UserError, ValidationError
-from datetime import datetime
 import logging
+from datetime import datetime
+
+from markupsafe import Markup
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ class PerformanceEvaluation(models.Model):
             ("pass", "Pass"),
             ("fail", "Fail"),
         ],
-        string="Result",
+        string=_("Result"),
         compute="_compute_performance_level",
         store=True,
         help="Result level derived from the Average Score and the KPI thresholds configured in Settings.",
@@ -95,12 +96,15 @@ class PerformanceEvaluation(models.Model):
 
     # Điểm cuối cùng: pha trộn performance_score cá nhân và dept_kpi_score phòng ban
     final_score = fields.Float(
-        string="Final KPI Score",
+        string=_("Final Bonus Score"),
         compute="_compute_final_score",
         store=True,
         digits=(6, 2),
-        help="Final result based on: (Department Score × Weight) + (Individual Score × Weight). "
-        "If Department data is missing, only the Individual Score is used.",
+        help=_(
+            "The final score used for bonus calculation, blended from: "
+            "(Department Score × Weight) + (Individual Score × Weight). "
+        ),
+        # "If Department data is missing, only the Individual Score is used to ensure fairness.",
     )
     final_level = fields.Selection(
         selection=[
@@ -486,7 +490,11 @@ class PerformanceEvaluation(models.Model):
                 if dept_eval.department_kpi_id
                 else 0.4
             )
-            individual_weight = 1.0 - dept_weight
+            individual_weight = (
+                dept_eval.department_kpi_id.individual_weight
+                if dept_eval.department_kpi_id
+                else 0.6
+            )
 
             # Công thức pha trộn
             rec.final_score = (dept_score * dept_weight) + (

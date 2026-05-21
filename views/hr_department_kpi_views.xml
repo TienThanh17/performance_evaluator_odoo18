@@ -28,7 +28,7 @@
                                 invisible="kpi_type != 'quantitative'" />
                             <field name="weight" />
                         </group>
-                        <group string="Auto Compute">
+                        <group string="Auto Compute" invisible="kpi_type != 'quantitative'">
                             <field name="is_auto" readonly="1"
                                 invisible="kpi_type != 'quantitative'" />
                             <field name="data_source" invisible="kpi_type != 'quantitative'" />
@@ -70,19 +70,15 @@
                 </header>
                 <sheet>
                     <group>
-                        <group>
+                        <group string="General Information">
                             <field name="name" />
                             <field name="department_id" />
                             <field name="period" />
                         </group>
-                        <group string="Score Weights">
-                            <!-- Trọng số mới: dept_weight + individual_weight (tự tính) -->
-                            <field name="dept_weight"
-                                string="Department KPI Weight"
-                                help="0.4 means dept score contributes 40%, individual 60%" />
-                            <field name="individual_weight"
-                                string="Individual Weight"
-                                readonly="1" />
+                        <group string="Bonus Calculation Weights">
+                            <!-- Trọng số mới: dept_weight + individual_weight -->
+                            <field name="dept_weight" widget="percentage" class="oe_inline"/>
+                            <field name="individual_weight" widget="percentage" class="oe_inline"/>
                         </group>
                     </group>
                     <notebook>
