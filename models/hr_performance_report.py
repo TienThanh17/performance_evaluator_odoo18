@@ -29,6 +29,16 @@ class HrPerformanceReport(models.Model):
     start_date = fields.Date(string="Start Date", required=True)
     end_date = fields.Date(string="End Date", required=True)
     deadline = fields.Date(string="Deadline", required=True)
+    period_status = fields.Selection(
+        [
+            ("upcoming", "Sắp diễn ra"),
+            ("ongoing", "Đang diễn ra"),
+            ("closed", "Đã kết thúc"),
+        ],
+        string="Period Status",
+        compute="_compute_period_status",
+        store=False,
+    )
     active = fields.Boolean(string="Active", default=True)
     evaluation_ids = fields.One2many(
         "hr.performance.evaluation",
@@ -58,6 +68,20 @@ class HrPerformanceReport(models.Model):
         "performance_report_id",
         string="Department Evaluations",
     )
+
+    @api.depends("start_date", "end_date")
+    def _compute_period_status(self):
+        for rec in self:
+            if not rec.start_date or not rec.end_date:
+                rec.period_status = False
+                continue
+            today = fields.Date.context_today(rec)
+            if today < rec.start_date:
+                rec.period_status = "upcoming"
+            elif today > rec.end_date:
+                rec.period_status = "closed"
+            else:
+                rec.period_status = "ongoing"
 
     @api.depends("department_id.name", "start_date", "end_date")
     def _compute_display_name(self):
@@ -112,10 +136,9 @@ class HrPerformanceReport(models.Model):
                                 "name": line.name,
                                 "kpi_type": line.kpi_type,
                                 "target": line.target,
-                                "target_type": line.target_type,
                                 "direction": line.direction,
                                 "weight": line.weight,
-                                "unit_label": line.unit_label,
+                                "unit": line.unit.id if line.unit else False,
                                 "is_auto": line.is_auto,
                                 "data_source": line.data_source,
                                 "is_section": line.is_section,
@@ -145,8 +168,8 @@ class HrPerformanceReport(models.Model):
         today = fields.Date.context_today(self)
 
         # 1. Deactivate reports where the deadline has passed
-        expired_reports = self.search([("active", "=", True), ("deadline", "<", today)])
-        expired_reports.write({"active": False})
+        # expired_reports = self.search([("active", "=", True), ("deadline", "<", today)])
+        # expired_reports.write({"active": False})
 
         # 2. Send reminders for upcoming deadlines
         reminder_days_str = (
@@ -201,11 +224,24 @@ class HrPerformanceReport(models.Model):
     def write(self, vals):
         res = super(HrPerformanceReport, self).write(vals)
         # Fields to sync down to each linked hr.performance.evaluation
-        sync_fields = {"active", "period", "start_date", "end_date", "deadline"}
-        sync_vals = {k: vals[k] for k in sync_fields if k in vals}
-        if sync_vals:
-            for record in self:
-                record.evaluation_ids.with_context(active_test=False).write(sync_vals)
+        employee_sync_fields = {"active", "period", "start_date", "end_date", "deadline"}
+        employee_sync_vals = {k: vals[k] for k in employee_sync_fields if k in vals}
+        # Department evaluations do not have "period"; keep this payload separate.
+        dept_sync_fields = {"active", "start_date", "end_date", "deadline"}
+        dept_sync_vals = {k: vals[k] for k in dept_sync_fields if k in vals}
+        if employee_sync_vals or dept_sync_vals:
+            for record in self.with_context(active_test=False):
+                if employee_sync_vals:
+                    record.evaluation_ids.with_context(active_test=False).write(
+                        employee_sync_vals
+                    )
+                if dept_sync_vals and not self.env.context.get(
+                    "skip_department_active_sync"
+                ):
+                    record.dept_evaluation_ids.with_context(
+                        active_test=False,
+                        skip_report_active_sync=True,
+                    ).write(dept_sync_vals)
         return res
 
     def action_export_excel_report(self):
@@ -515,7 +551,8 @@ class HrPerformanceReport(models.Model):
         for ev in evaluations:
             emp_name = ev.employee_id.name if ev.employee_id else "?"
             rating_lines = ev.evaluation_line_ids.filtered(
-                lambda l: not l.is_section and l.kpi_type == "rating"
+                # lambda l: not l.is_section and l.kpi_type == "rating"
+                lambda l: not l.is_section and l.kpi_type != "quantitative"
             )
             for line in rating_lines:
                 kname = line.key_performance_area or line.name or "KPI"

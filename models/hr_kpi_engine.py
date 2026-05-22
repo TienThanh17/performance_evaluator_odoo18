@@ -98,22 +98,21 @@ class HrKpiEngine(models.AbstractModel):
 
     @api.model
     def _value_or_percentage(self, kpi_line, numerator, denominator):
-        """Return either a raw value or a percentage-ratio, depending on target_type.
+        """Return either a raw value or a percentage-ratio, depending on unit.
 
-        This helper centralizes the unit policy so it can be reused by multiple
-        data sources.
-
-        - target_type = 'value'      -> return numerator (raw count/value)
-        - target_type = 'percentage' -> return (numerator/denominator) * 100
+        Quy ước mới: unit code 'percent' là dấu hiệu KPI dùng thang phần trăm.
+        - unit percent -> return (numerator / denominator) * 100
+        - unit khác    -> return numerator (raw count/value)
         """
         kpi_line = kpi_line.sudo() if kpi_line else kpi_line
         numerator = float(numerator or 0.0)
         denominator = float(denominator or 0.0)
 
-        if not kpi_line or (kpi_line.target_type or "value") == "value":
+        # Unit percent là nguồn sự thật để engine biết có cần quy đổi tỷ lệ hay không.
+        is_percent = bool(kpi_line and kpi_line.unit and kpi_line.unit.code == "percent")
+        if not is_percent:
             return numerator
 
-        # percentage (ratio)
         return (numerator / denominator) * 100 if denominator > 0 else 0.0
 
     @api.model
@@ -142,8 +141,8 @@ class HrKpiEngine(models.AbstractModel):
         - On time: done_date <= date_deadline
 
         Returns:
-        - target_type='value'      -> number of on-time tasks
-        - target_type='percentage' -> ratio on_time / total_tasks (0..1)
+        - unit != percent -> number of on-time tasks
+        - unit = percent  -> on_time / total_tasks * 100
         """
         user = employee.user_id
         if not user or not date_from or not date_to:
@@ -152,7 +151,7 @@ class HrKpiEngine(models.AbstractModel):
         Task = self.env["project.task"].sudo()
         domain = [
             ("user_ids", "in", user.id),
-            ("stage_id.is_done_stage", "=", True),
+            # ("stage_id.is_done_stage", "=", True),
             ("date_deadline", ">=", date_from),
             ("date_deadline", "<=", date_to),
             ("project_id", "!=", False),
@@ -227,8 +226,8 @@ class HrKpiEngine(models.AbstractModel):
         - If first check-in is after expected start -> late for that day.
 
         Return:
-        - target_type='value'      -> late_days (count)
-        - target_type='percentage' -> late_days / total_work_days * 100
+        - unit != percent -> late_days (count)
+        - unit = percent  -> late_days / total_work_days * 100
         """
         if not employee or not date_from or not date_to:
             return 0.0
@@ -894,70 +893,70 @@ class HrKpiEngine(models.AbstractModel):
 
         return result
 
-    # def get_task_on_time_by_day(self, employee, kpi_line, date_from, date_to):
-    #     """Trả về list per-day on-time rate so với tổng task cả kỳ, dùng chung logic với _compute_task_on_time."""
-    #     user = employee.user_id
-    #     if not user or not date_from or not date_to:
-    #         return []
-    #
-    #     Task = self.env["project.task"].sudo()
-    #     d_start = fields.Date.to_date(date_from)
-    #     d_end = fields.Date.to_date(date_to)
-    #
-    #     # 1. Tối ưu: Lấy TOÀN BỘ tasks từ from_date đến end_date bằng 1 câu query duy nhất
-    #     all_tasks = Task.search([
-    #         ("user_ids", "in", user.id),
-    #         ("stage_id.is_done_stage", "=", True),
-    #         ("date_deadline", ">=", d_start),
-    #         ("date_deadline", "<=", d_end),
-    #         ("project_id", "!=", False),
-    #     ])
-    #
-    #     # 2. Gán total = len của TẤT CẢ tasks trong kỳ
-    #     total_all_tasks = len(all_tasks)
-    #     on_time = 0
-    #
-    #     result = []
-    #     day = d_start
-    #
-    #     while day <= d_end:
-    #         # Lọc ra các tasks có done_date rơi vào 'day' đang xét từ tập all_tasks đã query ở trên
-    #         tasks_of_day = all_tasks.filtered(
-    #             lambda t: t.done_date and fields.Date.to_date(t.done_date) == day
-    #         )
-    #
-    #         if not tasks_of_day:
-    #             result.append(None)
-    #         else:
-    #             for t in tasks_of_day:
-    #                 done_dt = (
-    #                     fields.Datetime.to_datetime(t.done_date)
-    #                     if t.done_date
-    #                     else False
-    #                 )
-    #                 deadline_dt = (
-    #                     fields.Datetime.to_datetime(t.date_deadline)
-    #                     if t.date_deadline
-    #                     else False
-    #                 )
-    #
-    #                 if not done_dt or not deadline_dt:
-    #                     continue
-    #
-    #                 # Dùng CÙNG logic với _compute_task_on_time
-    #                 done_local = fields.Datetime.context_timestamp(self, done_dt)
-    #                 deadline_local = fields.Datetime.context_timestamp(self, deadline_dt)
-    #
-    #                 if done_local <= deadline_local:
-    #                     on_time += 1
-    #
-    #             # Chia on_time của ngày cho tổng số lượng task của CẢ KỲ
-    #             rate = round((on_time / total_all_tasks) * 100, 1) if total_all_tasks > 0 else 0.0
-    #             result.append(rate)
-    #
-    #         day = fields.Date.add(day, days=1)
-    #
-    #     return result
+    def get_task_on_time_by_day(self, employee, kpi_line, date_from, date_to):
+        """Trả về list per-day on-time rate so với tổng task cả kỳ, dùng chung logic với _compute_task_on_time."""
+        user = employee.user_id
+        if not user or not date_from or not date_to:
+            return []
+    
+        Task = self.env["project.task"].sudo()
+        d_start = fields.Date.to_date(date_from)
+        d_end = fields.Date.to_date(date_to)
+    
+        # 1. Tối ưu: Lấy TOÀN BỘ tasks từ from_date đến end_date bằng 1 câu query duy nhất
+        all_tasks = Task.search([
+            ("user_ids", "in", user.id),
+            # ("stage_id.is_done_stage", "=", True),
+            ("date_deadline", ">=", d_start),
+            ("date_deadline", "<=", d_end),
+            ("project_id", "!=", False),
+        ])
+    
+        # 2. Gán total = len của TẤT CẢ tasks trong kỳ
+        total_all_tasks = len(all_tasks)
+        on_time = 0
+    
+        result = []
+        day = d_start
+    
+        while day <= d_end:
+            # Lọc ra các tasks có done_date rơi vào 'day' đang xét từ tập all_tasks đã query ở trên
+            tasks_of_day = all_tasks.filtered(
+                lambda t: t.done_date and fields.Date.to_date(t.done_date) == day
+            )
+    
+            if not tasks_of_day:
+                result.append(None)
+            else:
+                for t in tasks_of_day:
+                    done_dt = (
+                        fields.Datetime.to_datetime(t.done_date)
+                        if t.done_date
+                        else False
+                    )
+                    deadline_dt = (
+                        fields.Datetime.to_datetime(t.date_deadline)
+                        if t.date_deadline
+                        else False
+                    )
+    
+                    if not done_dt or not deadline_dt:
+                        continue
+    
+                    # Dùng CÙNG logic với _compute_task_on_time
+                    done_local = fields.Datetime.context_timestamp(self, done_dt)
+                    deadline_local = fields.Datetime.context_timestamp(self, deadline_dt)
+    
+                    if done_local <= deadline_local:
+                        on_time += 1
+    
+                # Chia on_time của ngày cho tổng số lượng task của CẢ KỲ
+                rate = round((on_time / total_all_tasks) * 100, 1) if total_all_tasks > 0 else 0.0
+                result.append(rate)
+    
+            day = fields.Date.add(day, days=1)
+    
+        return result
 
     # ------------------------------------------------------------
     # Calendar helpers

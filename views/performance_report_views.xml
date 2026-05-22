@@ -22,6 +22,7 @@
                         <field name="start_date" invisible="1"/>
                         <field name="end_date" invisible="1"/>
                         <field name="deadline" invisible="1"/>
+                        <field name="period_status" invisible="1"/>
                         <field name="active" invisible="1"/>
                         <!-- evaluation_ids với các sub-field cần cho dashboard -->
                         <field name="evaluation_ids" invisible="1">
@@ -55,6 +56,10 @@
                                 <field name="start_date"/>
                                 <field name="end_date"/>
                                 <field name="deadline"/>
+                                <field name="period_status" widget="badge" readonly="1"
+                                       decoration-info="period_status == 'upcoming'"
+                                       decoration-success="period_status == 'ongoing'"
+                                       decoration-muted="period_status == 'closed'"/>
                             </group>
                             <group string="Scope">
                                 <field name="department_id"/>
@@ -103,8 +108,12 @@
                     <field name="period"/>
                     <field name="start_date"/>
                     <field name="end_date"/>
+                    <field name="period_status" widget="badge"
+                           decoration-info="period_status == 'upcoming'"
+                           decoration-success="period_status == 'ongoing'"
+                           decoration-muted="period_status == 'closed'"/>
 <!--                    <field name="deadline"/>-->
-                    <field name="active" widget="boolean_toggle"/>
+                    <field name="active" widget="boolean_toggle" optional="hide"/>
                 </list>
             </field>
         </record>

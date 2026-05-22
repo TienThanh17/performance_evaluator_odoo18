@@ -26,16 +26,6 @@ class KPIline(models.Model):
         help="How this KPI is evaluated: Quantitative (Target vs Actual), Binary (Yes/No), Rating (0–5), or Score (0–10).",
     )
 
-    target_type = fields.Selection(
-        selection=[
-            ('value', 'Value'),
-            ('percentage', 'Percentage'),
-        ],
-        string='Target Type',
-        required=False,
-        default='value',
-        help="Controls the unit for Target/Actual in evaluations. If Percentage, values are 0–100.",
-    )
     direction = fields.Selection(
         selection=[
             ('higher_better', 'Higher is Better'),
@@ -49,12 +39,13 @@ class KPIline(models.Model):
     target = fields.Float(
         string='Target',
         default=0.0,
-        help="Target value to be achieved for Quantitative KPIs. Use the Target Type to indicate Value or Percentage.",
+        help="Target value to be achieved for Quantitative KPIs. Use a percent unit when values are 0-100 percentages.",
     )
     target_display = fields.Char(string="Target", compute="_compute_display", store=False)
-    unit_label = fields.Char(
+    unit = fields.Many2one(
+        'hr.kpi.unit',
         string="Unit",
-        default="",
+        ondelete="restrict",
         help="Display unit for Target/Actual, e.g. %, tasks, days, score.",
     )
     weight = fields.Float(
@@ -70,15 +61,15 @@ class KPIline(models.Model):
     )
     parent_dept_kpi_id = fields.Many2one(
         'hr.department.kpi',
-        string=_('Parent Department KPI Template'),
+        string='Parent Department KPI Template',
         related='kpi_id.department_kpi_id',
         store=False,
     )
     # Thêm trường liên kết giữa Line Nhân viên và Line Phòng ban
     parent_dept_line_id = fields.Many2one(
         'hr.department.kpi.line',
-        string=_("Parent KPI"),
-        help=_("Department KPI Line")
+        string="Parent KPI",
+        help="Department KPI Line",
         # Trường này sẽ được lọc trực tiếp trên giao diện XML bằng thuộc tính parent
     )
     description = fields.Html(
@@ -141,23 +132,30 @@ class KPIline(models.Model):
                 rec.kpi_type == 'quantitative' and (rec.data_source in special_sources)
             )
 
-    def _get_default_unit_label(self):
+    def _get_unit_by_code(self, code):
+        return self.env['hr.kpi.unit'].search([('code', '=', code)], limit=1)
+
+    def _is_percent_unit(self):
+        """Đơn vị percent là nguồn sự thật để nhận diện KPI phần trăm."""
         self.ensure_one()
-        if self.target_type == 'percentage':
-            return '%'
-        return {
+        return (self.unit.code or '') == 'percent' if self.unit else False
+
+    def _get_default_unit(self):
+        self.ensure_one()
+        code = {
             'done_task': 'task',
-            'task_on_time': '%',
-            'late_days': 'ngày',
-            'attendance_full': 'ngày',
-        }.get(self.data_source or 'manual', '')
+            'task_on_time': 'percent',
+            'late_days': 'day',
+            'attendance_full': 'day',
+        }.get(self.data_source or 'manual')
+        return self._get_unit_by_code(code) if code else False
 
-    @api.onchange('target_type', 'data_source')
-    def _onchange_unit_label(self):
+    @api.onchange('data_source')
+    def _onchange_unit(self):
         for rec in self:
-            rec.unit_label = rec._get_default_unit_label()
+            rec.unit = rec._get_default_unit()
 
-    @api.depends('target', 'target_type', 'kpi_type', 'unit_label')
+    @api.depends('target', 'kpi_type', 'unit', 'unit.code', 'unit.name')
     def _compute_display(self):
         for rec in self:
             if rec.display_type or rec.is_section:
@@ -167,12 +165,13 @@ class KPIline(models.Model):
                 rec.target_display = ''
                 continue
 
-            if rec.target_type == 'percentage':
+            if rec._is_percent_unit():
                 # hiển thị 90% thay vì 90.0
                 rec.target_display = f"{(rec.target or 0.0):g}%"
             else:
                 target = f"{(rec.target or 0.0):g}"
-                rec.target_display = f"{target} {rec.unit_label}" if rec.unit_label else target
+                unit_name = rec.unit.name if rec.unit else ''
+                rec.target_display = f"{target} {unit_name}" if unit_name else target
 
     @api.depends('is_section')
     def _compute_display_type(self):
@@ -189,16 +188,24 @@ class KPIline(models.Model):
 
     @api.constrains('parent_dept_line_id', 'kpi_id', 'is_section')
     def _check_parent_dept_line(self):
+        self._validate_parent_dept_line_consistency()
+
+    def _validate_parent_dept_line_consistency(self, parent_kpi=None):
+        """Validate the employee KPI line -> department KPI line relation.
+
+        parent_kpi is used when validating from hr.kpi after department_kpi_id
+        changes, so all callers share the same business rules and messages.
+        """
         for rec in self:
             parent_line = rec.parent_dept_line_id
             if not parent_line:
                 continue
-            if rec.is_section or rec.display_type:
+            if rec.is_section:
                 raise ValidationError(_("Section lines cannot be linked to department KPI lines."))
             if parent_line.is_section:
                 raise ValidationError(_("Please select a KPI item, not a department section."))
-            
-            parent_dept_kpi = rec.kpi_id.department_kpi_id
+
+            parent_dept_kpi = parent_kpi or rec.kpi_id.department_kpi_id
             if not parent_dept_kpi:
                 raise ValidationError(_("Please select a parent Department KPI Template before linking department KPI lines."))
             if parent_line.department_kpi_id != parent_dept_kpi:

@@ -73,15 +73,9 @@ class KPI(models.Model):
     @api.constrains('department_kpi_id', 'kpi_line_ids')
     def _check_kpi_line_parent_dept_lines(self):
         for kpi in self:
-            for line in kpi.kpi_line_ids.filtered('parent_dept_line_id'):
-                if not kpi.department_kpi_id:
-                    raise ValidationError(
-                        _("Please select a parent Department KPI Template before linking department KPI lines.")
-                    )
-                if line.parent_dept_line_id.department_kpi_id != kpi.department_kpi_id:
-                    raise ValidationError(
-                        _("The selected department KPI line must belong to the parent Department KPI Template.")
-                    )
+            kpi.kpi_line_ids._validate_parent_dept_line_consistency(
+                parent_kpi=kpi.department_kpi_id
+            )
 
     def copy(self, default=None):
         # 1. Initialize default dictionary

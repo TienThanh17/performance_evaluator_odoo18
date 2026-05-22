@@ -66,6 +66,16 @@ class PerformanceEvaluation(models.Model):
     deadline = fields.Date(
         string="Deadline", help="Deadline for submitting the self-evaluation."
     )
+    period_status = fields.Selection(
+        [
+            ("upcoming", "Sắp diễn ra"),
+            ("ongoing", "Đang diễn ra"),
+            ("closed", "Đã kết thúc"),
+        ],
+        string="Period Status",
+        compute="_compute_period_status",
+        store=False,
+    )
     evaluation_line_ids = fields.One2many(
         "hr.performance.evaluation.line",
         "evaluation_id",
@@ -225,6 +235,20 @@ class PerformanceEvaluation(models.Model):
                 rec.is_department_manager = manager_user == self.env.user
             else:
                 rec.is_department_manager = False
+
+    @api.depends("start_date", "end_date")
+    def _compute_period_status(self):
+        for rec in self:
+            if not rec.start_date or not rec.end_date:
+                rec.period_status = False
+                continue
+            today = fields.Date.context_today(rec)
+            if today < rec.start_date:
+                rec.period_status = "upcoming"
+            elif today > rec.end_date:
+                rec.period_status = "closed"
+            else:
+                rec.period_status = "ongoing"
 
     @api.depends("evaluation_line_ids.kpi_type")
     def _compute_kpi_types(self):
@@ -616,10 +640,9 @@ class PerformanceEvaluation(models.Model):
                             "description": False,
                             # Safe defaults for required KPI fields on section rows
                             "kpi_type": "quantitative",
-                            "target_type": "value",
                             "direction": "higher_better",
                             "target": 0.0,
-                            "unit_label": "",
+                            "unit": False,
                             "weight": 0.0,
                             "is_auto": False,
                             "data_source": "manual",
@@ -641,10 +664,9 @@ class PerformanceEvaluation(models.Model):
                         "key_performance_area": line.key_performance_area,
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
-                        "target_type": line.target_type,
                         "direction": line.direction,
                         "target": line.target,
-                        "unit_label": line.unit_label,
+                        "unit": line.unit.id or False,
                         "weight": line.weight,
                         "is_auto": bool(line.is_auto),
                         "data_source": line.data_source,
@@ -682,7 +704,7 @@ class PerformanceEvaluation(models.Model):
             for line in evaluation.evaluation_line_ids:
                 if not line.is_auto:
                     continue
-                # evaluation line carries data_source/target_type copied from template
+                # Evaluation line carries the template data_source/unit for auto-compute.
                 vals = {}
 
                 if (line.data_source or "manual") == "attendance_full":
@@ -955,7 +977,7 @@ class PerformanceEvaluation(models.Model):
                 unpaid_leave_days   float
                 has_unpaid_leave    bool
                 target              float  — từ kpi line
-                target_type         str    — 'value' | 'percentage'
+                unit_code           str    — e.g. 'percent', 'day', 'task'
             calendar:
                 list[{'date': 'YYYY-MM-DD', 'status': str}]
                 status ∈ {'present', 'approved_leave', 'public_holiday', 'absent'}
@@ -970,7 +992,7 @@ class PerformanceEvaluation(models.Model):
                 "unpaid_leave_days": 0.0,
                 "has_unpaid_leave": False,
                 "target": 0.0,
-                "target_type": "value",
+                "unit_code": "",
             },
             "calendar": [],
         }
@@ -994,7 +1016,7 @@ class PerformanceEvaluation(models.Model):
         )
         summary = dict(metrics)
         summary["target"] = float(line.target or 0.0)
-        summary["target_type"] = line.target_type or "value"
+        summary["unit_code"] = line.unit.code if line.unit else ""
 
         # ── Per-day calendar data ─────────────────────────────────────────────
         calendar_data = engine.get_attendance_worked_dates(
@@ -1052,12 +1074,18 @@ class PerformanceEvaluation(models.Model):
             else:
                 variance_pct = 0.0
 
-            unit = "%" if (line.target_type == "percentage") else ""
+            if line.unit and line.unit.code == "percent":
+                target_text = f"{target:g}%"
+                actual_text = f"{actual:g}%"
+            else:
+                unit_name = line.unit.name if line.unit else ""
+                target_text = f"{target:g} {unit_name}" if unit_name else f"{target:g}"
+                actual_text = f"{actual:g} {unit_name}" if unit_name else f"{actual:g}"
             rows.append(
                 {
                     "name": line.key_performance_area or "",
-                    "target": f"{target:g}{unit}",
-                    "actual": f"{actual:g}{unit}",
+                    "target": target_text,
+                    "actual": actual_text,
                     "variance": variance_pct,
                     "final_score": round(final, 2),
                     "direction": line.direction or "higher_better",

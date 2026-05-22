@@ -19,10 +19,21 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         "hr.department.kpi", required=True, string="Department KPI Template"
     )
     performance_report_id = fields.Many2one("hr.performance.report", ondelete="cascade")
+    active = fields.Boolean(string="Active", default=True, tracking=True)
 
     start_date = fields.Date(required=True)
     end_date = fields.Date(required=True)
     deadline = fields.Date()
+    period_status = fields.Selection(
+        [
+            ("upcoming", "Sắp diễn ra"),
+            ("ongoing", "Đang diễn ra"),
+            ("closed", "Đã kết thúc"),
+        ],
+        string="Period Status",
+        compute="_compute_period_status",
+        store=False,
+    )
 
     state = fields.Selection(
         [
@@ -57,6 +68,20 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             rec.has_rating_kpi = "rating" in kpi_types
             rec.has_score_kpi = "score" in kpi_types
 
+    @api.depends("start_date", "end_date")
+    def _compute_period_status(self):
+        for rec in self:
+            if not rec.start_date or not rec.end_date:
+                rec.period_status = False
+                continue
+            today = fields.Date.context_today(rec)
+            if today < rec.start_date:
+                rec.period_status = "upcoming"
+            elif today > rec.end_date:
+                rec.period_status = "closed"
+            else:
+                rec.period_status = "ongoing"
+
     @api.depends("department_id", "start_date", "end_date")
     def _compute_name(self):
         for rec in self:
@@ -79,77 +104,13 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             else:
                 rec.dept_kpi_score = 0.0
 
-    # @api.depends("department_id", "start_date", "end_date", "performance_report_id")
-    # def _compute_avg_individual_score(self):
-    #     for rec in self:
-    #         if not rec.department_id or not rec.start_date or not rec.end_date:
-    #             rec.avg_individual_score = 0.0
-    #             continue
-    #
-    #         evals = self.env["hr.performance.evaluation"].search(
-    #             [
-    #                 ("state", "=", "completed"),
-    #                 ("employee_id.department_id", "=", rec.department_id.id),
-    #                 ("start_date", ">=", rec.start_date),
-    #                 ("end_date", "<=", rec.end_date),
-    #             ]
-    #         )
-    #         if evals:
-    #             rec.avg_individual_score = sum(evals.mapped("performance_score")) / len(
-    #                 evals
-    #             )
-    #         else:
-    #             rec.avg_individual_score = 0.0
-
-    # ── DEPRECATED: department_score — final score now belongs to each individual ──
-    # @api.depends(
-    #     "dept_kpi_score",
-    #     "avg_individual_score",
-    #     "department_kpi_id.alpha",
-    #     "department_kpi_id.beta",
-    # )
-    # def _compute_department_score(self):
-    #     for rec in self:
-    #         alpha = rec.department_kpi_id.alpha if rec.department_kpi_id else 0.5
-    #         beta = rec.department_kpi_id.beta if rec.department_kpi_id else 0.5
-    #         rec.department_score = (alpha * rec.dept_kpi_score) + (
-    #             beta * rec.avg_individual_score
-    #         )
-
-    # @api.depends("department_score")
-    # def _compute_department_level(self):
-    #     # Giả sử thresholds 9 = Excellent, 5 = Pass giống như cá nhân
-    #     icp = self.env["ir.config_parameter"].sudo()
-    #     excellent = float(
-    #         icp.get_param(
-    #             "custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent",
-    #             default="9",
-    #         )
-    #         or 9.0
-    #     )
-    #     passed = float(
-    #         icp.get_param(
-    #             "custom_adecsol_hr_performance_evaluator.kpi_threshold_pass",
-    #             default="5",
-    #         )
-    #         or 5.0
-    #     )
-    #
-    #     for rec in self:
-    #         if rec.department_score >= excellent:
-    #             rec.department_level = "excellent"
-    #         elif rec.department_score >= passed:
-    #             rec.department_level = "pass"
-    #         else:
-    #             rec.department_level = "fail"
-
     def action_compute_auto_kpi(self):
         engine = self.env["hr.kpi.engine"]
         for evaluation in self:
             if not evaluation.department_id or not evaluation.department_kpi_id:
                 continue
             for line in evaluation.evaluation_line_ids:
-                if not line.is_auto or line.is_section:
+                if not line.is_auto:
                     continue
                 actual = engine.with_context(
                     department_evaluation_line=line.id
@@ -161,6 +122,20 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 )
                 line.actual = actual
 
+    def _cron_compute_auto_kpi(self):
+        """Cron wrapper: tính toán KPI tự động cho tất cả department evaluation
+        đang trong kỳ hiện tại (ongoing) và chưa ở trạng thái approved/cancel.
+        Chạy mỗi tối qua ir.cron.
+        """
+        today = fields.Date.context_today(self)
+        evaluations = self.search([
+            ("state", "not in", ["approved", "cancel"]),
+            ("start_date", "<=", today),
+            ("end_date", ">=", today),
+        ])
+        if evaluations:
+            evaluations.action_compute_auto_kpi()
+
     def action_submit(self):
         self.write({"state": "submitted"})
 
@@ -169,6 +144,44 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
     def action_cancel(self):
         self.write({"state": "cancel"})
+
+    def _sync_active_to_report_batch(self, active):
+        """Đồng bộ trạng thái lưu trữ sang report batch và phiếu KPI cá nhân."""
+        for evaluation in self.with_context(active_test=False):
+            report = evaluation.performance_report_id.with_context(active_test=False)
+            if not report:
+                continue
+            # Tránh report.write() sync ngược lại department evaluations lần nữa.
+            report.with_context(skip_department_active_sync=True).write(
+                {"active": active}
+            )
+            report.evaluation_ids.with_context(active_test=False).write(
+                {"active": active}
+            )
+
+    def write(self, vals):
+        res = super().write(vals)
+        if "active" in vals and not self.env.context.get("skip_report_active_sync"):
+            # boolean_toggle trên list view chỉ gọi write(active), nên sync phải nằm ở đây.
+            self._sync_active_to_report_batch(vals["active"])
+        return res
+
+    def _set_active_with_report(self, active):
+        """Archive/unarchive department KPI and the linked report batch together.
+
+        Báo cáo batch là nơi quản lý các phiếu KPI cá nhân trong cùng kỳ. Vì vậy
+        khi archive/unarchive phiếu KPI phòng ban từ màn hình này, report và các
+        phiếu cá nhân bên trong report cũng phải đi theo để UI không lệch trạng thái.
+        """
+        self.with_context(active_test=False).write({"active": active})
+
+    def action_archive_with_report(self):
+        self._set_active_with_report(False)
+        return True
+
+    def action_unarchive_with_report(self):
+        self._set_active_with_report(True)
+        return True
 
     # ── Public interface for Phase 3 (hr.performance.evaluation) ─────────────
     def get_dept_kpi_score(self):
@@ -226,6 +239,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         # Sử dụng : list[tuple] để Type Checker không hiểu lầm là danh sách chỉ chứa tuple 3 số nguyên.
         # fields.Command.clear() tương đương với lệnh (5, 0, 0) để xóa sạch các dòng cũ trước khi thêm mới.
         commands: list[tuple] = [fields.Command.clear()]
+        score_unit = self.env.ref(
+            "custom_adecsol_hr_performance_evaluator.kpi_unit_score",
+            raise_if_not_found=False,
+        )
         for line in template_lines:
             # Kiểm tra nếu dòng hiện tại là một Section (tiêu đề nhóm) dựa trên thuộc tính.
             is_section = bool(getattr(line, "is_section", False))
@@ -241,10 +258,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "description": False,
                             # Safe defaults for required KPI fields on section rows
                             "kpi_type": "quantitative",
-                            "target_type": "value",
                             "direction": "higher_better",
                             "target": 0.0,
-                            "unit_label": "",
+                            "unit": False,
                             "weight": 0.0,
                             "is_auto": False,
                             "data_source": "manual",
@@ -261,13 +277,16 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "name": line.name,
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
-                        "target_type": line.target_type,
                         "direction": line.direction,
                         "target": 100.0
                         if line.data_source == "child_kpi_average" and not line.target
                         else line.target,
-                        "unit_label": line.unit_label
-                        or ("điểm" if line.data_source == "child_kpi_average" else ""),
+                        "unit": line.unit.id
+                        or (
+                            score_unit.id
+                            if line.data_source == "child_kpi_average" and score_unit
+                            else False
+                        ),
                         "weight": line.weight,
                         "is_auto": bool(line.is_auto),
                         "data_source": line.data_source,
@@ -344,12 +363,18 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             else:
                 variance_pct = 0.0
 
-            unit = "%" if (line.target_type == "percentage") else ""
+            if line.unit and line.unit.code == "percent":
+                target_text = f"{target:g}%"
+                actual_text = f"{actual:g}%"
+            else:
+                unit_name = line.unit.name if line.unit else ""
+                target_text = f"{target:g} {unit_name}" if unit_name else f"{target:g}"
+                actual_text = f"{actual:g} {unit_name}" if unit_name else f"{actual:g}"
             rows.append(
                 {
                     "name": line.name or "",
-                    "target": f"{target:g}{unit}",
-                    "actual": f"{actual:g}{unit}",
+                    "target": target_text,
+                    "actual": actual_text,
                     "variance": variance_pct,
                     "final_score": round(final, 2),
                     "direction": line.direction or "higher_better",
