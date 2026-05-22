@@ -2,6 +2,7 @@ from . import hr_kpi_engine
 from . import hr_kpi_engine_dept_ext
 from . import hr_performance_report
 from . import hr_score
+from . import kpi_unit
 from . import kpi_line
 from . import kpi
 from . import performance_evaluation_line

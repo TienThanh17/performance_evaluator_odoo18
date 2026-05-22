@@ -26,9 +26,6 @@ class HrDepartmentKpiLine(models.Model):
     )
 
     target = fields.Float(default=0.0)
-    target_type = fields.Selection(
-        [("value", "Value"), ("percentage", "Percentage")], default="value"
-    )
     direction = fields.Selection(
         [("higher_better", "Higher is better"), ("lower_better", "Lower is better")],
         default="higher_better",
@@ -43,9 +40,10 @@ class HrDepartmentKpiLine(models.Model):
     target_display = fields.Char(
         string="Target", compute="_compute_display", store=False
     )
-    unit_label = fields.Char(
+    unit = fields.Many2one(
+        "hr.kpi.unit",
         string="Unit",
-        default="",
+        ondelete="restrict",
         help="Display unit for Target/Actual, e.g. %, tasks, days, score.",
     )
 
@@ -89,8 +87,9 @@ class HrDepartmentKpiLine(models.Model):
         "child_template_line_ids.key_performance_area",
         "child_template_line_ids.weight",
         "child_template_line_ids.target",
-        "child_template_line_ids.target_type",
-        "child_template_line_ids.unit_label",
+        "child_template_line_ids.unit",
+        "child_template_line_ids.unit.code",
+        "child_template_line_ids.unit.name",
         "child_template_line_ids.is_section",
     )
     def _compute_child_template_line_trace(self):
@@ -137,23 +136,30 @@ class HrDepartmentKpiLine(models.Model):
                     "For Quantitative KPI type, Target must be greater than or equal 0."
                 )
 
-    def _get_default_unit_label(self):
+    def _get_unit_by_code(self, code):
+        return self.env["hr.kpi.unit"].search([("code", "=", code)], limit=1)
+
+    def _is_percent_unit(self):
+        """Đơn vị percent là nguồn sự thật để nhận diện KPI phần trăm."""
         self.ensure_one()
-        if self.target_type == "percentage":
-            return "%"
-        return {
+        return (self.unit.code or "") == "percent" if self.unit else False
+
+    def _get_default_unit(self):
+        self.ensure_one()
+        code = {
             "dept_task_completion": "task",
-            "dept_attendance_rate": "%",
-            "dept_avg_individual": "điểm",
-            "child_kpi_average": "điểm",
-        }.get(self.data_source or "manual", "")
+            "dept_attendance_rate": "percent",
+            "dept_avg_individual": "score",
+            "child_kpi_average": "score",
+        }.get(self.data_source or "manual")
+        return self._get_unit_by_code(code) if code else False
 
-    @api.onchange("target_type", "data_source")
-    def _onchange_unit_label(self):
+    @api.onchange("data_source")
+    def _onchange_unit(self):
         for rec in self:
-            rec.unit_label = rec._get_default_unit_label()
+            rec.unit = rec._get_default_unit()
 
-    @api.depends("target", "target_type", "kpi_type", "unit_label")
+    @api.depends("target", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
         for rec in self:
             if rec.is_section:
@@ -163,13 +169,14 @@ class HrDepartmentKpiLine(models.Model):
                 rec.target_display = ""
                 continue
 
-            if rec.target_type == "percentage":
+            if rec._is_percent_unit():
                 # hiển thị 90% thay vì 90.0
                 rec.target_display = f"{(rec.target or 0.0):g}%"
             else:
                 target = f"{(rec.target or 0.0):g}"
+                unit_name = rec.unit.name if rec.unit else ""
                 rec.target_display = (
-                    f"{target} {rec.unit_label}" if rec.unit_label else target
+                    f"{target} {unit_name}" if unit_name else target
                 )
 
     @api.depends("kpi_type", "data_source")

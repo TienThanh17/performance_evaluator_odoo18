@@ -20,9 +20,7 @@
                         <group string="KPI Info">
                             <field name="department_kpi_id" invisible="1" />
                             <field name="kpi_type" />
-                            <field name="target_type"
-                                invisible="kpi_type != 'quantitative'" />
-                            <field name="unit_label"
+                            <field name="unit"
                                 invisible="kpi_type != 'quantitative'" />
                             <field name="direction"
                                 invisible="kpi_type != 'quantitative'" />
@@ -99,9 +97,7 @@
                                         optional="show" />
 
                                     <field name="kpi_type" invisible="is_section" />
-                                    <field name="target_type"
-                                        invisible="is_section or kpi_type != 'quantitative'" />
-                                    <field name="unit_label"
+                                    <field name="unit"
                                         string="Unit"
                                         invisible="is_section or kpi_type != 'quantitative'"
                                         optional="show" />

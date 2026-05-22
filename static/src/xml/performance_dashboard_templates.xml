@@ -29,13 +29,13 @@
                             </div>
                         </div>
 
-                        <div class="pd-header-active-toggle">
+                        <!-- <div class="pd-header-active-toggle">
                             <span class="pd-active-label">ACTIVE</span>
                             <label class="pd-toggle-switch">
                                 <input type="checkbox" t-att-checked="state.active ? 'checked' : undefined" t-on-change="onActiveChange"/>
                                 <span class="pd-toggle-slider"/>
                             </label>
-                        </div>
+                        </div> -->
                     </div>
 
                     <button class="pd-btn-export" t-on-click="exportExcelReport">

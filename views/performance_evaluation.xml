@@ -75,9 +75,7 @@
                             invisible="is_section or kpi_type != 'quantitative' or is_special_scoring">
                             <group>
                                 <field name="target" readonly="is_employee" />
-                                <field name="target_type" invisible="kpi_type != 'quantitative'"
-                                    readonly="not is_manager and not is_department_manager" />
-                                <field name="unit_label" invisible="kpi_type != 'quantitative'"
+                                <field name="unit" invisible="kpi_type != 'quantitative'"
                                     readonly="not is_manager and not is_department_manager" />
                                 <field name="direction" invisible="kpi_type != 'quantitative'"
                                     readonly="not is_manager and not is_department_manager" />
@@ -195,6 +193,10 @@
                         decoration-danger="final_level == 'fail'" />
                     <field name="start_date" />
                     <field name="end_date" />
+                    <field name="period_status" widget="badge"
+                        decoration-info="period_status == 'upcoming'"
+                        decoration-success="period_status == 'ongoing'"
+                        decoration-muted="period_status == 'closed'" />
                     <!-- <field name="deadline" /> -->
                 </list>
             </field>
@@ -394,6 +396,8 @@
 
                                 <field name="job_id" readonly="1"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
+                                <field name="manager_id" readonly="1"
+                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="period" readonly="1"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="kpi_id"
@@ -402,8 +406,7 @@
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md " />
                             </group>
                             <group colspan="5">
-                                <field name="manager_id" readonly="1"
-                                    class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
+
                                 <field name="department_id" readonly="1"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <!-- Liên kết tới KPI đánh giá phòng ban cùng kỳ -->
@@ -418,6 +421,11 @@
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="deadline" readonly="1"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
+                                <field name="period_status" widget="badge" readonly="1"
+                                    decoration-info="period_status == 'upcoming'"
+                                    decoration-success="period_status == 'ongoing'"
+                                    decoration-muted="period_status == 'closed'" />
+
                                 <field name="performance_score" invisible="1" />
                                 <field name="performance_badge_class" invisible="1" />
                                 <field name="has_binary_kpi" invisible="1" />
@@ -429,8 +437,8 @@
                             <page string="Evaluation Lines">
                                 <button name="action_compute_auto_kpi"
                                     type="object"
-                                    string="Compute KPI"
-                                    class="btn-secondary" />
+                                    string="Compute Auto KPI"
+                                    class="oe_highlight" />
                                 <!--                                <button name="action_recompute_performance_score"-->
                                 <!--                                    type="object"-->
                                 <!--                                    string="Refresh Score"-->
@@ -458,10 +466,7 @@
 
                                         <field name="kpi_type" invisible="is_section"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="target_type" optional="hide"
-                                            invisible="is_section or kpi_type != 'quantitative'"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="unit_label" optional="show"
+                                        <field name="unit" optional="show"
                                             invisible="is_section or kpi_type != 'quantitative'"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
                                         <field name="data_source" optional="hide"
@@ -595,7 +600,19 @@
                     <field name="performance_level" />
                     <field name="start_date" />
                     <field name="end_date" />
+                    <field name="period_status" widget="badge"
+                        decoration-info="period_status == 'upcoming'"
+                        decoration-success="period_status == 'ongoing'"
+                        decoration-muted="period_status == 'closed'" />
                     <field name="deadline" />
+
+                    <filter string="Current Period" name="current_period"
+                        domain="[
+                        ('start_date', '&lt;=', context_today().strftime('%Y-%m-%d')), 
+                        ('end_date', '&gt;=', context_today().strftime('%Y-%m-%d'))
+                    ]" />
+
+                    <separator />
 
                     <filter string="Monthly" name="monthly" domain="[('period', '=', 'monthly')]" />
                     <filter string="Quarterly" name="quarterly"
@@ -621,7 +638,7 @@
             <field name="name">Performance Evaluation</field>
             <field name="res_model">hr.performance.evaluation</field>
             <field name="view_mode">kanban,list,form</field>
-            <field name="context">{'group_by': 'department_id'}</field>
+            <field name="context">{'group_by': 'department_id', 'search_default_current_period': 1}</field>
         </record>
 
         <!-- Client Action for standalone KPI Dashboard page -->

@@ -23,14 +23,14 @@ class HrDepartmentEvaluationLine(models.Model):
         string=_("KPI Type"),
     )
     target = fields.Float()
-    target_type = fields.Selection([("value", "Value"), ("percentage", "Percentage")])
     direction = fields.Selection(
         [("higher_better", "Higher is better"), ("lower_better", "Lower is better")]
     )
     actual = fields.Float()
-    unit_label = fields.Char(
+    unit = fields.Many2one(
+        "hr.kpi.unit",
         string="Unit",
-        default="",
+        ondelete="restrict",
         help="Display unit for Target/Actual, e.g. %, tasks, days, score.",
     )
     weight = fields.Float()
@@ -173,7 +173,6 @@ class HrDepartmentEvaluationLine(models.Model):
         "target",
         "kpi_type",
         "direction",
-        "target_type",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
@@ -213,7 +212,12 @@ class HrDepartmentEvaluationLine(models.Model):
             line.final_score = line.system_score / 10
 
     # Thay thế hàm hiện tại bằng đoạn code này:
-    @api.depends("target", "actual", "target_type", "kpi_type", "unit_label")
+    def _is_percent_unit(self):
+        """Đơn vị percent là nguồn sự thật để nhận diện KPI phần trăm."""
+        self.ensure_one()
+        return (self.unit.code or "") == "percent" if self.unit else False
+
+    @api.depends("target", "actual", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
         for rec in self:
             if rec.kpi_type != "quantitative":
@@ -225,15 +229,16 @@ class HrDepartmentEvaluationLine(models.Model):
             target_str = f"{(rec.target or 0.0):.2f}".rstrip("0").rstrip(".")
             actual_str = f"{(rec.actual or 0.0):.2f}".rstrip("0").rstrip(".")
 
-            if rec.target_type == "percentage":
+            if rec._is_percent_unit():
                 rec.target_display = f"{target_str}%"
                 rec.actual_display = f"{actual_str}%"
             else:
+                unit_name = rec.unit.name if rec.unit else ""
                 rec.target_display = (
-                    f"{target_str} {rec.unit_label}" if rec.unit_label else target_str
+                    f"{target_str} {unit_name}" if unit_name else target_str
                 )
                 rec.actual_display = (
-                    f"{actual_str} {rec.unit_label}" if rec.unit_label else actual_str
+                    f"{actual_str} {unit_name}" if unit_name else actual_str
                 )
 
     @api.depends("final_score")

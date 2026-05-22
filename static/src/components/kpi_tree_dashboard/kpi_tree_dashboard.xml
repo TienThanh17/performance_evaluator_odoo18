@@ -32,7 +32,7 @@
   <div t-if="state.loading" class="o_kpi_tree_body">
         <!-- Skeleton 6 cards -->
     <div class="o_kpi_tree_metric_row">
-      <t t-foreach="[1,2,3,4,5,6]" t-as="i" t-key="i">
+      <t t-foreach="[1,2,3,4,5]" t-as="i" t-key="i">
         <div class="o_kpi_tree_metric_card skeleton">
           <div class="sk-title"/>
           <div class="sk-value"/>
@@ -89,11 +89,11 @@
         </div>
       </div>
 
-          <!-- Card 4: KPI Rủi ro (REAL DATA) -->
+          <!-- Card 4: KPI chưa đạt (REAL DATA) -->
       <div class="o_kpi_tree_metric_card card-red" t-on-click="selectCompanyNode">
         <div class="metric-icon"><i class="fa fa-exclamation-triangle"/></div>
         <div class="metric-body">
-          <div class="metric-label">KPI Rủi ro</div>
+          <div class="metric-label">KPI Chưa đạt</div>
           <div class="metric-value" t-esc="riskLineCount()"/>
           <div class="metric-sub">KPI điểm thấp</div>
         </div>
@@ -161,7 +161,7 @@
               <!-- ── Company detail ── -->
           <t t-if="state.selectedNode.type === 'company'">
             <div class="panel-metric">
-              <span class="pm-label">KPI phòng ban trung bình:</span>
+              <span class="pm-label">Trung bình KPI phòng ban:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
             <div class="panel-metric">
@@ -236,7 +236,7 @@
 
           <!-- Panel 1: Top KPI rủi ro (REAL DATA) -->
       <div class="o_kpi_tree_panel">
-        <div class="panel-head"><i class="fa fa-exclamation-triangle"/> Top KPI Rủi ro</div>
+        <div class="panel-head"><i class="fa fa-exclamation-triangle"/> Top KPI chưa đạt</div>
         <t t-if="riskLineCount() > 0">
           <t t-foreach="topRiskLines()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.line_id || item_index)">
             <div class="risk-row risk-row-clickable" t-on-click="() => this.openRiskLine(item)">
@@ -257,7 +257,7 @@
                   type="button"
                   class="risk-view-all-btn"
                   t-on-click="openRiskModal">
-            Xem tất cả rủi ro (<t t-esc="riskLineCount()"/>)
+            Xem tất cả (<t t-esc="riskLineCount()"/>)
           </button>
         </t>
         <div t-else="" class="panel-empty">Không có KPI rủi ro</div>
@@ -299,7 +299,7 @@
                   type="button"
                   class="missing-view-all-btn"
                   t-on-click="openMissingDataModal">
-            Xem tất cả thiếu dữ liệu (<t t-esc="missingDataLineCount()"/>)
+            Xem tất cả (<t t-esc="missingDataLineCount()"/>)
           </button>
         </t>
         <div t-else="" class="panel-empty">Tất cả KPI đã có dữ liệu ✓</div>

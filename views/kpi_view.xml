@@ -26,9 +26,7 @@
                                        options="{'no_create': True}"
                                        invisible="not parent_dept_kpi_id"/>
                                 <field name="kpi_type"/>
-                                <field name="target_type"
-                                       invisible="kpi_type != 'quantitative' or is_special_scoring"/>
-                                <field name="unit_label"
+                                <field name="unit"
                                        invisible="kpi_type != 'quantitative'"/>
                                 <field name="direction"
                                        invisible="kpi_type != 'quantitative' or is_special_scoring"/>
@@ -117,7 +115,6 @@
 
                                         <field name="key_performance_area" string="Title"/>
                                         <field name="parent_dept_line_id"
-                                               string="Department KPI"
                                                domain="[('department_kpi_id', '=', parent_dept_kpi_id), ('is_section', '=', False)]"
                                                options="{'no_create': True}"
                                                invisible="is_section or not parent_dept_kpi_id"
@@ -130,9 +127,7 @@
                                                optional="show"/>
 
                                         <field name="kpi_type" invisible="is_section"/>
-                                        <field name="target_type"
-                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
-                                        <field name="unit_label"
+                                        <field name="unit"
                                                string="Unit"
                                                invisible="is_section or kpi_type != 'quantitative'"
                                                optional="show"/>

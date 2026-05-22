@@ -67,16 +67,6 @@ class PerformanceEvaluationLine(models.Model):
         help="How this KPI line is evaluated: Quantitative (Target vs Actual), Binary (Yes/No), Rating (0–5), or Score (0–10).",
     )
 
-    target_type = fields.Selection(
-        selection=[
-            ("value", "Value"),
-            ("percentage", "Percentage"),
-        ],
-        string="Target Type",
-        required=True,
-        default="value",
-        help="Controls the unit for Target/Actual. If Percentage, values are 0–100.",
-    )
     direction = fields.Selection(
         selection=[
             ("higher_better", "Higher is Better"),
@@ -92,9 +82,10 @@ class PerformanceEvaluationLine(models.Model):
         default=0.0,
         help="Target value to be achieved for Quantitative KPIs.",
     )
-    unit_label = fields.Char(
+    unit = fields.Many2one(
+        "hr.kpi.unit",
         string="Unit",
-        default="",
+        ondelete="restrict",
         help="Display unit for Target/Actual, e.g. %, tasks, days, score.",
     )
     weight = fields.Float(
@@ -156,7 +147,7 @@ class PerformanceEvaluationLine(models.Model):
 
     # actual: giá trị canonical dùng để tính system_score
     #   - kpi_type=quantitative: so sánh target vs actual theo direction
-    #   - target_type quyết định đơn vị (value vs percentage 0–100)
+    #   - unit.code='percent' quyết định giá trị là phần trăm 0-100
     actual = fields.Float(
         string="Actual",
         help="Actual value input/collected for Quantitative KPIs. Compared against Target to compute the System Score.",
@@ -374,7 +365,12 @@ class PerformanceEvaluationLine(models.Model):
                 # quantitative: manager doesn't rate in current logic
                 line.manager_edited = False
 
-    @api.depends("target", "actual", "target_type", "kpi_type", "unit_label")
+    def _is_percent_unit(self):
+        """Đơn vị percent là nguồn sự thật để nhận diện KPI phần trăm."""
+        self.ensure_one()
+        return (self.unit.code or "") == "percent" if self.unit else False
+
+    @api.depends("target", "actual", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
         for rec in self:
             if rec.kpi_type != "quantitative":
@@ -382,18 +378,19 @@ class PerformanceEvaluationLine(models.Model):
                 rec.actual_display = ""
                 continue
 
-            if rec.target_type == "percentage":
+            if rec._is_percent_unit():
                 # hiển thị 90% thay vì 90.0
-                rec.target_display = f"{(rec.target or 0.0):g} %"
-                rec.actual_display = f"{(rec.actual or 0.0):g} %"
+                rec.target_display = f"{(rec.target or 0.0):g}%"
+                rec.actual_display = f"{(rec.actual or 0.0):g}%"
             else:
                 target = f"{(rec.target or 0.0):g}"
                 actual = f"{(rec.actual or 0.0):g}"
+                unit_name = rec.unit.name if rec.unit else ""
                 rec.target_display = (
-                    f"{target} {rec.unit_label}" if rec.unit_label else target
+                    f"{target} {unit_name}" if unit_name else target
                 )
                 rec.actual_display = (
-                    f"{actual} {rec.unit_label}" if rec.unit_label else actual
+                    f"{actual} {unit_name}" if unit_name else actual
                 )
 
     # ------------------------------------------------------------------
@@ -602,13 +599,6 @@ class PerformanceEvaluationLine(models.Model):
     # ------------------------------------------------------------------
     # Constraints
     # ------------------------------------------------------------------
-    # @api.constrains('actual', 'target_type')
-    # def _check_actual_matches_target_type(self):
-    #     for rec in self:
-    #         if rec.target_type == 'percentage':
-    #             if (rec.actual or 0.0) < 0 or (rec.actual or 0.0) > 100:
-    #                 raise ValidationError("Actual must be between 0 and 100 for percentage KPIs")
-
     @api.constrains("manager_rating_selection", "kpi_type")
     def _check_manager_rating_selection_range(self):
         for rec in self:

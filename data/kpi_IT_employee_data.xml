@@ -19,7 +19,7 @@
             <field name="target">10.0</field>
             <field name="is_auto">True</field>
             <field name="data_source">child_kpi_average</field>
-            <field name="unit_label">điểm</field>
+            <field name="unit" ref="kpi_unit_score"/>
             <field name="sequence">10</field>
         </record>
 
@@ -32,7 +32,7 @@
             <field name="target">10.0</field>
             <field name="is_auto">True</field>
             <field name="data_source">child_kpi_average</field>
-            <field name="unit_label">điểm</field>
+            <field name="unit" ref="kpi_unit_score"/>
             <field name="sequence">20</field>
         </record>
 
@@ -45,7 +45,7 @@
             <field name="target">10.0</field>
             <field name="is_auto">True</field>
             <field name="data_source">child_kpi_average</field>
-            <field name="unit_label">điểm</field>
+            <field name="unit" ref="kpi_unit_score"/>
             <field name="sequence">30</field>
         </record>
 
@@ -58,7 +58,7 @@
             <field name="target">10.0</field>
             <field name="is_auto">True</field>
             <field name="data_source">child_kpi_average</field>
-            <field name="unit_label">điểm</field>
+            <field name="unit" ref="kpi_unit_score"/>
             <field name="sequence">40</field>
         </record>
 
@@ -88,8 +88,7 @@
                 </p>
             </field>
             <field name="kpi_type">quantitative</field>
-            <field name="unit_label">%</field>
-            <field name="target_type">percentage</field>
+            <field name="unit" ref="kpi_unit_percent"/>
             <field name="direction">higher_better</field>
             <field name="target">100.0</field>
             <field name="weight">20.0</field>
@@ -109,7 +108,6 @@
         <!--                </p>-->
         <!--            </field>-->
         <!--            <field name="kpi_type">quantitative</field>-->
-        <!--            <field name="target_type">percentage</field>-->
         <!--            <field name="direction">higher_better</field>-->
         <!--            <field name="target">100.0</field>-->
         <!--            <field name="weight">15.0</field>-->
@@ -140,6 +138,7 @@
             <field name="weight">5.0</field>
             <field name="is_auto">True</field>
             <field name="data_source">late_days</field>
+            <field name="unit" ref="kpi_unit_day"/>
             <field name="sequence">30</field>
         </record>
 
@@ -168,12 +167,12 @@
                 </ul>
             </field>
             <field name="kpi_type">quantitative</field>
-            <field name="target_type">value</field>
             <field name="direction">lower_better</field>
             <field name="target">0.0</field>
             <field name="weight">5.0</field>
             <field name="is_auto">True</field>
             <field name="data_source">attendance_full</field>
+            <field name="unit" ref="kpi_unit_day"/>
             <field name="sequence">40</field>
         </record>
 
@@ -206,7 +205,6 @@
                 </ul>
             </field>
             <field name="kpi_type">rating</field>
-            <field name="target_type">value</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="weight">20.0</field>
@@ -236,7 +234,6 @@
                 </ul>
             </field>
             <field name="kpi_type">rating</field>
-            <field name="target_type">percentage</field>
             <field name="direction">higher_better</field>
             <field name="target">100.0</field>
             <field name="weight">15.0</field>
@@ -268,7 +265,6 @@
                 </ul>
             </field>
             <field name="kpi_type">rating</field>
-            <field name="target_type">value</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="weight">15.0</field>
@@ -301,7 +297,6 @@
                 </ul>
             </field>
             <field name="kpi_type">rating</field>
-            <field name="target_type">value</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="weight">10.0</field>
@@ -329,7 +324,6 @@
                 </ul>
             </field>
             <field name="kpi_type">rating</field>
-            <field name="target_type">value</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="weight">10.0</field>

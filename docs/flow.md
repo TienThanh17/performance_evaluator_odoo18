@@ -2,7 +2,15 @@
 
 ## Tổng quan
 
-Module `custom_adecsol_hr_performance_evaluator` cung cấp hệ thống đánh giá hiệu suất (KPI) toàn diện cho nhân viên và phòng ban trong Odoo 18. Hệ thống hỗ trợ tự động thu thập chỉ số khách quan từ các phân hệ khác (Task, Attendance, Leave), quy đổi điểm số về thang điểm 10 chuẩn hóa, đồng bộ thời gian thực luồng tự đánh giá của nhân viên, đánh giá của quản lý và pha trộn (blend) điểm số phòng ban vào điểm số cá nhân theo các trọng số cấu hình linh hoạt.
+Module `custom_adecsol_hr_performance_evaluator` cung cấp hệ thống đánh giá hiệu suất KPI cho nhân viên và phòng ban trong Odoo 18. Hệ thống hỗ trợ tự động thu thập chỉ số khách quan từ Task, Attendance, Leave; quy đổi điểm về thang điểm 10; liên kết KPI con của nhân viên với KPI cha của phòng ban; tính điểm phòng ban theo hướng bottom-up; và pha trộn điểm KPI phòng ban vào điểm KPI cuối cùng của cá nhân theo trọng số cấu hình.
+
+Các thay đổi quan trọng trong code hiện tại:
+
+- Không còn dùng `target_type` trong model, view, data và business logic.
+- Đơn vị KPI được quản lý động bằng model `hr.kpi.unit`.
+- KPI phần trăm được nhận diện bằng `unit.code == "percent"`.
+- KPI phòng ban có thể tự động lấy điểm từ KPI con bằng `data_source = "child_kpi_average"`.
+- Dashboard cây KPI hiển thị điểm theo thang `/10` và theo dõi cả KPI rủi ro/thiếu dữ liệu của cấp cá nhân lẫn phòng ban.
 
 ---
 
@@ -10,157 +18,319 @@ Module `custom_adecsol_hr_performance_evaluator` cung cấp hệ thống đánh 
 
 Mối quan hệ giữa các thực thể cốt lõi trong hệ thống được thể hiện qua sơ đồ dưới đây:
 
-```
+```text
 ┌────────────────────────────────────────────────────────┐
-│ hr.performance.report                                  │
-│ (Dashboard Quản lý KPI cho 1 phòng ban + 1 chu kỳ)     │
+│ hr.department.kpi                                      │
+│ (Template KPI Phòng ban)                               │
 └──────────────────────────┬─────────────────────────────┘
-                           │
-                           ▼ (O2M - evaluation_ids)
+                           │ O2M: kpi_line_ids
+                           ▼
 ┌────────────────────────────────────────────────────────┐
+│ hr.department.kpi.line                                 │
+│ (Dòng KPI cha cấp phòng ban)                           │
+└──────────────────────────▲─────────────────────────────┘
+                           │ M2O: parent_dept_line_id
+┌──────────────────────────┴─────────────────────────────┐
+│ hr.kpi.line                                            │
+│ (Dòng KPI con cấp nhân viên)                           │
+└──────────────────────────▲─────────────────────────────┘
+                           │ O2M: kpi_line_ids
+┌──────────────────────────┴─────────────────────────────┐
+│ hr.kpi                                                 │
+│ (Template KPI Nhân viên)                               │
+└────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────┐
+│ hr.department.performance.evaluation                   │
+│ (Phiếu đánh giá KPI phòng ban)                         │
+└──────────────────────────┬─────────────────────────────┘
+                           │ O2M: evaluation_line_ids
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ hr.department.evaluation.line                          │
+│ (Dòng KPI phòng ban thực tế)                           │
+└──────────────────────────▲─────────────────────────────┘
+                           │ M2O: parent_dept_evaluation_line_id
+┌──────────────────────────┴─────────────────────────────┐
+│ hr.performance.evaluation.line                         │
+│ (Dòng KPI nhân viên thực tế)                           │
+└──────────────────────────▲─────────────────────────────┘
+                           │ O2M: evaluation_line_ids
+┌──────────────────────────┴─────────────────────────────┐
 │ hr.performance.evaluation                              │
-│ (Đánh giá KPI cá nhân của từng nhân viên)             │
-└──────────────────────────┬─────────────────────────────┘
-                           │
-                           ▼ (O2M - evaluation_line_ids)
-┌───────────────────────────────────┐       ┌───────────────────────────────────┐
-│ hr.performance.evaluation.line    │◄──────│ hr.department.evaluation.line     │
-│ (Chi tiết đánh giá cá nhân)       │  link │ (Chi tiết đánh giá phòng ban)     │
-└───────────────────────────────────┘       └─────────────────┬─────────────────┘
-                                                              ▲
-                                                              │ (O2M)
-                                            ┌─────────────────┴─────────────────┐
-                                            │ hr.department.perf.evaluation     │
-                                            │ (Đánh giá KPI phòng ban độc lập)  │
-                                            └───────────────────────────────────┘
+│ (Phiếu đánh giá KPI cá nhân)                           │
+└────────────────────────────────────────────────────────┘
 ```
 
-### Cơ chế thừa kế và quản lý KPI:
-1. **Dashboard quản lý phòng ban (`hr.performance.report`)**: 
-   - Đóng vai trò là trung tâm quản lý (dashboard) chuyên biệt cho **một phòng ban duy nhất** (`department_id`) và **một chu kỳ duy nhất** (`period`).
-   - Liên kết trực tiếp một-nhiều (`One2many`) tới tất cả các bản đánh giá cá nhân `hr.performance.evaluation` của các nhân viên thuộc phòng ban đó trong chu kỳ tương ứng.
-   - **Hoàn toàn độc lập** và không liên quan gì đến thực thể đánh giá hiệu suất của chính phòng ban đó (`hr.department.perf.evaluation`).
-2. **Templates gốc**: 
-   - `hr.department.kpi`: Cấu hình danh mục KPI và trọng số pha trộn phòng ban (`dept_weight`).
-   - `hr.kpi`: Cấu hình danh mục KPI cá nhân áp dụng theo phòng ban hoặc chu kỳ.
-3. **Bộ tạo hàng loạt (Batch Wizards)**:
-   - `hr.department.kpi.generate.wizard`: Khởi tạo bản đánh giá phòng ban `hr.department.performance.evaluation` độc lập. Đồng thời, wizard này tự động sinh ra một đợt báo cáo quản lý `hr.performance.report` cho phòng ban và tạo hàng loạt bản đánh giá cá nhân `hr.performance.evaluation` cho các nhân viên thuộc phòng ban. Các dòng chỉ tiêu cá nhân được liên kết tới chỉ tiêu phòng ban cha thông qua `parent_dept_evaluation_line_id`.
-4. **Quy đổi thang điểm 10**:
-   - Tất cả các KPI (định lượng, định tính, nhị phân, xếp hạng sao) đều được quy đổi về thang điểm 10 chuẩn hóa trước khi tính điểm trung bình có trọng số.
+### Cơ chế thừa kế và quản lý KPI
+
+1. **Template KPI phòng ban (`hr.department.kpi`)**
+   - Quản lý các nhóm mục tiêu lớn của phòng ban.
+   - Mỗi dòng KPI phòng ban là một KPI cha (`hr.department.kpi.line`).
+   - Cấu hình `dept_weight` và `individual_weight` để pha trộn điểm phòng ban vào điểm cuối cùng của cá nhân.
+
+2. **Template KPI nhân viên (`hr.kpi`)**
+   - Quản lý KPI chi tiết cho nhân viên theo phòng ban, vị trí công việc và chu kỳ.
+   - Mỗi dòng KPI nhân viên (`hr.kpi.line`) có thể trỏ đến một dòng KPI phòng ban cha qua `parent_dept_line_id`.
+
+3. **Phiếu đánh giá thực tế**
+   - `hr.department.performance.evaluation` là phiếu KPI phòng ban trong một kỳ.
+   - `hr.performance.evaluation` là phiếu KPI cá nhân trong cùng kỳ.
+   - Khi generate theo phòng ban, các dòng KPI con của nhân viên được liên kết đến dòng KPI phòng ban thực tế qua `parent_dept_evaluation_line_id`.
+
+4. **Quy đổi thang điểm 10**
+   - Điểm dòng KPI cá nhân dùng `final_rating` thang 0-10.
+   - Điểm dòng KPI phòng ban dùng `final_score` thang 0-10.
+   - Dashboard tổng quan, KPI Tree và badge kết quả đều đọc điểm theo thang 10.
 
 ---
 
 ## Luồng nghiệp vụ
 
 ### 1. Khởi tạo & Phát hành (Initialization & Batch Generation)
-1. **HR/Quản lý** khởi chạy wizard phát hành KPI tùy theo nhu cầu:
-   - **Cá nhân lẻ**: Dùng `hr.kpi.generate.wizard` để phát hành KPI cá nhân từ template `hr.kpi` cho các nhân viên được chọn, đồng thời liên kết vào đợt báo cáo quản lý `hr.performance.report`.
-   - **Toàn phòng ban**: Dùng `hr.department.kpi.generate.wizard`. Hệ thống tự động tạo `hr.department.performance.evaluation` cho phòng ban, sau đó tạo một đợt báo cáo quản lý `hr.performance.report` riêng cho phòng ban và quét toàn bộ nhân viên hoạt động trong bộ phận để tạo các bản đánh giá cá nhân `hr.performance.evaluation` tương ứng nằm dưới sự quản lý của đợt báo cáo này.
-2. Hệ thống tự động gửi thông báo hệ thống (Inbox/Chatter) kèm liên kết trực tiếp tới từng nhân viên để bắt đầu quy trình tự đánh giá.
+
+1. **HR/Quản lý cấu hình dữ liệu nền**
+   - Cấu hình ngưỡng điểm tại Settings: `kpi_threshold_excellent`, `kpi_threshold_pass`.
+   - Cấu hình số phút đi trễ cho phép: `late_grace_minutes`.
+   - Cấu hình danh mục đơn vị KPI tại menu `Configuration > KPI Units`.
+
+2. **HR/Quản lý tạo template KPI**
+   - Tạo template KPI phòng ban (`hr.department.kpi`) và các dòng KPI cha.
+   - Tạo template KPI nhân viên (`hr.kpi`) và các dòng KPI con.
+   - Với KPI con cần cuốn điểm lên phòng ban, chọn `parent_dept_line_id`.
+
+3. **Phát hành KPI cá nhân lẻ**
+   - Dùng `hr.kpi.generate.wizard` để phát hành KPI cá nhân từ template `hr.kpi`.
+   - Hệ thống sinh `hr.performance.evaluation` và các `hr.performance.evaluation.line`.
+
+4. **Phát hành KPI toàn phòng ban**
+   - Dùng `hr.department.kpi.generate.wizard`.
+   - Hệ thống sinh `hr.department.performance.evaluation`, các dòng KPI phòng ban, `hr.performance.report`, và các phiếu KPI cá nhân cho nhân viên thuộc phòng ban.
+   - Các dòng KPI con của nhân viên được link đến dòng KPI cha phòng ban ở cả cấp template và cấp evaluation.
 
 ### 2. Tự động tính toán chỉ số (Auto-Computation of Metrics)
-Với các chỉ tiêu có thuộc tính tự động (`is_auto = True`), bộ máy **KPI Engine** (`hr.kpi.engine`) sẽ tự động tính toán giá trị thực tế (`actual`) trong khoảng thời gian đánh giá (`start_date` đến `end_date`):
-* **Task hoàn thành (`done_task`)**: Đếm số lượng công việc được giao cho nhân viên đã hoàn thành (`stage_id.is_done_stage = True`) có hạn chót (`date_deadline`) nằm trong kỳ. Có thể tính theo số lượng (Value) hoặc tỷ lệ % hoàn thành trên tổng số task được giao (Percentage).
-* **Task đúng hạn (`task_on_time`)**: Tỷ lệ % số task hoàn thành đúng hạn (`done_date <= date_deadline`) trên tổng số task đã hoàn thành được giao.
-* **Đi muộn (`late_days`)**: Đếm số ngày đi muộn bằng cách so sánh giờ check-in đầu tiên trong ngày (`hr.attendance`) với giờ bắt đầu làm việc theo lịch (`resource.calendar.attendance`), có cộng thêm số phút đi trễ cho phép (`late_grace_minutes`).
-* **Đi làm đầy đủ (`attendance_full`)**: So sánh số ngày phải làm theo lịch chuẩn (expected_raw), ngày thực tế đi làm (worked_days), ngày nghỉ có phép đã duyệt (approved_leave_days) và ngày nghỉ lễ chung (public_holiday_days). Engine tính toán số ngày nghỉ không phép (unpaid_leave_days) để đưa vào công thức phạt điểm.
+
+Với các chỉ tiêu có `is_auto = True`, KPI Engine (`hr.kpi.engine`) sẽ tính `actual` trong khoảng `start_date` đến `end_date`.
+
+Các nguồn dữ liệu nhân viên hiện có:
+
+- **Task hoàn thành (`done_task`)**: Đếm số task được giao đã hoàn thành trong kỳ. Nếu unit là `%`, engine trả về tỷ lệ hoàn thành trên tổng task; nếu unit là `task`, engine trả về số lượng task.
+- **Task đúng hạn (`task_on_time`)**: Đếm task hoàn thành đúng hạn. Unit `%` cho kết quả tỷ lệ đúng hạn.
+- **Đi muộn (`late_days`)**: Đếm số ngày đi muộn bằng cách so sánh check-in đầu tiên với giờ bắt đầu làm việc theo calendar, có cộng `late_grace_minutes`.
+- **Đi làm đầy đủ (`attendance_full`)**: Tính ngày phải làm, ngày có mặt, ngày nghỉ phép đã duyệt, ngày nghỉ lễ và ngày nghỉ không phép để phục vụ scoring kỷ luật chuyên cần.
+
+Quy tắc unit hiện tại:
+
+- Không còn dùng `target_type`.
+- Nếu `unit.code == "percent"` thì `_value_or_percentage()` trả về `(numerator / denominator) * 100`.
+- Nếu unit khác `%`, engine trả về giá trị thô.
 
 > [!NOTE]
-> Bộ tính toán tự động sử dụng múi giờ bản địa của nhân viên (ưu tiên Việt Nam `Asia/Ho_Chi_Minh`) để tránh hoàn toàn lệch múi giờ UTC gây sai số ngày làm việc đầu/cuối tháng.
+> Bộ tính toán tự động dùng timezone của nhân viên/calendar để tránh lệch ngày khi xử lý Attendance và Leave.
 
-### 3. Nhân viên Tự đánh giá (Self-Evaluation)
-1. Phiếu đánh giá ban đầu ở trạng thái `self_evaluation`.
-2. Nhân viên nhập đánh giá thực tế và bình luận của chính mình trên các chỉ tiêu định tính (Star rating, Binary, Score).
-3. **Cơ chế phản hồi thời gian thực (Auto-Mirroring)**: Nhờ logic `onchange` và `write` được override trên `hr.performance.evaluation.line`, các giá trị tự đánh giá của nhân viên tự động được sao chép sang cột đánh giá của Quản lý khi phiếu ở trạng thái `self_evaluation`, giúp nhân viên xem trước kết quả điểm số tạm tính trực tiếp trên màn hình giao diện.
-4. Nhân viên bấm **"Submit"** để chuyển trạng thái sang `manager_evaluating`. Hệ thống sẽ gửi email tự động và tag thông báo nhắc việc đến Quản lý phòng ban.
+### 3. Tự động tổng hợp KPI phòng ban từ KPI con (Bottom-up)
 
-### 4. Quản lý Đánh giá & Điều chỉnh (Manager Evaluating)
-1. Phiếu chuyển sang trạng thái `manager_evaluating`. Lúc này nhân viên bị khóa quyền ghi trên phiếu.
-2. Quản lý thực hiện chỉnh sửa cột điểm của Quản lý, nhập ý kiến phản hồi và điều chỉnh điểm số nếu cần thiết.
-3. Hệ thống áp dụng kiểm tra quyền chặt chẽ: Chỉ người dùng thuộc nhóm Manager (`group_manager`) hoặc HR (`group_hr`) mới được phép chỉnh sửa các trường của quản lý khi phiếu ở trạng thái này.
+Với dòng KPI phòng ban có `data_source = "child_kpi_average"`:
 
-### 5. Duyệt & Hoàn tất (Finalization & Approval)
-1. Quản lý hoặc nhân sự bấm **"Approve"** để hoàn tất phiếu, trạng thái chuyển sang `completed` và khóa toàn bộ dữ liệu (Read-only).
-2. Khi phiếu được duyệt, hệ thống kích hoạt tính toán điểm số cuối cùng (`final_score`) kết hợp điểm phòng ban và điểm cá nhân theo trọng số cấu hình.
-3. Điểm hiệu suất mới nhất của nhân viên sẽ tự động đồng bộ ngược lại trường `performance_score` trên model `hr.employee` để phục vụ công tác nhân sự, theo dõi và lập báo cáo.
+1. Hệ thống gom các dòng KPI con `hr.performance.evaluation.line` đang link đến dòng KPI phòng ban.
+2. Với từng nhân viên, tính điểm danh mục cha bằng trung bình gia quyền:
+
+```text
+Điểm danh mục của nhân viên =
+    Σ(final_rating KPI con × weight KPI con) / Σ(weight KPI con)
+```
+
+3. Điểm `actual` của dòng KPI phòng ban là trung bình cộng điểm danh mục của các nhân viên có KPI con hợp lệ:
+
+```text
+actual KPI cha phòng ban =
+    Σ(điểm danh mục của từng nhân viên) / số nhân viên có dữ liệu hợp lệ
+```
+
+4. Dòng KPI phòng ban tiếp tục dùng `actual`, `target`, `direction` để tính `system_score` và `final_score`.
+
+Các trường hợp đặc biệt:
+
+- KPI con có `weight <= 0` bị bỏ qua.
+- Nhân viên không có KPI con trong danh mục đó bị bỏ qua.
+- Không có dòng con hợp lệ thì `actual = 0`.
+
+### 4. Nhân viên Tự đánh giá (Self-Evaluation)
+
+1. Phiếu cá nhân bắt đầu ở trạng thái `self_evaluation`.
+2. Nhân viên nhập tự đánh giá và bình luận ở các KPI thủ công.
+3. Với KPI định tính, các trường employee rating được mirror sang manager rating trong giai đoạn self-evaluation để hiển thị điểm tạm tính.
+4. Nhân viên bấm **Submit** để chuyển sang `manager_evaluating`.
+5. Hệ thống gửi thông báo/email cho quản lý phòng ban.
+
+### 5. Quản lý Đánh giá & Điều chỉnh (Manager Evaluating)
+
+1. Phiếu chuyển sang `manager_evaluating`.
+2. Nhân viên không còn được sửa các trường tự đánh giá.
+3. Quản lý/HR nhập hoặc điều chỉnh điểm quản lý và comment.
+4. Logic `write()` trên line kiểm soát quyền sửa theo trạng thái phiếu và nhóm người dùng.
+
+### 6. Duyệt & Hoàn tất (Finalization & Approval)
+
+1. Quản lý hoặc HR bấm **Approve** để hoàn tất phiếu.
+2. Phiếu chuyển sang `completed` và bị khóa dữ liệu.
+3. `performance_score` là trung bình gia quyền KPI cá nhân.
+4. `final_score` là điểm cuối cùng sau khi pha trộn với `dept_kpi_score`.
+5. Điểm mới nhất có thể được đồng bộ về `hr.employee.performance_score` để phục vụ theo dõi nhân sự.
 
 ---
 
 ## Cấu hình / Các Model
 
-### 1. Template KPI Cá nhân (`hr.kpi` & `hr.kpi.line`)
-Quản lý các chỉ tiêu hiệu suất mẫu thiết lập cho nhân viên.
-* **`hr.kpi`**: Chứa thông tin chu kỳ (`period`), phòng ban liên kết (`department_id`) và danh sách dòng chỉ tiêu.
-* **`hr.kpi.line`**: Từng dòng chỉ tiêu cụ thể.
-  - `key_performance_area`: Tên chỉ tiêu đánh giá.
-  - `kpi_type`: Loại KPI (`quantitative` - định lượng, `binary` - nhị phân, `rating` - đánh giá sao, `score` - nhập điểm trực tiếp).
-  - `target_type`: Kiểu mục tiêu (`value` - giá trị số, `percentage` - tỷ lệ %).
-  - `direction`: Chiều hướng đánh giá (`higher_better` - càng cao càng tốt, `lower_better` - càng thấp càng tốt).
-  - `target`: Giá trị/Tỷ lệ mục tiêu đề ra.
-  - `weight`: Trọng số của dòng chỉ tiêu (Tổng trọng số của tất cả các dòng không phải Section trong một Template bắt buộc nằm trong khoảng từ `99.9%` đến `100.1%` để đảm bảo tính toàn vẹn toán học).
-  - `is_auto`: Đánh dấu KPI tự động thu thập từ hệ thống.
-  - `data_source`: Nguồn dữ liệu tự động (`done_task`, `task_on_time`, `late_days`, `attendance_full`).
+### 1. Đơn vị KPI (`hr.kpi.unit`)
 
-### 2. Template KPI Phòng ban (`hr.department.kpi` & `hr.department.kpi.line`)
-Quản lý chỉ tiêu hiệu suất mẫu cấp phòng ban.
-* **`hr.department.kpi`**: Chứa thông tin phòng ban, chu kỳ và trọng số pha trộn phòng ban `dept_weight` (mặc định là `0.4`, tức là điểm phòng ban chiếm 40% và điểm cá nhân chiếm 60% trong điểm tổng hợp cuối cùng).
-* **`hr.department.kpi.line`**: Tương tự `hr.kpi.line` nhưng áp dụng cho cấp phòng ban với các nguồn tự động riêng biệt (`dept_task_completion` - tỷ lệ hoàn thành task của phòng, `dept_attendance_rate` - tỷ lệ đi làm của phòng, `dept_avg_individual` - điểm cá nhân trung bình của các nhân viên trong phòng).
+Danh mục đơn vị dùng chung cho KPI template và evaluation line.
 
-### 3. Phiếu Đánh giá Cá nhân (`hr.performance.evaluation` & `hr.performance.evaluation.line`)
-Bản ghi thực tế ghi nhận quá trình đánh giá của từng nhân viên.
-* **`hr.performance.evaluation`**:
+- `name`: Tên hiển thị, ví dụ `%`, `điểm`, `ngày`, `task`.
+- `code`: Mã kỹ thuật duy nhất, ví dụ `percent`, `score`, `day`, `task`.
+- `active`: Cho phép lưu trữ unit cũ mà không xóa dữ liệu lịch sử.
+
+Unit mặc định có trong data:
+
+- `%` (`percent`)
+- `điểm` (`score`)
+- `ngày` (`day`)
+- `task` (`task`)
+
+### 2. Template KPI Cá nhân (`hr.kpi` & `hr.kpi.line`)
+
+Quản lý các chỉ tiêu hiệu suất mẫu cho nhân viên.
+
+* **`hr.kpi`**
+  - `period`: Chu kỳ KPI.
+  - `department_id`: Phòng ban áp dụng.
+  - `job_id`: Vị trí công việc áp dụng.
+  - `department_kpi_id`: Template KPI phòng ban cha.
+  - `kpi_line_ids`: Danh sách dòng KPI.
+
+* **`hr.kpi.line`**
+  - `key_performance_area`: Tên KPI hoặc tên section.
+  - `kpi_type`: `quantitative`, `binary`, `rating`, `score`.
+  - `unit`: Đơn vị KPI (`hr.kpi.unit`). Unit `%` thay thế hoàn toàn logic `target_type` cũ.
+  - `direction`: `higher_better` hoặc `lower_better`.
+  - `target`: Mục tiêu.
+  - `weight`: Trọng số dòng KPI.
+  - `is_auto`: Tự động tính actual.
+  - `data_source`: `manual`, `done_task`, `task_on_time`, `late_days`, `attendance_full`.
+  - `parent_dept_line_id`: Dòng KPI cha phòng ban.
+  - `is_section` / `display_type`: Dòng section/note.
+
+### 3. Template KPI Phòng ban (`hr.department.kpi` & `hr.department.kpi.line`)
+
+Quản lý KPI mẫu cấp phòng ban.
+
+* **`hr.department.kpi`**
+  - `department_id`: Phòng ban áp dụng.
+  - `period`: Chu kỳ KPI.
+  - `dept_weight`: Tỷ trọng điểm phòng ban trong `final_score` cá nhân.
+  - `individual_weight`: Tỷ trọng điểm cá nhân, thường bằng `1 - dept_weight`.
+  - `kpi_line_ids`: Danh sách KPI phòng ban.
+
+* **`hr.department.kpi.line`**
+  - `name`: Tên KPI phòng ban.
+  - `kpi_type`, `unit`, `direction`, `target`, `weight`.
+  - `data_source`: Hiện flow chính gồm `manual` và `child_kpi_average`.
+  - `child_template_line_ids`: Trace các KPI con template đang link vào dòng KPI cha.
+  - `child_template_rows_json`: Dữ liệu matrix để hiển thị KPI con ngay trong UI.
+
+### 4. Phiếu Đánh giá Cá nhân (`hr.performance.evaluation` & `hr.performance.evaluation.line`)
+
+* **`hr.performance.evaluation`**
   - `employee_id`: Nhân viên được đánh giá.
-  - `state`: Trạng thái luồng (`self_evaluation` → `manager_evaluating` → `completed` → `cancel`).
-  - `performance_score`: Điểm KPI cá nhân (trung bình có trọng số của tất cả dòng chỉ tiêu).
-  - `final_score`: Điểm KPI cuối cùng sau khi pha trộn với điểm phòng ban.
-  - `performance_level` & `final_level`: Xếp loại tương ứng (`excellent` - Xuất sắc, `pass` - Đạt, `fail` - Không đạt) dựa trên ngưỡng điểm cấu hình.
-  - `dept_evaluation_id`: Liên kết đến phiếu đánh giá của phòng ban tương ứng trong kỳ.
-* **`hr.performance.evaluation.line`**: Ghi nhận chi tiết điểm số từng chỉ tiêu.
-  - `employee_rating_*` & `employee_comment`: Kết quả tự đánh giá và ý kiến của nhân viên.
-  - `manager_rating_*` & `manager_adjustment` & `manager_comment`: Điểm đánh giá, điểm điều chỉnh và ý kiến của quản lý.
-  - `system_score`: Điểm số do hệ thống tính toán (đối với KPI định lượng).
-  - `final_rating`: Điểm số chốt cuối cùng dùng để tính toán điểm tổng hợp (ưu tiên điểm quản lý nhập, nếu trống sẽ tự động lấy điểm nhân viên tự đánh giá hoặc điểm hệ thống tính).
+  - `state`: `self_evaluation`, `manager_evaluating`, `completed`, `cancel`.
+  - `performance_score`: Trung bình gia quyền `final_rating` của các line.
+  - `dept_evaluation_id`: Phiếu KPI phòng ban cùng kỳ.
+  - `final_score`: Điểm cuối cùng sau khi blend phòng ban/cá nhân.
+  - `performance_level` và `final_level`: `excellent`, `pass`, `fail`.
 
-### 4. Phiếu Đánh giá Phòng ban (`hr.department.performance.evaluation` & `hr.department.evaluation.line`)
-Bản ghi đánh giá thực tế của cấp bộ phận.
-* **`hr.department.performance.evaluation`**: Lưu trữ điểm trung bình phòng ban `dept_kpi_score` thu được từ các dòng chỉ tiêu cấp phòng ban.
-* **`hr.department.evaluation.line`**: Chi tiết đánh giá chỉ tiêu cấp phòng ban.
+* **`hr.performance.evaluation.line`**
+  - `kpi_line_id`: Dòng template nguồn.
+  - `parent_dept_line_id`: Dòng KPI phòng ban template cha.
+  - `parent_dept_evaluation_line_id`: Dòng KPI phòng ban thực tế cha.
+  - `unit`: Đơn vị KPI được copy từ template.
+  - `actual`: Giá trị thực tế cho KPI định lượng.
+  - `system_score`: Điểm hệ thống tính theo rule.
+  - `final_rating`: Điểm cuối cùng của dòng, thang 0-10.
+  - `employee_rating_*`, `manager_rating_*`, `employee_comment`, `manager_comment`: Dữ liệu tự đánh giá và quản lý đánh giá.
 
-### 5. Dashboard Quản lý Đánh giá (`hr.performance.report`)
-Đóng vai trò là trung tâm dashboard để theo dõi và quản lý tập trung tất cả các phiếu đánh giá hiệu suất cá nhân `hr.performance.evaluation` của toàn bộ nhân viên thuộc cùng một phòng ban (`department_id`) trong cùng một chu kỳ (`period`). Hỗ trợ các chức năng quản trị:
-* Giao diện Dashboard OWL thống kê nhanh số lượng phiếu đã hoàn thành, đang tự đánh giá hoặc đang chờ quản lý duyệt.
-* Gửi thông báo và nhắc nhở thời hạn hoàn thành hàng loạt cho các nhân viên thuộc phòng ban quản lý.
-* Tự động xuất báo cáo đánh giá hàng loạt cho cả phòng ban dưới dạng file Excel (`.xlsx`) được thiết kế và căn chỉnh chuyên nghiệp theo template mẫu.
-* Cung cấp hàm API `get_report_dashboard_data` tổng hợp dữ liệu biểu đồ phân tích (phân bổ điểm số, xếp hạng nhân viên) trực quan trên giao diện Dashboard.
+### 5. Phiếu Đánh giá Phòng ban (`hr.department.performance.evaluation` & `hr.department.evaluation.line`)
+
+* **`hr.department.performance.evaluation`**
+  - `department_id`: Phòng ban.
+  - `department_kpi_id`: Template KPI phòng ban.
+  - `evaluation_line_ids`: Các dòng KPI phòng ban thực tế.
+  - `dept_kpi_score`: Điểm KPI phòng ban thang 0-10.
+  - `get_dept_kpi_score()`: Method trả điểm phòng ban hiện tại để pha trộn vào điểm cá nhân.
+
+* **`hr.department.evaluation.line`**
+  - `department_kpi_line_id`: Dòng template nguồn.
+  - `unit`: Đơn vị KPI.
+  - `actual`, `target`, `direction`.
+  - `system_score`, `final_score`.
+  - `child_evaluation_line_ids`: Trace KPI con của nhân viên.
+  - `child_line_rows_json`: Dữ liệu matrix KPI con theo nhân viên.
+
+### 6. Dashboard Quản lý Đánh giá (`hr.performance.report`)
+
+Đóng vai trò trung tâm theo dõi các phiếu KPI cá nhân của nhân viên trong một phòng ban/kỳ.
+
+* Giao diện dashboard OWL thống kê số lượng phiếu, điểm trung bình và trạng thái.
+* Gửi thông báo nhắc deadline.
+* Xuất báo cáo Excel.
+* Cung cấp dữ liệu tổng hợp cho dashboard form.
+
+### 7. KPI Tree Dashboard
+
+Dashboard cây KPI dùng D3 local asset.
+
+- Company node: điểm công ty là trung bình `dept_kpi_score` của các phòng ban trong kỳ.
+- Department node: điểm chính là `dept_kpi_score`.
+- Employee node: điểm chính là `performance_score`.
+- Tất cả điểm hiển thị theo thang `/10`.
+- Risk/Missing panels lấy cả KPI cá nhân và KPI phòng ban:
+  - `risk_lines`: các KPI fail theo `threshold_pass`.
+  - `missing_data_lines`: các KPI auto quantitative thiếu dữ liệu actual.
+  - Mỗi dòng có badge nguồn `Cá nhân` hoặc `Phòng ban`.
+  - Panel chính hiển thị 5 dòng đầu, modal hiển thị tất cả.
+  - Click vào dòng sẽ mở form line tương ứng theo `line_model` và `line_id`.
 
 ---
 
 ## Phân quyền
 
-Hệ thống phân quyền được cấu hình chặt chẽ thông qua các Nhóm người dùng (Groups) và Quy tắc truy cập bản ghi (Record Rules) trong phân hệ `security.xml`:
+Hệ thống phân quyền được cấu hình thông qua Groups và Record Rules.
 
 ### 1. Các Nhóm quyền (Security Groups)
 
 | Nhóm quyền | Kế thừa quyền | Mô tả quyền hạn |
 |---|---|---|
-| **Employee** (`group_employee`) | Không | Quyền cơ bản nhất của nhân viên. Chỉ được phép xem các phiếu đánh giá của chính mình. Chỉ được phép chỉnh sửa các trường tự đánh giá khi phiếu ở trạng thái `self_evaluation`. |
-| **Manager** (`group_manager`) | Employee | Quản lý bộ phận. Có quyền xem toàn bộ phiếu đánh giá của nhân viên thuộc phòng ban mình quản lý. Có quyền cấu hình KPI cho phòng ban và thực hiện đánh giá khi phiếu ở trạng thái `manager_evaluating`. |
-| **HR** (`group_hr`) | Không | Nhân viên phòng HR. Có quyền quản trị toàn bộ hệ thống: tạo template, phát hành đợt đánh giá, xem và điều chỉnh tất cả các phiếu đánh giá của toàn bộ nhân viên công ty. |
-| **Admin (Dev)** (`group_admin`) | HR | Quản trị hệ thống cấp cao. Có quyền can thiệp hệ thống và bypass các cấu hình nghiệp vụ thông thường. |
+| **Employee** (`group_employee`) | Không | Xem phiếu của chính mình, nhập tự đánh giá khi phiếu ở `self_evaluation`. |
+| **Manager** (`group_manager`) | Employee | Xem và đánh giá nhân viên thuộc phòng ban mình quản lý. |
+| **HR** (`group_hr`) | Không | Quản trị toàn bộ hệ thống KPI, template, phiếu đánh giá và báo cáo. |
+| **Admin (Dev)** (`group_admin`) | HR | Quyền quản trị cao nhất cho cấu hình và vận hành. |
 
 ### 2. Quy tắc truy cập bản ghi (Record Rules)
 
-Hệ thống áp dụng các miền lọc (domain) nghiêm ngặt để đảm bảo an toàn dữ liệu:
+* **Đánh giá cá nhân (`hr.performance.evaluation`)**
+  - Employee: chỉ truy cập phiếu của chính mình.
+  - Manager: truy cập phiếu của nhân viên thuộc phòng ban mình quản lý.
+  - HR/Admin: truy cập toàn bộ.
 
-* **Đánh giá cá nhân (`hr.performance.evaluation`)**:
-  - *Employee*: `[('employee_id.user_id', '=', user.id)]` — Chỉ truy cập phiếu của chính mình.
-  - *Manager*: `[('employee_id.department_id.manager_id.user_id', '=', user.id)]` — Chỉ truy cập các phiếu của nhân viên thuộc phòng ban mình làm quản lý trực tiếp.
-  - *HR & Admin*: `[(1, '=', 1)]` — Truy cập toàn bộ dữ liệu.
-* **Dòng đánh giá cá nhân (`hr.performance.evaluation.line`)**:
-  - Áp dụng các điều kiện tương tự thông qua quan hệ liên kết đến phiếu đánh giá cha (`evaluation_id.employee_id.user_id` / `evaluation_id.employee_id.department_id.manager_id.user_id`).
-* **Đánh giá phòng ban (`hr.department.performance.evaluation`)**:
-  - *Manager*: `[('department_id.manager_id.user_id', '=', user.id)]` — Chỉ xem bảng đánh giá của phòng ban mình quản lý.
-  - *HR & Admin*: Toàn quyền.
+* **Dòng đánh giá cá nhân (`hr.performance.evaluation.line`)**
+  - Áp dụng theo phiếu cha `evaluation_id`.
+
+* **Đánh giá phòng ban (`hr.department.performance.evaluation`)**
+  - Manager: chỉ truy cập phòng ban mình quản lý.
+  - HR/Admin: truy cập toàn bộ.
+
+* **Danh mục unit (`hr.kpi.unit`)**
+  - Employee/Manager: đọc.
+  - HR/Admin: CRUD.
 
 ---
 
@@ -168,62 +338,160 @@ Hệ thống áp dụng các miền lọc (domain) nghiêm ngặt để đảm b
 
 ### 1. Thuật toán Tính điểm Chuẩn hóa (Standardized Scoring Algorithms)
 
-Hệ thống quy đổi tất cả các kiểu dữ liệu chỉ tiêu về thang điểm 10 chuẩn hóa để tính toán trung bình có trọng số:
+Hệ thống quy đổi các kiểu KPI về thang điểm 10.
 
-* **KPI Định lượng (`quantitative`)**:
-  - Nếu `direction = 'higher_better'` (Càng cao càng tốt):
-    $$\text{system\_score} = \min\left(\frac{\text{actual}}{\text{target}} \times 10.0, 10.0\right)$$
-  - Nếu `direction = 'lower_better'` (Càng thấp càng tốt):
-    $$\text{system\_score} = \min\left(\frac{\text{target}}{\text{actual}} \times 10.0, 10.0\right)$$
-  - **Trường hợp đặc biệt `late_days` (Số ngày đi muộn)**: Điểm số bắt đầu từ 10.0 điểm, mỗi ngày đi muộn bị trừ thẳng 1.0 điểm:
-    $$\text{system\_score} = \max(10.0 - (\text{late\_days} \times 1.0), 0.0)$$
-  - **Trường hợp đặc biệt `attendance_full` (Đi làm đầy đủ)**: Nếu nhân viên phát sinh bất kỳ ngày nghỉ không phép nào (`attendance_has_unpaid_leave = True`), điểm hệ thống lập tức quy về $0.0$ điểm để răn đe kỷ luật lao động. Nếu nghỉ phép hợp lệ, điểm số được tính toán dựa trên tỷ lệ chuyên cần trừ dần từ 10 điểm.
-* **KPI Đánh giá sao (`rating`)**: Quy đổi 0-5 sao sang thang điểm 10:
-  $$\text{score} = \frac{\text{rating\_star}}{5.0} \times 10.0$$
-* **KPI Nhị phân (`binary`)**: Trả lời 'Yes' = 10.0 điểm, 'No' = 0.0 điểm.
-* **KPI Nhập điểm (`score`)**: Nhận trực tiếp giá trị float nhập vào từ thang điểm 0-10.
+* **KPI Định lượng (`quantitative`)**
+  - Nếu `direction = 'higher_better'`:
+
+    ```text
+    system_score = min((actual / target) * 10, 10)
+    ```
+
+  - Nếu `direction = 'lower_better'`:
+
+    ```text
+    system_score = min((target / actual) * 10, 10)
+    ```
+
+  - Target và Actual luôn cùng đơn vị. Nếu unit là `%`, cả hai đều là giá trị 0-100.
+
+* **KPI `late_days`**
+  - Bắt đầu từ 10 điểm.
+  - Mỗi ngày đi muộn trừ 1 điểm.
+
+    ```text
+    system_score = max(10 - late_days, 0)
+    ```
+
+* **KPI `attendance_full`**
+  - Có nghỉ không phép thì điểm về 0.
+  - Nghỉ phép hợp lệ được chấm theo số ngày nghỉ: 0 ngày = 10 điểm, 1-5 ngày giảm dần, trên 5 ngày = 0 điểm.
+
+* **KPI Đánh giá sao (`rating`)**
+
+  ```text
+  score = (rating_0_5 / 5) * 10
+  ```
+
+* **KPI Nhị phân (`binary`)**
+  - Yes = 10.
+  - No = 0.
+
+* **KPI Nhập điểm (`score`)**
+  - Nhận trực tiếp điểm 0-10.
 
 ### 2. Công thức Pha trộn Điểm phòng ban (Blending Score Formula)
 
-Điểm tổng hợp cuối cùng của nhân viên được tính toán tự động khi phiếu hoàn tất:
-$$\text{final\_score} = (\text{dept\_kpi\_score} \times \text{dept\_weight}) + (\text{performance\_score} \times (1.0 - \text{dept\_weight}))$$
+Điểm cuối cùng của nhân viên:
 
-#### Quy tắc nghiệp vụ xử lý ngoại lệ:
-- Phiếu chưa liên kết đánh giá phòng ban hoặc đánh giá phòng ban bị hủy (`cancel`): Điểm số phòng ban không được đưa vào tính toán, hệ thống tự động gán $\text{final\_score} = \text{performance\_score}$ để bảo vệ quyền lợi của nhân viên.
-- Nếu không có cấu hình template phòng ban cụ thể, trọng số `dept_weight` mặc định lấy là `0.4`.
+```text
+final_score =
+    dept_kpi_score * dept_weight
+    + performance_score * individual_weight
+```
+
+Quy tắc fallback:
+
+- Không có phiếu phòng ban: `final_score = performance_score`.
+- Phiếu phòng ban bị `cancel`: `final_score = performance_score`.
+- Nếu phiếu phòng ban chưa hoàn tất nhưng có điểm tạm, hệ thống vẫn có thể dùng `get_dept_kpi_score()`.
 
 ### 3. Tối ưu hóa hiệu năng & Chống Race Condition
-* **Lưu trữ vật lý các trường Computed (`store=True`)**: Các trường điểm số quan trọng như `performance_score`, `final_score`, `dept_kpi_score` đều được cấu hình lưu trữ vật lý trên Database. Điều này giúp hiển thị List View, Kanban View và tải dữ liệu lên Dashboard OWL cực kỳ nhanh chóng, loại bỏ hoàn toàn vấn đề N+1 truy vấn thường gặp.
-* **Tối ưu hóa Truy vấn KPI Engine**: Engine sử dụng các phương thức SQL Aggregation (`search_count` trực tiếp) thay vì duyệt qua các recordset để đếm số lượng task hoàn thành, giúp nâng tốc độ thực thi lên gấp nhiều lần.
-* **Xử lý bất đồng bộ bằng Cron job**: Các tác vụ nặng như tự động quét và tính toán chỉ số KPI hệ thống hàng loạt (`_cron_compute_auto_kpi`) hay quét gửi thông báo nhắc nhở hạn chót (`_cron_send_deadline_reminder`) được tách ra chạy ngầm bằng Odoo Cron theo các đợt (batch) giới hạn để tránh lock Database và quá tải bộ nhớ.
+
+* **Computed stored fields**
+  - `performance_score`, `final_score`, `dept_kpi_score`, `system_score`, `final_rating`, `final_score` line được lưu để list/dashboard đọc nhanh.
+
+* **KPI Engine**
+  - Tái sử dụng logic compute cho dashboard breakdown.
+  - Dùng batch/search domain thay vì tính rời rạc quá nhiều nơi.
+
+* **Cron job**
+  - `_cron_compute_auto_kpi` chạy auto compute theo batch.
+  - Deadline reminder chạy nền để tránh thao tác thủ công.
+
+* **Matrix trace data**
+  - `child_line_rows_json` và `child_template_rows_json` được compute để UI render matrix nhanh, không nhúng one2many lồng nhau trong list row.
 
 ---
 
 ## Edge cases & Lưu ý
 
-1. **Nhân viên hoặc Phòng ban bị vô hiệu hóa/Xóa**:
-   - Các bản ghi đánh giá cũ vẫn được bảo toàn dữ liệu lịch sử trên DB. Tên nhân viên và phòng ban cũ vẫn được lưu trữ hoặc hiển thị an toàn.
-   - Các Wizard phát hành KPI hàng loạt luôn lọc điều kiện `('active', '=', True)` để tránh phát sinh phiếu thừa cho các nhân viên đã nghỉ việc.
-2. **Tổng trọng số không đạt 100%**:
-   - Bộ kiểm tra ràng buộc dữ liệu (`_check_total_weight`) trên Template KPI sẽ ngăn chặn người dùng lưu bản ghi nếu tổng trọng số các dòng chỉ tiêu không bằng 1.0 (cho phép sai số siêu nhỏ trong khoảng từ $99.9\%$ đến $100.1\%$ để tránh lỗi làm tròn số học).
-3. **Nghỉ phép trùng ngày nghỉ lễ**:
-   - Khi tính toán chỉ số chuyên cần (`attendance_full`), nếu nhân viên xin nghỉ phép trùng vào ngày lễ của công ty, hệ thống sẽ ưu tiên ghi nhận là nghỉ phép (`approved_leave_days`) để đảm bảo không bị trừ trùng lặp trong các phép tính toán thời gian làm việc danh nghĩa.
-4. **Không có đánh giá của Quản lý**:
-   - Nếu Quản lý không nhập đánh giá cho các chỉ tiêu định tính, hệ thống sẽ tự động sử dụng kết quả tự đánh giá của nhân viên làm kết quả chốt cuối cùng để tính điểm trung bình, tránh việc chỉ tiêu bị bỏ trống gây sai lệch điểm số chung.
+1. **Unit `%` thay thế `target_type`**
+   - `target_type` không còn trong model/view/data.
+   - Cột DB cũ có thể vẫn tồn tại như legacy column nhưng business logic không đọc nữa.
+   - Migration `18.0.1.1.0` map record cũ có `target_type = 'percentage'` sang unit `%` nếu `unit` đang trống.
+
+2. **Migration từ `unit_label`**
+   - Migration `18.0.1.0.0` đổi `unit_label` text cũ sang `unit` Many2one.
+   - Cột `unit_label_legacy` được giữ để trace dữ liệu cũ.
+
+3. **Tổng trọng số không đạt 100%**
+   - Template KPI kiểm tra tổng trọng số các dòng không phải section trong khoảng dung sai cho phép.
+
+4. **KPI bottom-up không có dữ liệu con**
+   - Không có child line hợp lệ thì actual KPI cha = 0.
+   - Child line có weight <= 0 bị bỏ qua.
+   - Nhân viên không có KPI con trong danh mục cha bị bỏ qua.
+
+5. **Không có đánh giá phòng ban**
+   - Điểm cuối cá nhân fallback về `performance_score` để tránh ảnh hưởng quyền lợi nhân viên.
+
+6. **Nghỉ phép trùng ngày nghỉ lễ**
+   - Engine `attendance_full` tách bucket ngày lễ, ngày đi làm, ngày nghỉ phép và ngày nghỉ không phép để giảm sai lệch do overlap.
+
+7. **Quyền sửa theo trạng thái**
+   - Phiếu `completed` hoặc `cancel` bị khóa.
+   - Employee chỉ sửa self fields khi ở `self_evaluation`.
+   - Manager chỉ sửa manager fields khi ở `manager_evaluating`.
 
 ---
 
 ## Chạy tests
 
-Để đảm bảo tính ổn định và chính xác của hệ thống, các trường hợp nghiệp vụ, công thức tính toán và phân quyền cần được xác thực qua bộ kiểm thử tự động của Odoo. 
+Để kiểm tra nhanh sau khi chỉnh model/view/data:
 
-Lệnh khởi chạy kiểm thử đối với module Performance Evaluator:
 ```bash
-odoo-bin -d <db_name> -u custom_adecsol_hr_performance_evaluator --test-enable --stop-after-init
+python -m py_compile models/kpi_line.py models/hr_department_kpi_line.py models/performance_evaluation_line.py models/hr_department_evaluation_line.py models/hr_kpi_engine.py
 ```
 
-### Các lớp kiểm thử chuẩn hóa cần tích hợp bổ sung:
-* `TestPerformanceEvaluation` — Kiểm tra luồng trạng thái của phiếu (Self Evaluation → Manager Evaluating → Completed), chặn quyền sửa đổi của nhân viên khi chuyển trạng thái và xác thực tự động đồng bộ hóa điểm số.
-* `TestKpiEngine` — Kiểm tra tính chính xác của KPI Engine đối với các nguồn dữ liệu tự động (`done_task`, `late_days`, `attendance_full`), xác minh xử lý múi giờ và tính chuyên cần.
-* `TestScoringLogic` — Xác thực các công thức quy đổi thang điểm 10 chuẩn hóa, kiểm tra ràng buộc tổng trọng số của template KPI và công thức pha trộn điểm phòng ban.
-* `TestPerformanceSecurity` — Kiểm tra phân quyền truy cập bản ghi giữa Employee, Manager và HR, đảm bảo nhân viên không thể xem hoặc sửa phiếu của người khác.
+Lệnh nâng cấp module:
+
+```bash
+odoo-bin -d <db_name> -u custom_adecsol_hr_performance_evaluator --stop-after-init
+```
+
+### Các trường hợp cần kiểm thử
+
+* `TestKpiUnit`
+  - Unit mặc định được tạo.
+  - KPI unit `%` làm engine trả về tỷ lệ phần trăm.
+  - Unit `task`, `ngày`, `điểm` hiển thị đúng và không quy đổi phần trăm.
+
+* `TestPerformanceEvaluation`
+  - Luồng `self_evaluation` → `manager_evaluating` → `completed`.
+  - Employee rating được mirror sang manager rating khi self-evaluation.
+  - Phiếu completed/cancel bị khóa sửa.
+
+* `TestKpiEngine`
+  - `done_task`, `task_on_time`, `late_days`, `attendance_full`.
+  - Xử lý timezone và kỳ đánh giá.
+
+* `TestBottomUpDepartmentKpi`
+  - KPI con link đúng KPI cha.
+  - `child_kpi_average` tính đúng trung bình gia quyền theo nhân viên rồi trung bình phòng ban.
+  - Edge case không có child line, child weight = 0.
+
+* `TestScoringLogic`
+  - Công thức thang điểm 10 cho quantitative, binary, rating, score.
+  - Công thức pha trộn `dept_kpi_score` và `performance_score`.
+
+* `TestKpiTreeDashboard`
+  - Company score = trung bình `dept_kpi_score` của các phòng ban.
+  - Department score = `dept_kpi_score`.
+  - Employee score = `performance_score`.
+  - Risk/Missing line hiển thị cả KPI cá nhân và KPI phòng ban.
+
+* `TestPerformanceSecurity`
+  - Employee không xem/sửa phiếu người khác.
+  - Manager chỉ xem/sửa nhân viên thuộc phòng ban mình.
+  - HR/Admin có quyền toàn cục.
