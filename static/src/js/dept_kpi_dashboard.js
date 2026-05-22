@@ -215,7 +215,9 @@ export class DeptKpiDashboard extends Component {
 
     // ── Getters ───────────────────────────────────────────────────────────────
     formatScore(val) {
-        return val != null ? Number(val).toFixed(2) : "—";
+        if (val == null) return "—";
+        const scale = this.state.data?.score_scale || { suffix: " / 10" };
+        return `${Number(val).toFixed(2)}${scale.suffix || ""}`;
     }
 
     levelLabel(lvl) {
@@ -509,7 +511,7 @@ export class DeptKpiDashboard extends Component {
                         beginAtZero: true,
                         title: { display: true, text: _t("Số lần chấm công"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
-                        ticks: { stepSize: 1, font: { size: 10 } },
+                        ticks: { stepSize: (this.state.data?.score_scale?.base || 10) / 10, font: { size: 10 } },
                     },
                 },
                 plugins: {
@@ -578,7 +580,7 @@ export class DeptKpiDashboard extends Component {
             type: "line",
             data: { labels, datasets },
             options: {
-                ...baseLineOpts(_t("Score (0-10)"), _t("Month")),
+                ...baseLineOpts(_t("Score"), _t("Month")),
                 scales: {
                     x: {
                         title: { display: true, text: _t("Month"), font: { size: 11 } },
@@ -586,8 +588,8 @@ export class DeptKpiDashboard extends Component {
                         ticks: { font: { size: 11 } },
                     },
                     y: {
-                        min: 0, max: 10,
-                        title: { display: true, text: _t("Score (0-10)"), font: { size: 11 } },
+                        min: 0, max: this.state.data?.score_scale?.base || 10,
+                        title: { display: true, text: _t("Score"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
                         ticks: { stepSize: 1, font: { size: 10 } },
                     },

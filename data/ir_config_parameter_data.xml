@@ -7,6 +7,12 @@
             <field name="value">9.0</field>
         </record>
 
+        <!-- System Parameter cho thang điểm KPI đang dùng để lưu/tính/hiển thị -->
+        <record id="res_config_setting_kpi_score_scale" model="ir.config_parameter">
+            <field name="key">custom_adecsol_hr_performance_evaluator.kpi_score_scale</field>
+            <field name="value">10</field>
+        </record>
+
         <!-- System Parameter cho ngưỡng Đạt -->
         <record id="res_config_setting_kpi_threshold_pass" model="ir.config_parameter">
             <field name="key">custom_adecsol_hr_performance_evaluator.kpi_threshold_pass</field>

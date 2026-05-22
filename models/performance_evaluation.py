@@ -181,6 +181,16 @@ class PerformanceEvaluation(models.Model):
     has_score_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
 
     performance_visual = fields.Html(compute="_compute_performance_visual")
+    performance_score_progress_pct = fields.Float(
+        string="Performance Progress %",
+        compute="_compute_score_scale_display",
+        store=False,
+    )
+    score_scale_suffix = fields.Char(
+        string="Score Scale Suffix",
+        compute="_compute_score_scale_display",
+        store=False,
+    )
 
     is_manager = fields.Boolean(
         compute="_compute_role",
@@ -258,11 +268,23 @@ class PerformanceEvaluation(models.Model):
             rec.has_rating_kpi = "rating" in kpi_types
             rec.has_score_kpi = "score" in kpi_types
 
+    @api.depends("performance_score")
+    def _compute_score_scale_display(self):
+        scale = self.env["res.config.settings"].get_score_scale_info()
+        base = scale.get("base") or 10.0
+        for rec in self:
+            rec.performance_score_progress_pct = max(
+                0.0,
+                min(100.0, ((rec.performance_score or 0.0) / base) * 100.0),
+            )
+            rec.score_scale_suffix = scale.get("suffix") or " / 10"
+
     @api.depends("performance_score", "employee_id")
     def _compute_performance_visual(self):
+        score_base = self.env["res.config.settings"].get_score_scale_base()
         for rec in self:
-            # Giả sử điểm tối đa là 10, quy đổi ra % (1-100)
-            score_pct = (rec.performance_score or 0) * 10
+            # Quy đổi điểm theo score_base hiện tại sang phần trăm để vẽ vòng tròn.
+            score_pct = max(0.0, min(100.0, ((rec.performance_score or 0) / score_base) * 100.0))
 
             # Lấy URL ảnh nhân viên
             img_url = (
@@ -527,26 +549,11 @@ class PerformanceEvaluation(models.Model):
 
     @api.depends("final_score")
     def _compute_final_level(self):
-        """Xết loại dựa trên final_score và ngưỡng cấu hình trong ir.config_parameter.
+        """Xếp loại dựa trên final_score và ngưỡng cấu hình.
 
         Dùng cùng key param với _compute_performance_level để đảm bảo nhất quán.
         """
-        # Lấy ngưỡng từ hệ thống cấu hình — không hardcode
-        ICP = self.env["ir.config_parameter"].sudo()
-        threshold_excellent = float(
-            ICP.get_param(
-                "custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent",
-                default="9",
-            )
-            or 9.0
-        )
-        threshold_pass = float(
-            ICP.get_param(
-                "custom_adecsol_hr_performance_evaluator.kpi_threshold_pass",
-                default="5",
-            )
-            or 5.0
-        )
+        threshold_excellent, threshold_pass = self.env["res.config.settings"].get_thresholds()
         for rec in self:
             score = rec.final_score or 0.0
             if score >= threshold_excellent:
@@ -815,9 +822,17 @@ class PerformanceEvaluation(models.Model):
             else 0.0
         )
         individual_weight = 1.0 - dept_weight
+        settings = self.env["res.config.settings"]
+        score_scale = settings.get_score_scale_info()
+        threshold_excellent, threshold_pass = settings.get_thresholds()
 
         result = {
             "evaluation_id": evaluation.id,
+            "score_scale": score_scale,
+            "thresholds": {
+                "excellent": threshold_excellent,
+                "pass": threshold_pass,
+            },
             "employee_name": evaluation.employee_id.name or "",
             "period": evaluation.period or "",
             "start_date": str(evaluation.start_date) if evaluation.start_date else "",
@@ -1039,7 +1054,7 @@ class PerformanceEvaluation(models.Model):
         )
         labels = []
         scores = []
-        max_val = 10.0
+        max_val = self.env["res.config.settings"].get_score_scale_base()
 
         for line in lines:
             labels.append(line.key_performance_area or "KPI")

@@ -58,8 +58,7 @@
                         <div class="pd-scorecard-body">
                             <div class="pd-scorecard-label">Average Score</div>
                             <div class="pd-scorecard-value">
-                                <t t-esc="state.avgScore"/>
-                                <span class="pd-scorecard-unit">/10</span>
+                                <t t-esc="formatScore(state.avgScore)"/>
                             </div>
                         </div>
                     </div>
@@ -258,10 +257,10 @@
                                         <td>
                                             <div class="pd-score-cell">
                                                 <span class="pd-score-num">
-                                                    <t t-esc="ev.performance_score ? ev.performance_score.toFixed(1) : '0.0'"/>
+                                                    <t t-esc="formatScore(ev.performance_score || 0, 1)"/>
                                                 </span>
                                                 <div class="pd-progress-bar-wrap">
-                                                    <div class="pd-progress-bar-fill" t-att-style="'width:' + ((ev.performance_score || 0) * 10) + '%'"/>
+                                                    <div class="pd-progress-bar-fill" t-att-style="'width:' + scorePct(ev.performance_score || 0) + '%'"/>
                                                 </div>
                                             </div>
                                         </td>

@@ -244,7 +244,7 @@
 
                     <td><span t-att-class="varianceClass(row)" t-esc="formatVariance(row)"/></td>
                     <td><span t-att-class="statusClass(row)" t-esc="statusText(row)"/></td>
-                    <td><b t-esc="row.final_score"/></td>
+                    <td><b t-esc="formatScore(row.final_score)"/></td>
                   </tr>
                 </t>
               </tbody>

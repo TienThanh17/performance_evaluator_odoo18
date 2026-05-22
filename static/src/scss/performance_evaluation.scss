@@ -26,8 +26,8 @@
     flex-direction: column;
 
     .performance_card_container {
-        // Biến số để tính % vòng tròn (Giả sử điểm/10)
-        --score-pct: 82; // Bạn có thể dùng t-set để truyền score * 10 vào đây
+        // Biến số để tính % vòng tròn từ điểm đã quy đổi theo score scale
+        --score-pct: 82;
 
         .overall_score_box {
             background-color: #f0f7ff;

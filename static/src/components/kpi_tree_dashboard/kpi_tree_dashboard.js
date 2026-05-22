@@ -12,9 +12,7 @@ import { useService } from "@web/core/utils/hooks";
 import { loadJS } from "@web/core/assets";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Thresholds: thang 0-10 từ res.config.settings
-// Backend trả toàn bộ score ở thang 0-10. Muốn đổi UI sang thang 100 sau này
-// thì chỉnh score_scale.display_multiplier/base/suffix ở backend hoặc helper formatScore().
+// Thresholds và score dùng cùng thang điểm cấu hình từ res.config.settings.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class KpiTreeDashboard extends Component {
@@ -57,7 +55,7 @@ export class KpiTreeDashboard extends Component {
     // ── Getters ───────────────────────────────────────────────────────────────
 
     /**
-     * Tính điểm gốc cho node theo thang 0-10.
+     * Tính điểm gốc cho node theo thang điểm cấu hình.
      * Quy tắc dashboard: company = avg dept KPI, dept = dept KPI, employee = KPI cá nhân.
      */
     nodeScore(nodeData, type) {
@@ -85,7 +83,7 @@ export class KpiTreeDashboard extends Component {
     }
 
     /**
-     * So màu trực tiếp bằng score thang 0-10 để đồng bộ với threshold backend.
+     * So màu trực tiếp bằng score cùng thang với threshold backend.
      */
     levelColor(score) {
         const t = this.state.data?.thresholds;

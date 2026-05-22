@@ -382,13 +382,28 @@ export class KpiDashboard extends Component {
     }
 
     // ── Computed helpers (called from template) ──────────────────────────────
+    get scoreScale() {
+        return this.state.data?.score_scale || { base: 10, suffix: " / 10" };
+    }
+
+    formatScore(value, decimals = 1) {
+        if (value == null) return "—";
+        const number = Number(value) || 0;
+        return `${number.toFixed(decimals)}${this.scoreScale.suffix || ""}`;
+    }
+
+    scorePct(value) {
+        const base = Number(this.scoreScale.base || 10);
+        return Math.max(0, Math.min(100, ((Number(value) || 0) / base) * 100));
+    }
+
     get scoreText() {
-        return (this.state.data ? this.state.data.performance_score : 0).toFixed(1);
+        return this.formatScore(this.state.data ? this.state.data.performance_score : 0);
     }
 
     get scoreRingStyle() {
         const score = this.state.data ? this.state.data.performance_score : 0;
-        const pct = Math.min(score * 10, 100);
+        const pct = this.scorePct(score);
         const level = this.state.data ? this.state.data.performance_level : "fail";
         const color =
             level === "excellent"
@@ -421,7 +436,7 @@ export class KpiDashboard extends Component {
 
     get deptScoreText() {
         if (!this.state.data || !this.state.data.has_dept_evaluation) return "N/A";
-        return (this.state.data.dept_kpi_score || 0).toFixed(1);
+        return this.formatScore(this.state.data.dept_kpi_score || 0);
     }
 
     get individualWeightText() {
@@ -462,15 +477,16 @@ export class KpiDashboard extends Component {
     }
 
     _levelFromScore(score) {
-        if (score >= 9) return "excellent";
-        if (score >= 5) return "pass";
+        const thresholds = this.state.data?.thresholds || { excellent: 9, pass: 5 };
+        if (score >= thresholds.excellent) return "excellent";
+        if (score >= thresholds.pass) return "pass";
         return "fail";
     }
 
     // ── Final Score helpers (dùng cho breakdown section trong template) ────────
     get finalScoreText() {
         // Trả về final_score đã được làm tròn 2 chữ số thập phân
-        return (this.state.data ? this.state.data.final_score : 0).toFixed(2);
+        return this.formatScore(this.state.data ? this.state.data.final_score : 0, 2);
     }
 
     get finalLevelClass() {
@@ -717,8 +733,8 @@ export class KpiDashboard extends Component {
                     scales: {
                         r: {
                             min: 0,
-                            max: 10,
-                            ticks: { stepSize: 2, font: { size: 10 } },
+                            max: d.spider_web.max || this.scoreScale.base || 10,
+                            ticks: { stepSize: (d.spider_web.max || this.scoreScale.base || 10) / 5, font: { size: 10 } },
                             pointLabels: {
                                 font: { size: 11 },
                                 // 2. TỰ ĐỘNG NGẮT DÒNG CHO NHÃN QUÁ DÀI

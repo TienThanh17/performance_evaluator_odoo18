@@ -171,15 +171,15 @@ class HrKpiEngineDeptExt(models.AbstractModel):
         return self._value_or_percentage(
             kpi_line=dept_kpi_line,
             numerator=avg,
-            denominator=10.0,
+            denominator=self.env["res.config.settings"].get_score_scale_base(),
         )
 
     @api.model
     def _compute_child_kpi_average(self, department, dept_kpi_line, date_from, date_to):
         """Bottom-up category score from linked employee KPI child lines.
 
-        Returns a 0-100 actual score. Department evaluation scoring later maps
-        target=100/actual=83.05 to final_score=8.305 on the existing 0-10 scale.
+        Returns an actual category score on the configured KPI score scale.
+        Department evaluation scoring compares this value with target=score_base.
         """
         dept_eval_line = self.env.context.get('department_evaluation_line')
         if dept_eval_line:
@@ -205,8 +205,6 @@ class HrKpiEngineDeptExt(models.AbstractModel):
             employee = child_line.evaluation_id.employee_id
             if not employee:
                 continue
-            # scale 10
-            # score = (child_line.final_rating or 0.0) * 10
             score = (child_line.final_rating or 0.0)
             weight = child_line.weight or 0.0
             if weight <= 0.0:
