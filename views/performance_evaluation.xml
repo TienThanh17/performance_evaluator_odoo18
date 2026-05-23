@@ -632,6 +632,8 @@
                     <filter string="Pass" name="pass" domain="[('performance_level', '=', 'pass')]" />
                     <filter string="Fail" name="fail" domain="[('performance_level', '=', 'fail')]" />
                     <group expand="1" string="Group By">
+                        <filter string="Employee" name="group_by_employee"
+                            context="{'group_by':'employee_id'}" />
                         <filter string="Department" name="group_by_department"
                             context="{'group_by':'department_id'}" />
                     </group>

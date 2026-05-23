@@ -10,6 +10,7 @@ import { Component, useState, onMounted, useRef, onPatched } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { loadJS } from "@web/core/assets";
+import { formatScore as _formatScore } from "@custom_adecsol_hr_performance_evaluator/utils/kpi_helpers";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Thresholds và score dùng cùng thang điểm cấu hình từ res.config.settings.
@@ -36,6 +37,7 @@ export class KpiTreeDashboard extends Component {
             selectedPeriod: null, // { start, end, label }
             showRiskModal: false,
             showMissingDataModal: false,
+            showFailedEvaluationModal: false,
         });
 
         onMounted(async () => {
@@ -314,6 +316,7 @@ export class KpiTreeDashboard extends Component {
         if (!riskLine?.line_id) return;
         this.state.showRiskModal = false;
         this.state.showMissingDataModal = false;
+        this.state.showFailedEvaluationModal = false;
         await this.actionService.doAction({
             type: "ir.actions.act_window",
             name: riskLine.kpi_name || "Risk KPI",
@@ -341,6 +344,7 @@ export class KpiTreeDashboard extends Component {
         if (!missingLine?.line_id) return;
         this.state.showRiskModal = false;
         this.state.showMissingDataModal = false;
+        this.state.showFailedEvaluationModal = false;
         await this.actionService.doAction({
             type: "ir.actions.act_window",
             name: missingLine.kpi_name || "Missing KPI Data",
@@ -356,6 +360,33 @@ export class KpiTreeDashboard extends Component {
         });
     };
 
+    openFailedEvaluationModal = () => {
+        this.state.showFailedEvaluationModal = true;
+    };
+
+    closeFailedEvaluationModal = () => {
+        this.state.showFailedEvaluationModal = false;
+    };
+
+    openFailedEvaluation = async (item) => {
+        if (!item?.record_id || !item?.record_model) return;
+        this.state.showRiskModal = false;
+        this.state.showMissingDataModal = false;
+        this.state.showFailedEvaluationModal = false;
+        await this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: item.evaluation_name || "Đánh giá không đạt",
+            res_model: item.record_model,
+            res_id: item.record_id,
+            views: [[false, "form"]],
+            target: "current",
+            context: {
+                active_id: item.record_id,
+                active_model: item.record_model,
+            },
+        });
+    };
+
     // ── Template helpers ──────────────────────────────────────────────────────
 
     roundScore(val) {
@@ -363,15 +394,7 @@ export class KpiTreeDashboard extends Component {
     }
 
     formatScore(val) {
-        if (val == null) return "—";
-        const scale = this.state.data?.score_scale || {
-            display_multiplier: 1,
-            suffix: " / 10",
-        };
-        // Chỉ đổi multiplier/suffix ở score_scale nếu sau này muốn hiển thị thang 100.
-        const score = (Number(val) || 0) * (scale.display_multiplier || 1);
-        // return `${score.toFixed(2)}${scale.suffix || ""}`;
-        return `${score}${scale.suffix || ""}`;
+        return _formatScore(val, this.state.data?.score_scale, { decimals: null });
     }
 
     formatPct(val) {
@@ -382,6 +405,14 @@ export class KpiTreeDashboard extends Component {
     issueMeta(item) {
         const parts = [item?.dept_name, item?.employee_name, item?.evaluation_name];
         return parts.filter(Boolean).join(" · ");
+    }
+
+    failedEvaluationTitle(item) {
+        if (!item) return "—";
+        if (item.source_type === "department") {
+            return item.dept_name || item.evaluation_name || "Phiếu phòng ban";
+        }
+        return item.employee_name || item.evaluation_name || "Phiếu nhân viên";
     }
 
     sourceBadgeClass(item) {
@@ -415,6 +446,22 @@ export class KpiTreeDashboard extends Component {
 
     missingDataLineCount() {
         return this.allMissingDataLines().length;
+    }
+
+    allFailedEvaluations() {
+        return (
+            this.state.data?.failed_evaluation_lines ||
+            this.state.data?.failed_evaluations ||
+            []
+        );
+    }
+
+    topFailedEvaluations() {
+        return this.allFailedEvaluations().slice(0, 5);
+    }
+
+    failedEvaluationCount() {
+        return this.allFailedEvaluations().length;
     }
 
     scoreBarWidth(val) {

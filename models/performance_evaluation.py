@@ -12,6 +12,7 @@ class PerformanceEvaluation(models.Model):
     _name = "hr.performance.evaluation"
     _description = "Performance Evaluation"
     _inherit = ["mail.thread", "mail.activity.mixin"]
+    _order = 'start_date desc, end_date desc'
 
     user_id = fields.Many2one(
         "res.users",

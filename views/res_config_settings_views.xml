@@ -17,7 +17,7 @@
                                 <button name="%(custom_adecsol_hr_performance_evaluator.action_hr_kpi_score_scale_convert_wizard)d"
                                         type="action"
                                         string="Convert Existing Scores"
-                                        class="btn-secondary mt-2"/>
+                                        class="btn-secondary mt-2 ms-4"/>
                             </setting>
 
                             <setting string="KPI thresholds "

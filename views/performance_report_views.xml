@@ -16,22 +16,22 @@
                 -->
                 <form js_class="performance_dashboard_form">
                     <sheet>
-                        <field name="department_id" invisible="1"/>
-                        <field name="department_name" invisible="1"/>
-                        <field name="period" invisible="1"/>
-                        <field name="start_date" invisible="1"/>
-                        <field name="end_date" invisible="1"/>
-                        <field name="deadline" invisible="1"/>
-                        <field name="period_status" invisible="1"/>
-                        <field name="active" invisible="1"/>
+                        <field name="department_id" invisible="1" />
+                        <field name="department_name" invisible="1" />
+                        <field name="period" invisible="1" />
+                        <field name="start_date" invisible="1" />
+                        <field name="end_date" invisible="1" />
+                        <field name="deadline" invisible="1" />
+                        <field name="period_status" invisible="1" />
+                        <field name="active" invisible="1" />
                         <!-- evaluation_ids với các sub-field cần cho dashboard -->
                         <field name="evaluation_ids" invisible="1">
                             <list>
-                                <field name="employee_id"/>
-                                <field name="job_id"/>
-                                <field name="performance_score"/>
-                                <field name="performance_level"/>
-                                <field name="state"/>
+                                <field name="employee_id" />
+                                <field name="job_id" />
+                                <field name="performance_score" />
+                                <field name="performance_level" />
+                                <field name="state" />
                             </list>
                         </field>
                     </sheet>
@@ -52,46 +52,46 @@
                     <sheet>
                         <group>
                             <group string="Period Info">
-                                <field name="period"/>
-                                <field name="start_date"/>
-                                <field name="end_date"/>
-                                <field name="deadline"/>
+                                <field name="period" />
+                                <field name="start_date" />
+                                <field name="end_date" />
+                                <field name="deadline" />
                                 <field name="period_status" widget="badge" readonly="1"
-                                       decoration-info="period_status == 'upcoming'"
-                                       decoration-success="period_status == 'ongoing'"
-                                       decoration-muted="period_status == 'closed'"/>
+                                    decoration-info="period_status == 'upcoming'"
+                                    decoration-success="period_status == 'ongoing'"
+                                    decoration-muted="period_status == 'closed'" />
                             </group>
                             <group string="Scope">
-                                <field name="department_id"/>
-                                <field name="company_id"/>
-                                <field name="active" widget="boolean_toggle"/>
+                                <field name="department_id" />
+                                <field name="company_id" />
+                                <field name="active" widget="boolean_toggle" />
                             </group>
                         </group>
                         <group string="Employees">
-                            <field name="employee_id" widget="many2many_tags" nolabel="1"/>
+                            <field name="employee_id" widget="many2many_tags" nolabel="1" />
                         </group>
                         <group string="Email Notification">
-                            <field name="subject"/>
-                            <field name="body" widget="html"/>
+                            <field name="subject" />
+                            <field name="body" widget="html" />
                         </group>
                         <notebook>
                             <page string="Evaluations" name="evaluations">
                                 <field name="evaluation_ids" readonly="1">
                                     <list>
-                                        <field name="employee_id"/>
-                                        <field name="period"/>
-                                        <field name="performance_score"/>
+                                        <field name="employee_id" />
+                                        <field name="period" />
+                                        <field name="performance_score" />
                                         <field name="performance_level" widget="badge"
-                                               decoration-success="performance_level == 'pass'"
-                                               decoration-info="performance_level == 'excellent'"
-                                               decoration-danger="performance_level == 'fail'"/>
-                                        <field name="state" widget="badge"/>
+                                            decoration-success="performance_level == 'pass'"
+                                            decoration-info="performance_level == 'excellent'"
+                                            decoration-danger="performance_level == 'fail'" />
+                                        <field name="state" widget="badge" />
                                     </list>
                                 </field>
                             </page>
                         </notebook>
                     </sheet>
-                    <chatter/>
+                    <chatter />
                 </form>
             </field>
         </record>
@@ -104,17 +104,60 @@
             <field name="model">hr.performance.report</field>
             <field name="arch" type="xml">
                 <list string="Performance Reports">
-                    <field name="department_id"/>
-                    <field name="period"/>
-                    <field name="start_date"/>
-                    <field name="end_date"/>
+                    <field name="department_id" />
+                    <field name="period" />
+                    <field name="start_date" />
+                    <field name="end_date" />
                     <field name="period_status" widget="badge"
-                           decoration-info="period_status == 'upcoming'"
-                           decoration-success="period_status == 'ongoing'"
-                           decoration-muted="period_status == 'closed'"/>
-<!--                    <field name="deadline"/>-->
-                    <field name="active" widget="boolean_toggle" optional="hide"/>
+                        decoration-info="period_status == 'upcoming'"
+                        decoration-success="period_status == 'ongoing'"
+                        decoration-muted="period_status == 'closed'" />
+                    <!--                    <field name="deadline"/>-->
+                    <field name="active" widget="boolean_toggle" optional="hide" />
                 </list>
+            </field>
+        </record>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             Search View
+        ════════════════════════════════════════════════════════════════ -->
+        <record id="view_hr_performance_report_search" model="ir.ui.view">
+            <field name="name">hr.performance.report.search</field>
+            <field name="model">hr.performance.report</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="department_id" />
+                    <field name="period" />
+                    <field name="start_date" />
+                    <field name="end_date" />
+                    <field name="period_status" />
+                    <field name="employee_id" />
+
+                    <filter string="Current Period" name="current_period"
+                        domain="[
+                        ('start_date', '&lt;=', context_today().strftime('%Y-%m-%d')),
+                        ('end_date', '&gt;=', context_today().strftime('%Y-%m-%d'))
+                    ]" />
+
+                    <separator />
+
+                    <filter string="Monthly" name="monthly" domain="[('period', '=', 'monthly')]" />
+                    <filter string="Quarterly" name="quarterly" domain="[('period', '=', 'quarterly')]" />
+                    <filter string="Half-Yearly" name="half_yearly" domain="[('period', '=', 'half_yearly')]" />
+                    <filter string="Yearly" name="yearly" domain="[('period', '=', 'yearly')]" />
+
+                    <separator />
+
+                    <filter string="Archived" name="archived"
+                        domain="[('active', '=', False)]" />
+
+                    <group expand="1" string="Group By">
+                        <filter string="Department" name="group_by_department"
+                            context="{'group_by': 'department_id'}" />
+                        <filter string="Period" name="group_by_period"
+                            context="{'group_by': 'period'}" />
+                    </group>
+                </search>
             </field>
         </record>
 
@@ -126,7 +169,7 @@
             <field name="res_model">hr.performance.report</field>
             <field name="view_mode">list,form</field>
             <field name="domain">[]</field>
-            <field name="context">{'active_test': False}</field>
+            <field name="context">{'search_default_current_period': 1}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
                     Click to create a new Performance Report.
@@ -139,7 +182,7 @@
             parent="kpi_employee_menu"
             name="Manage KPI Employee"
             sequence="20"
-            action="action_hr_performance_report"/>
+            action="action_hr_performance_report" />
 
     </data>
 </odoo>

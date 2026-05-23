@@ -55,6 +55,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
             "custom_adecsol_hr_performance_evaluator/static/src/scss/performance_dashboard.scss",
             "custom_adecsol_hr_performance_evaluator/static/src/scss/kpi_dashboard.scss",
             "custom_adecsol_hr_performance_evaluator/static/src/scss/dept_kpi_dashboard.scss",
+            "custom_adecsol_hr_performance_evaluator/static/src/utils/kpi_helpers.js",
             "custom_adecsol_hr_performance_evaluator/static/src/js/kpi_dashboard_page.js",
             "custom_adecsol_hr_performance_evaluator/static/src/js/kpi_child_matrix_utils.js",
             "custom_adecsol_hr_performance_evaluator/static/src/js/kpi_child_matrix_fields.js",

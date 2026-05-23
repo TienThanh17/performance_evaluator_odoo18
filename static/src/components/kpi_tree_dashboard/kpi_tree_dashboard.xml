@@ -305,15 +305,33 @@
         <div t-else="" class="panel-empty">Tất cả KPI đã có dữ liệu ✓</div>
       </div>
 
-          <!-- Panel 4: Insight điều hành AI -->
-      <div class="o_kpi_tree_panel panel-ai">
-        <div class="panel-head"><i class="fa fa-lightbulb-o"/> Insight điều hành</div>
-        <t t-if="state.data.ai_insights and state.data.ai_insights.length">
-          <t t-foreach="state.data.ai_insights" t-as="insight" t-key="insight_index">
-            <div class="ai-insight" t-esc="insight.text or insight"/>
+          <!-- Panel 4: Top đánh giá không đạt -->
+      <div class="o_kpi_tree_panel">
+        <div class="panel-head"><i class="fa fa-times-circle"/> Top đánh giá chưa đạt</div>
+        <t t-if="failedEvaluationCount() > 0">
+          <t t-foreach="topFailedEvaluations()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.record_id || item_index)">
+            <div class="risk-row risk-row-clickable" t-on-click="() => this.openFailedEvaluation(item)">
+              <div class="risk-info">
+                <div class="issue-title-line">
+                  <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Cá nhân'"/>
+                  <span class="risk-name" t-esc="failedEvaluationTitle(item)"/>
+                </div>
+                <span class="risk-meta" t-esc="issueMeta(item)"/>
+              </div>
+              <div class="risk-right">
+                <span class="risk-score" t-esc="formatScore(item.score)"/>
+                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.score_label || item.level"/>
+              </div>
+            </div>
           </t>
+          <button t-if="failedEvaluationCount() > 5"
+                  type="button"
+                  class="risk-view-all-btn"
+                  t-on-click="openFailedEvaluationModal">
+            Xem tất cả (<t t-esc="failedEvaluationCount()"/>)
+          </button>
         </t>
-        <div t-else="" class="panel-empty">Không có dữ liệu insight</div>
+        <div t-else="" class="panel-empty">Không có đánh giá không đạt</div>
       </div>
 
     </div><!--
@@ -373,6 +391,37 @@
               </div>
               <div class="missing-modal-right">
                 <span class="tag-missing">Thiếu dữ liệu</span>
+              </div>
+            </div>
+          </t>
+        </div>
+      </div>
+    </div>
+
+    <div t-if="state.showFailedEvaluationModal" class="o_kpi_tree_modal_backdrop">
+      <div class="o_kpi_tree_modal">
+        <div class="o_kpi_tree_modal_header">
+          <div>
+            <div class="modal-title">Tất cả đánh giá không đạt</div>
+            <div class="modal-subtitle"><t t-esc="failedEvaluationCount()"/> phiếu đánh giá dưới ngưỡng trong kỳ này</div>
+          </div>
+          <button type="button" class="modal-close-btn" t-on-click="closeFailedEvaluationModal">
+            <i class="fa fa-times"/>
+          </button>
+        </div>
+        <div class="o_kpi_tree_modal_body">
+          <t t-foreach="allFailedEvaluations()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.record_id || item_index)">
+            <div class="risk-modal-row" t-on-click="() => this.openFailedEvaluation(item)">
+              <div class="risk-modal-main">
+                <div class="issue-title-line">
+                  <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Cá nhân'"/>
+                  <span class="risk-name" t-esc="failedEvaluationTitle(item)"/>
+                </div>
+                <span class="risk-meta" t-esc="issueMeta(item)"/>
+              </div>
+              <div class="risk-modal-right">
+                <span class="risk-score" t-esc="formatScore(item.score)"/>
+                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.score_label || item.level"/>
               </div>
             </div>
           </t>

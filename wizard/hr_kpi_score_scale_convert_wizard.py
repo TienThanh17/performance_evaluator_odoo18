@@ -33,37 +33,61 @@ class HrKpiScoreScaleConvertWizard(models.TransientModel):
         params = [factor] * len(fields_to_convert)
         self.env.cr.execute(f"UPDATE {table} SET {set_clause}", params)
 
-    def _convert_child_average_targets(self, from_base, to_base, factor):
-        """Chỉ đổi target/actual của KPI bottom-up vì đây là điểm, không phải số lượng nghiệp vụ."""
+    def _convert_score_unit_targets_actuals(self, from_base, to_base, factor):
+        """Chỉ đổi target/actual có unit=score vì đây là điểm, không phải số lượng nghiệp vụ."""
         if to_base > from_base:
             target_condition = "target <= %s"
-            params = [factor, from_base]
+            target_limit = from_base
         else:
             target_condition = "target > %s"
-            params = [factor, to_base]
+            target_limit = to_base
 
-        self.env.cr.execute(
-            f"""
-            UPDATE hr_department_kpi_line
-               SET target = target * %s
-             WHERE data_source = 'child_kpi_average'
-               AND target IS NOT NULL
-               AND {target_condition}
-            """,
-            params,
-        )
-        self.env.cr.execute(
-            f"""
-            UPDATE hr_department_evaluation_line
-               SET target = CASE
-                       WHEN target IS NOT NULL AND {target_condition} THEN target * %s
-                       ELSE target
-                   END,
-                   actual = CASE WHEN actual IS NULL THEN NULL ELSE actual * %s END
-             WHERE data_source = 'child_kpi_average'
-            """,
-            [params[-1], factor, factor],
-        )
+        template_tables = ["hr_kpi_line", "hr_department_kpi_line"]
+        evaluation_tables = [
+            "hr_performance_evaluation_line",
+            "hr_department_evaluation_line",
+        ]
+
+        for table in template_tables:
+            self.env.cr.execute(
+                f"""
+                UPDATE {table} AS line
+                   SET target = line.target * %s
+                 WHERE line.target IS NOT NULL
+                   AND {target_condition}
+                   AND EXISTS (
+                       SELECT 1
+                         FROM hr_kpi_unit AS unit
+                        WHERE unit.id = line.unit
+                          AND unit.code = 'score'
+                   )
+                """,
+                [factor, target_limit],
+            )
+
+        for table in evaluation_tables:
+            self.env.cr.execute(
+                f"""
+                UPDATE {table} AS line
+                   SET target = CASE
+                           WHEN line.target IS NOT NULL AND {target_condition}
+                           THEN line.target * %s
+                           ELSE line.target
+                       END,
+                       actual = CASE
+                           WHEN line.actual IS NULL THEN NULL
+                           ELSE line.actual * %s
+                       END
+                 WHERE EXISTS (
+                       SELECT 1
+                         FROM hr_kpi_unit AS unit
+                        WHERE unit.id = line.unit
+                          AND unit.code = 'score'
+                   )
+                """,
+                [target_limit, factor, factor],
+            )
+
 
     def action_convert(self):
         self.ensure_one()
@@ -100,7 +124,7 @@ class HrKpiScoreScaleConvertWizard(models.TransientModel):
             ["dept_kpi_score"],
             factor,
         )
-        self._convert_child_average_targets(from_base, to_base, factor)
+        self._convert_score_unit_targets_actuals(from_base, to_base, factor)
 
         settings = self.env["res.config.settings"]
         icp = self.env["ir.config_parameter"].sudo()

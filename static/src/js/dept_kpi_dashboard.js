@@ -4,6 +4,13 @@ import { useService } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
 import { _t } from "@web/core/l10n/translation";
+import {
+    formatScore as _formatScore,
+    formatVariance as _formatVariance,
+    varianceClass as _varianceClass,
+    statusText as _statusText,
+    statusClass as _statusClass,
+} from "@custom_adecsol_hr_performance_evaluator/utils/kpi_helpers";
 
 const MANAGER_GROUP = "custom_adecsol_hr_performance_evaluator.group_manager";
 const HR_GROUP = "custom_adecsol_hr_performance_evaluator.group_hr";
@@ -214,10 +221,14 @@ export class DeptKpiDashboard extends Component {
     }
 
     // ── Getters ───────────────────────────────────────────────────────────────
-    formatScore(val) {
-        if (val == null) return "—";
-        const scale = this.state.data?.score_scale || { suffix: " / 10" };
-        return `${Number(val).toFixed(2)}${scale.suffix || ""}`;
+
+    get scoreScale() {
+        return this.state.data?.score_scale || { suffix: " / 10" };
+    }
+
+    /** Hiển thị điểm số, mặc định 2 chữ số thập phân. */
+    formatScore(val, decimals = 2) {
+        return _formatScore(val, this.scoreScale, { decimals });
     }
 
     levelLabel(lvl) {
@@ -225,28 +236,10 @@ export class DeptKpiDashboard extends Component {
     }
 
     // ── Quantitative Table Helpers ───────────────────────────────────────────
-    formatVariance(row) {
-        if (row.variance === 0) return "0%";
-        return row.variance > 0 ? `+${row.variance}%` : `${row.variance}%`;
-    }
-
-    varianceClass(row) {
-        if (row.variance === 0) return "o_kpi_variance o_kpi_variance_good";
-        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
-        return isGood ? "o_kpi_variance o_kpi_variance_exceeded" : "o_kpi_variance o_kpi_variance_bad";
-    }
-
-    statusText(row) {
-        if (row.variance === 0) return _t("Achieved");
-        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
-        return isGood ? _t("Exceeded") : _t("Not Met");
-    }
-
-    statusClass(row) {
-        if (row.variance === 0) return "o_kpi_status o_kpi_status_pass";
-        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
-        return isGood ? "o_kpi_status o_kpi_status_excellent" : "o_kpi_status o_kpi_status_fail";
-    }
+    formatVariance(row) { return _formatVariance(row); }
+    varianceClass(row) { return _varianceClass(row); }
+    statusText(row) { return _statusText(row); }
+    statusClass(row) { return _statusClass(row); }
 
     // ── Data loaders ─────────────────────────────────────────────────────────
     async _loadDepartments() {

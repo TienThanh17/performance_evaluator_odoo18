@@ -12,6 +12,7 @@ class HrPerformanceReport(models.Model):
     _name = "hr.performance.report"
     _description = "Performance Report"
     _inherit = ["mail.thread", "mail.activity.mixin"]
+    _order = 'start_date desc, end_date desc'
     # _rec_name = 'department_name'
 
     # Fields

@@ -741,8 +741,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     "departments": [],
                     "risk_lines": [],
                     "missing_data_lines": [],
+                    "failed_evaluation_lines": [],
                     "risk_kpis": [],
                     "missing_data_kpis": [],
+                    "failed_evaluations": [],
                     "logic_warnings": [],
                     "financial_kpis": [],
                     "ai_insights": [],
@@ -941,6 +943,56 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 else 0.0
             )
 
+            # ── Failed evaluations: phiếu cá nhân/phòng ban không đạt theo threshold pass
+            # Nhân viên dùng performance_score theo yêu cầu nghiệp vụ, không dùng final_score.
+            failed_evaluation_lines = []
+            for ev in evals.filtered(
+                lambda record: float(record.performance_score or 0.0) < threshold_pass
+            ):
+                score = float(ev.performance_score or 0.0)
+                failed_evaluation_lines.append(
+                    {
+                        "source_type": "employee",
+                        "source_label": "Cá nhân",
+                        "record_model": "hr.performance.evaluation",
+                        "record_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": ev.employee_id.name if ev.employee_id else "",
+                        "score": round(score, 2),
+                        "score_label": "KPI cá nhân",
+                        "state": ev.state or "",
+                        "level": "fail",
+                    }
+                )
+            for ev in dept_evals.filtered(
+                lambda record: float(record.get_dept_kpi_score() or 0.0) < threshold_pass
+            ):
+                score = float(ev.get_dept_kpi_score() or 0.0)
+                failed_evaluation_lines.append(
+                    {
+                        "source_type": "department",
+                        "source_label": "Phòng ban",
+                        "record_model": "hr.department.performance.evaluation",
+                        "record_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": "",
+                        "score": round(score, 2),
+                        "score_label": "KPI phòng ban",
+                        "state": ev.state or "",
+                        "level": "fail",
+                    }
+                )
+            failed_evaluation_lines.sort(
+                key=lambda item: (
+                    item.get("score") or 0.0,
+                    item.get("source_type") or "",
+                    item.get("record_id") or 0,
+                )
+            )
+            failed_evaluations = failed_evaluation_lines[:5]
+
             # ── Risk KPIs: tất cả KPI cá nhân + phòng ban bị fail theo threshold pass
             EvalLine = self.env["hr.performance.evaluation.line"].sudo()
             DeptEvalLine = self.env["hr.department.evaluation.line"].sudo()
@@ -1095,8 +1147,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 "departments": departments,
                 "risk_lines": risk_lines,
                 "missing_data_lines": missing_data_lines,
+                "failed_evaluation_lines": failed_evaluation_lines,
                 "risk_kpis": risk_kpis,
                 "missing_data_kpis": missing_data_kpis,
+                "failed_evaluations": failed_evaluations,
                 "logic_warnings": [],
                 "financial_kpis": [],
                 "ai_insights": [],
@@ -1124,8 +1178,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 "departments": [],
                 "risk_lines": [],
                 "missing_data_lines": [],
+                "failed_evaluation_lines": [],
                 "risk_kpis": [],
                 "missing_data_kpis": [],
+                "failed_evaluations": [],
                 "logic_warnings": [],
                 "financial_kpis": [],
                 "ai_insights": [],
