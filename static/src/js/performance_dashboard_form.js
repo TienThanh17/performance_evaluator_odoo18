@@ -270,6 +270,8 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             active: true,
             approvingAll: false,
             chartData: null, // data từ get_report_dashboard_data
+            scoreScale: { base: 10, suffix: " / 10" },
+            thresholds: { excellent: 9, pass: 5 },
         });
 
         onWillStart(async () => {
@@ -390,6 +392,8 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                     "get_report_dashboard_data",
                     [reportId],
                 );
+                this.state.scoreScale = chartData.score_scale || this.state.scoreScale;
+                this.state.thresholds = chartData.thresholds || this.state.thresholds;
                 this.state.chartData = chartData;
             } catch (e) {
                 console.error(
@@ -416,8 +420,11 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     _chartScoreConfig(employees) {
         const names = employees.map((e) => e.name);
         const scores = employees.map((e) => e.score);
+        const scoreBase = this.state.scoreScale.base || 10;
+        const excellent = this.state.thresholds.excellent || 9;
+        const passed = this.state.thresholds.pass || 5;
 
-        const barPlugin = baseBarPlugin(10);
+        const barPlugin = baseBarPlugin(scoreBase);
 
         return {
             type: "bar",
@@ -428,14 +435,14 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                         label: _t("Individual KPI Score"),
                         data: scores,
                         backgroundColor: scores.map((s) =>
-                            s >= 9
+                            s >= excellent
                                 ? C_BLUE + "cc"
-                                : s >= 5
+                                : s >= passed
                                   ? C_GREEN + "cc"
                                   : C_RED + "cc",
                         ),
                         borderColor: scores.map((s) =>
-                            s >= 9 ? C_BLUE : s >= 5 ? C_GREEN : C_RED,
+                            s >= excellent ? C_BLUE : s >= passed ? C_GREEN : C_RED,
                         ),
                         borderWidth: 1,
                         borderRadius: 5,
@@ -451,14 +458,14 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                     },
                     y: {
                         min: 0,
-                        max: 10, // Tăng max lên 11 (hoặc 10.5) để đường kẻ 10 không bị sát mép trên cùng
+                        max: scoreBase,
                         title: {
                             display: true,
                             text: _t("Individual KPI Score"),
                             font: { size: 11 },
                         },
                         grid: { color: "rgba(0,0,0,0.05)" },
-                        ticks: { stepSize: 1, font: { size: 10 } },
+                        ticks: { stepSize: scoreBase / 10, font: { size: 10 } },
                     },
                 },
                 plugins: {
@@ -675,7 +682,8 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
     // ── Qualitative charts — bar per KPI ────────────────────────────────
     _qualChartConfig(qc) {
-        const barPlugin = baseBarPlugin(10);
+        const scoreBase = this.state.scoreScale.base || 10;
+        const barPlugin = baseBarPlugin(scoreBase);
 
         return {
             type: "bar",
@@ -719,7 +727,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                     },
                     y: {
                         beginAtZero: true,
-                        max: 10,
+                        max: scoreBase,
                         title: {
                             display: true,
                             text: _t("Score"),
@@ -727,7 +735,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                             font: { size: 12 },
                         },
                         grid: { color: "rgba(0,0,0,0.05)" },
-                        ticks: { stepSize: 1, font: { size: 10 } },
+                        ticks: { stepSize: scoreBase / 10, font: { size: 10 } },
                     },
                 },
             },
@@ -757,6 +765,16 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+    formatScore(value, decimals = 2) {
+        const number = Number(value) || 0;
+        return `${number.toFixed(decimals)}${this.state.scoreScale.suffix || " / 10"}`;
+    }
+
+    scorePct(value) {
+        const base = Number(this.state.scoreScale.base || 10);
+        return Math.max(0, Math.min(100, ((Number(value) || 0) / base) * 100));
+    }
+
     _getEvalIds() {
         const evalList = this.props.record.data.evaluation_ids;
         if (evalList?.records)

@@ -64,7 +64,7 @@ class PerformanceEvaluationLine(models.Model):
         string="KPI Type",
         default="quantitative",
         required=True,
-        help="How this KPI line is evaluated: Quantitative (Target vs Actual), Binary (Yes/No), Rating (0–5), or Score (0–10).",
+        help="How this KPI line is evaluated: Quantitative (Target vs Actual), Binary (Yes/No), Rating (0–5), or direct Score.",
     )
 
     direction = fields.Selection(
@@ -172,7 +172,7 @@ class PerformanceEvaluationLine(models.Model):
         compute="_compute_system_score",
         store=True,
         digits=(16, 1),
-        help="System-calculated score (0–10) based on rules for the selected KPI type.",
+        help="System-calculated score based on rules for the selected KPI type and configured score scale.",
     )
     # Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).
     is_special_scoring = fields.Boolean(
@@ -233,16 +233,18 @@ class PerformanceEvaluationLine(models.Model):
         default="0",
     )
 
-    # Score KPI: employee self score and manager final score (0..10)
-    employee_rating_score = fields.Integer(
+    # Score KPI: employee self score and manager final score theo thang điểm cấu hình.
+    employee_rating_score = fields.Float(
         string="Employee Rating (Score)",
         default=0,
-        help="Employee self-assessment score for Score KPIs (0–10).",
+        digits=(16, 2),
+        help="Employee self-assessment score for Score KPIs, based on the configured KPI score scale.",
     )
-    manager_rating_score = fields.Integer(
+    manager_rating_score = fields.Float(
         string="Manager Rating (Score)",
         default=0,
-        help="Manager score for Score KPIs (0–10).",
+        digits=(16, 2),
+        help="Manager score for Score KPIs, based on the configured KPI score scale.",
     )
 
     employee_comment = fields.Html(
@@ -261,7 +263,7 @@ class PerformanceEvaluationLine(models.Model):
         compute="_compute_final_rating",
         store=True,
         digits=(16, 1),
-        help="Final rating (0–10) used in the evaluation summary.",
+        help="Final rating used in the evaluation summary, based on the configured KPI score scale.",
     )
 
     # Always-formatted text for UI badge rendering (keeps 0.0 visible).
@@ -370,6 +372,10 @@ class PerformanceEvaluationLine(models.Model):
         self.ensure_one()
         return (self.unit.code or "") == "percent" if self.unit else False
 
+    def _get_score_base(self):
+        """Thang điểm KPI được cấu hình theo từng khách hàng/database."""
+        return self.env["res.config.settings"].get_score_scale_base()
+
     @api.depends("target", "actual", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
         for rec in self:
@@ -413,20 +419,22 @@ class PerformanceEvaluationLine(models.Model):
     )
     def _compute_system_score(self):
         """
-        Tính system_score (thang 0–10) theo từng kpi_type:
+        Tính system_score theo thang điểm cấu hình (10 hoặc 100):
 
         quantitative:
-          higher_better: score = (actual / target) * 10
-          lower_better:  score = (target / actual) * 10
+          higher_better: score = (actual / target) * score_base
+          lower_better:  score = (target / actual) * score_base
 
         rating:
           actual = 0–5 (từ rating_value)
-          → score = (actual / 5) * 10
+          → score = (actual / 5) * score_base
 
         binary:
           actual = target (achieved) hoặc 0 (not achieved)
-          → score = 10 nếu actual >= target > 0, ngược lại = 0
+          → score = score_base nếu đạt, ngược lại = 0
         """
+        score_base = self._get_score_base()
+        late_day_penalty = score_base / 10.0
         for line in self:
             score = 0.0
             actual = line.actual or 0.0
@@ -434,20 +442,20 @@ class PerformanceEvaluationLine(models.Model):
 
             if line.kpi_type == "quantitative":
                 # Special case: attendance late days KPI uses a penalty-based scoring.
-                # - 0 late days -> 10
-                # - each late day -> -1
+                # - 0 late days -> max score
+                # - each late day -> -10% score_base
                 if (line.data_source or "manual") == "late_days":
                     late_days = int(round(actual)) if actual else 0
-                    score = 10.0 - (late_days * 1.0)
+                    score = score_base - (late_days * late_day_penalty)
                     score = max(0.0, score)
-                    line.system_score = round(max(0.0, min(score, 10.0)), 2)
+                    line.system_score = round(max(0.0, min(score, score_base)), 2)
                     continue
 
                 # Special case: attendance full KPI uses leave-days based scoring.
                 # Rule:
                 #   unpaid leave -> 0
-                #   0 leave days -> 10
-                #   1 -> 9, 2 -> 8, 3 -> 7, 4 -> 6, 5 -> 5, else 0
+                #   0 leave days -> max score
+                #   1 -> 90%, 2 -> 80%, 3 -> 70%, 4 -> 60%, 5 -> 50%, else 0
                 if (line.data_source or "manual") == "attendance_full":
                     if line.attendance_has_unpaid_leave:
                         score = 0.0
@@ -456,20 +464,12 @@ class PerformanceEvaluationLine(models.Model):
                             round(line.attendance_unpaid_leave_days or 0.0)
                         )
                         if leave_days <= 0:
-                            score = 10.0
-                        elif leave_days == 1:
-                            score = 9.0
-                        elif leave_days == 2:
-                            score = 8.0
-                        elif leave_days == 3:
-                            score = 7.0
-                        elif leave_days == 4:
-                            score = 6.0
-                        elif leave_days == 5:
-                            score = 5.0
+                            score = score_base
+                        elif leave_days <= 5:
+                            score = score_base - (leave_days * late_day_penalty)
                         else:
                             score = 0.0
-                    line.system_score = round(max(0.0, min(score, 10.0)), 2)
+                    line.system_score = round(max(0.0, min(score, score_base)), 2)
                     continue
 
                 # Target vs Actual scoring, works for both value and percentage (same unit).
@@ -478,11 +478,11 @@ class PerformanceEvaluationLine(models.Model):
                     continue
 
                 if line.direction == "higher_better":
-                    score_ratio = (actual / target) if target > 0 else 10.0
+                    score_ratio = (actual / target) if target > 0 else 1.0
                 else:
-                    score_ratio = (target / actual) if actual > 0 else 10.0
+                    score_ratio = (target / actual) if actual > 0 else 1.0
 
-                score = min(score_ratio * 10.0, 10.0)
+                score = min(score_ratio * score_base, score_base)
 
             elif line.kpi_type == "rating":
                 # Ưu tiên manager nếu đã có, fallback về employee
@@ -492,19 +492,19 @@ class PerformanceEvaluationLine(models.Model):
                     or "0"
                 )
                 rating = float(raw)
-                score = (rating / 5.0) * 10.0
+                score = (rating / 5.0) * score_base
 
             elif line.kpi_type == "binary":
                 # Tương tự cho binary
                 val = line.manager_rating_binary or line.employee_rating_binary
-                score = 10.0 if val == "yes" else 0.0
+                score = score_base if val == "yes" else 0.0
 
             elif line.kpi_type == "score":
                 # Tương tự cho score
                 val = line.manager_rating_score or line.employee_rating_score or 0
                 score = float(val)
 
-            line.system_score = round(max(0.0, min(score, 10.0)), 2)
+            line.system_score = round(max(0.0, min(score, score_base)), 2)
 
     # ------------------------------------------------------------------
     # COMPUTE final_rating depends on kpi_type
@@ -517,17 +517,17 @@ class PerformanceEvaluationLine(models.Model):
         "manager_rating_score",
     )
     def _compute_final_rating(self):
+        score_base = self._get_score_base()
         for line in self:
-            # scale 10
             if line.kpi_type == "quantitative":
                 # system_score đã đúng, dùng thẳng
                 line.final_rating = round(
-                    min(max(line.system_score or 0.0, 0.0), 10.0), 2
+                    min(max(line.system_score or 0.0, 0.0), score_base), 2
                 )
             else:
                 # Với binary/rating/score: final_rating = system_score (manager đã được ưu tiên trong system_score)
                 line.final_rating = round(
-                    min(max(line.system_score or 0.0, 0.0), 10.0), 2
+                    min(max(line.system_score or 0.0, 0.0), score_base), 2
                 )
 
     @api.depends("final_rating")
@@ -544,11 +544,12 @@ class PerformanceEvaluationLine(models.Model):
 
     @api.depends("final_rating")
     def _compute_final_rating_badge_text(self):
+        score_base = self._get_score_base()
         for line in self:
             rating = line.final_rating
             if rating == 0:
                 line.final_rating_badge_text = "0"
-            elif rating == 10 or rating % 1 == 0:
+            elif rating == score_base or rating % 1 == 0:
                 line.final_rating_badge_text = f"{int(rating)}"
             else:
                 line.final_rating_badge_text = f"{rating:.1f}"
@@ -613,26 +614,40 @@ class PerformanceEvaluationLine(models.Model):
 
     @api.constrains("employee_rating_score", "manager_rating_score", "kpi_type")
     def _check_score_range(self):
+        score_base = self._get_score_base()
         for rec in self:
             if rec.kpi_type == "score":
-                if not 0 <= (rec.employee_rating_score or 0) <= 10:
-                    raise ValidationError("Employee score must be between 0 and 10.")
-                if not 0 <= (rec.manager_rating_score or 0) <= 10:
-                    raise ValidationError("Manager score must be between 0 and 10.")
+                if not 0 <= (rec.employee_rating_score or 0) <= score_base:
+                    raise ValidationError(
+                        _("Employee score must be between 0 and %(max_score)s.")
+                        % {"max_score": f"{score_base:g}"}
+                    )
+                if not 0 <= (rec.manager_rating_score or 0) <= score_base:
+                    raise ValidationError(
+                        _("Manager score must be between 0 and %(max_score)s.")
+                        % {"max_score": f"{score_base:g}"}
+                    )
 
     @api.constrains("employee_rating_value", "manager_rating_value")
     def _check_value_ratings_range(self):
+        score_base = self._get_score_base()
         for rec in self:
             if (
                 rec.employee_rating_value is not None
-                and not 0.0 <= rec.employee_rating_value <= 10.0
+                and not 0.0 <= rec.employee_rating_value <= score_base
             ):
-                raise ValidationError("Employee rating value must be between 0 and 10.")
+                raise ValidationError(
+                    _("Employee rating value must be between 0 and %(max_score)s.")
+                    % {"max_score": f"{score_base:g}"}
+                )
             if (
                 rec.manager_rating_value is not None
-                and not 0.0 <= rec.manager_rating_value <= 10.0
+                and not 0.0 <= rec.manager_rating_value <= score_base
             ):
-                raise ValidationError("Manager rating value must be between 0 and 10.")
+                raise ValidationError(
+                    _("Manager rating value must be between 0 and %(max_score)s.")
+                    % {"max_score": f"{score_base:g}"}
+                )
 
     def _mirror_employee_to_manager_vals(self, vals, vals_before=None):
         """Mirror employee self-rating into manager rating on self evaluation evaluations.

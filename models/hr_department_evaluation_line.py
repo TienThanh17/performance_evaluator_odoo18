@@ -1,6 +1,7 @@
 import json
 
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 
 class HrDepartmentEvaluationLine(models.Model):
@@ -87,9 +88,10 @@ class HrDepartmentEvaluationLine(models.Model):
         default="0",
     )
 
-    manager_rating_score = fields.Integer(
+    manager_rating_score = fields.Float(
         string="Manager Rating (Score)",
         default=0,
+        digits=(16, 2),
     )
 
     manager_comment = fields.Text()
@@ -178,6 +180,7 @@ class HrDepartmentEvaluationLine(models.Model):
         "manager_rating_score",
     )
     def _compute_system_score(self):
+        score_base = self.env["res.config.settings"].get_score_scale_base()
         for line in self:
             if line.is_section:
                 line.system_score = 0.0
@@ -189,27 +192,27 @@ class HrDepartmentEvaluationLine(models.Model):
 
             if line.kpi_type == "quantitative":
                 if line.direction == "higher_better":
-                    score = (actual / target) * 100.0 if target > 0 else 100.0
+                    score = (actual / target) * score_base if target > 0 else score_base
                 else:
-                    score = (target / actual) * 100.0 if actual > 0 else 100.0
+                    score = (target / actual) * score_base if actual > 0 else score_base
             elif line.kpi_type == "binary":
                 val = line.manager_rating_binary
-                score = 100.0 if val == "yes" else 0.0
+                score = score_base if val == "yes" else 0.0
             elif line.kpi_type == "rating":
                 raw = line.manager_rating_selection or "0"
                 rating = float(raw)
-                score = (rating / 5.0) * 100.0
+                score = (rating / 5.0) * score_base
             elif line.kpi_type == "score":
                 val = line.manager_rating_score or 0
                 score = float(val)
 
-            line.system_score = max(0.0, min(score, 100.0))
+            line.system_score = max(0.0, min(score, score_base))
 
     @api.depends("system_score")
     def _compute_final_score(self):
+        score_base = self.env["res.config.settings"].get_score_scale_base()
         for line in self:
-            # scale 10
-            line.final_score = line.system_score / 10
+            line.final_score = round(max(0.0, min(line.system_score or 0.0, score_base)), 2)
 
     # Thay thế hàm hiện tại bằng đoạn code này:
     def _is_percent_unit(self):
@@ -268,6 +271,16 @@ class HrDepartmentEvaluationLine(models.Model):
             else:
                 line.final_score_badge_text = f"{rounded_score:.2f}".rstrip("0").rstrip(
                     "."
+                )
+
+    @api.constrains("manager_rating_score", "kpi_type")
+    def _check_manager_rating_score_range(self):
+        score_base = self.env["res.config.settings"].get_score_scale_base()
+        for rec in self:
+            if rec.kpi_type == "score" and not 0 <= (rec.manager_rating_score or 0.0) <= score_base:
+                raise ValidationError(
+                    _("Manager score must be between 0 and %(max_score)s.")
+                    % {"max_score": f"{score_base:g}"}
                 )
 
     def action_open_popup(self):

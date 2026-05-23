@@ -4,6 +4,13 @@ import { useService } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
 import { _t } from "@web/core/l10n/translation";
+import {
+    formatScore as _formatScore,
+    formatVariance as _formatVariance,
+    varianceClass as _varianceClass,
+    statusText as _statusText,
+    statusClass as _statusClass,
+} from "@custom_adecsol_hr_performance_evaluator/utils/kpi_helpers";
 
 const MANAGER_GROUP = "custom_adecsol_hr_performance_evaluator.group_manager";
 const HR_GROUP = "custom_adecsol_hr_performance_evaluator.group_hr";
@@ -214,8 +221,14 @@ export class DeptKpiDashboard extends Component {
     }
 
     // ── Getters ───────────────────────────────────────────────────────────────
-    formatScore(val) {
-        return val != null ? Number(val).toFixed(2) : "—";
+
+    get scoreScale() {
+        return this.state.data?.score_scale || { suffix: " / 10" };
+    }
+
+    /** Hiển thị điểm số, mặc định 2 chữ số thập phân. */
+    formatScore(val, decimals = 2) {
+        return _formatScore(val, this.scoreScale, { decimals });
     }
 
     levelLabel(lvl) {
@@ -223,28 +236,10 @@ export class DeptKpiDashboard extends Component {
     }
 
     // ── Quantitative Table Helpers ───────────────────────────────────────────
-    formatVariance(row) {
-        if (row.variance === 0) return "0%";
-        return row.variance > 0 ? `+${row.variance}%` : `${row.variance}%`;
-    }
-
-    varianceClass(row) {
-        if (row.variance === 0) return "o_kpi_variance o_kpi_variance_good";
-        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
-        return isGood ? "o_kpi_variance o_kpi_variance_exceeded" : "o_kpi_variance o_kpi_variance_bad";
-    }
-
-    statusText(row) {
-        if (row.variance === 0) return _t("Achieved");
-        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
-        return isGood ? _t("Exceeded") : _t("Not Met");
-    }
-
-    statusClass(row) {
-        if (row.variance === 0) return "o_kpi_status o_kpi_status_pass";
-        const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
-        return isGood ? "o_kpi_status o_kpi_status_excellent" : "o_kpi_status o_kpi_status_fail";
-    }
+    formatVariance(row) { return _formatVariance(row); }
+    varianceClass(row) { return _varianceClass(row); }
+    statusText(row) { return _statusText(row); }
+    statusClass(row) { return _statusClass(row); }
 
     // ── Data loaders ─────────────────────────────────────────────────────────
     async _loadDepartments() {
@@ -509,7 +504,7 @@ export class DeptKpiDashboard extends Component {
                         beginAtZero: true,
                         title: { display: true, text: _t("Số lần chấm công"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
-                        ticks: { stepSize: 1, font: { size: 10 } },
+                        ticks: { stepSize: (this.state.data?.score_scale?.base || 10) / 10, font: { size: 10 } },
                     },
                 },
                 plugins: {
@@ -578,7 +573,7 @@ export class DeptKpiDashboard extends Component {
             type: "line",
             data: { labels, datasets },
             options: {
-                ...baseLineOpts(_t("Score (0-10)"), _t("Month")),
+                ...baseLineOpts(_t("Score"), _t("Month")),
                 scales: {
                     x: {
                         title: { display: true, text: _t("Month"), font: { size: 11 } },
@@ -586,8 +581,8 @@ export class DeptKpiDashboard extends Component {
                         ticks: { font: { size: 11 } },
                     },
                     y: {
-                        min: 0, max: 10,
-                        title: { display: true, text: _t("Score (0-10)"), font: { size: 11 } },
+                        min: 0, max: this.state.data?.score_scale?.base || 10,
+                        title: { display: true, text: _t("Score"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
                         ticks: { stepSize: 1, font: { size: 10 } },
                     },

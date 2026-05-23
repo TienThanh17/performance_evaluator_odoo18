@@ -11,6 +11,15 @@
                     <app string="Performance Evaluation" name="custom_adecsol_hr_performance_evaluator"
                          logo="/custom_adecsol_hr_performance_evaluator/static/description/icon.png">
                         <block title="KPI Performance Settings">
+                            <setting string="KPI score scale"
+                                     help="Choose whether this customer stores and evaluates KPI scores on a 10-point or 100-point scale. Use the conversion wizard when KPI data already exists.">
+                                <field name="kpi_score_scale"/>
+                                <button name="%(custom_adecsol_hr_performance_evaluator.action_hr_kpi_score_scale_convert_wizard)d"
+                                        type="action"
+                                        string="Convert Existing Scores"
+                                        class="btn-secondary mt-2 ms-4"/>
+                            </setting>
+
                             <setting string="KPI thresholds "
                                      help="Define score thresholds to classify evaluation results.">
                                 <div class="row mt16 o_settings_container">
@@ -29,7 +38,7 @@
                                     </div>
                                 </div>
                                 <div class="text-muted">
-                                    Example: Excellent ≥ 9, Pass ≥ 5, otherwise Fail.
+                                    Example: scale 10 uses Excellent ≥ 9 and Pass ≥ 5; scale 100 uses Excellent ≥ 90 and Pass ≥ 50.
                                 </div>
                             </setting>
 

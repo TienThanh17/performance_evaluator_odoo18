@@ -12,6 +12,7 @@ class HrPerformanceReport(models.Model):
     _name = "hr.performance.report"
     _description = "Performance Report"
     _inherit = ["mail.thread", "mail.activity.mixin"]
+    _order = 'start_date desc, end_date desc'
     # _rec_name = 'department_name'
 
     # Fields
@@ -96,6 +97,11 @@ class HrPerformanceReport(models.Model):
                 rec.display_name = name
 
     def action_generate_department_evaluations(self):
+        score_base = self.env["res.config.settings"].get_score_scale_base()
+        score_unit = self.env.ref(
+            "custom_adecsol_hr_performance_evaluator.kpi_unit_score",
+            raise_if_not_found=False,
+        )
         for report in self:
             kpis = self.env["hr.department.kpi"].search(
                 [("period", "=", report.period)]
@@ -135,10 +141,18 @@ class HrPerformanceReport(models.Model):
                                 "department_kpi_line_id": line.id,
                                 "name": line.name,
                                 "kpi_type": line.kpi_type,
-                                "target": line.target,
+                                "target": score_base
+                                if line.data_source == "child_kpi_average"
+                                else line.target,
                                 "direction": line.direction,
                                 "weight": line.weight,
-                                "unit": line.unit.id if line.unit else False,
+                                "unit": line.unit.id
+                                if line.unit
+                                else (
+                                    score_unit.id
+                                    if line.data_source == "child_kpi_average" and score_unit
+                                    else False
+                                ),
                                 "is_auto": line.is_auto,
                                 "data_source": line.data_source,
                                 "is_section": line.is_section,
@@ -445,8 +459,16 @@ class HrPerformanceReport(models.Model):
         self.ensure_one()
 
         evalids = self.with_context(active_test=False).evaluation_ids.ids
+        settings = self.env["res.config.settings"]
+        score_scale = settings.get_score_scale_info()
+        threshold_excellent, threshold_pass = settings.get_thresholds()
         if not evalids:
             return {
+                "score_scale": score_scale,
+                "thresholds": {
+                    "excellent": threshold_excellent,
+                    "pass": threshold_pass,
+                },
                 "employees": [],
                 "task_summary": {},
                 "attendance_summary": {},
@@ -571,6 +593,11 @@ class HrPerformanceReport(models.Model):
             )
 
         return {
+            "score_scale": score_scale,
+            "thresholds": {
+                "excellent": threshold_excellent,
+                "pass": threshold_pass,
+            },
             "employees": employees,
             "task_summary": task_summary,
             "attendance_summary": attendance_summary,

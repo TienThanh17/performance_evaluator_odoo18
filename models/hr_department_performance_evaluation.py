@@ -243,6 +243,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             "custom_adecsol_hr_performance_evaluator.kpi_unit_score",
             raise_if_not_found=False,
         )
+        score_base = self.env["res.config.settings"].get_score_scale_base()
         for line in template_lines:
             # Kiểm tra nếu dòng hiện tại là một Section (tiêu đề nhóm) dựa trên thuộc tính.
             is_section = bool(getattr(line, "is_section", False))
@@ -278,8 +279,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
                         "direction": line.direction,
-                        "target": 100.0
-                        if line.data_source == "child_kpi_average" and not line.target
+                        "target": score_base
+                        if line.data_source == "child_kpi_average"
                         else line.target,
                         "unit": line.unit.id
                         or (
@@ -328,6 +329,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
         result = {
             "department_name": self.department_id.name or "",
+            "score_scale": self.env["res.config.settings"].get_score_scale_info(),
             # "manager_name": (
             #     self.department_id.manager_id.name
             #     if self.department_id.manager_id
@@ -710,34 +712,17 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     def get_kpi_tree_data(self, period_start=None, period_end=None):
         """Trả về toàn bộ dữ liệu cho KPI Tree Dashboard theo một RPC duy nhất.
 
-        Quy ước quan trọng: toàn bộ điểm trong payload này giữ nguyên thang 0-10.
+        Quy ước quan trọng: toàn bộ điểm trong payload này giữ nguyên theo thang điểm cấu hình.
         Frontend chỉ format lại cách hiển thị, không tự nhân sang thang 100.
         """
         try:
             Evaluation = self.env["hr.performance.evaluation"].sudo()
             DeptEvaluation = self.env["hr.department.performance.evaluation"].sudo()
-            ICP = self.env["ir.config_parameter"].sudo()
-            score_scale = {
-                "base": 10,
-                "display_multiplier": 1,
-                "suffix": " / 10",
-            }
+            settings = self.env["res.config.settings"]
+            score_scale = settings.get_score_scale_info()
 
-            # ── Thresholds (thang 0-10) ───────────────────────────────────────
-            threshold_excellent = float(
-                ICP.get_param(
-                    "custom_adecsol_hr_performance_evaluator.kpi_threshold_excellent",
-                    default="9",
-                )
-                or 9.0
-            )
-            threshold_pass = float(
-                ICP.get_param(
-                    "custom_adecsol_hr_performance_evaluator.kpi_threshold_pass",
-                    default="5",
-                )
-                or 5.0
-            )
+            # ── Thresholds theo thang điểm cấu hình ───────────────────────────
+            threshold_excellent, threshold_pass = settings.get_thresholds()
 
             def _empty_response(period=None):
                 """Tạo response rỗng nhưng đủ key để OWL không bị crash khi render."""
@@ -756,8 +741,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     "departments": [],
                     "risk_lines": [],
                     "missing_data_lines": [],
+                    "failed_evaluation_lines": [],
                     "risk_kpis": [],
                     "missing_data_kpis": [],
+                    "failed_evaluations": [],
                     "logic_warnings": [],
                     "financial_kpis": [],
                     "ai_insights": [],
@@ -909,7 +896,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         }
                     )
 
-                # Điểm trung bình cấp phòng ban dùng cho detail panel, vẫn giữ thang 0-10.
+                # Điểm trung bình cấp phòng ban dùng cho detail panel, cùng thang điểm cấu hình.
                 avg_performance_score = (
                     sum(ev.performance_score or 0.0 for ev in employee_evals)
                     / len(employee_evals)
@@ -955,6 +942,56 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 if total_final_scores
                 else 0.0
             )
+
+            # ── Failed evaluations: phiếu cá nhân/phòng ban không đạt theo threshold pass
+            # Nhân viên dùng performance_score theo yêu cầu nghiệp vụ, không dùng final_score.
+            failed_evaluation_lines = []
+            for ev in evals.filtered(
+                lambda record: float(record.performance_score or 0.0) < threshold_pass
+            ):
+                score = float(ev.performance_score or 0.0)
+                failed_evaluation_lines.append(
+                    {
+                        "source_type": "employee",
+                        "source_label": "Cá nhân",
+                        "record_model": "hr.performance.evaluation",
+                        "record_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": ev.employee_id.name if ev.employee_id else "",
+                        "score": round(score, 2),
+                        "score_label": "KPI cá nhân",
+                        "state": ev.state or "",
+                        "level": "fail",
+                    }
+                )
+            for ev in dept_evals.filtered(
+                lambda record: float(record.get_dept_kpi_score() or 0.0) < threshold_pass
+            ):
+                score = float(ev.get_dept_kpi_score() or 0.0)
+                failed_evaluation_lines.append(
+                    {
+                        "source_type": "department",
+                        "source_label": "Phòng ban",
+                        "record_model": "hr.department.performance.evaluation",
+                        "record_id": ev.id,
+                        "evaluation_name": ev.name or "",
+                        "dept_name": ev.department_id.name if ev.department_id else "",
+                        "employee_name": "",
+                        "score": round(score, 2),
+                        "score_label": "KPI phòng ban",
+                        "state": ev.state or "",
+                        "level": "fail",
+                    }
+                )
+            failed_evaluation_lines.sort(
+                key=lambda item: (
+                    item.get("score") or 0.0,
+                    item.get("source_type") or "",
+                    item.get("record_id") or 0,
+                )
+            )
+            failed_evaluations = failed_evaluation_lines[:5]
 
             # ── Risk KPIs: tất cả KPI cá nhân + phòng ban bị fail theo threshold pass
             EvalLine = self.env["hr.performance.evaluation.line"].sudo()
@@ -1110,8 +1147,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 "departments": departments,
                 "risk_lines": risk_lines,
                 "missing_data_lines": missing_data_lines,
+                "failed_evaluation_lines": failed_evaluation_lines,
                 "risk_kpis": risk_kpis,
                 "missing_data_kpis": missing_data_kpis,
+                "failed_evaluations": failed_evaluations,
                 "logic_warnings": [],
                 "financial_kpis": [],
                 "ai_insights": [],
@@ -1127,7 +1166,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             return {
                 "period": {"start": "", "end": "", "label": ""},
                 "available_periods": [],
-                "score_scale": {"base": 10, "display_multiplier": 1, "suffix": " / 10"},
+                "score_scale": {"base": 10.0, "display_multiplier": 1, "suffix": " / 10"},
                 "company": {
                     "dept_kpi_score": 0.0,
                     "avg_performance_score": 0.0,
@@ -1139,8 +1178,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 "departments": [],
                 "risk_lines": [],
                 "missing_data_lines": [],
+                "failed_evaluation_lines": [],
                 "risk_kpis": [],
                 "missing_data_kpis": [],
+                "failed_evaluations": [],
                 "logic_warnings": [],
                 "financial_kpis": [],
                 "ai_insights": [],

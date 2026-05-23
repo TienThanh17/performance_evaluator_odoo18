@@ -156,8 +156,11 @@ class HrDepartmentKpiLine(models.Model):
 
     @api.onchange("data_source")
     def _onchange_unit(self):
+        score_base = self.env["res.config.settings"].get_score_scale_base()
         for rec in self:
             rec.unit = rec._get_default_unit()
+            if rec.data_source == "child_kpi_average":
+                rec.target = score_base
 
     @api.depends("target", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):

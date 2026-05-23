@@ -1,6 +1,6 @@
 {
     "name": "ADEC SOL HR Performance Evaluator",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "category": "Human Resources",
     "author": "ADEC SOL",
     # 'website': 'https://www.adecsol.com',
@@ -36,6 +36,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         # ============================== VIEWS =============================
         "views/hr_department_kpi_generate_wizard_views.xml",
         "views/kpi_generate_wizard_views.xml",
+        "views/hr_kpi_score_scale_convert_wizard_views.xml",
         "views/kpi_view.xml",
         "views/res_config_settings_views.xml",
         "views/kpi_unit_views.xml",
@@ -54,6 +55,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
             "custom_adecsol_hr_performance_evaluator/static/src/scss/performance_dashboard.scss",
             "custom_adecsol_hr_performance_evaluator/static/src/scss/kpi_dashboard.scss",
             "custom_adecsol_hr_performance_evaluator/static/src/scss/dept_kpi_dashboard.scss",
+            "custom_adecsol_hr_performance_evaluator/static/src/utils/kpi_helpers.js",
             "custom_adecsol_hr_performance_evaluator/static/src/js/kpi_dashboard_page.js",
             "custom_adecsol_hr_performance_evaluator/static/src/js/kpi_child_matrix_utils.js",
             "custom_adecsol_hr_performance_evaluator/static/src/js/kpi_child_matrix_fields.js",

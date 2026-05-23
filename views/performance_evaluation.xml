@@ -211,6 +211,8 @@
                     <field name="name" />
                     <field name="employee_id" />
                     <field name="performance_score" />
+                    <field name="performance_score_progress_pct" />
+                    <field name="score_scale_suffix" />
                     <field name="final_score" />
                     <field name="final_level" />
                     <field name="job_id" />
@@ -232,7 +234,7 @@
                                     t-value="record.performance_level.raw_value == 'excellent' ? '#d1e7fd' : (record.performance_level.raw_value == 'pass' ? '#dfffc5' : '#ffb9b9')" />
                                 <t t-set="main_blue" t-value="'#517ca4'" />
                                 <t t-set="score_pct"
-                                    t-value="record.performance_score.raw_value * 10" />
+                                    t-value="record.performance_score_progress_pct.raw_value" />
 
                                 <aside
                                     t-attf-style="width: 35%; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #{bg_sidebar};">
@@ -427,6 +429,8 @@
                                     decoration-muted="period_status == 'closed'" />
 
                                 <field name="performance_score" invisible="1" />
+                                <field name="performance_score_progress_pct" invisible="1" />
+                                <field name="score_scale_suffix" invisible="1" />
                                 <field name="performance_badge_class" invisible="1" />
                                 <field name="has_binary_kpi" invisible="1" />
                                 <field name="has_rating_kpi" invisible="1" />
@@ -563,7 +567,9 @@
                                                 <span class="o_perf_value">
                                                     <field name="performance_score" />
                                                 </span>
-                                                <span class="o_perf_suffix">/ 10</span>
+                                                <span class="o_perf_suffix">
+                                                    <field name="score_scale_suffix" />
+                                                </span>
                                             </div>
                                             <div class="o_perf_summary_level">
                                                 <span class="o_perf_label">Result:</span>
@@ -626,6 +632,8 @@
                     <filter string="Pass" name="pass" domain="[('performance_level', '=', 'pass')]" />
                     <filter string="Fail" name="fail" domain="[('performance_level', '=', 'fail')]" />
                     <group expand="1" string="Group By">
+                        <filter string="Employee" name="group_by_employee"
+                            context="{'group_by':'employee_id'}" />
                         <filter string="Department" name="group_by_department"
                             context="{'group_by':'department_id'}" />
                     </group>

@@ -23,7 +23,7 @@ class KPIline(models.Model):
         string='KPI Type',
         default='quantitative',
         required=True,
-        help="How this KPI is evaluated: Quantitative (Target vs Actual), Binary (Yes/No), Rating (0–5), or Score (0–10).",
+        help="How this KPI is evaluated: Quantitative (Target vs Actual), Binary (Yes/No), Rating (0–5), or direct Score.",
     )
 
     direction = fields.Selection(

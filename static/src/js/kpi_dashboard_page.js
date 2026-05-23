@@ -20,6 +20,13 @@ import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user"; // singleton – no service needed
 import { loadJS } from "@web/core/assets";
 import { _t } from "@web/core/l10n/translation";
+import {
+    formatScore as _formatScore,
+    formatVariance as _formatVariance,
+    varianceClass as _varianceClass,
+    statusText as _statusText,
+    statusClass as _statusClass,
+} from "@custom_adecsol_hr_performance_evaluator/utils/kpi_helpers";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -226,6 +233,7 @@ export class KpiDashboard extends Component {
             console.warn("KPI Dashboard: could not load employee list", e);
         }
     }
+
     // Hàm mới: Lọc nhân viên dựa trên phòng ban đang chọn
     _filterEmployees() {
         if (this.state.selectedDepartmentId) {
@@ -300,7 +308,7 @@ export class KpiDashboard extends Component {
                 if (targetEval) {
                     this.state.selectedEvaluationId = targetEval.id;
                     // Reset lại để các lần user tự chọn nhân viên khác thì nó fallback về evals[0]
-                    this.state.passedEvaluationId = false; 
+                    this.state.passedEvaluationId = false;
                 } else {
                     this.state.selectedEvaluationId = evals[0].id;
                 }
@@ -382,13 +390,27 @@ export class KpiDashboard extends Component {
     }
 
     // ── Computed helpers (called from template) ──────────────────────────────
+    get scoreScale() {
+        return this.state.data?.score_scale || { base: 10, suffix: " / 10" };
+    }
+
+    /** Hiển thị điểm số, mặc định 2 chữ số thập phân. */
+    formatScore(value, decimals = 2) {
+        return _formatScore(value, this.scoreScale, { decimals });
+    }
+
+    scorePct(value) {
+        const base = Number(this.scoreScale.base || 10);
+        return Math.max(0, Math.min(100, ((Number(value) || 0) / base) * 100));
+    }
+
     get scoreText() {
-        return (this.state.data ? this.state.data.performance_score : 0).toFixed(1);
+        return this.formatScore(this.state.data ? this.state.data.performance_score : 0);
     }
 
     get scoreRingStyle() {
         const score = this.state.data ? this.state.data.performance_score : 0;
-        const pct = Math.min(score * 10, 100);
+        const pct = this.scorePct(score);
         const level = this.state.data ? this.state.data.performance_level : "fail";
         const color =
             level === "excellent"
@@ -398,14 +420,6 @@ export class KpiDashboard extends Component {
                     : COLOR_RED;
         return "background: conic-gradient(" + color + " " + pct + "%, #e5e7eb 0)";
     }
-
-    // get levelLabel() {
-    //     return this.state.data ? this.state.data.performance_level : "";
-    // }
-
-    // get levelClass() {
-    //     return "o_kpi_level_badge o_kpi_level_" + this.levelLabel;
-    // }
 
     get levelLabel() {
         // Trả về thẳng Label đã được Python dịch
@@ -421,7 +435,7 @@ export class KpiDashboard extends Component {
 
     get deptScoreText() {
         if (!this.state.data || !this.state.data.has_dept_evaluation) return "N/A";
-        return (this.state.data.dept_kpi_score || 0).toFixed(1);
+        return this.formatScore(this.state.data.dept_kpi_score || 0);
     }
 
     get individualWeightText() {
@@ -462,15 +476,16 @@ export class KpiDashboard extends Component {
     }
 
     _levelFromScore(score) {
-        if (score >= 9) return "excellent";
-        if (score >= 5) return "pass";
+        const thresholds = this.state.data?.thresholds || { excellent: 9, pass: 5 };
+        if (score >= thresholds.excellent) return "excellent";
+        if (score >= thresholds.pass) return "pass";
         return "fail";
     }
 
     // ── Final Score helpers (dùng cho breakdown section trong template) ────────
     get finalScoreText() {
         // Trả về final_score đã được làm tròn 2 chữ số thập phân
-        return (this.state.data ? this.state.data.final_score : 0).toFixed(2);
+        return this.formatScore(this.state.data ? this.state.data.final_score : 0, 2);
     }
 
     get finalLevelClass() {
@@ -486,56 +501,18 @@ export class KpiDashboard extends Component {
         return labels[level] || level;
     }
 
-    // -------------------------------------------------------------------------
-    // Bảng Quantitative - Xử lý Logic Status & Variance
-    // -------------------------------------------------------------------------
-
+    // ── Quantitative table helpers ────────────────────────────────────────────
     // 1. Format text cho cột Variance (Thêm dấu + cho số dương)
-    formatVariance(row) {
-        if (row.variance === 0) return "0%";
-        return row.variance > 0 ? `+${row.variance}%` : `${row.variance}%`;
-    }
+    formatVariance(row) { return _formatVariance(row); }
 
     // 2. Màu sắc cho cột Variance
-    varianceClass(row) {
-        if (row.variance === 0) return "o_kpi_variance o_kpi_variance_good";
-
-        // Xác định xem variance hiện tại là Tích cực (Good) hay Tiêu cực (Bad)
-        const isGood =
-            row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
-
-        return isGood
-            ? "o_kpi_variance o_kpi_variance_exceeded"
-            : "o_kpi_variance o_kpi_variance_bad";
-    }
+    varianceClass(row) { return _varianceClass(row); }
 
     // 3. Chữ hiển thị cho cột Status
-    statusText(row) {
-        // Đúng Target (Variance = 0) -> Achieved
-        if (row.variance === 0) return _t("Achieved");
-
-        // Xác định Tích cực/Tiêu cực
-        const isGood =
-            row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
-
-        // Tích cực -> Exceeded, Tiêu cực -> Not Met
-        return isGood ? _t("Exceeded") : _t("Not Met");
-    }
+    statusText(row) { return _statusText(row); }
 
     // 4. Màu nền cho Badge Status
-    statusClass(row) {
-        // Đạt chính xác Target -> Dùng màu Xanh lá (Pass)
-        if (row.variance === 0) return "o_kpi_status o_kpi_status_pass";
-
-        const isGood =
-            row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
-
-        // Vượt mục tiêu -> Xanh dương đậm (Excellent)
-        // Không đạt -> Đỏ (Fail)
-        return isGood
-            ? "o_kpi_status o_kpi_status_excellent"
-            : "o_kpi_status o_kpi_status_fail";
-    }
+    statusClass(row) { return _statusClass(row); }
 
     periodLabel(period) {
         return PERIOD_LABELS[period] || period;
@@ -717,8 +694,8 @@ export class KpiDashboard extends Component {
                     scales: {
                         r: {
                             min: 0,
-                            max: 10,
-                            ticks: { stepSize: 2, font: { size: 10 } },
+                            max: d.spider_web.max || this.scoreScale.base || 10,
+                            ticks: { stepSize: (d.spider_web.max || this.scoreScale.base || 10) / 5, font: { size: 10 } },
                             pointLabels: {
                                 font: { size: 11 },
                                 // 2. TỰ ĐỘNG NGẮT DÒNG CHO NHÃN QUÁ DÀI
