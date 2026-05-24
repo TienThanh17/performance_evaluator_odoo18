@@ -28,11 +28,11 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "security/ir.model.access.csv",
         # ============================== DATA =============================
         "data/ir_config_parameter_data.xml",
-        "data/kpi_unit_data.xml",
         "data/ir_cron_data.xml",
         "data/kpi_sequence.xml",
-        "data/kpi_IT_employee_data.xml",
-        # 'data/kpi_IT_department_data.xml',
+        # ============================== DATA =============================
+        "demo/kpi_unit_data.xml",
+        "demo/kpi_IT_employee_data.xml",
         # ============================== VIEWS =============================
         "views/hr_department_kpi_generate_wizard_views.xml",
         "views/kpi_generate_wizard_views.xml",

@@ -120,12 +120,12 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             raise ValidationError('The Department KPI Template must have a Department assigned.')
         report_period = self._map_employee_period(self.period)
         if self.kpi_template_id:
-            if self.kpi_template_id.department_kpi_id != self.department_kpi_id:
-                raise ValidationError(
-                    _(
-                        'The Employee KPI Template must be linked to the selected Department KPI Template.'
-                    )
-                )
+            # if self.kpi_template_id.department_kpi_id != self.department_kpi_id:
+            #     raise ValidationError(
+            #         _(
+            #             'The Employee KPI Template must be linked to the selected Department KPI Template.'
+            #         )
+            #     )
             if self.kpi_template_id.period != report_period:
                 raise ValidationError(
                     _(
