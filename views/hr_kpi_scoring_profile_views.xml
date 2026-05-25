@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_kpi_scoring_profile_list" model="ir.ui.view">
+        <field name="name">hr.kpi.scoring.profile.list</field>
+        <field name="model">hr.kpi.scoring.profile</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="threshold_excellent"/>
+                <field name="threshold_pass"/>
+                <field name="template_count"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hr_kpi_scoring_profile_form" model="ir.ui.view">
+        <field name="name">hr.kpi.scoring.profile.form</field>
+        <field name="model">hr.kpi.scoring.profile</field>
+        <field name="arch" type="xml">
+            <form string="Scoring Profile">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="threshold_excellent"/>
+                        <field name="threshold_pass"/>
+                        <field name="template_count" readonly="1"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_kpi_scoring_profile" model="ir.actions.act_window">
+        <field name="name">Scoring Profiles</field>
+        <field name="res_model">hr.kpi.scoring.profile</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_kpi_scoring_profile" name="Scoring Profiles" parent="menu_kpi_configuration" action="action_hr_kpi_scoring_profile" sequence="20"/>
+</odoo>

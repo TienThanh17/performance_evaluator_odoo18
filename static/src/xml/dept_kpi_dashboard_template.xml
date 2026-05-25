@@ -63,7 +63,7 @@
   <div t-elif="state.phase === 'done'" class="o_dept_kpi_body">
 
     <!-- ── 4 Scorecards ── -->
-    <div class="o_dept_kpi_scorecards">
+    <div t-if="hasWidget('department_summary')" class="o_dept_kpi_scorecards">
 
       <!-- Scorecard 1: Department Manager -->
       <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--blue">
@@ -115,10 +115,13 @@
     </div>
 
     <!-- ── Row 1: Chart A (Stacked Bar) + Chart B (Bar) ── -->
-    <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--2col">
+    <div
+      t-if="hasWidget('department_task_distribution') or hasWidget('department_project_progress')"
+      class="o_dept_kpi_chart_row o_dept_kpi_chart_row--2col"
+    >
 
       <!-- Chart A: Task stacked bar per employee -->
-      <div class="o_dept_kpi_chart_card">
+      <div t-if="hasWidget('department_task_distribution')" class="o_dept_kpi_chart_card">
         <div class="o_dept_kpi_chart_header">
           <div class="o_dept_kpi_chart_title">
             <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--blue"/>
@@ -134,7 +137,7 @@
       </div>
 
       <!-- Chart B: Project progress bar -->
-      <div class="o_dept_kpi_chart_card">
+      <div t-if="hasWidget('department_project_progress')" class="o_dept_kpi_chart_card">
         <div class="o_dept_kpi_chart_header">
           <div class="o_dept_kpi_chart_title">
             <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--green"/>
@@ -152,10 +155,13 @@
     </div>
 
     <!-- ── Row 2: Chart C (Attendance Line) + Chart D (Bug Line) ── -->
-    <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--2col">
+    <div
+      t-if="hasWidget('department_attendance') or hasWidget('department_bug_count')"
+      class="o_dept_kpi_chart_row o_dept_kpi_chart_row--2col"
+    >
 
       <!-- Chart C: Attendance hours per employee -->
-      <div class="o_dept_kpi_chart_card">
+      <div t-if="hasWidget('department_attendance')" class="o_dept_kpi_chart_card">
         <div class="o_dept_kpi_chart_header">
           <div class="o_dept_kpi_chart_title">
             <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--teal"/>
@@ -171,7 +177,7 @@
       </div>
 
       <!-- Chart D: Bug count per employee -->
-      <div class="o_dept_kpi_chart_card">
+      <div t-if="hasWidget('department_bug_count')" class="o_dept_kpi_chart_card">
         <div class="o_dept_kpi_chart_header">
           <div class="o_dept_kpi_chart_title">
             <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--amber"/>
@@ -189,13 +195,13 @@
     </div>
 
     <!-- ── Row 3: Chart E (Timeline score line, full width) ── -->
-    <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col">
+    <div t-if="hasWidget('department_score_trend')" class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col">
 
       <div class="o_dept_kpi_chart_card o_dept_kpi_chart_card--tall">
         <div class="o_dept_kpi_chart_header">
           <div class="o_dept_kpi_chart_title">
             <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--purple"/>
-            Employee Score Over Time
+            Department KPI Trend
           </div>
           <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--purple">Timeline</span>
         </div>
@@ -209,7 +215,11 @@
     </div>
 
     <!-- ── Row 4: Quantitative Table ── -->
-    <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col" style="margin-top: 20px;">
+    <div
+      t-if="hasWidget('department_quantitative_table')"
+      class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col"
+      style="margin-top: 20px;"
+    >
       <div class="o_dept_kpi_chart_card">
         <div class="o_dept_kpi_chart_header">
           <div class="o_dept_kpi_chart_title">
@@ -236,8 +246,8 @@
                   <tr>
                     <td class="o_kpi_table_name" t-esc="row.name"/>
                     <td>
-                      <span t-if="row.direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
-                      <span t-if="row.direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
+                      <span t-if="row.linear_direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
+                      <span t-if="row.linear_direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
                       <span class="ms-1" t-esc="row.target"/>
                     </td>
                     <td t-esc="row.actual"/>

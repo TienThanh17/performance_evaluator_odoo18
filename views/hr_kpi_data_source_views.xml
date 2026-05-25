@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_kpi_data_source_list" model="ir.ui.view">
+        <field name="name">hr.kpi.data.source.list</field>
+        <field name="model">hr.kpi.data.source</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="code" />
+                <field name="source_type" />
+                <field name="model_name" />
+                <field name="aggregation" />
+                <field name="active" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hr_kpi_data_source_form" model="ir.ui.view">
+        <field name="name">hr.kpi.data.source.form</field>
+        <field name="model">hr.kpi.data.source</field>
+        <field name="arch" type="xml">
+            <form string="Data Source">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="code" />
+                        <field name="unit_id" />
+                        <field name="source_type" />
+                        <field name="description" />
+                        <field name="active" />
+                    </group>
+                    <group invisible="source_type != 'domain'">
+                        <field name="model_id" />
+                        <field name="model_name" invisible="1" />
+
+                        <field name="aggregation" />
+                        <!-- <field name="employee_scope" /> -->
+                        <field name="user_field_id"
+                            options="{'no_create': True}"
+                            invisible="not model_id" />
+                        <field name="date_field_id" options="{'no_create': True}"
+                            invisible="not model_id" />
+                        <!-- <field name="date_field_start" />
+                        <field name="date_field_end" /> -->
+                        <field name="domain_numerator" widget="domain"
+                            options="{'model': 'model_name'}" />
+                        <field name="domain_denominator" widget="domain"
+                            options="{'model': 'model_name'}" invisible="aggregation != 'ratio'" />
+                        <field name="sum_avg_field_id" 
+                               options="{'no_create': True}" 
+                               invisible="aggregation not in ('sum', 'avg')" 
+                               required="aggregation in ('sum', 'avg')"/>
+                    </group>
+                    <group invisible="source_type != 'python'">
+                        <field name="python_code" widget="text" />
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_test_execute" type="object" string="Chạy thử"
+                        class="btn-secondary" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_kpi_data_source" model="ir.actions.act_window">
+        <field name="name">Data Sources</field>
+        <field name="res_model">hr.kpi.data.source</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_kpi_data_source" name="Data Sources" parent="menu_kpi_configuration"
+        action="action_hr_kpi_data_source" sequence="30" />
+</odoo>

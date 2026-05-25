@@ -1,5 +1,9 @@
-from odoo import models, fields, api, _
+import logging
+
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class PerformanceEvaluationLine(models.Model):
@@ -10,14 +14,14 @@ class PerformanceEvaluationLine(models.Model):
     # Optional: keep a backlink to the KPI template line that generated this evaluation line.
     # This makes the mapping explicit and allows future sync/update.
     kpi_line_id = fields.Many2one(
-        "hr.kpi.line",
+        "hr.kpi.template.line",
         string="KPI Template Line",
         ondelete="set null",
         index=True,
         help="The KPI template line this evaluation line comes from (for traceability).",
     )
     parent_dept_line_id = fields.Many2one(
-        "hr.department.kpi.line",
+        "hr.department.kpi.template.line",
         string="Parent Department KPI Template",
         ondelete="set null",
         index=True,
@@ -67,16 +71,6 @@ class PerformanceEvaluationLine(models.Model):
         help="How this KPI line is evaluated: Quantitative (Target vs Actual), Binary (Yes/No), Rating (0–5), or direct Score.",
     )
 
-    direction = fields.Selection(
-        selection=[
-            ("higher_better", "Higher is Better"),
-            ("lower_better", "Lower is Better"),
-        ],
-        string="Direction",
-        default="higher_better",
-        required=True,
-        help="For Quantitative KPIs: choose whether a higher actual value is better or a lower actual value is better.",
-    )
     target = fields.Float(
         string="Target",
         default=0.0,
@@ -101,52 +95,64 @@ class PerformanceEvaluationLine(models.Model):
         store=True,
         help="Enable to let the system automatically compute Actual values from the selected Data Source.",
     )
-
-    data_source = fields.Selection(
-        selection=[
-            ("manual", "Manual"),
-            ("done_task", "Done Task"),
-            ("task_on_time", "Task On Time"),
-            ("late_days", "Late Days"),
-            ("attendance_full", "Attendance Full"),
-        ],
+    data_source_id = fields.Many2one(
+        "hr.kpi.data.source",
+        related="kpi_line_id.data_source_id",
         string="Data Source",
-        default="manual",
-        required=False,
-        help="Where the system gets the Actual value from when Auto Compute is enabled.",
+        store=True,
+        readonly=True,
+    )
+    formula_type = fields.Selection(
+        related="kpi_line_id.formula_type",
+        string="Scoring Formula",
+        store=True,
+        readonly=True,
+    )
+    scoring_formula_id = fields.Many2one(
+        "hr.kpi.scoring.formula",
+        related="kpi_line_id.scoring_formula_id",
+        string="Scoring Formula",
+        store=True,
+        readonly=True,
+    )
+    step_table_json = fields.Text(
+        related="kpi_line_id.step_table_json",
+        string="Step Table JSON",
+        store=True,
+        readonly=True,
     )
 
     # ------------------------------------------------------------
-    # Auto KPI: attendance_full metrics (used for special scoring)
+    # Auto KPI metrics from detail-capable data sources
     # ------------------------------------------------------------
     attendance_worked_days = fields.Float(
         string="Worked Days",
         default=0.0,
-        help="Attendance Full metric: number of distinct days with at least one check-in.",
+        help="Number of distinct days with at least one check-in.",
     )
     attendance_expected_days = fields.Float(
         string="Expected Work Days",
         default=0.0,
-        help="Attendance Full metric: expected work days from working schedule.",
+        help="Expected work days from the employee working schedule.",
     )
     attendance_unpaid_leave_days = fields.Float(
         string="Unpaid Leave Days",
         default=0.0,
-        help="Attendance Full metric: expected days minus worked days.",
+        help="Expected days minus worked days.",
     )
     attendance_approved_leave_days = fields.Float(
         string="Approved Leave Days",
         default=0.0,
-        help="Attendance Full metric: validated leave days overlapping the evaluation period.",
+        help="Validated leave days overlapping the evaluation period.",
     )
     attendance_has_unpaid_leave = fields.Boolean(
         string="Has Unpaid Leave",
         default=False,
-        help="Attendance Full metric: True if leave days exceed approved leave days.",
+        help="True when unpaid leave exceeds approved leave days.",
     )
 
     # actual: giá trị canonical dùng để tính system_score
-    #   - kpi_type=quantitative: so sánh target vs actual theo direction
+    #   - kpi_type=quantitative: công thức hiệu lực quyết định cách so sánh target/actual
     #   - unit.code='percent' quyết định giá trị là phần trăm 0-100
     actual = fields.Float(
         string="Actual",
@@ -204,11 +210,13 @@ class PerformanceEvaluationLine(models.Model):
         selection=_BINARY_YN,
         string="Employee Rating (Binary)",
         help="Employee self-assessment for Binary KPIs (Yes/No).",
+        default="yes"
     )
     manager_rating_binary = fields.Selection(
         selection=_BINARY_YN,
         string="Manager Rating (Binary)",
         help="Manager assessment for Binary KPIs (Yes/No).",
+        default="yes"
     )
 
     # Rating: 0..5 selection.
@@ -319,19 +327,30 @@ class PerformanceEvaluationLine(models.Model):
         help="Controls the order of lines in the evaluation (drag & drop).",
     )
 
-    @api.depends("kpi_type", "data_source")
+    @api.depends("kpi_type", "data_source_id")
     def _compute_auto(self):
         for rec in self:
             rec.is_auto = bool(
-                rec.kpi_type == "quantitative" and rec.data_source != "manual"
+                rec.kpi_type == "quantitative" and rec.data_source_id
             )
 
-    @api.depends("kpi_type", "data_source")
+    @api.depends(
+        "kpi_type",
+        "formula_type",
+        "scoring_formula_id",
+        "scoring_formula_id.formula_type",
+    )
     def _compute_is_special_scoring(self):
-        special_sources = {"late_days", "attendance_full"}
         for rec in self:
+            effective_formula_type = (
+                rec.scoring_formula_id.formula_type
+                if rec.scoring_formula_id
+                else rec.formula_type
+            )
+
             rec.is_special_scoring = bool(
-                rec.kpi_type == "quantitative" and (rec.data_source in special_sources)
+                rec.kpi_type == "quantitative"
+                and effective_formula_type != "linear"
             )
 
     @api.depends("is_section")
@@ -402,28 +421,57 @@ class PerformanceEvaluationLine(models.Model):
     # ------------------------------------------------------------------
     # COMPUTE system_score: depends vào actual + các field liên quan
     # ------------------------------------------------------------------
+    def _compute_system_score_for_line(self, line, actual, target, score_base=None):
+        score_base = float(score_base or self._get_score_base() or 0.0)
+        formula = line.kpi_line_id.get_effective_formula() if line.kpi_line_id else False
+        if not formula:
+            return 0.0
+        try:
+            score = formula.compute_score(actual or 0.0, target or 0.0, max_score=score_base)
+        except Exception as exc:
+            _logger.warning(
+                "Failed computing KPI formula '%s' for evaluation line %s: %s",
+                formula.display_name if formula else "n/a",
+                line.id or "new",
+                exc,
+            )
+            return 0.0
+
+        if getattr(formula, "formula_type", False) == "linear" and getattr(
+            formula, "linear_allow_exceed", False
+        ):
+            return round(max(score, 0.0), 2)
+        return round(max(0.0, min(score, score_base)), 2)
+
     @api.depends(
         "actual",
         "target",
         "kpi_type",
-        "direction",
         "employee_rating_binary",
         "employee_rating_selection",
         "employee_rating_score",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
-        "data_source",
-        "attendance_has_unpaid_leave",
-        "attendance_unpaid_leave_days",
+        "formula_type",
+        "step_table_json",
+        "scoring_formula_id",
+        "scoring_formula_id.formula_type",
+        "scoring_formula_id.linear_direction",
+        "scoring_formula_id.linear_allow_exceed",
+        "scoring_formula_id.step_table_json",
+        "scoring_formula_id.step_out_of_range",
+        "scoring_formula_id.penalty_base_score",
+        "scoring_formula_id.penalty_deduct_per_unit",
+        "scoring_formula_id.penalty_floor",
+        "scoring_formula_id.expression_code",
     )
     def _compute_system_score(self):
         """
         Tính system_score theo thang điểm cấu hình (10 hoặc 100):
 
         quantitative:
-          higher_better: score = (actual / target) * score_base
-          lower_better:  score = (target / actual) * score_base
+          score = scoring_formula.compute_score(actual, target, score_base)
 
         rating:
           actual = 0–5 (từ rating_value)
@@ -434,55 +482,19 @@ class PerformanceEvaluationLine(models.Model):
           → score = score_base nếu đạt, ngược lại = 0
         """
         score_base = self._get_score_base()
-        late_day_penalty = score_base / 10.0
         for line in self:
             score = 0.0
             actual = line.actual or 0.0
             target = line.target or 0.0
 
             if line.kpi_type == "quantitative":
-                # Special case: attendance late days KPI uses a penalty-based scoring.
-                # - 0 late days -> max score
-                # - each late day -> -10% score_base
-                if (line.data_source or "manual") == "late_days":
-                    late_days = int(round(actual)) if actual else 0
-                    score = score_base - (late_days * late_day_penalty)
-                    score = max(0.0, score)
-                    line.system_score = round(max(0.0, min(score, score_base)), 2)
-                    continue
-
-                # Special case: attendance full KPI uses leave-days based scoring.
-                # Rule:
-                #   unpaid leave -> 0
-                #   0 leave days -> max score
-                #   1 -> 90%, 2 -> 80%, 3 -> 70%, 4 -> 60%, 5 -> 50%, else 0
-                if (line.data_source or "manual") == "attendance_full":
-                    if line.attendance_has_unpaid_leave:
-                        score = 0.0
-                    else:
-                        leave_days = int(
-                            round(line.attendance_unpaid_leave_days or 0.0)
-                        )
-                        if leave_days <= 0:
-                            score = score_base
-                        elif leave_days <= 5:
-                            score = score_base - (leave_days * late_day_penalty)
-                        else:
-                            score = 0.0
-                    line.system_score = round(max(0.0, min(score, score_base)), 2)
-                    continue
-
-                # Target vs Actual scoring, works for both value and percentage (same unit).
-                if target < 0:
-                    line.system_score = 0.0
-                    continue
-
-                if line.direction == "higher_better":
-                    score_ratio = (actual / target) if target > 0 else 1.0
-                else:
-                    score_ratio = (target / actual) if actual > 0 else 1.0
-
-                score = min(score_ratio * score_base, score_base)
+                line.system_score = line._compute_system_score_for_line(
+                    line,
+                    actual,
+                    target,
+                    score_base=score_base,
+                )
+                continue
 
             elif line.kpi_type == "rating":
                 # Ưu tiên manager nếu đã có, fallback về employee

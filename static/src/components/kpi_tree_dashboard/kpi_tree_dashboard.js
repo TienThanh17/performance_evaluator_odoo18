@@ -118,6 +118,11 @@ export class KpiTreeDashboard extends Component {
         return "kpi-badge " + (map[level] || "badge-fail");
     }
 
+    hasWidget(code) {
+        const widgetMap = this.state.data?.widget_map || {};
+        return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
+    }
+
     stateBadgeLabel(state) {
         const map = {
             self_evaluation: "Tự đánh giá",

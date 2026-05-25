@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_kpi_scoring_formula_list" model="ir.ui.view">
+        <field name="name">hr.kpi.scoring.formula.list</field>
+        <field name="model">hr.kpi.scoring.formula</field>
+        <field name="arch" type="xml">
+            <list string="Công thức tính điểm KPI">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="formula_type"/>
+                <field name="preview_expression"/>
+                <field name="kpi_line_count"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hr_kpi_scoring_formula_form" model="ir.ui.view">
+        <field name="name">hr.kpi.scoring.formula.form</field>
+        <field name="model">hr.kpi.scoring.formula</field>
+        <field name="arch" type="xml">
+            <form string="Công thức tính điểm KPI">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_kpi_lines" icon="fa-list">
+                            <field name="kpi_line_count" widget="statinfo" string="KPI đang dùng"/>
+                        </button>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="score_scale_base" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="formula_type" widget="radio"/>
+                            <field name="description"/>
+                        </group>
+                    </group>
+
+                    <group string="Cấu hình tuyến tính" invisible="formula_type != 'linear'">
+                        <field name="linear_direction"/>
+                        <field name="linear_allow_exceed"/>
+                        <field name="preview_expression" readonly="1"/>
+                    </group>
+
+                    <group string="Bảng bậc thang" invisible="formula_type != 'step_table'">
+                        <field name="step_out_of_range"/>
+                        <field name="step_table_json" widget="kpi_step_table_editor"/>
+                        <field name="preview_expression" readonly="1"/>
+                    </group>
+
+                    <group string="Cấu hình trừ điểm" invisible="formula_type != 'penalty'">
+                        <field name="penalty_base_score"/>
+                        <field name="penalty_deduct_per_unit"/>
+                        <field name="penalty_floor"/>
+                        <field name="preview_expression" readonly="1"/>
+                    </group>
+
+                    <group string="Biểu thức tùy chỉnh" invisible="formula_type != 'expression'">
+                        <div class="text-muted">
+                            Biến cho phép: actual, target, max_score, min, max, abs, round
+                        </div>
+                        <field name="expression_code" placeholder="min(actual / target * max_score, max_score) if target else 0"/>
+                        <field name="preview_expression" readonly="1" string="Preview"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_test_formula" type="object" string="Chạy thử công thức" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_kpi_scoring_formula" model="ir.actions.act_window">
+        <field name="name">Scoring formula</field>
+        <field name="res_model">hr.kpi.scoring.formula</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_kpi_scoring_formula"
+        name="Scoring formula"
+        parent="menu_kpi_configuration"
+        action="action_hr_kpi_scoring_formula"
+        sequence="25"/>
+</odoo>

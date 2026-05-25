@@ -31,7 +31,7 @@
       <!-- ══ Loading State ══ -->
   <div t-if="state.loading" class="o_kpi_tree_body">
         <!-- Skeleton 6 cards -->
-    <div class="o_kpi_tree_metric_row">
+    <div t-if="hasWidget('tree_metrics')" class="o_kpi_tree_metric_row">
       <t t-foreach="[1,2,3,4,5]" t-as="i" t-key="i">
         <div class="o_kpi_tree_metric_card skeleton">
           <div class="sk-title"/>
@@ -115,7 +115,10 @@
     <div class="o_kpi_tree_main">
 
           <!-- ── SVG Tree ── -->
-      <div class="o_kpi_tree_svg_wrap" t-if="state.data.departments.length > 0">
+      <div
+        t-if="hasWidget('tree_main') and state.data.departments.length > 0"
+        class="o_kpi_tree_svg_wrap"
+      >
         <div t-ref="d3_container" class="d3-kpi-container"></div>
       </div>
 
@@ -127,7 +130,7 @@
       </div>
 
           <!-- ── Detail Panel (bên phải) ── -->
-      <div class="o_kpi_tree_detail_panel" t-if="state.selectedNode">
+      <div t-if="hasWidget('tree_main') and state.selectedNode" class="o_kpi_tree_detail_panel">
         <div class="panel-header">
           <span class="panel-close" t-on-click="closePanel"><i class="fa fa-times"/></span>
 
@@ -235,7 +238,7 @@
     <div class="o_kpi_tree_panels">
 
           <!-- Panel 1: Top KPI rủi ro (REAL DATA) -->
-      <div class="o_kpi_tree_panel">
+      <div t-if="hasWidget('tree_risk_kpis')" class="o_kpi_tree_panel">
         <div class="panel-head"><i class="fa fa-exclamation-triangle"/> Top KPI chưa đạt</div>
         <t t-if="riskLineCount() > 0">
           <t t-foreach="topRiskLines()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.line_id || item_index)">
@@ -264,7 +267,7 @@
       </div>
 
           <!-- Panel 2: Đóng góp phòng ban theo điểm KPI phòng ban trong kỳ -->
-      <div class="o_kpi_tree_panel">
+      <div t-if="hasWidget('tree_department_contribution')" class="o_kpi_tree_panel">
         <div class="panel-head"><i class="fa fa-building"/> Đóng góp phòng ban</div>
         <t t-foreach="state.data.departments" t-as="dept" t-key="dept.id">
           <div class="dept-row">
@@ -280,7 +283,7 @@
       </div>
 
           <!-- Panel 3: KPI thiếu dữ liệu (REAL DATA) -->
-      <div class="o_kpi_tree_panel">
+      <div t-if="hasWidget('tree_missing_data')" class="o_kpi_tree_panel">
         <div class="panel-head"><i class="fa fa-database"/> KPI Thiếu dữ liệu</div>
         <t t-if="missingDataLineCount() > 0">
           <t t-foreach="topMissingDataLines()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.line_id || item_index)">
@@ -306,7 +309,7 @@
       </div>
 
           <!-- Panel 4: Top đánh giá không đạt -->
-      <div class="o_kpi_tree_panel">
+      <div t-if="hasWidget('tree_failed_evaluations')" class="o_kpi_tree_panel">
         <div class="panel-head"><i class="fa fa-times-circle"/> Top đánh giá chưa đạt</div>
         <t t-if="failedEvaluationCount() > 0">
           <t t-foreach="topFailedEvaluations()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.record_id || item_index)">

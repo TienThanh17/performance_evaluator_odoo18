@@ -79,24 +79,23 @@ function buildChartDData(bugData) {
     }));
 }
 
-/** Chart E — line: score over timeline (one line per employee) */
-function buildChartEData(employees) {
-    const months = [_t("Jan"), _t("Feb"), _t("Mar"), _t("Apr"), _t("May"), _t("Jun"), _t("Jul"), _t("Aug"), _t("Sep"), _t("Oct"), _t("Nov"), _t("Dec")];
-    const datasets = employees.map((e, i) => {
-        const color = POINT_COLORS[i % POINT_COLORS.length];
-        return {
-            label: e.name,
-            // data: months.map(() => parseFloat((4 + Math.random() * 6).toFixed(2))),
-            data: null,
-            borderColor: color,
-            backgroundColor: color + "22",
-            pointBackgroundColor: color,
-            pointRadius: 4,
-            tension: 0.35,
-            fill: false,
-        };
-    });
-    return { labels: months, datasets };
+/** Chart E — line: department KPI trend across recent periods */
+function buildChartEData(trendData) {
+    return {
+        labels: trendData?.labels || [],
+        datasets: [
+            {
+                label: _t("Department KPI Score"),
+                data: trendData?.scores || [],
+                borderColor: C_PURPLE,
+                backgroundColor: C_PURPLE + "22",
+                pointBackgroundColor: C_PURPLE,
+                pointRadius: 4,
+                tension: 0.35,
+                fill: true,
+            },
+        ],
+    };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -226,6 +225,11 @@ export class DeptKpiDashboard extends Component {
         return this.state.data?.score_scale || { suffix: " / 10" };
     }
 
+    hasWidget(code) {
+        const widgetMap = this.state.data?.widget_map || {};
+        return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
+    }
+
     /** Hiển thị điểm số, mặc định 2 chữ số thập phân. */
     formatScore(val, decimals = 2) {
         return _formatScore(val, this.scoreScale, { decimals });
@@ -305,7 +309,8 @@ export class DeptKpiDashboard extends Component {
                 "get_dashboard_data",
                 [evaluation.id],
             );
-            data.period_label = formatPeriodLabel(evaluation.start_date);
+            data.period_label =
+                data.period_name || formatPeriodLabel(evaluation.start_date);
 
             this.state.data = data;
             this.state.phase = "done";
@@ -346,13 +351,11 @@ export class DeptKpiDashboard extends Component {
     async _renderAllCharts() {
         const d = this.state.data;
         if (!d) return;
-        const employees = d.employees || [];
-
         this._renderChartA(d.task_summary_by_employee || []);
         this._renderChartB(d.project_progress || []);
         this._renderChartC(d.attendance_count || []);
         this._renderChartD(d.bug_count_by_employee || []);
-        this._renderChartE(employees);
+        this._renderChartE(d.score_trend || {});
     }
 
     _renderChartA(employeeStats) {
@@ -564,11 +567,11 @@ export class DeptKpiDashboard extends Component {
         });
     }
 
-    _renderChartE(employees) {
+    _renderChartE(trendData) {
         const el = this.refE.el;
         if (!el) return;
-        const empList = employees.slice(0, 6);
-        const { labels, datasets } = buildChartEData(empList);
+        const { labels, datasets } = buildChartEData(trendData);
+        if (!labels.length) return;
         this._charts.E = new Chart(el, {
             type: "line",
             data: { labels, datasets },

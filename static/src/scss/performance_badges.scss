@@ -62,10 +62,10 @@
     }
 
     // 3) KPI template: section/note one2many styling
-    // Make section titles bold (scoped to the hr.kpi form).
+    // Make section titles bold (scoped to the KPI template form).
     .o_form_view.o_form_editable {
-        &[data-res-model="hr.kpi"],
-        .o_form_renderer[data-res-model="hr.kpi"] {
+        &[data-res-model="hr.kpi.template"],
+        .o_form_renderer[data-res-model="hr.kpi.template"] {
             .o_section_and_note_one2many {
                 tr.o_is_section,
                 tr.o_is_section td {

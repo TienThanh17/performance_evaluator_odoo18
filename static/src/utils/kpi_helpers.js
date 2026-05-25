@@ -64,33 +64,33 @@ export function formatVariance(row) {
 
 /**
  * CSS class cho cột Variance.
- * @param {{ variance: number, direction: string }} row
+ * @param {{ variance: number, linear_direction?: string }} row
  * @returns {string}
  */
 export function varianceClass(row) {
     if (row.variance === 0) return "o_kpi_variance o_kpi_variance_good";
-    const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+    const isGood = row.linear_direction === "lower_better" ? row.variance < 0 : row.variance > 0;
     return isGood ? "o_kpi_variance o_kpi_variance_exceeded" : "o_kpi_variance o_kpi_variance_bad";
 }
 
 /**
  * Text hiển thị cho cột Status.
- * @param {{ variance: number, direction: string }} row
+ * @param {{ variance: number, linear_direction?: string }} row
  * @returns {string}
  */
 export function statusText(row) {
     if (row.variance === 0) return _t("Achieved");
-    const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+    const isGood = row.linear_direction === "lower_better" ? row.variance < 0 : row.variance > 0;
     return isGood ? _t("Exceeded") : _t("Not Met");
 }
 
 /**
  * CSS class cho badge Status.
- * @param {{ variance: number, direction: string }} row
+ * @param {{ variance: number, linear_direction?: string }} row
  * @returns {string}
  */
 export function statusClass(row) {
     if (row.variance === 0) return "o_kpi_status o_kpi_status_pass";
-    const isGood = row.direction === "lower_better" ? row.variance < 0 : row.variance > 0;
+    const isGood = row.linear_direction === "lower_better" ? row.variance < 0 : row.variance > 0;
     return isGood ? "o_kpi_status o_kpi_status_excellent" : "o_kpi_status o_kpi_status_fail";
 }

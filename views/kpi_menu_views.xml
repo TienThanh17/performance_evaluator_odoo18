@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <menuitem id="performance_evaluator" name="KPI Performance Evaluator" sequence="1" web_icon="custom_adecsol_hr_performance_evaluator,static/description/icon.png"/>
+        <menuitem id="menu_kpi_template" name="KPI Template" parent="performance_evaluator" sequence="30"/>
+    </data>
+</odoo>

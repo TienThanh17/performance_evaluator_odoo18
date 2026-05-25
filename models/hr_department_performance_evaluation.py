@@ -16,9 +16,22 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     name = fields.Char(compute="_compute_name", store=True)
     department_id = fields.Many2one("hr.department", required=True)
     department_kpi_id = fields.Many2one(
-        "hr.department.kpi", required=True, string="Department KPI Template"
+        "hr.department.kpi.template", required=True, string="Department KPI Template"
     )
     performance_report_id = fields.Many2one("hr.performance.report", ondelete="cascade")
+    period_id = fields.Many2one(
+        "hr.kpi.period",
+        string="KPI Period",
+        compute="_compute_period_id",
+        store=True,
+        readonly=False,
+    )
+    period_type = fields.Selection(
+        related="period_id.period_type",
+        string="Period Type",
+        store=True,
+        readonly=True,
+    )
     active = fields.Boolean(string="Active", default=True, tracking=True)
 
     start_date = fields.Date(required=True)
@@ -59,6 +72,13 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_rating_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_score_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+
+    @api.depends("department_kpi_id.period_id", "performance_report_id.period_id")
+    def _compute_period_id(self):
+        for rec in self:
+            rec.period_id = (
+                rec.department_kpi_id.period_id or rec.performance_report_id.period_id
+            )
 
     @api.depends("evaluation_line_ids.kpi_type")
     def _compute_kpi_types(self):
@@ -259,12 +279,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "description": False,
                             # Safe defaults for required KPI fields on section rows
                             "kpi_type": "quantitative",
-                            "direction": "higher_better",
                             "target": 0.0,
                             "unit": False,
                             "weight": 0.0,
                             "is_auto": False,
-                            "data_source": "manual",
                         }
                     )
                 )
@@ -278,19 +296,17 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "name": line.name,
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
-                        "direction": line.direction,
                         "target": score_base
-                        if line.data_source == "child_kpi_average"
+                        if line.dept_source_type == "child_kpi_average"
                         else line.target,
                         "unit": line.unit.id
                         or (
                             score_unit.id
-                            if line.data_source == "child_kpi_average" and score_unit
+                            if line.dept_source_type == "child_kpi_average" and score_unit
                             else False
                         ),
                         "weight": line.weight,
                         "is_auto": bool(line.is_auto),
-                        "data_source": line.data_source,
                     }
                 )
             )
@@ -298,6 +314,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
     def get_dashboard_data(self):
         self.ensure_one()
+        widget_model = self.env["hr.kpi.dashboard.widget"]
+        widgets = widget_model.get_dashboard_widgets("department")
 
         employees = (
             self.env["hr.employee"]
@@ -329,6 +347,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
         result = {
             "department_name": self.department_id.name or "",
+            "period_id": self.period_id.id if self.period_id else False,
+            "period_name": self.period_id.name if self.period_id else "",
+            "period_type": self.period_type or "",
+            "widgets": widgets,
+            "widget_map": {widget["code"]: widget for widget in widgets},
             "score_scale": self.env["res.config.settings"].get_score_scale_info(),
             # "manager_name": (
             #     self.department_id.manager_id.name
@@ -345,6 +368,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             "project_progress": self._dashboard_project_progress(),
             "attendance_count": self._dashboard_attendance_count(),
             "bug_count_by_employee": self._dashboard_bug_count_by_employee(),
+            "score_trend": self._dashboard_score_trend(),
             "quantitative_table": self._get_quantitative_table_data(),
         }
         return result
@@ -372,6 +396,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 unit_name = line.unit.name if line.unit else ""
                 target_text = f"{target:g} {unit_name}" if unit_name else f"{target:g}"
                 actual_text = f"{actual:g} {unit_name}" if unit_name else f"{actual:g}"
+            formula = (
+                line.department_kpi_line_id.get_effective_formula()
+                if line.department_kpi_line_id
+                else False
+            )
             rows.append(
                 {
                     "name": line.name or "",
@@ -379,7 +408,13 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     "actual": actual_text,
                     "variance": variance_pct,
                     "final_score": round(final, 2),
-                    "direction": line.direction or "higher_better",
+                    "linear_direction": (
+                        formula.linear_direction
+                        if formula
+                        and formula.formula_type == "linear"
+                        and formula.linear_direction
+                        else "higher_better"
+                    ),
                 }
             )
         return rows
@@ -708,6 +743,38 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
         return result
 
+    def _dashboard_score_trend(self, limit=6):
+        """Lấy xu hướng điểm KPI phòng ban qua các kỳ gần nhất của cùng phòng ban."""
+        self.ensure_one()
+        if not self.department_id:
+            return {"labels": [], "scores": []}
+
+        history = self.search(
+            [
+                ("department_id", "=", self.department_id.id),
+                ("state", "!=", "cancel"),
+            ],
+            order="start_date desc, id desc",
+            limit=limit,
+        )
+        history = history.sorted(
+            key=lambda rec: (rec.start_date or fields.Date.today(), rec.id)
+        )
+
+        labels = []
+        scores = []
+        for rec in history:
+            label = rec.period_id.name or (
+                rec.start_date.strftime("%m/%Y") if rec.start_date else rec.name
+            )
+            labels.append(label)
+            scores.append(round(float(rec.dept_kpi_score or 0.0), 2))
+
+        return {
+            "labels": labels,
+            "scores": scores,
+        }
+
     @api.model
     def get_kpi_tree_data(self, period_start=None, period_end=None):
         """Trả về toàn bộ dữ liệu cho KPI Tree Dashboard theo một RPC duy nhất.
@@ -720,6 +787,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             DeptEvaluation = self.env["hr.department.performance.evaluation"].sudo()
             settings = self.env["res.config.settings"]
             score_scale = settings.get_score_scale_info()
+            widget_model = self.env["hr.kpi.dashboard.widget"]
+            widgets = widget_model.get_dashboard_widgets("tree")
 
             # ── Thresholds theo thang điểm cấu hình ───────────────────────────
             threshold_excellent, threshold_pass = settings.get_thresholds()
@@ -729,6 +798,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 return {
                     "period": period or {"start": "", "end": "", "label": ""},
                     "available_periods": available_periods,
+                    "widgets": widgets,
+                    "widget_map": {widget["code"]: widget for widget in widgets},
                     "score_scale": score_scale,
                     "company": {
                         "dept_kpi_score": 0.0,
@@ -1071,7 +1142,6 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     ("is_auto", "=", True),
                     ("is_special_scoring", "=", False),
                     ("kpi_type", "=", "quantitative"),
-                    # ("direction", "=", "higher_better"),
                     ("actual", "=", False),
                 ],
                 order="id asc",
@@ -1135,6 +1205,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             return {
                 "period": current_period,
                 "available_periods": available_periods,
+                "widgets": widgets,
+                "widget_map": {widget["code"]: widget for widget in widgets},
                 "score_scale": score_scale,
                 "company": {
                     "dept_kpi_score": round(company_dept_kpi, 2),
@@ -1166,6 +1238,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             return {
                 "period": {"start": "", "end": "", "label": ""},
                 "available_periods": [],
+                "widgets": [],
+                "widget_map": {},
                 "score_scale": {"base": 10.0, "display_multiplier": 1, "suffix": " / 10"},
                 "company": {
                     "dept_kpi_score": 0.0,

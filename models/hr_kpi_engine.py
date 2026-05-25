@@ -30,25 +30,17 @@ class HrKpiEngine(models.AbstractModel):
         if not employee or not kpi_line:
             return 0.0
 
-        # if not kpi_line.is_auto or (kpi_line.data_source or "manual") == "manual":
-        #     return 0.0
-        if kpi_line.data_source == "done_task":
-            return self._compute_done_tasks(employee, kpi_line, date_from, date_to)
-        if kpi_line.data_source == "task_on_time":
-            return self._compute_task_on_time(employee, kpi_line, date_from, date_to)
-        if kpi_line.data_source == "late_days":
-            return self._compute_late_days(employee, kpi_line, date_from, date_to)
-        # if kpi_line.data_source == "attendance_full":
-        #     return self._compute_attendance_full(employee, kpi_line, date_from, date_to)
-
-        return 0.0
+        source = getattr(kpi_line, "data_source_id", False)
+        if not source:
+            return 0.0
+        return source.execute(employee, date_from, date_to, line=kpi_line)
 
     @api.model
     def compute_with_metrics(self, employee, kpi_line, date_from, date_to):
         """Compute KPI actual and optionally return extra metrics.
 
         Why: context changes inside compute() are not observable by the caller because
-        compute() only returns a float. For some data sources (attendance_full) we need
+        compute() only returns a float. For some data sources we also need
         intermediate metrics for scoring/debug.
 
         Returns:
@@ -58,8 +50,9 @@ class HrKpiEngine(models.AbstractModel):
         if not kpi_line:
             return 0.0, False
 
-        if (kpi_line.data_source or "manual") == "attendance_full":
-            value, metrics = self._compute_attendance_full_with_metrics(
+        source = getattr(kpi_line, "data_source_id", False)
+        if source == "attendance_period":
+            value, metrics = self.compute_attendance_period_value_with_metrics(
                 employee, kpi_line, date_from, date_to
             )
             return value, metrics
@@ -131,7 +124,9 @@ class HrKpiEngine(models.AbstractModel):
     # Data sources
     # ------------------------------------------------------------
     @api.model
-    def _compute_task_on_time(self, employee, kpi_line, date_from, date_to):
+    def compute_completed_before_deadline_ratio(
+        self, employee, kpi_line, date_from, date_to
+    ):
         """% tasks completed on time in the range.
 
         Definition:
@@ -185,39 +180,7 @@ class HrKpiEngine(models.AbstractModel):
         )
 
     @api.model
-    def _compute_done_tasks(self, employee, kpi_line, date_from, date_to):
-        user = employee.user_id
-        if not user or not date_from or not date_to:
-            return 0.0
-
-        Task = self.env["project.task"].sudo()
-
-        # Domain cơ bản chung cho cả 2 query
-        base_domain = [
-            ("user_ids", "in", user.id),
-            ("date_deadline", ">=", date_from),
-            ("date_deadline", "<=", date_to),
-            ("project_id", "!=", False),
-        ]
-
-        # Đếm tổng số task
-        total_tasks = Task.search_count(base_domain)
-        if not total_tasks:
-            return 0.0
-
-        # Đếm số task đã hoàn thành trực tiếp bằng SQL (cực nhanh)
-        done_domain = base_domain + [("stage_id.is_done_stage", "=", True)]
-        done_tasks = Task.search_count(done_domain)
-
-        if not done_tasks:
-            return 0.0
-
-        return self._value_or_percentage(
-            kpi_line=kpi_line, numerator=done_tasks, denominator=total_tasks
-        )
-
-    @api.model
-    def _compute_late_days(self, employee, kpi_line, date_from, date_to):
+    def compute_late_arrival_value(self, employee, kpi_line, date_from, date_to):
         """Compute number of late work days within [date_from, date_to].
 
         Business rule:
@@ -226,8 +189,8 @@ class HrKpiEngine(models.AbstractModel):
         - If first check-in is after expected start -> late for that day.
 
         Return:
-        - unit != percent -> late_days (count)
-        - unit = percent  -> late_days / total_work_days * 100
+        - unit != percent -> số lần vi phạm
+        - unit = percent  -> tỷ lệ vi phạm / tổng ngày làm việc * 100
         """
         if not employee or not date_from or not date_to:
             return 0.0
@@ -264,7 +227,7 @@ class HrKpiEngine(models.AbstractModel):
         # Iterate each day in range to count work days and late days
         d = fields.Date.to_date(date_from)
         d_end = fields.Date.to_date(date_to)
-        late_days = 0
+        violation_count = 0
         total_work_days = 0
 
         while d and d_end and d <= d_end:
@@ -274,15 +237,15 @@ class HrKpiEngine(models.AbstractModel):
                 total_work_days += 1
                 first_ci = first_check_in_by_date.get(d)
                 if first_ci and first_ci > expected_start_local:
-                    late_days += 1
+                    violation_count += 1
             d = fields.Date.add(d, days=1)
 
         return self._value_or_percentage(
-            kpi_line=kpi_line, numerator=late_days, denominator=total_work_days
+            kpi_line=kpi_line, numerator=violation_count, denominator=total_work_days
         )
 
     @api.model
-    def _compute_attendance_full_with_metrics(
+    def compute_attendance_period_value_with_metrics(
             self, employee, kpi_line, date_from, date_to
     ):
         """Tính số ngày phải đi làm, nghỉ có phép, nghỉ không phép trong khoảng thời gian.
@@ -368,7 +331,7 @@ class HrKpiEngine(models.AbstractModel):
         # Bước 2: worked_days — đếm ngày có mặt đủ theo duration_days
         # ------------------------------------------------------------------
         # Chỉ xét có check-in vào ngày làm việc theo calendar hay không.
-        # Đi trễ/về sớm không xét ở đây — thuộc KPI late_days.
+        # Đi trễ/về sớm không xét ở đây — thuộc KPI punctuality riêng.
 
         dt_start_utc = datetime.datetime.combine(d_from, datetime.time.min)
         dt_end_utc = datetime.datetime.combine(
@@ -567,16 +530,11 @@ class HrKpiEngine(models.AbstractModel):
 
     # ============================================================
     # Dashboard breakdown methods (per-day / per-period data
-    # cho từng data_source, dùng chung logic với compute*)
+    # cho từng dashboard usage, dùng chung logic với compute*)
     # ============================================================
     @api.model
-    def get_done_tasks_by_day(self, employee, date_from, date_to):
+    def get_task_progress_series(self, employee, date_from, date_to):
         """Trả về per-day done task count trong khoảng [date_from, date_to].
-
-        Dùng CÙNG logic với _compute_done_tasks:
-        - Filter theo user_ids, date_deadline trong kỳ, project_id != False
-        - done = stage_id.is_done_stage = True VÀ date_deadline rơi vào ngày đó
-        - total = tổng task cả kỳ (đường định mức, không đổi theo ngày)
 
         Returns:
             dict:
@@ -594,7 +552,7 @@ class HrKpiEngine(models.AbstractModel):
 
         Task = self.env["project.task"].sudo()
 
-        # Base domain — cùng với _compute_done_tasks
+        # Base domain dùng chung cho chuỗi tiến độ công việc
         base_domain = [
             ("user_ids", "in", user.id),
             ("date_deadline", ">=", d_from),
@@ -640,10 +598,10 @@ class HrKpiEngine(models.AbstractModel):
         }
 
     @api.model
-    def get_late_days_by_day(self, employee, kpi_line, date_from, date_to):
+    def get_first_checkin_series(self, employee, kpi_line, date_from, date_to):
         """Trả về per-day first check-in hour (decimal) trong khoảng [date_from, date_to].
 
-        Dùng CÙNG timezone / expected-start logic với _compute_late_days để
+        Dùng cùng timezone / expected-start logic với compute_late_arrival_value để
         dashboard và điểm KPI luôn nhất quán.
 
         Returns:
@@ -684,7 +642,7 @@ class HrKpiEngine(models.AbstractModel):
         )
 
         # Build first check-in (decimal hour) per local date
-        # Dùng cùng timezone logic với _compute_late_days
+        # Dùng cùng timezone logic với compute_late_arrival_value
         first_ci_by_date = {}
         for att in attendances:
             if not att.check_in:
@@ -726,12 +684,12 @@ class HrKpiEngine(models.AbstractModel):
         return round(min(hours), 2) if hours else 8.0
 
     @api.model
-    def get_attendance_full_period_metrics(
+    def get_attendance_period_metrics(
             self, employee, kpi_line, date_from, date_to
     ):
-        """Trả về metrics tổng hợp cho data_source=attendance_full.
+        """Trả về metrics tổng hợp cho nguồn dữ liệu attendance theo kỳ.
 
-        Tái sử dụng hoàn toàn _compute_attendance_full_with_metrics — dashboard
+        Tái sử dụng hoàn toàn compute_attendance_period_value_with_metrics — dashboard
         chỉ format/render, không tự tính toán lại.
 
         Returns:
@@ -747,7 +705,7 @@ class HrKpiEngine(models.AbstractModel):
         if not employee or not kpi_line or not date_from or not date_to:
             return dict(_EMPTY_METRICS, value=0.0)
 
-        value, metrics = self._compute_attendance_full_with_metrics(
+        value, metrics = self.compute_attendance_period_value_with_metrics(
             employee, kpi_line, date_from, date_to
         )
         if not metrics:
@@ -891,71 +849,6 @@ class HrKpiEngine(models.AbstractModel):
             )
             day += datetime.timedelta(days=1)
 
-        return result
-
-    def get_task_on_time_by_day(self, employee, kpi_line, date_from, date_to):
-        """Trả về list per-day on-time rate so với tổng task cả kỳ, dùng chung logic với _compute_task_on_time."""
-        user = employee.user_id
-        if not user or not date_from or not date_to:
-            return []
-    
-        Task = self.env["project.task"].sudo()
-        d_start = fields.Date.to_date(date_from)
-        d_end = fields.Date.to_date(date_to)
-    
-        # 1. Tối ưu: Lấy TOÀN BỘ tasks từ from_date đến end_date bằng 1 câu query duy nhất
-        all_tasks = Task.search([
-            ("user_ids", "in", user.id),
-            # ("stage_id.is_done_stage", "=", True),
-            ("date_deadline", ">=", d_start),
-            ("date_deadline", "<=", d_end),
-            ("project_id", "!=", False),
-        ])
-    
-        # 2. Gán total = len của TẤT CẢ tasks trong kỳ
-        total_all_tasks = len(all_tasks)
-        on_time = 0
-    
-        result = []
-        day = d_start
-    
-        while day <= d_end:
-            # Lọc ra các tasks có done_date rơi vào 'day' đang xét từ tập all_tasks đã query ở trên
-            tasks_of_day = all_tasks.filtered(
-                lambda t: t.done_date and fields.Date.to_date(t.done_date) == day
-            )
-    
-            if not tasks_of_day:
-                result.append(None)
-            else:
-                for t in tasks_of_day:
-                    done_dt = (
-                        fields.Datetime.to_datetime(t.done_date)
-                        if t.done_date
-                        else False
-                    )
-                    deadline_dt = (
-                        fields.Datetime.to_datetime(t.date_deadline)
-                        if t.date_deadline
-                        else False
-                    )
-    
-                    if not done_dt or not deadline_dt:
-                        continue
-    
-                    # Dùng CÙNG logic với _compute_task_on_time
-                    done_local = fields.Datetime.context_timestamp(self, done_dt)
-                    deadline_local = fields.Datetime.context_timestamp(self, deadline_dt)
-    
-                    if done_local <= deadline_local:
-                        on_time += 1
-    
-                # Chia on_time của ngày cho tổng số lượng task của CẢ KỲ
-                rate = round((on_time / total_all_tasks) * 100, 1) if total_all_tasks > 0 else 0.0
-                result.append(rate)
-    
-            day = fields.Date.add(day, days=1)
-    
         return result
 
     # ------------------------------------------------------------

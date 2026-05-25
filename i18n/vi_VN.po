@@ -722,8 +722,8 @@ msgstr "Tỷ lệ hoàn thành (%)"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_performance_evaluation_form
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_form
-msgid "Compute Auto KPI"
-msgstr "KPI tự động tính"
+msgid "Compute KPI"
+msgstr "Tính KPI"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model,name:custom_adecsol_hr_performance_evaluator.model_res_config_settings
@@ -1022,7 +1022,7 @@ msgstr "Đánh giá hiệu suất của Phòng ban"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.actions.server,name:custom_adecsol_hr_performance_evaluator.ir_cron_compute_dept_auto_kpi_ir_actions_server
-msgid "Department Performance: Compute Auto KPI"
+msgid "Department Performance: Compute KPI"
 msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
@@ -1609,8 +1609,8 @@ msgstr "Công cụ KPI nhân sự"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.actions.server,name:custom_adecsol_hr_performance_evaluator.ir_cron_compute_auto_kpi_ir_actions_server
-msgid "HR KPI: Compute Auto KPI"
-msgstr "KPI Nhân sự: Tính toán KPI tự động"
+msgid "HR KPI: Compute KPI"
+msgstr "KPI Nhân sự: Tính KPI"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.module.category,name:custom_adecsol_hr_performance_evaluator.module_hr_performance_evaluation

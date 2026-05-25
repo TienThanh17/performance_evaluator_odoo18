@@ -20,7 +20,6 @@
                         <group>
                             <field name="target"/>
                             <field name="unit" invisible="kpi_type != 'quantitative'"/>
-                            <field name="direction" invisible="kpi_type != 'quantitative'"/>
                         </group>
                         <group>
                             <field name="actual" placeholder="Actual value"/>
@@ -64,7 +63,9 @@
                             <field name="weight"/>
                         </group>
                         <group invisible="kpi_type != 'quantitative'">
-                            <field name="data_source" invisible="kpi_type != 'quantitative'"/>
+                            <field name="dept_source_type" invisible="kpi_type != 'quantitative'"/>
+                            <field name="data_source_id" invisible="kpi_type != 'quantitative' or dept_source_type != 'data_source'"/>
+                            <field name="scoring_formula_id" invisible="kpi_type != 'quantitative' or dept_source_type != 'data_source'"/>
                         </group>
                     </group>
 
@@ -116,6 +117,7 @@
                         <group>
                             <field name="department_id" readonly="state != 'draft'"/>
                             <field name="department_kpi_id" readonly="state != 'draft'"/>
+                            <field name="period_id" readonly="state != 'draft'"/>
                             <field name="performance_report_id" readonly="state != 'draft'"/>
                         </group>
                         <group>
@@ -146,7 +148,7 @@
                     </group>
                     <notebook>
                         <page string="Evaluation Lines">
-                            <button name="action_compute_auto_kpi" string="Compute Auto KPI"
+                            <button name="action_compute_auto_kpi" string="Compute KPI"
                                     type="object"
                                     class="oe_highlight"
                                     invisible="state != 'draft'"/>
@@ -158,6 +160,7 @@
                                     <field name="sequence" widget="handle"/>
                                     <field name="is_section" column_invisible="1"/>
                                     <field name="is_auto" column_invisible="1"/>
+                                    <field name="dept_source_type" column_invisible="1"/>
                                     <field name="child_line_rows_json" column_invisible="1"/>
 
                                     <field name="name" string="Title" readonly="1" force_save="1"/>
@@ -170,17 +173,19 @@
                                     <field name="kpi_type" readonly="1" invisible="is_section"
                                            force_save="1"/>
 
-                                    <field name="data_source" optional="show" readonly="1"
+                                    <field name="dept_source_type" optional="show" readonly="1"
                                            invisible="is_section or not is_auto"/>
-                                    <field name="direction" optional="hide"
-                                           invisible="is_section or kpi_type != 'quantitative'"/>
+                                    <field name="data_source_id" optional="show" readonly="1"
+                                           invisible="is_section or not is_auto or dept_source_type != 'data_source'"/>
+                                    <field name="scoring_formula_id" optional="hide" readonly="1"
+                                           invisible="is_section or not is_auto or dept_source_type != 'data_source'"/>
                                     <field name="manager_comment" optional="hide"
                                            invisible="is_section"/>
 
                                     <field name="unit" optional="show" readonly="1"
                                            invisible="is_section or kpi_type != 'quantitative'"/>
                                     <field name="target" readonly="1" invisible="is_section or kpi_type != 'quantitative'"/>
-                                    <field name="actual" readonly="data_source != 'manual'" invisible="is_section or kpi_type != 'quantitative'"/>
+                                    <field name="actual" readonly="is_auto" invisible="is_section or kpi_type != 'quantitative'"/>
                                     <!-- <field name="target_display" string="Target"
                                         invisible="is_section or kpi_type != 'quantitative'" />
                                     <field name="actual_display" string="Actual"

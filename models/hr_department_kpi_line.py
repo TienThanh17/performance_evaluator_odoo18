@@ -1,12 +1,12 @@
 import json
 
-from odoo import models, fields, api
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
-class HrDepartmentKpiLine(models.Model):
-    _name = "hr.department.kpi.line"
-    _description = "Department KPI Line"
+class HrDepartmentKpiTemplateLine(models.Model):
+    _name = "hr.department.kpi.template.line"
+    _description = "Department KPI Template Line"
 
     name = fields.Char(string="Tên Tiêu Chí", required=True)
     kpi_type = fields.Selection(
@@ -19,50 +19,47 @@ class HrDepartmentKpiLine(models.Model):
         required=True,
         default="quantitative",
     )
-    description = fields.Html(
-        string="Description",
-        sanitize=True,
-        help="Additional guidance for employees/managers about how this KPI should be evaluated.",
-    )
-
+    description = fields.Html(string="Description", sanitize=True)
     target = fields.Float(default=0.0)
-    direction = fields.Selection(
-        [("higher_better", "Higher is better"), ("lower_better", "Lower is better")],
-        default="higher_better",
-    )
     weight = fields.Float(default=1.0)
     is_auto = fields.Boolean(
-        default=False,
         compute="_compute_auto",
         store=True,
-        help="Enable to let the system automatically compute Actual values from the selected Data Source.",
     )
-    target_display = fields.Char(
-        string="Target", compute="_compute_display", store=False
-    )
+    target_display = fields.Char(string="Target", compute="_compute_display")
     unit = fields.Many2one(
         "hr.kpi.unit",
         string="Unit",
         ondelete="restrict",
-        help="Display unit for Target/Actual, e.g. %, tasks, days, score.",
     )
-
-    data_source = fields.Selection(
+    dept_source_type = fields.Selection(
         [
-            ("manual", "Manual"),
-            # ('dept_task_completion', 'Tỷ lệ hoàn thành task phòng ban'),
-            # ('dept_attendance_rate', 'Tỷ lệ chuyên cần phòng ban'),
-            # ('dept_avg_individual', 'TB điểm cá nhân (auto-aggregated)'),
+            ("manual", "Nhập thủ công"),
             ("child_kpi_average", "Tự động tổng hợp từ KPI con"),
+            ("data_source", "Nguồn dữ liệu tự động"),
         ],
+        string="Department Source Type",
         default="manual",
+        required=True,
     )
-
+    data_source_id = fields.Many2one(
+        "hr.kpi.data.source",
+        string="Data Source",
+        ondelete="set null",
+    )
+    scoring_formula_id = fields.Many2one(
+        "hr.kpi.scoring.formula",
+        string="Scoring Formula",
+        ondelete="restrict",
+        help="Công thức chấm điểm dùng để tính điểm cho KPI định lượng.",
+    )
     is_section = fields.Boolean(default=False)
     sequence = fields.Integer(default=10)
-    department_kpi_id = fields.Many2one("hr.department.kpi", ondelete="cascade")
+    department_kpi_id = fields.Many2one(
+        "hr.department.kpi.template", ondelete="cascade"
+    )
     child_template_line_ids = fields.One2many(
-        "hr.kpi.line",
+        "hr.kpi.template.line",
         "parent_dept_line_id",
         string="Child KPI Template Lines",
         readonly=True,
@@ -70,12 +67,10 @@ class HrDepartmentKpiLine(models.Model):
     child_template_line_count = fields.Integer(
         string="Child KPI Template Count",
         compute="_compute_child_template_line_trace",
-        store=False,
     )
     child_template_rows_json = fields.Text(
         string="Child KPI Template Rows JSON",
         compute="_compute_child_template_line_trace",
-        store=False,
     )
 
     @api.depends(
@@ -133,58 +128,69 @@ class HrDepartmentKpiLine(models.Model):
                 continue
             if rec.kpi_type == "quantitative" and (rec.target or 0.0) < 0.0:
                 raise ValidationError(
-                    "For Quantitative KPI type, Target must be greater than or equal 0."
+                    _("For Quantitative KPI type, Target must be greater than or equal 0.")
+                )
+
+    @api.constrains("is_section", "kpi_type", "scoring_formula_id")
+    def _check_scoring_formula(self):
+        for rec in self:
+            if rec.is_section:
+                continue
+            if rec.kpi_type == "quantitative" and not rec.scoring_formula_id:
+                raise ValidationError(
+                    _("Please select a scoring formula for quantitative department KPIs.")
                 )
 
     def _get_unit_by_code(self, code):
         return self.env["hr.kpi.unit"].search([("code", "=", code)], limit=1)
 
     def _is_percent_unit(self):
-        """Đơn vị percent là nguồn sự thật để nhận diện KPI phần trăm."""
         self.ensure_one()
         return (self.unit.code or "") == "percent" if self.unit else False
 
     def _get_default_unit(self):
         self.ensure_one()
-        code = {
-            "dept_task_completion": "task",
-            "dept_attendance_rate": "percent",
-            "dept_avg_individual": "score",
-            "child_kpi_average": "score",
-        }.get(self.data_source or "manual")
+        if self.dept_source_type == "child_kpi_average":
+            code = "score"
+        elif self.dept_source_type == "data_source" and self.data_source_id:
+            code = self.data_source_id.get_unit_id()
+        else:
+            code = False
         return self._get_unit_by_code(code) if code else False
 
-    @api.onchange("data_source")
+    @api.onchange("dept_source_type", "data_source_id")
     def _onchange_unit(self):
         score_base = self.env["res.config.settings"].get_score_scale_base()
         for rec in self:
             rec.unit = rec._get_default_unit()
-            if rec.data_source == "child_kpi_average":
+            if rec.dept_source_type == "child_kpi_average":
                 rec.target = score_base
+
+    def get_effective_formula(self):
+        self.ensure_one()
+        return self.scoring_formula_id
 
     @api.depends("target", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
         for rec in self:
-            if rec.is_section:
+            if rec.is_section or rec.kpi_type != "quantitative":
                 rec.target_display = ""
                 continue
-            if rec.kpi_type != "quantitative":
-                rec.target_display = ""
-                continue
-
             if rec._is_percent_unit():
-                # hiển thị 90% thay vì 90.0
                 rec.target_display = f"{(rec.target or 0.0):g}%"
             else:
                 target = f"{(rec.target or 0.0):g}"
                 unit_name = rec.unit.name if rec.unit else ""
-                rec.target_display = (
-                    f"{target} {unit_name}" if unit_name else target
-                )
+                rec.target_display = f"{target} {unit_name}" if unit_name else target
 
-    @api.depends("kpi_type", "data_source")
+    @api.depends("kpi_type", "dept_source_type", "data_source_id")
     def _compute_auto(self):
         for rec in self:
             rec.is_auto = bool(
-                rec.kpi_type == "quantitative" and rec.data_source != "manual"
+                rec.kpi_type == "quantitative"
+                and rec.dept_source_type in ("child_kpi_average", "data_source")
+                and (
+                    rec.dept_source_type == "child_kpi_average"
+                    or rec.data_source_id
+                )
             )

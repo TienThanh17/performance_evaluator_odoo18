@@ -12,7 +12,6 @@
                         <field name="is_hr" invisible="1" />
                         <field name="is_employee" invisible="1" />
                         <field name="evaluation_state" invisible="1" />
-                        <field name="is_special_scoring" invisible="1" />
 
                         <div class="oe_title">
                             <h2 class="mb-1">
@@ -72,12 +71,10 @@
                         </group>
 
                         <group string="Target / Actual"
-                            invisible="is_section or kpi_type != 'quantitative' or is_special_scoring">
+                            invisible="is_section or kpi_type != 'quantitative'">
                             <group>
                                 <field name="target" readonly="is_employee" />
                                 <field name="unit" invisible="kpi_type != 'quantitative'"
-                                    readonly="not is_manager and not is_department_manager" />
-                                <field name="direction" invisible="kpi_type != 'quantitative'"
                                     readonly="not is_manager and not is_department_manager" />
                             </group>
                             <group>
@@ -112,23 +109,10 @@
                             <group invisible="kpi_type != 'quantitative'">
                                 <field name="is_auto" readonly="1"
                                     invisible="kpi_type != 'quantitative'" />
-                                <field name="data_source" invisible="kpi_type != 'quantitative'"
+                                <field name="data_source_id" invisible="kpi_type != 'quantitative'"
                                     readonly="not is_manager and not is_department_manager" />
-                                <field name="is_special_scoring" invisible="not is_special_scoring"
-                                    readonly="1" />
-                                <!-- ============================
-                                 ATTENDANCE FULL (AUTO KPI METRICS)
-                                ============================ -->
-                                <field name="attendance_expected_days" readonly="1"
-                                    invisible="data_source != 'attendance_full'" />
-                                <field name="attendance_worked_days" readonly="1"
-                                    invisible="data_source != 'attendance_full'" />
-                                <field name="attendance_unpaid_leave_days" readonly="1"
-                                    invisible="data_source != 'attendance_full'" />
-                                <field name="attendance_approved_leave_days" readonly="1"
-                                    invisible="data_source != 'attendance_full'" />
-                                <field name="attendance_has_unpaid_leave" class="text-danger"
-                                    invisible="1" />
+                                <field name="scoring_formula_id" invisible="kpi_type != 'quantitative'"
+                                    readonly="not is_manager and not is_department_manager" />
                             </group>
                         </group>
 
@@ -175,7 +159,7 @@
                     <field name="manager_id" />
                     <field name="job_id" />
                     <field name="kpi_id" />
-                    <field name="period" />
+                    <field name="period_id" />
                     <field name="performance_score" string="KPI Score" />
 
                     <!-- <field name="final_score"
@@ -218,7 +202,7 @@
                     <field name="job_id" />
                     <field name="department_id" />
                     <field name="kpi_id" />
-                    <field name="period" />
+                    <field name="period_id" />
                     <field name="start_date" />
                     <field name="end_date" />
                     <field name="performance_level" />
@@ -292,7 +276,7 @@
                                         <i class="fa fa-calendar-o me-3"
                                             t-attf-style="width: 20px; color: #{main_blue}; font-size: 16px;" />
                                         <span class="text-capitalize">
-                                            <field name="period" />
+                                            <field name="period_id" />
                                         </span>
                                     </div>
                                     <div class="d-flex align-items-center"
@@ -400,11 +384,11 @@
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="manager_id" readonly="1"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
-                                <field name="period" readonly="1"
+                                <field name="period_id" readonly="1"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="kpi_id"
                                     readonly="1"
-                                    domain="[('period', '=', period), ('department_id', '=', department_id)]"
+                                    domain="[('period_id', '=', period_id), ('department_id', '=', department_id)]"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md " />
                             </group>
                             <group colspan="5">
@@ -441,7 +425,7 @@
                             <page string="Evaluation Lines">
                                 <button name="action_compute_auto_kpi"
                                     type="object"
-                                    string="Compute Auto KPI"
+                                    string="Compute KPI"
                                     class="oe_highlight" />
                                 <!--                                <button name="action_recompute_performance_score"-->
                                 <!--                                    type="object"-->
@@ -473,11 +457,11 @@
                                         <field name="unit" optional="show"
                                             invisible="is_section or kpi_type != 'quantitative'"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="data_source" optional="hide"
+                                        <field name="data_source_id" optional="hide"
                                             invisible="is_section or not is_auto"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="direction" optional="hide"
-                                            invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"
+                                        <field name="scoring_formula_id" optional="hide"
+                                            invisible="is_section or not is_auto"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
                                         <field name="employee_comment" optional="hide"
                                             invisible="is_section"
@@ -601,7 +585,7 @@
                     <field name="department_id" />
                     <field name="job_id" />
                     <field name="kpi_id" />
-                    <field name="period" />
+                    <field name="period_id" />
                     <field name="performance_score" />
                     <field name="performance_level" />
                     <field name="start_date" />
@@ -620,12 +604,12 @@
 
                     <separator />
 
-                    <filter string="Monthly" name="monthly" domain="[('period', '=', 'monthly')]" />
+                    <filter string="Monthly" name="monthly" domain="[('period_type', '=', 'monthly')]" />
                     <filter string="Quarterly" name="quarterly"
-                        domain="[('period', '=', 'quarterly')]" />
+                        domain="[('period_type', '=', 'quarterly')]" />
                     <filter string="Half-Yearly" name="half_yearly"
-                        domain="[('period', '=', 'half_yearly')]" />
-                    <filter string="Yearly" name="yearly" domain="[('period', '=', 'yearly')]" />
+                        domain="[('period_type', '=', 'biannual')]" />
+                    <filter string="Yearly" name="yearly" domain="[('period_type', '=', 'yearly')]" />
 
                     <filter string="Excellent" name="excellent"
                         domain="[('performance_level', '=', 'excellent')]" />

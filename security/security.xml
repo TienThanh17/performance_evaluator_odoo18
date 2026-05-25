@@ -139,7 +139,7 @@
         <!-- Manager: kpi for direct reports -->
         <record id="rule_hr_kpi_manager_team" model="ir.rule">
             <field name="name">HR KPI: Manager - Team Records</field>
-            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_kpi"/>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_kpi_template"/>
             <field name="domain_force">[('department_id.manager_id.user_id', '=', user.id)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_manager'))]"/>
         </record>
@@ -147,7 +147,7 @@
         <!-- HR: see all -->
         <record id="rule_hr_kpi_hr_all" model="ir.rule">
             <field name="name">HR KPI: HR - All Records</field>
-            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_kpi"/>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_kpi_template"/>
             <field name="domain_force">[(1,'=',1)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_hr'))]"/>
         </record>
@@ -155,7 +155,7 @@
         <!-- Admin: bypass -->
         <record id="rule_hr_kpi_admin_all" model="ir.rule">
             <field name="name">HR KPI: Admin - Bypass</field>
-            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_kpi"/>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_kpi_template"/>
             <field name="domain_force">[(1,'=',1)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_admin'))]"/>
         </record>
@@ -165,19 +165,19 @@
         <!-- ========================================= -->
         <record id="rule_dept_kpi_manager_own" model="ir.rule">
             <field name="name">Dept KPI: Manager - Own Department</field>
-            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi"/>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_template"/>
             <field name="domain_force">[('department_id.manager_id.user_id', '=', user.id)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_manager'))]"/>
         </record>
         <record id="rule_dept_kpi_hr_all" model="ir.rule">
             <field name="name">Dept KPI: HR - All</field>
-            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi"/>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_template"/>
             <field name="domain_force">[(1,'=',1)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_hr'))]"/>
         </record>
         <record id="rule_dept_kpi_admin_all" model="ir.rule">
             <field name="name">Dept KPI: Admin - Bypass</field>
-            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi"/>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_template"/>
             <field name="domain_force">[(1,'=',1)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_admin'))]"/>
         </record>
@@ -187,19 +187,19 @@
         <!-- ========================================= -->
         <record id="rule_dept_kpi_line_manager_own" model="ir.rule">
             <field name="name">Dept KPI Line: Manager - Own Department</field>
-            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_line"/>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_template_line"/>
             <field name="domain_force">[('department_kpi_id.department_id.manager_id.user_id', '=', user.id)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_manager'))]"/>
         </record>
         <record id="rule_dept_kpi_line_hr_all" model="ir.rule">
             <field name="name">Dept KPI Line: HR - All</field>
-            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_line"/>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_template_line"/>
             <field name="domain_force">[(1,'=',1)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_hr'))]"/>
         </record>
         <record id="rule_dept_kpi_line_admin_all" model="ir.rule">
             <field name="name">Dept KPI Line: Admin - Bypass</field>
-            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_line"/>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_department_kpi_template_line"/>
             <field name="domain_force">[(1,'=',1)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_admin'))]"/>
         </record>

@@ -50,7 +50,7 @@
 
 
                 <!-- ══ KPI SCORECARDS ══ -->
-                <div class="pd-scorecards">
+                <div t-if="hasWidget('report_summary')" class="pd-scorecards">
                     <div class="pd-scorecard pd-scorecard--blue">
                         <div class="pd-scorecard-icon">
                             <i class="fa fa-tachometer"/>
@@ -101,8 +101,11 @@
                 </div>
 
                 <!-- ══ CHARTS ROW 1: Score (trái) + Task (phải) ══ -->
-                <div class="pd-chart-row pd-chart-row--2col">
-                    <div class="pd-chart-card">
+                <div
+                    t-if="hasWidget('report_score_bar') or hasWidget('report_task_summary')"
+                    class="pd-chart-row pd-chart-row--2col"
+                >
+                    <div t-if="hasWidget('report_score_bar')" class="pd-chart-card">
                         <div class="pd-chart-header">
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--blue"/>
@@ -115,7 +118,7 @@
                             <canvas t-ref="chartScore"/>
                         </div>
                     </div>
-                    <div class="pd-chart-card">
+                    <div t-if="hasWidget('report_task_summary')" class="pd-chart-card">
                         <div class="pd-chart-header">
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--green"/>
@@ -131,8 +134,11 @@
                 </div>
 
                 <!-- ══ CHARTS ROW 2: Attendance (1/3 trái) + Late (2/3 phải) ══ -->
-                <div class="pd-chart-row pd-chart-row--13col">
-                    <div class="pd-chart-card">
+                <div
+                    t-if="hasWidget('report_attendance') or hasWidget('report_late_summary')"
+                    class="pd-chart-row pd-chart-row--13col"
+                >
+                    <div t-if="hasWidget('report_attendance')" class="pd-chart-card">
                         <div class="pd-chart-header">
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--blue"/>
@@ -146,7 +152,7 @@
                             <canvas t-ref="chartB"/>
                         </div>
                     </div>
-                    <div class="pd-chart-card">
+                    <div t-if="hasWidget('report_late_summary')" class="pd-chart-card">
                         <div class="pd-chart-header">
                             <div class="pd-chart-title">
                                 <span class="pd-chart-dot pd-chart-dot--red"/>
@@ -162,7 +168,7 @@
                 </div>
 
                 <!-- ══ CHARTS ROW 3: Qualitative KPIs (dynamic) ══ -->
-                <t t-if="state.chartData and state.chartData.qualitative_charts.length">
+                <t t-if="hasWidget('report_qualitative') and state.chartData and state.chartData.qualitative_charts.length">
                     <div class="pd-section-title">
                         <i class="fa fa-star-o"/>
                         <!-- KPI Định Tính — So Sánh Nhân Viên -->
@@ -211,7 +217,7 @@
                 <!--                </t>-->
 
                 <!-- ══ TEAM ROSTER ══ -->
-                <div class="pd-roster-section">
+                <div t-if="hasWidget('report_roster')" class="pd-roster-section">
                     <div class="pd-roster-header">
                         <h2>Team Roster</h2>
                         <button class="pd-btn-approve-all" t-att-disabled="!approvableCount || state.approvingAll" t-on-click="approveAllEvaluations">

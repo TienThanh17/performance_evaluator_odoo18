@@ -12,7 +12,7 @@ class PerformanceEvaluation(models.Model):
     _name = "hr.performance.evaluation"
     _description = "Performance Evaluation"
     _inherit = ["mail.thread", "mail.activity.mixin"]
-    _order = 'start_date desc, end_date desc'
+    _order = "start_date desc, end_date desc"
 
     user_id = fields.Many2one(
         "res.users",
@@ -27,22 +27,25 @@ class PerformanceEvaluation(models.Model):
         help="The employee being evaluated.",
     )
     kpi_id = fields.Many2one(
-        "hr.kpi",
-        string="KPI",
+        "hr.kpi.template",
+        string="KPI Template",
         required=False,
-        domain="[('period', '=', period), ('department_id', '=', department_id)]",
+        domain="[('period_id', '=', period_id), ('department_id', '=', department_id)]",
         help="KPI template used to generate evaluation lines.",
     )
-    period = fields.Selection(
-        [
-            ("monthly", "Monthly"),
-            ("quarterly", "Quarterly"),
-            ("half_yearly", "Half-Yearly"),
-            ("yearly", "Yearly"),
-        ],
-        string="Evaluation Period",
-        required=True,
-        help="Select the evaluation cycle. The KPI template lines enabled for this period will be added to the evaluation.",
+    period_id = fields.Many2one(
+        "hr.kpi.period",
+        string="KPI Period",
+        compute="_compute_period_id",
+        store=True,
+        readonly=False,
+        help="Canonical KPI period used by this evaluation.",
+    )
+    period_type = fields.Selection(
+        related="period_id.period_type",
+        string="Period Type",
+        store=True,
+        readonly=True,
     )
     state = fields.Selection(
         [
@@ -210,6 +213,11 @@ class PerformanceEvaluation(models.Model):
         compute="_compute_is_department_manager", store=False
     )
 
+    @api.depends("kpi_id.period_id", "performance_report_id.period_id")
+    def _compute_period_id(self):
+        for rec in self:
+            rec.period_id = rec.kpi_id.period_id or rec.performance_report_id.period_id
+
     @api.depends_context("uid")
     def _compute_role(self):
         is_manager = self.env.user.has_group(
@@ -280,12 +288,21 @@ class PerformanceEvaluation(models.Model):
             )
             rec.score_scale_suffix = scale.get("suffix") or " / 10"
 
+    def _get_thresholds_for_record(self):
+        self.ensure_one()
+        profile = self.kpi_id.scoring_profile_id
+        if profile:
+            return profile.get_thresholds()
+        return self.env["res.config.settings"].get_thresholds()
+
     @api.depends("performance_score", "employee_id")
     def _compute_performance_visual(self):
         score_base = self.env["res.config.settings"].get_score_scale_base()
         for rec in self:
             # Quy đổi điểm theo score_base hiện tại sang phần trăm để vẽ vòng tròn.
-            score_pct = max(0.0, min(100.0, ((rec.performance_score or 0) / score_base) * 100.0))
+            score_pct = max(
+                0.0, min(100.0, ((rec.performance_score or 0) / score_base) * 100.0)
+            )
 
             # Lấy URL ảnh nhân viên
             img_url = (
@@ -419,11 +436,7 @@ class PerformanceEvaluation(models.Model):
                     )
                 ) % {
                     "employee_name": record.employee_id.name,
-                    "period": dict(self._fields["period"].selection).get(
-                        record.period, record.period
-                    )
-                    if record.period
-                    else "N/A",
+                    "period": record.period_id.name if record.period_id else "N/A",
                     "url": record_url,
                     "style": button_style,
                 }
@@ -477,8 +490,8 @@ class PerformanceEvaluation(models.Model):
 
     @api.depends("performance_score")
     def _compute_performance_badge_class(self):
-        excellent, passed = self.env["res.config.settings"].get_thresholds()
         for rec in self:
+            excellent, passed = rec._get_thresholds_for_record()
             score = rec.performance_score or 0.0
             if score >= excellent:
                 rec.performance_badge_class = "o_kpi_badge_excellent"
@@ -489,8 +502,8 @@ class PerformanceEvaluation(models.Model):
 
     @api.depends("performance_score")
     def _compute_performance_level(self):
-        excellent, passed = self.env["res.config.settings"].get_thresholds()
         for rec in self:
+            excellent, passed = rec._get_thresholds_for_record()
             score = rec.performance_score or 0.0
             if score >= excellent:
                 rec.performance_level = "excellent"
@@ -554,8 +567,8 @@ class PerformanceEvaluation(models.Model):
 
         Dùng cùng key param với _compute_performance_level để đảm bảo nhất quán.
         """
-        threshold_excellent, threshold_pass = self.env["res.config.settings"].get_thresholds()
         for rec in self:
+            threshold_excellent, threshold_pass = rec._get_thresholds_for_record()
             score = rec.final_score or 0.0
             if score >= threshold_excellent:
                 rec.final_level = "excellent"
@@ -595,12 +608,12 @@ class PerformanceEvaluation(models.Model):
                 record.manager_id = False
                 record.department_id = False
 
-    @api.onchange("employee_id", "period")
+    @api.onchange("employee_id", "period_id")
     def _onchange_employee_or_period_clear_kpi(self):
         """Xóa KPI đã chọn nếu nó không còn phù hợp với Nhân viên (Phòng ban) hoặc Chu kỳ mới."""
         if self.kpi_id:
             # Kiểm tra xem KPI hiện tại có khớp với Period và Department mới không
-            if (self.kpi_id.period != self.period) or (
+            if (self.kpi_id.period_id != self.period_id) or (
                 self.kpi_id.department_id
                 and self.kpi_id.department_id != self.department_id
             ):
@@ -648,12 +661,10 @@ class PerformanceEvaluation(models.Model):
                             "description": False,
                             # Safe defaults for required KPI fields on section rows
                             "kpi_type": "quantitative",
-                            "direction": "higher_better",
                             "target": 0.0,
                             "unit": False,
                             "weight": 0.0,
                             "is_auto": False,
-                            "data_source": "manual",
                         }
                     )
                 )
@@ -672,12 +683,10 @@ class PerformanceEvaluation(models.Model):
                         "key_performance_area": line.key_performance_area,
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
-                        "direction": line.direction,
                         "target": line.target,
                         "unit": line.unit.id or False,
                         "weight": line.weight,
                         "is_auto": bool(line.is_auto),
-                        "data_source": line.data_source,
                     }
                 )
             )
@@ -715,33 +724,9 @@ class PerformanceEvaluation(models.Model):
                 # Evaluation line carries the template data_source/unit for auto-compute.
                 vals = {}
 
-                if (line.data_source or "manual") == "attendance_full":
-                    value, metrics = engine.compute_with_metrics(
-                        evaluation.employee_id, line, date_from, date_to
-                    )
-                    vals["actual"] = False
-                    vals.update(
-                        {
-                            "attendance_worked_days": metrics.get("worked_days", 0.0),
-                            "attendance_expected_days": metrics.get(
-                                "expected_work_days", 0.0
-                            ),
-                            "attendance_unpaid_leave_days": metrics.get(
-                                "unpaid_leave_days", 0.0
-                            ),
-                            "attendance_approved_leave_days": metrics.get(
-                                "approved_leave_days", 0.0
-                            ),
-                            "attendance_has_unpaid_leave": metrics.get(
-                                "has_unpaid_leave", False
-                            ),
-                        }
-                    )
-
-                else:
-                    vals["actual"] = engine.compute(
-                        evaluation.employee_id, line, date_from, date_to
-                    )
+                vals["actual"] = engine.compute(
+                    evaluation.employee_id, line, date_from, date_to
+                )
 
                 line.write(vals)
 
@@ -817,25 +802,27 @@ class PerformanceEvaluation(models.Model):
         dept_score = dept_eval.get_dept_kpi_score() if dept_eval else 0.0
         has_dept_evaluation = bool(dept_eval and dept_eval.state != "cancel")
         dept_kpi = dept_eval.department_kpi_id.sudo() if has_dept_evaluation else False
-        dept_weight = (
-            dept_kpi.dept_weight
-            if has_dept_evaluation and dept_kpi
-            else 0.0
-        )
+        dept_weight = dept_kpi.dept_weight if has_dept_evaluation and dept_kpi else 0.0
         individual_weight = 1.0 - dept_weight
         settings = self.env["res.config.settings"]
         score_scale = settings.get_score_scale_info()
-        threshold_excellent, threshold_pass = settings.get_thresholds()
+        threshold_excellent, threshold_pass = evaluation._get_thresholds_for_record()
+        widget_model = self.env["hr.kpi.dashboard.widget"]
+        widgets = widget_model.get_dashboard_widgets("individual")
 
         result = {
             "evaluation_id": evaluation.id,
             "score_scale": score_scale,
+            "widgets": widgets,
+            "widget_map": {widget["code"]: widget for widget in widgets},
             "thresholds": {
                 "excellent": threshold_excellent,
                 "pass": threshold_pass,
             },
             "employee_name": evaluation.employee_id.name or "",
-            "period": evaluation.period or "",
+            "period_id": evaluation.period_id.id if evaluation.period_id else False,
+            "period_name": evaluation.period_id.name if evaluation.period_id else "",
+            "period_type": evaluation.period_type or "",
             "start_date": str(evaluation.start_date) if evaluation.start_date else "",
             "end_date": str(evaluation.end_date) if evaluation.end_date else "",
             "performance_score": round(float(evaluation.performance_score or 0.0), 2),
@@ -853,56 +840,39 @@ class PerformanceEvaluation(models.Model):
             # "task_completion": self._get_task_completion_data(evaluation),
             "done_tasks_by_day": self._get_done_tasks_by_day_data(evaluation),
             "punctuality_log": self._get_punctuality_log_data(evaluation),
-            "attendance_full": self._get_attendance_full_data(evaluation),
+            "attendance_overview": self._get_attendance_overview_data(evaluation),
             "spider_web": self._get_spider_web_data(evaluation),
             "quantitative_table": self._get_quantitative_table_data(evaluation),
         }
         return result
 
-    # def _get_task_completion_data(self, evaluation):
-    #     line = evaluation.evaluation_line_ids.filtered(
-    #         lambda l: not l.is_section and l.data_source == "task_on_time"
-    #     )
-    #     if not line or not evaluation.start_date or not evaluation.end_date:
-    #         return {"labels": [], "data": [], "target": 0.0}
-    #
-    #     line = line[0]
-    #     engine = self.env["hr.kpi.engine"]
-    #     per_day = engine.get_task_on_time_by_day(
-    #         evaluation.employee_id,
-    #         line,
-    #         evaluation.start_date,
-    #         evaluation.end_date,
-    #     )
-    #     days = (evaluation.end_date - evaluation.start_date).days + 1
-    #     return {
-    #         "labels": [f"Day {i + 1}" for i in range(days)],
-    #         "data": per_day,
-    #         "target": float(line.target or 100.0),
-    #     }
+    def _get_dashboard_line(self, evaluation):
+        self.ensure_one()
+        lines = evaluation.evaluation_line_ids.filtered(
+            lambda l: (
+                not l.is_section and l.kpi_type == "quantitative" and l.data_source_id
+            )
+        )
+        return lines[:1]
 
     def _get_done_tasks_by_day_data(self, evaluation):
-        """Per-day done task count cho biểu đồ done_tasks.
+        """Per-day task progress data cho widget tiến độ công việc.
 
         Trục X = các ngày trong kỳ
         Trục Y = số task done có date_deadline rơi vào ngày đó
         Đường định mức = tổng task cả kỳ (total)
-
-        Dùng CÙNG logic với _compute_done_tasks qua engine.get_done_tasks_by_day().
 
         Returns dict:
             labels      list[str]  — ["Day 1", "Day 2", ...]
             done_by_day list[int]  — số task done từng ngày
             total       int        — tổng task cả kỳ (đường định mức)
         """
-        line = evaluation.evaluation_line_ids.filtered(
-            lambda l: not l.is_section and l.data_source == "done_task"
-        )
+        line = self._get_dashboard_line(evaluation)
         if not line or not evaluation.start_date or not evaluation.end_date:
             return {"labels": [], "done_by_day": [], "total": 0}
 
         engine = self.env["hr.kpi.engine"]
-        result = engine.get_done_tasks_by_day(
+        result = engine.get_task_progress_series(
             evaluation.employee_id,
             evaluation.start_date,
             evaluation.end_date,
@@ -915,9 +885,6 @@ class PerformanceEvaluation(models.Model):
             "total": result.get("total", 0),
         }
 
-    # ------------------------------------------------------------------
-    # Punctuality Log – first check-in hour per day (data_source=late_days)
-    # ------------------------------------------------------------------
     def _get_punctuality_log_data(self, evaluation):
         """Per-day first check-in hour cho biểu đồ punctuality.
 
@@ -936,9 +903,7 @@ class PerformanceEvaluation(models.Model):
             grace_minutes int               — grace period đang cấu hình (hiển thị
                                               thêm trên UI nếu muốn)
         """
-        line = evaluation.evaluation_line_ids.filtered(
-            lambda l: not l.is_section and l.data_source == "late_days"
-        )
+        line = self._get_dashboard_line(evaluation)
         if not line or not evaluation.start_date or not evaluation.end_date:
             return {"labels": [], "data": [], "expected_hour": 8.0, "grace_minutes": 0}
 
@@ -946,8 +911,7 @@ class PerformanceEvaluation(models.Model):
         employee = evaluation.employee_id
         engine = self.env["hr.kpi.engine"]
 
-        # Per-day check-in hours — cùng logic với _compute_late_days
-        per_day = engine.get_late_days_by_day(
+        per_day = engine.get_first_checkin_series(
             employee,
             line,
             evaluation.start_date,
@@ -970,11 +934,8 @@ class PerformanceEvaluation(models.Model):
             "grace_minutes": grace_minutes,
         }
 
-    # ------------------------------------------------------------------
-    # Attendance Full — data_source = attendance_full
-    # ------------------------------------------------------------------
-    def _get_attendance_full_data(self, evaluation):
-        """Dữ liệu tổng hợp cho widget attendance_full trên dashboard.
+    def _get_attendance_overview_data(self, evaluation):
+        """Dữ liệu tổng hợp cho widget attendance trên dashboard.
 
         Trả về 2 phần:
           summary   — các con số tổng hợp (worked/expected/leave days, v.v.)
@@ -1013,9 +974,7 @@ class PerformanceEvaluation(models.Model):
             "calendar": [],
         }
 
-        line = evaluation.evaluation_line_ids.filtered(
-            lambda l: not l.is_section and l.data_source == "attendance_full"
-        )
+        line = self._get_dashboard_line(evaluation)
         if not line or not evaluation.start_date or not evaluation.end_date:
             return empty
 
@@ -1023,8 +982,7 @@ class PerformanceEvaluation(models.Model):
         employee = evaluation.employee_id
         engine = self.env["hr.kpi.engine"]
 
-        # ── Summary metrics (tái sử dụng _compute_attendance_full_with_metrics) ──
-        metrics = engine.get_attendance_full_period_metrics(
+        metrics = engine.get_attendance_period_metrics(
             employee,
             line,
             evaluation.start_date,
@@ -1075,8 +1033,6 @@ class PerformanceEvaluation(models.Model):
             lambda l: (
                 not l.is_section
                 and l.kpi_type == "quantitative"
-                and l.data_source
-                not in ("task_on_time", "late_days", "attendance_full")
             )
         )
         rows = []
@@ -1097,6 +1053,7 @@ class PerformanceEvaluation(models.Model):
                 unit_name = line.unit.name if line.unit else ""
                 target_text = f"{target:g} {unit_name}" if unit_name else f"{target:g}"
                 actual_text = f"{actual:g} {unit_name}" if unit_name else f"{actual:g}"
+            formula = line.kpi_line_id.get_effective_formula() if line.kpi_line_id else False
             rows.append(
                 {
                     "name": line.key_performance_area or "",
@@ -1104,7 +1061,13 @@ class PerformanceEvaluation(models.Model):
                     "actual": actual_text,
                     "variance": variance_pct,
                     "final_score": round(final, 2),
-                    "direction": line.direction or "higher_better",
+                    "linear_direction": (
+                        formula.linear_direction
+                        if formula
+                        and formula.formula_type == "linear"
+                        and formula.linear_direction
+                        else "higher_better"
+                    ),
                 }
             )
         return rows

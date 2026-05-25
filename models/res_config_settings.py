@@ -148,7 +148,11 @@ class ResConfigSettings(models.TransientModel):
             str(self.late_grace_minutes)
         )
 
-        if scale_changed and not has_score_data and "hr.department.kpi.line" in self.env.registry:
+        if (
+            scale_changed
+            and not has_score_data
+            and "hr.department.kpi.template.line" in self.env.registry
+        ):
             factor = new_base / old_base if old_base else 1.0
             if new_base > old_base:
                 target_condition = "target <= %s"
@@ -159,9 +163,9 @@ class ResConfigSettings(models.TransientModel):
             # Chưa có phiếu đánh giá thì được phép chỉnh template bottom-up về target theo score scale mới.
             self.env.cr.execute(
                 f"""
-                UPDATE hr_department_kpi_line
+                UPDATE hr_department_kpi_template_line
                    SET target = target * %s
-                 WHERE data_source = 'child_kpi_average'
+                 WHERE dept_source_type = 'child_kpi_average'
                    AND target IS NOT NULL
                    AND {target_condition}
                 """,

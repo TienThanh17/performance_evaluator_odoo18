@@ -16,15 +16,17 @@ class HrPerformanceReport(models.Model):
     # _rec_name = 'department_name'
 
     # Fields
-    period = fields.Selection(
-        [
-            ("monthly", "Monthly"),
-            ("quarterly", "Quarterly"),
-            ("half_yearly", "Half-Yearly"),
-            ("yearly", "Yearly"),
-        ],
-        string="Evaluation Period",
+    period_id = fields.Many2one(
+        "hr.kpi.period",
+        string="KPI Period",
         required=True,
+        ondelete="restrict",
+    )
+    period_type = fields.Selection(
+        related="period_id.period_type",
+        string="Period Type",
+        store=True,
+        readonly=True,
     )
 
     start_date = fields.Date(string="Start Date", required=True)
@@ -103,8 +105,8 @@ class HrPerformanceReport(models.Model):
             raise_if_not_found=False,
         )
         for report in self:
-            kpis = self.env["hr.department.kpi"].search(
-                [("period", "=", report.period)]
+            kpis = self.env["hr.department.kpi.template"].search(
+                [("period_id", "=", report.period_id.id)]
             )
             for kpi in kpis:
                 # 1. Kiểm tra đã tồn tại
@@ -142,19 +144,17 @@ class HrPerformanceReport(models.Model):
                                 "name": line.name,
                                 "kpi_type": line.kpi_type,
                                 "target": score_base
-                                if line.data_source == "child_kpi_average"
+                                if line.dept_source_type == "child_kpi_average"
                                 else line.target,
-                                "direction": line.direction,
                                 "weight": line.weight,
                                 "unit": line.unit.id
                                 if line.unit
                                 else (
                                     score_unit.id
-                                    if line.data_source == "child_kpi_average" and score_unit
+                                    if line.dept_source_type == "child_kpi_average" and score_unit
                                     else False
                                 ),
                                 "is_auto": line.is_auto,
-                                "data_source": line.data_source,
                                 "is_section": line.is_section,
                             }
                         )
@@ -238,10 +238,9 @@ class HrPerformanceReport(models.Model):
     def write(self, vals):
         res = super(HrPerformanceReport, self).write(vals)
         # Fields to sync down to each linked hr.performance.evaluation
-        employee_sync_fields = {"active", "period", "start_date", "end_date", "deadline"}
+        employee_sync_fields = {"active", "period_id", "start_date", "end_date", "deadline"}
         employee_sync_vals = {k: vals[k] for k in employee_sync_fields if k in vals}
-        # Department evaluations do not have "period"; keep this payload separate.
-        dept_sync_fields = {"active", "start_date", "end_date", "deadline"}
+        dept_sync_fields = {"active", "period_id", "start_date", "end_date", "deadline"}
         dept_sync_vals = {k: vals[k] for k in dept_sync_fields if k in vals}
         if employee_sync_vals or dept_sync_vals:
             for record in self.with_context(active_test=False):
@@ -427,7 +426,7 @@ class HrPerformanceReport(models.Model):
         output.seek(0)
 
         file_name = (
-            f"Bao_Cao_Cong_Viec_{self.period}_{self.start_date}_to_{self.end_date}.xlsx"
+            f"Bao_Cao_Cong_Viec_{self.period_type}_{self.start_date}_to_{self.end_date}.xlsx"
         )
         attachment = self.env["ir.attachment"].create(
             {
@@ -462,9 +461,13 @@ class HrPerformanceReport(models.Model):
         settings = self.env["res.config.settings"]
         score_scale = settings.get_score_scale_info()
         threshold_excellent, threshold_pass = settings.get_thresholds()
+        widget_model = self.env["hr.kpi.dashboard.widget"]
+        widgets = widget_model.get_dashboard_widgets("report")
         if not evalids:
             return {
                 "score_scale": score_scale,
+                "widgets": widgets,
+                "widget_map": {widget["code"]: widget for widget in widgets},
                 "thresholds": {
                     "excellent": threshold_excellent,
                     "pass": threshold_pass,
@@ -493,11 +496,14 @@ class HrPerformanceReport(models.Model):
 
         emp_names = [e["name"] for e in employees]
 
-        # ── 2. Task summary (done_task data_source) ───────────────────────────
+        # ── 2. Task summary ────────────────────────────────────────────────────
         task_summary = {"names": emp_names, "total_tasks": [], "done_tasks": []}
         for ev in evaluations:
             line = ev.evaluation_line_ids.filtered(
-                lambda l: not l.is_section and l.data_source == "done_task"
+                lambda l: (
+                    not l.is_section
+                    and l.kpi_type == "quantitative"
+                )
             )
             if not line or not ev.employee_id or not ev.start_date or not ev.end_date:
                 task_summary["total_tasks"].append(0)
@@ -524,7 +530,7 @@ class HrPerformanceReport(models.Model):
             task_summary["total_tasks"].append(total)
             task_summary["done_tasks"].append(done)
 
-        # ── 3. Attendance summary (attendance_full data_source) ───────────────
+        # ── 3. Attendance summary ──────────────────────────────────────────────
         attendance_summary = {
             "names": emp_names,
             "worked_days": [],
@@ -532,14 +538,17 @@ class HrPerformanceReport(models.Model):
         }
         for ev in evaluations:
             line = ev.evaluation_line_ids.filtered(
-                lambda l: not l.is_section and l.data_source == "attendance_full"
+                lambda l: (
+                    not l.is_section
+                    and l.kpi_type == "quantitative"        
+                )
             )
             if not line or not ev.start_date or not ev.end_date:
                 attendance_summary["worked_days"].append(0)
                 continue
 
             engine = self.env["hr.kpi.engine"]
-            _, metrics = engine.compute_with_metrics(
+            metrics = engine.get_attendance_period_metrics(
                 ev.employee_id, line[0], ev.start_date, ev.end_date
             )
             metrics = metrics or {}
@@ -553,11 +562,14 @@ class HrPerformanceReport(models.Model):
                     metrics.get("expected_work_days", 0)
                 )
 
-        # ── 4. Late summary (late_days data_source) ───────────────────────────
+        # ── 4. Late summary ────────────────────────────────────────────────────
         late_summary = {"names": emp_names, "late_count": []}
         for ev in evaluations:
             line = ev.evaluation_line_ids.filtered(
-                lambda l: not l.is_section and l.data_source == "late_days"
+                lambda l: (
+                    not l.is_section
+                    and l.kpi_type == "quantitative"
+                )
             )
             if not line or not ev.start_date or not ev.end_date:
                 late_summary["late_count"].append(0)
@@ -594,6 +606,8 @@ class HrPerformanceReport(models.Model):
 
         return {
             "score_scale": score_scale,
+            "widgets": widgets,
+            "widget_map": {widget["code"]: widget for widget in widgets},
             "thresholds": {
                 "excellent": threshold_excellent,
                 "pass": threshold_pass,

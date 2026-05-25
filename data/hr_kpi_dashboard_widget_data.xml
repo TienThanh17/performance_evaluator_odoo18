@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="widget_individual_summary" model="hr.kpi.dashboard.widget">
+            <field name="name">Individual Summary</field>
+            <field name="code">individual_summary</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_type">score_card</field>
+            <field name="scope">personal</field>
+            <field name="measure_field">performance_score</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="widget_individual_done_tasks" model="hr.kpi.dashboard.widget">
+            <field name="name">Done Tasks Trend</field>
+            <field name="code">individual_done_tasks</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_type">trend_line</field>
+            <field name="scope">personal</field>
+            <field name="measure_field">done_tasks_by_day</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="widget_individual_punctuality" model="hr.kpi.dashboard.widget">
+            <field name="name">Punctuality</field>
+            <field name="code">individual_punctuality</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_type">trend_line</field>
+            <field name="scope">personal</field>
+            <field name="measure_field">punctuality_log</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="widget_individual_radar" model="hr.kpi.dashboard.widget">
+            <field name="name">Qualitative Radar</field>
+            <field name="code">individual_radar</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_type">radar_chart</field>
+            <field name="scope">personal</field>
+            <field name="measure_field">spider_web</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="widget_individual_attendance" model="hr.kpi.dashboard.widget">
+            <field name="name">Attendance</field>
+            <field name="code">individual_attendance</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">personal</field>
+            <field name="measure_field">attendance_overview</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="widget_individual_quantitative_table" model="hr.kpi.dashboard.widget">
+            <field name="name">Quantitative Table</field>
+            <field name="code">individual_quantitative_table</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">personal</field>
+            <field name="measure_field">quantitative_table</field>
+            <field name="sequence">60</field>
+        </record>
+
+        <record id="widget_department_summary" model="hr.kpi.dashboard.widget">
+            <field name="name">Department Summary</field>
+            <field name="code">department_summary</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_type">score_card</field>
+            <field name="scope">department</field>
+            <field name="measure_field">dept_kpi_score</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="widget_department_task_distribution" model="hr.kpi.dashboard.widget">
+            <field name="name">Task Distribution</field>
+            <field name="code">department_task_distribution</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_type">bar_chart</field>
+            <field name="scope">department</field>
+            <field name="measure_field">task_summary_by_employee</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="widget_department_project_progress" model="hr.kpi.dashboard.widget">
+            <field name="name">Project Progress</field>
+            <field name="code">department_project_progress</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_type">bar_chart</field>
+            <field name="scope">department</field>
+            <field name="measure_field">project_progress</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="widget_department_attendance" model="hr.kpi.dashboard.widget">
+            <field name="name">Attendance Count</field>
+            <field name="code">department_attendance</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_type">trend_line</field>
+            <field name="scope">department</field>
+            <field name="measure_field">attendance_count</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="widget_department_bug_count" model="hr.kpi.dashboard.widget">
+            <field name="name">Bug Count</field>
+            <field name="code">department_bug_count</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_type">trend_line</field>
+            <field name="scope">department</field>
+            <field name="measure_field">bug_count_by_employee</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="widget_department_score_trend" model="hr.kpi.dashboard.widget">
+            <field name="name">Department Score Trend</field>
+            <field name="code">department_score_trend</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_type">trend_line</field>
+            <field name="scope">department</field>
+            <field name="measure_field">score_trend</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="widget_department_quantitative_table" model="hr.kpi.dashboard.widget">
+            <field name="name">Department Quantitative Table</field>
+            <field name="code">department_quantitative_table</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">department</field>
+            <field name="measure_field">quantitative_table</field>
+            <field name="sequence">70</field>
+        </record>
+
+        <record id="widget_report_summary" model="hr.kpi.dashboard.widget">
+            <field name="name">Report Summary</field>
+            <field name="code">report_summary</field>
+            <field name="dashboard_kind">report</field>
+            <field name="widget_type">score_card</field>
+            <field name="scope">department</field>
+            <field name="measure_field">employees</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="widget_report_score_bar" model="hr.kpi.dashboard.widget">
+            <field name="name">Score by Employee</field>
+            <field name="code">report_score_bar</field>
+            <field name="dashboard_kind">report</field>
+            <field name="widget_type">bar_chart</field>
+            <field name="scope">department</field>
+            <field name="measure_field">employees</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="widget_report_task_summary" model="hr.kpi.dashboard.widget">
+            <field name="name">Task Summary</field>
+            <field name="code">report_task_summary</field>
+            <field name="dashboard_kind">report</field>
+            <field name="widget_type">bar_chart</field>
+            <field name="scope">department</field>
+            <field name="measure_field">task_summary</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="widget_report_attendance" model="hr.kpi.dashboard.widget">
+            <field name="name">Attendance Distribution</field>
+            <field name="code">report_attendance</field>
+            <field name="dashboard_kind">report</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">department</field>
+            <field name="measure_field">attendance_summary</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="widget_report_late_summary" model="hr.kpi.dashboard.widget">
+            <field name="name">Late Summary</field>
+            <field name="code">report_late_summary</field>
+            <field name="dashboard_kind">report</field>
+            <field name="widget_type">trend_line</field>
+            <field name="scope">department</field>
+            <field name="measure_field">late_summary</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="widget_report_qualitative" model="hr.kpi.dashboard.widget">
+            <field name="name">Qualitative Distribution</field>
+            <field name="code">report_qualitative</field>
+            <field name="dashboard_kind">report</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">department</field>
+            <field name="measure_field">qualitative_charts</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="widget_report_roster" model="hr.kpi.dashboard.widget">
+            <field name="name">Team Roster</field>
+            <field name="code">report_roster</field>
+            <field name="dashboard_kind">report</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">department</field>
+            <field name="measure_field">evaluations</field>
+            <field name="sequence">70</field>
+        </record>
+
+        <record id="widget_tree_metrics" model="hr.kpi.dashboard.widget">
+            <field name="name">Tree Metrics</field>
+            <field name="code">tree_metrics</field>
+            <field name="dashboard_kind">tree</field>
+            <field name="widget_type">score_card</field>
+            <field name="scope">company</field>
+            <field name="measure_field">company</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="widget_tree_main" model="hr.kpi.dashboard.widget">
+            <field name="name">KPI Tree</field>
+            <field name="code">tree_main</field>
+            <field name="dashboard_kind">tree</field>
+            <field name="widget_type">kpi_tree</field>
+            <field name="scope">company</field>
+            <field name="measure_field">departments</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="widget_tree_department_contribution" model="hr.kpi.dashboard.widget">
+            <field name="name">Department Contribution</field>
+            <field name="code">tree_department_contribution</field>
+            <field name="dashboard_kind">tree</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">company</field>
+            <field name="measure_field">departments</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="widget_tree_risk_kpis" model="hr.kpi.dashboard.widget">
+            <field name="name">Risk KPIs</field>
+            <field name="code">tree_risk_kpis</field>
+            <field name="dashboard_kind">tree</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">company</field>
+            <field name="measure_field">risk_lines</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="widget_tree_missing_data" model="hr.kpi.dashboard.widget">
+            <field name="name">Missing Data KPIs</field>
+            <field name="code">tree_missing_data</field>
+            <field name="dashboard_kind">tree</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">company</field>
+            <field name="measure_field">missing_data_lines</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="widget_tree_failed_evaluations" model="hr.kpi.dashboard.widget">
+            <field name="name">Failed Evaluations</field>
+            <field name="code">tree_failed_evaluations</field>
+            <field name="dashboard_kind">tree</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">company</field>
+            <field name="measure_field">failed_evaluation_lines</field>
+            <field name="sequence">60</field>
+        </record>
+    </data>
+</odoo>

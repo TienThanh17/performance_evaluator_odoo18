@@ -1,110 +1,77 @@
 from markupsafe import Markup
 
-from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
-from datetime import date
 from dateutil.relativedelta import relativedelta
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class HrDepartmentKpiGenerateWizard(models.TransientModel):
-    _name = 'hr.department.kpi.generate.wizard'
-    _description = 'Generate Department Performance Evaluations'
+    _name = "hr.department.kpi.generate.wizard"
+    _description = "Generate Department Performance Evaluations"
 
     department_kpi_id = fields.Many2one(
-        'hr.department.kpi',
-        string='Department KPI Template',
+        "hr.department.kpi.template",
+        string="Department KPI Template",
         required=True,
-        default=lambda self: self.env.context.get('default_department_kpi_id'),
+        default=lambda self: self.env.context.get("default_department_kpi_id"),
     )
     department_id = fields.Many2one(
-        'hr.department',
-        string='Department',
-        related='department_kpi_id.department_id',
+        "hr.department",
+        string="Department",
+        related="department_kpi_id.department_id",
         readonly=True,
     )
     kpi_template_id = fields.Many2one(
-        'hr.kpi',
-        string='Employee KPI Template',
-        help='KPI template to use for generating individual employee evaluations.',
+        "hr.kpi.template",
+        string="Employee KPI Template",
+        help="KPI template to use for generating individual employee evaluations.",
     )
-
-    period = fields.Selection(
-        related='department_kpi_id.period',
-        string='Period',
+    period_id = fields.Many2one(
+        related="department_kpi_id.period_id",
+        string="KPI Period",
         store=True,
         readonly=False,
     )
-    start_date = fields.Date(string='Start Date', required=True)
-    end_date = fields.Date(string='End Date', required=True)
-    deadline = fields.Date(string='Deadline', required=True)
+    start_date = fields.Date(string="Start Date", required=True)
+    end_date = fields.Date(string="End Date", required=True)
+    deadline = fields.Date(string="Deadline", required=True)
 
-    def _map_employee_period(self, period):
-        period_map = {
-            'monthly': 'monthly',
-            'quarterly': 'quarterly',
-            'biannual': 'half_yearly',
-            'annual': 'yearly',
-        }
-        return period_map.get(period, period)
-
-    @api.onchange('department_kpi_id')
+    @api.onchange("department_kpi_id")
     def _onchange_department_kpi_id(self):
-        if self.department_kpi_id and self.department_id and self.period:
-            mapped_period = self._map_employee_period(self.period)
-            
-            kpi = self.env['hr.kpi'].search([
-                ('department_kpi_id', '=', self.department_kpi_id.id),
-                ('department_id', '=', self.department_id.id),
-                ('period', '=', mapped_period),
-            ], limit=1)
+        if self.department_kpi_id and self.department_id and self.period_id:
+            kpi = self.env["hr.kpi.template"].search(
+                [
+                    ("department_kpi_id", "=", self.department_kpi_id.id),
+                    ("department_id", "=", self.department_id.id),
+                    ("period_id", "=", self.period_id.id),
+                ],
+                limit=1,
+            )
             if not kpi:
-                kpi = self.env['hr.kpi'].search([
-                    ('department_id', '=', self.department_id.id),
-                    ('period', '=', mapped_period),
-                ], limit=1)
+                kpi = self.env["hr.kpi.template"].search(
+                    [
+                        ("department_id", "=", self.department_id.id),
+                        ("period_id", "=", self.period_id.id),
+                    ],
+                    limit=1,
+                )
             self.kpi_template_id = kpi
 
-    @api.onchange('period')
+    @api.onchange("period_id")
     def _onchange_period_set_dates(self):
-        if not self.period:
+        if not self.period_id:
             return
+        self.start_date = self.period_id.date_start
+        self.end_date = self.period_id.date_end
+        self.deadline = self.period_id.date_end + relativedelta(days=5)
 
-        today = date.today()
-        
-        if self.period == 'monthly':
-            start = today.replace(day=1)
-            end = start + relativedelta(months=1, days=-1)
-            deadline_days = 5
-
-        elif self.period == 'quarterly':
-            quarter_month = ((today.month - 1) // 3) * 3 + 1
-            start = today.replace(month=quarter_month, day=1)
-            end = start + relativedelta(months=3, days=-1)
-            deadline_days = 10
-
-        elif self.period in ('half_yearly', 'biannual'):
-            half_month = 1 if today.month <= 6 else 7
-            start = today.replace(month=half_month, day=1)
-            end = start + relativedelta(months=6, days=-1)
-            deadline_days = 15
-
-        elif self.period in ('yearly', 'annual'):
-            start = today.replace(month=1, day=1)
-            end = today.replace(month=12, day=31)
-            deadline_days = 20
-
-        self.start_date = start
-        self.end_date = end
-        self.deadline = end + relativedelta(days=deadline_days)
-
-    @api.constrains('start_date', 'end_date')
+    @api.constrains("start_date", "end_date")
     def _check_date_range(self):
         for rec in self:
             if rec.start_date and rec.end_date and rec.start_date > rec.end_date:
-                raise ValidationError('Start Date must be before or equal to End Date.')
+                raise ValidationError(_("Start Date must be before or equal to End Date."))
 
     def _employee_matches_kpi(self, employee, kpi):
-        """Return True if the KPI template is applicable to the employee (department/job)."""
         if not kpi:
             return False
         if kpi.department_id:
@@ -113,165 +80,168 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
 
     def action_generate(self):
         self.ensure_one()
-
         if not self.department_kpi_id:
-            raise ValidationError(_('Please select a Department KPI Template.'))
+            raise ValidationError(_("Please select a Department KPI Template."))
         if not self.department_id:
-            raise ValidationError('The Department KPI Template must have a Department assigned.')
-        report_period = self._map_employee_period(self.period)
-        if self.kpi_template_id:
-            # if self.kpi_template_id.department_kpi_id != self.department_kpi_id:
-            #     raise ValidationError(
-            #         _(
-            #             'The Employee KPI Template must be linked to the selected Department KPI Template.'
-            #         )
-            #     )
-            if self.kpi_template_id.period != report_period:
-                raise ValidationError(
-                    _(
-                        'The Employee KPI Template period must match the selected Department KPI period.'
-                    )
-                )
+            raise ValidationError(
+                _("The Department KPI Template must have a Department assigned.")
+            )
+        if self.kpi_template_id and self.kpi_template_id.period_id != self.period_id:
+            raise ValidationError(
+                _("The Employee KPI Template period must match the selected Department KPI period.")
+            )
 
-        dom = [('active', '=', True), ('department_id', '=', self.department_id.id)]
-        employees = self.env['hr.employee'].search(dom)
-        
+        employees = self.env["hr.employee"].search(
+            [("active", "=", True), ("department_id", "=", self.department_id.id)]
+        )
         if not employees:
             return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'Warning',
-                    'message': _('No active employees found in this department.'),
-                    'type': 'warning',
-                    'sticky': False,
-                }
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": "Warning",
+                    "message": _("No active employees found in this department."),
+                    "type": "warning",
+                    "sticky": False,
+                },
             }
 
-        # 1. Check if department evaluation already exists
-        DeptEvaluation = self.env['hr.department.performance.evaluation']
-        exists_dept_eval = DeptEvaluation.search([
-            ('department_id', '=', self.department_id.id),
-            ('department_kpi_id', '=', self.department_kpi_id.id),
-            ('start_date', '=', self.start_date),
-            ('end_date', '=', self.end_date),
-        ], limit=1)
-
+        DeptEvaluation = self.env["hr.department.performance.evaluation"]
+        exists_dept_eval = DeptEvaluation.search(
+            [
+                ("department_id", "=", self.department_id.id),
+                ("department_kpi_id", "=", self.department_kpi_id.id),
+                ("period_id", "=", self.period_id.id),
+                ("start_date", "=", self.start_date),
+                ("end_date", "=", self.end_date),
+            ],
+            limit=1,
+        )
         if exists_dept_eval:
             return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'No new data',
-                    'message': _('A department performance evaluation already exists for this period.'),
-                    'type': 'danger',
-                    'sticky': False,
-                }
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": "No new data",
+                    "message": _("A department performance evaluation already exists for this period."),
+                    "type": "danger",
+                    "sticky": False,
+                },
             }
 
-        # 2. Tạo record cho hr.performance.report
-        report = self.env['hr.performance.report'].sudo().create({
-            'period': report_period,
-            'start_date': self.start_date,
-            'end_date': self.end_date,
-            'deadline': self.deadline,
-            'department_id': self.department_id.id,
-            'employee_id': [(6, 0, employees.ids)],
-        })
+        report = self.env["hr.performance.report"].sudo().create(
+            {
+                "period_id": self.period_id.id,
+                "start_date": self.start_date,
+                "end_date": self.end_date,
+                "deadline": self.deadline,
+                "department_id": self.department_id.id,
+                "employee_id": [(6, 0, employees.ids)],
+            }
+        )
 
-        # 3. Tạo record cho hr.department.performance.evaluation
-        scratch_dept = DeptEvaluation.new({'department_kpi_id': self.department_kpi_id.id})
-        dept_line_cmds = scratch_dept._prepare_evaluation_line_commands_from_template(self.department_kpi_id)
-        
-        dept_eval = DeptEvaluation.create({
-            'department_id': self.department_id.id,
-            'department_kpi_id': self.department_kpi_id.id,
-            'start_date': self.start_date,
-            'end_date': self.end_date,
-            'deadline': self.deadline,
-            'performance_report_id': report.id,
-            'evaluation_line_ids': dept_line_cmds,
-        })
+        scratch_dept = DeptEvaluation.new(
+            {
+                "department_kpi_id": self.department_kpi_id.id,
+                "period_id": self.period_id.id,
+            }
+        )
+        dept_line_cmds = scratch_dept._prepare_evaluation_line_commands_from_template(
+            self.department_kpi_id
+        )
+        dept_eval = DeptEvaluation.create(
+            {
+                "department_id": self.department_id.id,
+                "department_kpi_id": self.department_kpi_id.id,
+                "period_id": self.period_id.id,
+                "start_date": self.start_date,
+                "end_date": self.end_date,
+                "deadline": self.deadline,
+                "performance_report_id": report.id,
+                "evaluation_line_ids": dept_line_cmds,
+            }
+        )
         dept_eval_line_by_template_line = {
             line.department_kpi_line_id.id: line.id
             for line in dept_eval.evaluation_line_ids
             if line.department_kpi_line_id
         }
 
-        # 4. Chạy vòng lặp tạo Evaluations cho các employee (nếu có kpi_template_id)
         count = 0
-        # Gom tất cả evaluation vừa tạo để trigger recompute final_score một lần sau vòng lặp
-        individual_evals = self.env['hr.performance.evaluation']
-
+        individual_evals = self.env["hr.performance.evaluation"]
         if self.kpi_template_id:
-            Evaluation = self.env['hr.performance.evaluation']
-            valid_employees = self.env['hr.employee']
-            
+            Evaluation = self.env["hr.performance.evaluation"]
+            valid_employees = self.env["hr.employee"]
             for emp in employees:
                 if self._employee_matches_kpi(emp, self.kpi_template_id):
-                    # Kiểm tra tránh tạo evaluation trùng kỳ cho cùng nhân viên
-                    exists = Evaluation.search([
-                        ('employee_id', '=', emp.id),
-                        ('kpi_id', '=', self.kpi_template_id.id),
-                        ('start_date', '=', self.start_date),
-                        ('end_date', '=', self.end_date),
-                    ], limit=1)
+                    exists = Evaluation.search(
+                        [
+                            ("employee_id", "=", emp.id),
+                            ("kpi_id", "=", self.kpi_template_id.id),
+                            ("period_id", "=", self.kpi_template_id.period_id.id),
+                            ("start_date", "=", self.start_date),
+                            ("end_date", "=", self.end_date),
+                        ],
+                        limit=1,
+                    )
                     if not exists:
                         valid_employees |= emp
 
             for emp in valid_employees:
-                # Period của hr.performance.evaluation phải khớp với hr.kpi template
-                emp_period = self.kpi_template_id.period
-                scratch = Evaluation.new({'kpi_id': self.kpi_template_id.id, 'period': emp_period})
+                scratch = Evaluation.new(
+                    {
+                        "kpi_id": self.kpi_template_id.id,
+                        "period_id": self.kpi_template_id.period_id.id,
+                    }
+                )
                 line_cmds = scratch._prepare_evaluation_line_commands_from_template(
                     self.kpi_template_id,
                     dept_eval_line_by_template_line=dept_eval_line_by_template_line,
                 )
-
-                evaluation = Evaluation.create({
-                    'employee_id': emp.id,
-                    'kpi_id': self.kpi_template_id.id,
-                    'period': emp_period,
-                    'start_date': self.start_date,
-                    'end_date': self.end_date,
-                    'deadline': self.deadline,
-                    'evaluation_line_ids': line_cmds,
-                    'performance_report_id': report.id,
-                    # Gán dept_evaluation_id để tính final_score theo công thức pha trộn
-                    'dept_evaluation_id': dept_eval.id,
-                })
+                evaluation = Evaluation.create(
+                    {
+                        "employee_id": emp.id,
+                        "kpi_id": self.kpi_template_id.id,
+                        "period_id": self.kpi_template_id.period_id.id,
+                        "start_date": self.start_date,
+                        "end_date": self.end_date,
+                        "deadline": self.deadline,
+                        "evaluation_line_ids": line_cmds,
+                        "performance_report_id": report.id,
+                        "dept_evaluation_id": dept_eval.id,
+                    }
+                )
                 self.send_notification(emp, evaluation)
-                # Tích lũy vào recordset để recompute sau vòng lặp
                 individual_evals |= evaluation
                 count += 1
 
-        # Trigger recompute final_score cho toàn bộ evaluations vừa tạo.
-        # Cần thiết vì dept_evaluation_id vừa được gán — Odoo có thể chưa
-        # invalidate cache và trigger store=True ngay trong cùng transaction.
         if individual_evals:
             individual_evals._compute_final_score()
 
         return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Thành công',
-                'message': f'Created 1 Department Evaluation and {count} Individual Evaluations for the {self.period} period.',
-                'type': 'success',
-                'sticky': False,
-                'next': {'type': 'ir.actions.act_window_close'},
-            }
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Thành công",
+                "message": _(
+                    "Created 1 Department Evaluation and %(count)s Individual Evaluations for the %(period)s period."
+                )
+                % {"count": count, "period": self.period_id.name},
+                "type": "success",
+                "sticky": False,
+                "next": {"type": "ir.actions.act_window_close"},
+            },
         }
 
     def send_notification(self, emp, evaluation):
         if emp.user_id and emp.user_id.partner_id:
-            period_str = self.period
-            start_str = self.start_date.strftime('%d/%m/%Y')
-            end_str = self.end_date.strftime('%d/%m/%Y')
-
-            base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-            record_url = f"{base_url}/web#id={evaluation.id}&model=hr.performance.evaluation&view_type=form"
-
+            period_str = self.period_id.name if self.period_id else ""
+            start_str = self.start_date.strftime("%d/%m/%Y")
+            end_str = self.end_date.strftime("%d/%m/%Y")
+            base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
+            record_url = (
+                f"{base_url}/web#id={evaluation.id}&model=hr.performance.evaluation&view_type=form"
+            )
             msg_body = _(
                 """
                 <div style="margin: 0; padding: 0;">
@@ -297,6 +267,6 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                 body=Markup(msg_body),
                 subject=_("[Notification] You have a new KPI evaluation"),
                 partner_ids=[emp.user_id.partner_id.id],
-                message_type='comment',
-                subtype_xmlid='mail.mt_comment'
+                message_type="comment",
+                subtype_xmlid="mail.mt_comment",
             )

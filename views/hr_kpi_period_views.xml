@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_kpi_period_list" model="ir.ui.view">
+        <field name="name">hr.kpi.period.list</field>
+        <field name="model">hr.kpi.period</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="period_type"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hr_kpi_period_form" model="ir.ui.view">
+        <field name="name">hr.kpi.period.form</field>
+        <field name="model">hr.kpi.period</field>
+        <field name="arch" type="xml">
+            <form string="KPI Period">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="period_type"/>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_kpi_period" model="ir.actions.act_window">
+        <field name="name">KPI Periods</field>
+        <field name="res_model">hr.kpi.period</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_kpi_configuration" name="Configuration" parent="menu_kpi_template" sequence="90"/>
+    <menuitem id="menu_kpi_period" name="KPI Periods" parent="menu_kpi_configuration" action="action_hr_kpi_period" sequence="10"/>
+</odoo>

@@ -4,7 +4,7 @@
         <!-- Dedicated form view for KPI Line used in popup (Add KPI) -->
         <record id="view_hr_kpi_line_form_popup" model="ir.ui.view">
             <field name="name">hr.kpi.line.form.popup</field>
-            <field name="model">hr.kpi.line</field>
+            <field name="model">hr.kpi.template.line</field>
             <field name="arch" type="xml">
                 <form string="KPI Line">
                     <sheet>
@@ -28,14 +28,20 @@
                                 <field name="kpi_type"/>
                                 <field name="unit"
                                        invisible="kpi_type != 'quantitative'"/>
-                                <field name="direction"
-                                       invisible="kpi_type != 'quantitative' or is_special_scoring"/>
+                                <field name="scoring_formula_id"
+                                       invisible="kpi_type != 'quantitative'"
+                                       options="{'no_create': True}"/>
+                                <field name="formula_type"
+                                       invisible="1"
+                                       readonly="1"/>
+                                <field name="step_table_json"
+                                       invisible="1"
+                                       readonly="1"/>
                                 <field name="weight"/>
                             </group>
                             <group string="Auto Compute" invisible="kpi_type != 'quantitative'">
                                 <field name="is_auto" readonly="1" invisible="kpi_type != 'quantitative'"/>
-                                <field name="data_source" invisible="kpi_type != 'quantitative'"/>
-                                <field name="is_special_scoring" invisible="not is_special_scoring"/>
+                                <field name="data_source_id" invisible="kpi_type != 'quantitative'"/>
                             </group>
                         </group>
 
@@ -58,7 +64,7 @@
         <!-- list View for KPI (List View) -->
         <record id="view_hr_kpi_list" model="ir.ui.view">
             <field name="name">hr kpi</field>
-            <field name="model">hr.kpi</field>
+            <field name="model">hr.kpi.template</field>
             <field name="arch" type="xml">
                 <list>
                     <!--                    <header>-->
@@ -72,6 +78,7 @@
                     <!--                    </header>-->
                     <field name="name"/>
                     <field name="department_id"/>
+                    <field name="period_id"/>
                 </list>
             </field>
         </record>
@@ -79,7 +86,7 @@
         <!-- Form View for KPI -->
         <record id="view_hr_kpi_form" model="ir.ui.view">
             <field name="name">hr.kpi.form</field>
-            <field name="model">hr.kpi</field>
+            <field name="model">hr.kpi.template</field>
             <field name="arch" type="xml">
                 <form string="KPI">
                     <header>
@@ -96,10 +103,11 @@
                         <group>
                             <group>
                                 <field name="name"/>
-                                <field name="period"/>
+                                <field name="period_id"/>
                             </group>
                             <group>
                                 <field name="department_id"/>
+                                <field name="scoring_profile_id"/>
                                 <field name="department_kpi_id" options="{'no_create': True}"/>
                             </group>
                         </group>
@@ -132,12 +140,13 @@
                                                invisible="is_section or kpi_type != 'quantitative'"
                                                optional="show"/>
                                         <field name="target" string="Target"
-                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
-                                        <field name="direction"
-                                               invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"/>
+                                               invisible="is_section or kpi_type != 'quantitative'"/>
+                                        <field name="scoring_formula_id"
+                                               invisible="is_section or kpi_type != 'quantitative'"
+                                               options="{'no_create': True}"/>
 
                                         <field name="is_auto" column_invisible="1"/>
-                                        <field name="data_source"
+                                        <field name="data_source_id"
                                                invisible="is_section or not is_auto"/>
 
                                         <field name="weight" invisible="is_section"/>
@@ -162,13 +171,10 @@
         <!-- Action to Open KPI Form and List View -->
         <record id="hr_kpi_action" model="ir.actions.act_window">
             <field name="name">KPI</field>
-            <field name="res_model">hr.kpi</field>
+            <field name="res_model">hr.kpi.template</field>
             <field name="view_mode">list,form</field>
         </record>
 
-        <!-- Menu Item to Access KPI Form and List View -->
-        <menuitem id="performance_evaluator" name="KPI Performance Evaluator" sequence="1"/>
-        <menuitem id="menu_kpi_template" name="KPI Template" parent="performance_evaluator" sequence="30"/>
         <menuitem id="menu_kpi_form" name="KPI Employee Template" parent="menu_kpi_template" sequence="10"
                   action="hr_kpi_action"/>
     </data>

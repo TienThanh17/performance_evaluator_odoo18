@@ -136,7 +136,6 @@ class EvaluationOne2ManyField extends X2ManyField {
             // Keep consistent defaults for new KPI line created via popup.
             // (Mapped lines from template will explicitly provide is_auto.)
             default_is_auto: evaluatedContext.default_is_auto ?? false,
-            default_data_source: evaluatedContext.default_data_source ?? "manual",
             //            default_target: evaluatedContext.default_target ?? 100,
         };
 

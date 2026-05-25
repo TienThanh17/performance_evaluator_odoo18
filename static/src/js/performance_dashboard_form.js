@@ -41,13 +41,13 @@ const POINT_COLORS = [
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-function formatPeriodLabel(dateStr, period) {
+function formatPeriodLabel(dateStr, periodType) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
     const year = d.getFullYear();
     const month = d.getMonth(); // Trả về từ 0 (Tháng 1) đến 11 (Tháng 12)
 
-    switch (period) {
+    switch (periodType) {
         case "monthly":
             // Lấy tên tháng bằng tiếng Anh (ví dụ: "January"), bọc trong _t() để Odoo có thể dịch sang "Tháng 1"
             const monthName = d.toLocaleDateString("en-US", { month: "long" });
@@ -58,7 +58,7 @@ function formatPeriodLabel(dateStr, period) {
             const quarter = Math.floor(month / 3) + 1;
             return sprintf(_t("Quarter %s %s"), quarter, year);
 
-        case "half_yearly":
+        case "biannual":
             // Nửa đầu năm (Tháng 1 - 6) và nửa cuối năm (Tháng 7 - 12)
             if (month < 6) {
                 return sprintf(_t("First Half %s"), year);
@@ -263,13 +263,14 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             // passRate: "0",
             passCount: "0",
             evaluations: [],
-            period: "",
+            periodType: "",
             startDate: "",
             endDate: "",
             deadline: "",
             active: true,
             approvingAll: false,
             chartData: null, // data từ get_report_dashboard_data
+            widgetMap: {},
             scoreScale: { base: 10, suffix: " / 10" },
             thresholds: { excellent: 9, pass: 5 },
         });
@@ -316,15 +317,20 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         ).length;
     }
 
+    hasWidget(code) {
+        const widgetMap = this.state.widgetMap || {};
+        return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
+    }
+
     async _loadDashboardData() {
         const record = this.props.record;
         const data = record.data;
 
         this.state.departmentName = data.department_name || "";
         this.state.periodLabel = data.start_date
-            ? formatPeriodLabel(data.start_date, data.period || "monthly")
+            ? formatPeriodLabel(data.start_date, data.period_type || "monthly")
             : "";
-        this.state.period = data.period || "monthly";
+        this.state.periodType = data.period_type || "monthly";
         this.state.startDate = toInputDate(data.start_date);
         this.state.endDate = toInputDate(data.end_date);
         this.state.deadline = toInputDate(data.deadline);
@@ -392,6 +398,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                     "get_report_dashboard_data",
                     [reportId],
                 );
+                this.state.widgetMap = chartData.widget_map || {};
                 this.state.scoreScale = chartData.score_scale || this.state.scoreScale;
                 this.state.thresholds = chartData.thresholds || this.state.thresholds;
                 this.state.chartData = chartData;
@@ -807,7 +814,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     // ── Event handlers ────────────────────────────────────────────────────────
     async onPeriodChange(ev) {
         const value = ev.target.value;
-        this.state.period = value;
+        this.state.periodType = value;
 
         // Cập nhật lại nhãn hiển thị nếu đã có start_date
         if (this.state.startDate) {
@@ -816,8 +823,6 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                 value,
             );
         }
-
-        await this._writeConfigField({ period: value }, { period: value });
     }
 
     async onStartDateChange(ev) {
@@ -826,7 +831,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         if (value) {
             this.state.periodLabel = formatPeriodLabel(
                 value,
-                this.state.period,
+                this.state.periodType,
             );
         }
         await this._writeConfigField(

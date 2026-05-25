@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="source_task_done_count" model="hr.kpi.data.source">
+            <field name="name">Số task hoàn thành</field>
+            <field name="code">task_done_count</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task" />
+            <field name="source_type">domain</field>
+            <field name="description">Đếm số task đã hoàn thành trong kỳ theo người được giao.</field>
+            <field name="model_id" search="[('model', '=', 'project.task')]" />
+            <field name="aggregation">count</field>
+            <field name="user_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
+            <field name="domain_numerator">[('done_date', '!=', False), ('project_id', '!=', False)]</field>
+            <field name="date_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'date_deadline')]" />
+        </record>
+
+        <record id="source_task_on_time_rate" model="hr.kpi.data.source">
+            <field name="name">Tỷ lệ task đúng hạn</field>
+            <field name="code">task_on_time_rate</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent" />
+            <field name="source_type">domain</field>
+            <field name="description">Tính tỷ lệ task hoàn thành đúng hạn trong kỳ.</field>
+            <field name="model_id" search="[('model', '=', 'project.task')]" />
+            <field name="aggregation">ratio</field>
+            <field name="user_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
+            <field name="domain_numerator">[('done_date', '!=', False), ('project_id', '!=', False)]</field>
+            <field name="domain_denominator">[('project_id', '!=', False)]</field>
+            <field name="date_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'date_deadline')]" />
+        </record>
+
+        <record id="source_attendance_present_days" model="hr.kpi.data.source">
+            <field name="name">Số ngày đi làm thực tế</field>
+            <field name="code">attendance_present_days</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
+            <field name="source_type">python</field>
+            <field name="description">Đếm số ngày làm việc có check-in hợp lệ trong kỳ.</field>
+            <field name="python_code"><![CDATA[
+worked_dates = env["hr.kpi.engine"].get_attendance_worked_dates(
+    employee,
+    start_date,
+    end_date,
+)
+result = float(sum(1 for item in worked_dates if item.get("status") == "present"))
+            ]]></field>
+        </record>
+
+        <record id="source_attendance_on_time_days" model="hr.kpi.data.source">
+            <field name="name">Số ngày chấm công đúng giờ</field>
+            <field name="code">attendance_on_time_days</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
+            <field name="source_type">python</field>
+            <field name="description">Đếm số ngày vừa đi làm vừa không đi muộn trong kỳ.</field>
+            <field name="python_code"><![CDATA[
+engine = env["hr.kpi.engine"]
+worked_dates = engine.get_attendance_worked_dates(employee, start_date, end_date)
+present_days = float(sum(1 for item in worked_dates if item.get("status") == "present"))
+late_days = float(
+    engine.compute_late_arrival_value(
+        employee,
+        False,
+        start_date,
+        end_date,
+    ) or 0.0
+)
+result = max(present_days - late_days, 0.0)
+            ]]></field>
+        </record>
+
+        <record id="source_attendance_late_days" model="hr.kpi.data.source">
+            <field name="name">Số ngày đi muộn</field>
+            <field name="code">attendance_late_days</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
+            <field name="source_type">python</field>
+            <field name="description">Đếm số ngày nhân viên đi muộn trong kỳ theo lịch làm việc và
+                grace minutes.</field>
+            <field name="python_code"><![CDATA[
+result = env["hr.kpi.engine"].compute_late_arrival_value(
+    employee,
+    False,
+    start_date,
+    end_date,
+)
+            ]]></field>
+        </record>
+    </data>
+</odoo>

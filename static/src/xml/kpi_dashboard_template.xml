@@ -69,7 +69,7 @@
       <div class="o_kpi_header_left">
         <h2 class="o_kpi_title">
           <t t-esc="state.data.employee_name"/>
-          <span class="o_kpi_period_badge" t-esc="periodLabel(state.data.period)"/>
+          <span class="o_kpi_period_badge" t-esc="periodLabel(state.data.period_type)"/>
         </h2>
         <p class="o_kpi_dates">
           <i class="fa fa-calendar me-1"/>
@@ -112,7 +112,7 @@
       </div>
     </div> -->
 
-        <div class="o_kpi_header_cards">
+        <div t-if="hasWidget('individual_summary')" class="o_kpi_header_cards">
 
           <div class="o_kpi_summary_card o_kpi_summary_card_profile">
             <p class="o_kpi_dates">
@@ -120,7 +120,7 @@
               <t t-esc="state.data.start_date"/>
               →
               <t t-esc="state.data.end_date"/>
-              <span class="o_kpi_period_badge ms-2" t-esc="periodLabel(state.data.period)"/>
+              <span class="o_kpi_period_badge ms-2" t-esc="periodLabel(state.data.period_type)"/>
             </p>
             <h2 class="o_kpi_title">
               <t t-esc="state.data.employee_name"/>
@@ -164,7 +164,10 @@
         </div>
 
         <!-- Row 1: Task Completion + Punctuality -->
-        <div class="o_kpi_row o_kpi_row_2col">
+        <div
+          t-if="hasWidget('individual_done_tasks') or hasWidget('individual_punctuality')"
+          class="o_kpi_row o_kpi_row_2col"
+        >
 
           <!--      <div class="o_kpi_card o_kpi_chart_card">-->
           <!--        <div class="o_kpi_card_header">-->
@@ -182,7 +185,7 @@
           <!--        <p class="o_kpi_chart_note">% of tasks completed on time per day</p>-->
           <!--      </div>-->
 
-          <div class="o_kpi_card o_kpi_chart_card">
+          <div t-if="hasWidget('individual_done_tasks')" class="o_kpi_card o_kpi_chart_card">
             <div class="o_kpi_card_header">
               <span class="o_kpi_card_title">
                 <i class="fa fa-check-square-o"/>
@@ -197,7 +200,7 @@
             <p class="o_kpi_chart_note">Cumulative tasks completed vs Target</p>
           </div>
 
-          <div class="o_kpi_card o_kpi_chart_card">
+          <div t-if="hasWidget('individual_punctuality')" class="o_kpi_card o_kpi_chart_card">
             <div class="o_kpi_card_header">
               <span class="o_kpi_card_title">
                 <i class="fa fa-clock-o"/>
@@ -216,10 +219,17 @@
         </div>
 
         <!-- Row 2: Spider Web + Attendance Overview -->
-        <div class="o_kpi_row" style="display: grid; grid-template-columns: 7fr 3fr; gap: 20px;">
+        <div
+          t-if="hasWidget('individual_radar') or hasWidget('individual_attendance')"
+          class="o_kpi_row"
+          style="display: grid; grid-template-columns: 7fr 3fr; gap: 20px;"
+        >
 
           <!-- Competency Spider Web -->
-          <div class="o_kpi_card o_kpi_spider_card" t-if="state.data.spider_web.labels.length">
+          <div
+            t-if="hasWidget('individual_radar') and state.data.spider_web.labels.length"
+            class="o_kpi_card o_kpi_spider_card"
+          >
             <div class="o_kpi_card_header">
               <span class="o_kpi_card_title">
                 <i class="fa fa-bullseye"/>
@@ -239,23 +249,26 @@
               </div>
             </div>
           </div>
-          <div class="o_kpi_card o_kpi_spider_card" t-else="">
+          <div
+            t-elif="hasWidget('individual_radar')"
+            class="o_kpi_card o_kpi_spider_card"
+          >
             <p class="o_kpi_empty">No competency data available.</p>
           </div>
 
           <!-- Attendance Overview -->
-          <div class="o_kpi_card o_kpi_attendance_card">
+          <div t-if="hasWidget('individual_attendance')" class="o_kpi_card o_kpi_attendance_card">
             <div class="o_kpi_card_header">
               <span class="o_kpi_card_title">
                 <i class="fa fa-pie-chart"/>
  Attendance Overview</span>
             </div>
-            <div class="o_kpi_attendance_body" t-if="state.data.attendance_full and state.data.attendance_full.summary.expected_work_days > 0">
+            <div class="o_kpi_attendance_body" t-if="state.data.attendance_overview and state.data.attendance_overview.summary.expected_work_days > 0">
               <div class="o_kpi_chart_container o_kpi_chart_doughnut" style="position: relative; height: 180px; width: 100%; display: flex; align-items: center; justify-content: center;">
                 <canvas t-ref="attendanceChart"/>
                 <!-- Center Text for Doughnut Chart -->
                 <div style="position: absolute; text-align: center; pointer-events: none;">
-                  <div style="font-size: 24px; font-weight: bold; color: #1e293b;" t-esc="state.data.attendance_full.summary.expected_work_days"></div>
+                  <div style="font-size: 24px; font-weight: bold; color: #1e293b;" t-esc="state.data.attendance_overview.summary.expected_work_days"></div>
                   <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Total Days</div>
                 </div>
               </div>
@@ -265,14 +278,14 @@
                     <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: #3b82f6; margin-right: 8px;"></span>
                 Days Present
                   </span>
-                  <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_full.summary.worked_days"/>
+                  <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_overview.summary.worked_days"/>
                 </div>
                 <div class="o_kpi_spider_legend_item" style="display: flex; justify-content: space-between; align-items: center;">
                   <span class="o_kpi_spider_legend_label" style="display: flex; align-items: center;">
                     <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: #e2e8f0; margin-right: 8px;"></span>
                 Days Absent
                   </span>
-                  <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_full.summary.expected_work_days - state.data.attendance_full.summary.worked_days"/>
+                  <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_overview.summary.expected_work_days - state.data.attendance_overview.summary.worked_days"/>
                 </div>
               </div>
             </div>
@@ -282,7 +295,7 @@
         </div>
 
         <!-- Row 3: Quantitative Table -->
-        <div class="o_kpi_row" style="margin-top: 20px;">
+        <div t-if="hasWidget('individual_quantitative_table')" class="o_kpi_row" style="margin-top: 20px;">
           <div class="o_kpi_card o_kpi_table_card o_kpi_card_full">
             <div class="o_kpi_card_header">
               <span class="o_kpi_card_title">
@@ -308,8 +321,8 @@
                     <tr>
                       <td class="o_kpi_table_name" t-esc="row.name"/>
                       <td>
-                        <span t-if="row.direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
-                        <span t-if="row.direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
+                        <span t-if="row.linear_direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
+                        <span t-if="row.linear_direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
                         <span class="ms-1" t-esc="row.target"/>
                       </td>
                       <td t-esc="row.actual"/>

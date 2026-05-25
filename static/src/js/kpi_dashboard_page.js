@@ -41,7 +41,7 @@ function formatHour(h) {
 const PERIOD_LABELS = {
     monthly: _t("Monthly"),
     quarterly: _t("Quarterly"),
-    half_yearly: _t("Half-Yearly"),
+    biannual: _t("Half-Yearly"),
     yearly: _t("Yearly"),
 };
 
@@ -265,7 +265,8 @@ export class KpiDashboard extends Component {
             const fields = [
                 "id",
                 "name",
-                "period",
+                "period_type",
+                "period_id",
                 "start_date",
                 "end_date",
                 "performance_score",
@@ -394,6 +395,11 @@ export class KpiDashboard extends Component {
         return this.state.data?.score_scale || { base: 10, suffix: " / 10" };
     }
 
+    hasWidget(code) {
+        const widgetMap = this.state.data?.widget_map || {};
+        return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
+    }
+
     /** Hiển thị điểm số, mặc định 2 chữ số thập phân. */
     formatScore(value, decimals = 2) {
         return _formatScore(value, this.scoreScale, { decimals });
@@ -514,8 +520,8 @@ export class KpiDashboard extends Component {
     // 4. Màu nền cho Badge Status
     statusClass(row) { return _statusClass(row); }
 
-    periodLabel(period) {
-        return PERIOD_LABELS[period] || period;
+    periodLabel(periodType) {
+        return PERIOD_LABELS[periodType] || periodType;
     }
 
     formatHour(h) {
@@ -526,7 +532,7 @@ export class KpiDashboard extends Component {
         let periodLabel = "";
 
         // Kiểm tra nếu period là monthly và có start_date
-        if (ev.period === "monthly" && ev.start_date) {
+        if (ev.period_type === "monthly" && ev.start_date) {
             // start_date có dạng "YYYY-MM-DD", tách chuỗi lấy phần tử thứ 2 (index 1)
             const monthString = ev.start_date.split("-")[1];
 
@@ -537,7 +543,7 @@ export class KpiDashboard extends Component {
             periodLabel = _t("Month ") + monthNumber;
         } else {
             // Fallback về logic cũ cho các period khác (yearly, quarterly...)
-            periodLabel = PERIOD_LABELS[ev.period] || ev.period;
+            periodLabel = PERIOD_LABELS[ev.period_type] || ev.period_type;
         }
 
         return (
@@ -733,11 +739,11 @@ export class KpiDashboard extends Component {
         const attendanceEl = this.attendanceRef.el;
         if (
             attendanceEl &&
-            d.attendance_full &&
-            d.attendance_full.summary.expected_work_days > 0
+            d.attendance_overview &&
+            d.attendance_overview.summary.expected_work_days > 0
         ) {
-            const worked = d.attendance_full.summary.worked_days;
-            const expected = d.attendance_full.summary.expected_work_days;
+            const worked = d.attendance_overview.summary.worked_days;
+            const expected = d.attendance_overview.summary.expected_work_days;
             const absent = expected - worked;
 
             this._charts.attendance = new Chart(attendanceEl, {

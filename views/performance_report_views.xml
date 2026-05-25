@@ -18,7 +18,8 @@
                     <sheet>
                         <field name="department_id" invisible="1" />
                         <field name="department_name" invisible="1" />
-                        <field name="period" invisible="1" />
+                        <field name="period_id" invisible="1" />
+                        <field name="period_type" invisible="1" />
                         <field name="start_date" invisible="1" />
                         <field name="end_date" invisible="1" />
                         <field name="deadline" invisible="1" />
@@ -52,7 +53,7 @@
                     <sheet>
                         <group>
                             <group string="Period Info">
-                                <field name="period" />
+                                <field name="period_id" />
                                 <field name="start_date" />
                                 <field name="end_date" />
                                 <field name="deadline" />
@@ -79,7 +80,7 @@
                                 <field name="evaluation_ids" readonly="1">
                                     <list>
                                         <field name="employee_id" />
-                                        <field name="period" />
+                                        <field name="period_id" />
                                         <field name="performance_score" />
                                         <field name="performance_level" widget="badge"
                                             decoration-success="performance_level == 'pass'"
@@ -105,7 +106,8 @@
             <field name="arch" type="xml">
                 <list string="Performance Reports">
                     <field name="department_id" />
-                    <field name="period" />
+                    <field name="period_id" />
+                    <field name="period_type" />
                     <field name="start_date" />
                     <field name="end_date" />
                     <field name="period_status" widget="badge"
@@ -127,7 +129,8 @@
             <field name="arch" type="xml">
                 <search>
                     <field name="department_id" />
-                    <field name="period" />
+                    <field name="period_id" />
+                    <field name="period_type" />
                     <field name="start_date" />
                     <field name="end_date" />
                     <field name="period_status" />
@@ -141,10 +144,10 @@
 
                     <separator />
 
-                    <filter string="Monthly" name="monthly" domain="[('period', '=', 'monthly')]" />
-                    <filter string="Quarterly" name="quarterly" domain="[('period', '=', 'quarterly')]" />
-                    <filter string="Half-Yearly" name="half_yearly" domain="[('period', '=', 'half_yearly')]" />
-                    <filter string="Yearly" name="yearly" domain="[('period', '=', 'yearly')]" />
+                    <filter string="Monthly" name="monthly" domain="[('period_type', '=', 'monthly')]" />
+                    <filter string="Quarterly" name="quarterly" domain="[('period_type', '=', 'quarterly')]" />
+                    <filter string="Half-Yearly" name="half_yearly" domain="[('period_type', '=', 'biannual')]" />
+                    <filter string="Yearly" name="yearly" domain="[('period_type', '=', 'yearly')]" />
 
                     <separator />
 
@@ -155,7 +158,7 @@
                         <filter string="Department" name="group_by_department"
                             context="{'group_by': 'department_id'}" />
                         <filter string="Period" name="group_by_period"
-                            context="{'group_by': 'period'}" />
+                            context="{'group_by': 'period_type'}" />
                     </group>
                 </search>
             </field>

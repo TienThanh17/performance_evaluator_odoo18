@@ -1,6 +1,6 @@
 import json
 
-from odoo import models, fields, api, _
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -11,7 +11,7 @@ class HrDepartmentEvaluationLine(models.Model):
     evaluation_id = fields.Many2one(
         "hr.department.performance.evaluation", ondelete="cascade"
     )
-    department_kpi_line_id = fields.Many2one("hr.department.kpi.line")
+    department_kpi_line_id = fields.Many2one("hr.department.kpi.template.line")
 
     name = fields.Char()
     kpi_type = fields.Selection(
@@ -24,9 +24,6 @@ class HrDepartmentEvaluationLine(models.Model):
         string=_("KPI Type"),
     )
     target = fields.Float()
-    direction = fields.Selection(
-        [("higher_better", "Higher is better"), ("lower_better", "Lower is better")]
-    )
     actual = fields.Float()
     unit = fields.Many2one(
         "hr.kpi.unit",
@@ -36,15 +33,25 @@ class HrDepartmentEvaluationLine(models.Model):
     )
     weight = fields.Float()
     is_auto = fields.Boolean()
-    data_source = fields.Selection(
-        [
-            ("manual", "Manual"),
-            # ("dept_task_completion", "Tỷ lệ hoàn thành task phòng ban"),
-            # ("dept_attendance_rate", "Tỷ lệ chuyên cần phòng ban"),
-            # ("dept_avg_individual", "TB điểm cá nhân (auto-aggregated)"),
-            ("child_kpi_average", "Tự động tổng hợp từ KPI con"),
-        ],
-        default="manual",
+    dept_source_type = fields.Selection(
+        related="department_kpi_line_id.dept_source_type",
+        string="Department Source Type",
+        store=True,
+        readonly=True,
+    )
+    data_source_id = fields.Many2one(
+        "hr.kpi.data.source",
+        related="department_kpi_line_id.data_source_id",
+        string="Data Source",
+        store=True,
+        readonly=True,
+    )
+    scoring_formula_id = fields.Many2one(
+        "hr.kpi.scoring.formula",
+        related="department_kpi_line_id.scoring_formula_id",
+        string="Scoring Formula",
+        store=True,
+        readonly=True,
     )
     is_section = fields.Boolean()
     description = fields.Html(
@@ -170,14 +177,44 @@ class HrDepartmentEvaluationLine(models.Model):
                 )
             line.child_line_rows_json = json.dumps(child_rows, ensure_ascii=False)
 
+    def _compute_system_score_for_line(self, line, actual, target, score_base=None):
+        score_base = float(
+            score_base or self.env["res.config.settings"].get_score_scale_base() or 0.0
+        )
+        formula = (
+            line.department_kpi_line_id.get_effective_formula()
+            if line.department_kpi_line_id
+            else False
+        )
+        if not formula:
+            return 0.0
+        try:
+            score = formula.compute_score(actual or 0.0, target or 0.0, max_score=score_base)
+        except Exception:
+            return 0.0
+
+        if getattr(formula, "formula_type", False) == "linear" and getattr(
+            formula, "linear_allow_exceed", False
+        ):
+            return round(max(score, 0.0), 2)
+        return round(max(0.0, min(score, score_base)), 2)
+
     @api.depends(
         "actual",
         "target",
         "kpi_type",
-        "direction",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
+        "scoring_formula_id",
+        "scoring_formula_id.formula_type",
+        "scoring_formula_id.linear_direction",
+        "scoring_formula_id.linear_allow_exceed",
+        "scoring_formula_id.step_out_of_range",
+        "scoring_formula_id.penalty_base_score",
+        "scoring_formula_id.penalty_deduct_per_unit",
+        "scoring_formula_id.penalty_floor",
+        "scoring_formula_id.expression_code",
     )
     def _compute_system_score(self):
         score_base = self.env["res.config.settings"].get_score_scale_base()
@@ -191,10 +228,12 @@ class HrDepartmentEvaluationLine(models.Model):
             target = line.target or 0.0
 
             if line.kpi_type == "quantitative":
-                if line.direction == "higher_better":
-                    score = (actual / target) * score_base if target > 0 else score_base
-                else:
-                    score = (target / actual) * score_base if actual > 0 else score_base
+                score = line._compute_system_score_for_line(
+                    line,
+                    actual,
+                    target,
+                    score_base=score_base,
+                )
             elif line.kpi_type == "binary":
                 val = line.manager_rating_binary
                 score = score_base if val == "yes" else 0.0
