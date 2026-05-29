@@ -44,10 +44,15 @@
                                     t-on-input="onInput"/>
                             </td>
                             <td>
-                                <input type="number" step="any" class="form-control"
+                                <!-- <input type="number" step="any" class="form-control"
                                     t-att-data-index="row_index"
                                     data-field="to"
                                     t-att-disabled="row.unbounded"
+                                    t-att-value="row.unbounded ? '' : row.to"
+                                    t-on-input="onInput"/> -->
+                                <input type="number" step="any" class="form-control"
+                                    t-att-data-index="row_index"
+                                    data-field="to"
                                     t-att-value="row.unbounded ? '' : row.to"
                                     t-on-input="onInput"/>
                             </td>
