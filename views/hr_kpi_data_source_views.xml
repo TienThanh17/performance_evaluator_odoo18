@@ -10,6 +10,10 @@
                 <field name="source_type" />
                 <field name="model_name" />
                 <field name="aggregation" />
+                <field name="dashboard_enabled" />
+                <field name="dashboard_provider_key" />
+                <field name="dashboard_chart_type" />
+                <field name="dashboard_special_case" />
                 <field name="active" />
             </list>
         </field>
@@ -28,6 +32,18 @@
                         <field name="source_type" />
                         <field name="description" />
                         <field name="active" />
+                    </group>
+                    <group string="Dashboard">
+                        <field name="dashboard_enabled" />
+                        <field name="dashboard_provider_key"
+                            invisible="not dashboard_enabled"
+                            required="dashboard_enabled" />
+                        <field name="dashboard_chart_type"
+                            invisible="not dashboard_enabled"
+                            required="dashboard_enabled" />
+                        <field name="dashboard_special_case"
+                            invisible="not dashboard_enabled"
+                            readonly="1" />
                     </group>
                     <group invisible="source_type != 'domain'">
                         <field name="model_id" />

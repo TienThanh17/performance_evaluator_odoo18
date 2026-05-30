@@ -15,10 +15,10 @@ import {
     useState,
     useEffect,
 } from "@odoo/owl";
+import { loadBundle, loadJS } from "@web/core/assets";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user"; // singleton – no service needed
-import { loadJS } from "@web/core/assets";
 import { _t } from "@web/core/l10n/translation";
 import {
     formatScore as _formatScore,
@@ -61,15 +61,17 @@ const ADMIN_GROUP = "custom_adecsol_hr_performance_evaluator.group_admin";
 export class KpiDashboard extends Component {
     static template = "performance_evaluator.KpiDashboardStandalone";
     static props = ["*"]; // client action props
+    static CHART_RENDERERS = {
+        line: "_renderLineChart",
+        bar: "_renderBarChart",
+        doughnut: "_renderDoughnutChart",
+    };
 
     setup() {
         this.orm = useService("orm");
 
-        this.doneTasksRef = useRef("doneTasksChart");
-        this.taskRef = useRef("taskChart");
-        this.puncRef = useRef("punctualityChart");
+        this.dashboardRootRef = useRef("dashboardRoot");
         this.radarRef = useRef("spiderChart");
-        this.attendanceRef = useRef("attendanceChart");
 
         // 1. Lấy context từ action props (bắt lỗi an toàn nếu mở trực tiếp không qua nút bấm)
         const actionContext = this.props.action?.context || {};
@@ -94,9 +96,12 @@ export class KpiDashboard extends Component {
             selectedEvaluationId: null,
             data: null,
             errorMsg: "",
+            chartErrorMsg: "",
         });
 
         this._charts = {};
+        this._chartRenderFrame = null;
+        this._chartRenderFrameNested = null;
 
         onWillStart(async () => {
             await this._loadChartJs();
@@ -129,8 +134,11 @@ export class KpiDashboard extends Component {
         useEffect(
             () => {
                 if (this.state.phase === "done" && this.state.data) {
-                    this._renderCharts();
+                    this._scheduleChartRender();
+                } else {
+                    this._destroyCharts();
                 }
+                return () => this._cancelScheduledChartRender();
             },
             () => [this.state.phase, this.state.data], // Chạy lại effect này nếu phase hoặc data thay đổi
         );
@@ -138,15 +146,24 @@ export class KpiDashboard extends Component {
 
     async _loadChartJs() {
         if (window.Chart) return;
-        await new Promise((resolve, reject) => {
-            const s = document.createElement("script");
-            s.src =
-                "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js";
+        this.state.chartErrorMsg = "";
+        try {
+            await loadBundle("web.chartjs_lib");
+        } catch (bundleError) {
+            console.warn("KPI Dashboard: failed to load web.chartjs_lib bundle", bundleError);
+        }
+        if (window.Chart) return;
 
-            s.onload = resolve;
-            s.onerror = reject;
-            document.head.appendChild(s);
-        });
+        try {
+            await loadJS("/web/static/lib/Chart/Chart.js");
+        } catch (assetError) {
+            console.error("KPI Dashboard: failed to load local Chart.js asset", assetError);
+        }
+        if (!window.Chart) {
+            this.state.chartErrorMsg = _t(
+                "Chart library could not be loaded, so dashboard charts are unavailable.",
+            );
+        }
     }
 
     // ── Data loaders ─────────────────────────────────────────────────────────
@@ -335,8 +352,6 @@ export class KpiDashboard extends Component {
             );
             this.state.data = data;
             this.state.phase = "done";
-
-            console.log("data", data);
 
             // await Promise.resolve();
             // Ép trình duyệt đợi đến frame tiếp theo (đảm bảo thẻ <canvas> đã xuất hiện trên DOM)
@@ -528,6 +543,24 @@ export class KpiDashboard extends Component {
         return formatHour(h);
     }
 
+    chartIcon(chartType) {
+        const icons = {
+            line: "fa fa-line-chart",
+            bar: "fa fa-bar-chart",
+            doughnut: "fa fa-pie-chart",
+        };
+        return icons[chartType] || "fa fa-area-chart";
+    }
+
+    chartHasData(chart) {
+        const labels = chart?.chart_data?.labels || [];
+        const datasets = chart?.chart_data?.datasets || [];
+        return (
+            labels.length > 0 &&
+            datasets.some((dataset) => Array.isArray(dataset?.data) && dataset.data.length)
+        );
+    }
+
     evalOptionLabel(ev) {
         let periodLabel = "";
 
@@ -554,304 +587,325 @@ export class KpiDashboard extends Component {
     }
 
     // ── Chart rendering ──────────────────────────────────────────────────────
-    _renderCharts() {
-        const Chart = window.Chart;
-        const d = this.state.data;
-        if (!Chart || !d) return;
-        this._destroyCharts();
-
-        // 1. Task Completion
-        //        const taskEl = this.taskRef.el;
-        //        if (taskEl && d.task_completion.labels.length) {
-        //            this._charts.task = new Chart(taskEl, {
-        //                type: "line",
-        //                data: {
-        //                    labels: d.task_completion.labels,
-        //                    datasets: [
-        //                        {
-        //                            label: "On-time %",
-        //                            data: d.task_completion.data,
-        //                            borderColor: COLOR_BLUE,
-        //                            backgroundColor: "rgba(59,130,246,0.15)",
-        //                            fill: true, tension: 0.4, pointRadius: 5, spanGaps: true,
-        //                        },
-        //                        {
-        //                            label: "Target",
-        //                            data: Array(d.task_completion.labels.length).fill(d.task_completion.target),
-        //                            borderColor: COLOR_GREEN, borderDash: [6, 4],
-        //                            borderWidth: 1.5, pointRadius: 0, fill: false,
-        //                        },
-        //                    ],
-        //                },
-        //                options: {
-        //                    responsive: true,
-        //                    plugins: {
-        //                        legend: { display: false },
-        //                        tooltip: {
-        //                            callbacks: {
-        //                                label: (c) => c.dataset.label + ": " + (c.parsed.y != null ? c.parsed.y : "--") + "%",
-        //                            },
-        //                        },
-        //                    },
-        //                    scales: {
-        //                        x: { ticks: { maxTicksLimit: 10, font: { size: 10 } }, grid: { display: false } },
-        //                        y: { min: 0, max: 100, ticks: { callback: (v) => v + "%" }, grid: { color: "rgba(0,0,0,0.05)" } },
-        //                    },
-        //                },
-        //            });
-        //        }
-
-        // 2. Punctuality Log
-        const puncEl = this.puncRef.el;
-        if (puncEl && d.punctuality_log.labels.length) {
-            const expectedH = d.punctuality_log.expected_hour || 8;
-            const yMin = Math.max(0, Math.floor(expectedH) - 1);
-            const yMax = Math.ceil(expectedH) + 1.5;
-            this._charts.punctuality = new Chart(puncEl, {
-                type: "line",
-                data: {
-                    labels: d.punctuality_log.labels,
-                    datasets: [
-                        {
-                            label: _t("Check-in"),
-                            data: d.punctuality_log.data,
-                            borderColor: COLOR_GREEN,
-                            backgroundColor: "rgba(34,197,94,0.12)",
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 5,
-                            spanGaps: true,
-                        },
-                        {
-                            label: _t("Start time"),
-                            data: Array(d.punctuality_log.labels.length).fill(expectedH),
-                            borderColor: COLOR_RED,
-                            borderDash: [5, 4],
-                            borderWidth: 1.5,
-                            pointRadius: 0,
-                            fill: false,
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => {
-                                    const v = c.parsed.y;
-                                    return (
-                                        c.dataset.label + ": " + (v != null ? formatHour(v) : "--")
-                                    );
-                                },
-                            },
-                        },
-                    },
-                    scales: {
-                        x: {
-                            ticks: { maxTicksLimit: 10, font: { size: 10 } },
-                            grid: { display: false },
-                        },
-                        y: {
-                            min: yMin,
-                            max: yMax,
-                            ticks: {
-                                stepSize: 0.25,
-                                callback: (v) => formatHour(v), // Tái sử dụng luôn hàm đã có
-                            },
-                            grid: { color: "rgba(0,0,0,0.05)" },
-                        },
-                    },
-                },
+    _scheduleChartRender() {
+        this._cancelScheduledChartRender();
+        this._chartRenderFrame = requestAnimationFrame(() => {
+            this._chartRenderFrameNested = requestAnimationFrame(() => {
+                this._renderCharts();
             });
+        });
+    }
+
+    _cancelScheduledChartRender() {
+        if (this._chartRenderFrame) {
+            cancelAnimationFrame(this._chartRenderFrame);
+            this._chartRenderFrame = null;
         }
-
-        // 3. Spider / Radar
-        const radarEl = this.radarRef.el;
-        if (radarEl && d.spider_web.labels.length) {
-            this._charts.spider = new Chart(radarEl, {
-                type: "radar",
-                data: {
-                    labels: d.spider_web.labels,
-                    datasets: [
-                        {
-                            label: _t("Score"),
-                            data: d.spider_web.scores,
-                            backgroundColor: "rgba(99,102,241,0.25)",
-                            borderColor: COLOR_INDIGO,
-                            borderWidth: 2,
-                            pointBackgroundColor: COLOR_INDIGO,
-                            pointRadius: 4,
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    // Cho phép tự do thay đổi chiều cao của Chart (không bị fix cứng tỷ lệ vuông)
-                    maintainAspectRatio: false,
-
-                    // 1. CHỐNG CẮT CHỮ: Chừa lề xung quanh chart (Tăng số này lên nếu chữ vẫn bị cắt)
-                    layout: {
-                        padding: 30,
-                    },
-
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        r: {
-                            min: 0,
-                            max: d.spider_web.max || this.scoreScale.base || 10,
-                            ticks: { stepSize: (d.spider_web.max || this.scoreScale.base || 10) / 5, font: { size: 10 } },
-                            pointLabels: {
-                                font: { size: 11 },
-                                // 2. TỰ ĐỘNG NGẮT DÒNG CHO NHÃN QUÁ DÀI
-                                callback: function (label) {
-                                    const maxLength = 15; // Ký tự tối đa trên 1 dòng (bạn có thể tùy chỉnh)
-                                    if (typeof label === "string" && label.length > maxLength) {
-                                        // Cắt theo dấu cách để không làm đứt đôi 1 từ
-                                        const words = label.split(" ");
-                                        let lines = [];
-                                        let currentLine = "";
-
-                                        words.forEach((word) => {
-                                            if ((currentLine + word).length > maxLength) {
-                                                if (currentLine) lines.push(currentLine.trim());
-                                                currentLine = word + " ";
-                                            } else {
-                                                currentLine += word + " ";
-                                            }
-                                        });
-                                        if (currentLine) lines.push(currentLine.trim());
-
-                                        return lines; // Trả về mảng -> Chart.js sẽ hiển thị nhiều dòng
-                                    }
-                                    return label;
-                                },
-                            },
-                            grid: { color: "rgba(0,0,0,0.07)" },
-                        },
-                    },
-                },
-            });
-        }
-
-        // 4. Attendance Overview (Doughnut)
-        const attendanceEl = this.attendanceRef.el;
-        if (
-            attendanceEl &&
-            d.attendance_overview &&
-            d.attendance_overview.summary.expected_work_days > 0
-        ) {
-            const worked = d.attendance_overview.summary.worked_days;
-            const expected = d.attendance_overview.summary.expected_work_days;
-            const absent = expected - worked;
-
-            this._charts.attendance = new Chart(attendanceEl, {
-                type: "doughnut",
-                data: {
-                    labels: [_t("Days Present"), _t("Days Absent")],
-                    datasets: [
-                        {
-                            data: [worked, absent],
-                            backgroundColor: ["#3b82f6", "#e2e8f0"], // Matching legend color
-                            borderWidth: 0,
-                            hoverOffset: 4,
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: "75%", // makes it a thin ring
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => c.label + ": " + c.parsed + _t(" days"),
-                            },
-                        },
-                    },
-                },
-            });
-        }
-
-        // 5. Done Tasks by Day
-        const doneTasksEl = this.doneTasksRef.el;
-        if (
-            doneTasksEl &&
-            d.done_tasks_by_day &&
-            d.done_tasks_by_day.labels.length
-        ) {
-            const dtd = d.done_tasks_by_day;
-            this._charts.doneTasks = new Chart(doneTasksEl, {
-                type: "line",
-                data: {
-                    labels: dtd.labels,
-                    datasets: [
-                        {
-                            label: _t("Done Tasks"),
-                            data: dtd.done_by_day,
-                            borderColor: COLOR_GREEN,
-                            backgroundColor: "rgba(34,197,94,0.12)",
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 4,
-                            pointBackgroundColor: COLOR_GREEN,
-                            spanGaps: false,
-                        },
-                        {
-                            label: _t("Total Tasks (target)"),
-                            data: Array(dtd.labels.length).fill(dtd.total),
-                            borderColor: COLOR_RED,
-                            borderDash: [6, 4],
-                            borderWidth: 1.5,
-                            pointRadius: 0,
-                            fill: false,
-                            tension: 0,
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: true, position: "top" },
-                        tooltip: {
-                            callbacks: {
-                                label: (c) => {
-                                    if (c.datasetIndex === 1) {
-                                        return _t("Total in period: ") + dtd.total + _t(" tasks");
-                                    }
-                                    return _t("Done (Total): ") + c.parsed.y + _t(" tasks");
-                                },
-                            },
-                        },
-                    },
-                    scales: {
-                        x: {
-                            ticks: { maxTicksLimit: 10, font: { size: 10 } },
-                            grid: { display: false },
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                font: { size: 10 },
-                                callback: (v) => (Number.isInteger(v) ? v : ""),
-                            },
-                            grid: { color: "rgba(0,0,0,0.05)" },
-                            title: {
-                                display: true,
-                                text: _t("Tasks"),
-                                font: { size: 11 },
-                            },
-                        },
-                    },
-                },
-            });
+        if (this._chartRenderFrameNested) {
+            cancelAnimationFrame(this._chartRenderFrameNested);
+            this._chartRenderFrameNested = null;
         }
     }
 
+    _renderCharts() {
+        const Chart = window.Chart;
+        const d = this.state.data;
+        if (!Chart || !d) {
+            if (!Chart && !this.state.chartErrorMsg) {
+                this.state.chartErrorMsg = _t(
+                    "Chart library is not available in the browser.",
+                );
+            }
+            return;
+        }
+        this._destroyCharts();
+
+        const radarEl = this.radarRef.el;
+        if (radarEl && d.spider_web?.labels?.length) {
+            try {
+                const spider = this._renderSpiderChart(radarEl, d.spider_web);
+                if (spider) {
+                    this._charts.spider = spider;
+                }
+            } catch (error) {
+                console.error("KPI Dashboard: failed to render spider chart", error, d.spider_web);
+                this.state.chartErrorMsg = _t(
+                    "Some charts could not be rendered. Check browser console for details.",
+                );
+            }
+        }
+
+        for (const chartInfo of d.dynamic_charts || []) {
+            if (!this.chartHasData(chartInfo)) continue;
+            const rootEl = this._getDashboardRootEl();
+            const escapedKey = window.CSS?.escape
+                ? window.CSS.escape(chartInfo.key)
+                : chartInfo.key;
+            const canvas = rootEl?.querySelector(
+                `canvas[data-chart-key="${escapedKey}"]`,
+            );
+            if (!canvas) {
+                console.warn(
+                    "KPI Dashboard: canvas not found for chart",
+                    chartInfo.key,
+                    {
+                        rootReady: Boolean(rootEl),
+                        availableKeys: this._getAvailableChartKeys(rootEl),
+                    },
+                );
+                continue;
+            }
+
+            const rendererName = this.constructor.CHART_RENDERERS[chartInfo.chart_type];
+            if (!rendererName || typeof this[rendererName] !== "function") continue;
+
+            try {
+                const instance = this[rendererName](canvas, chartInfo);
+                if (instance) {
+                    this._charts[chartInfo.key] = instance;
+                }
+            } catch (error) {
+                console.error(
+                    "KPI Dashboard: failed to render chart",
+                    chartInfo.key,
+                    chartInfo,
+                    {
+                        width: canvas.clientWidth,
+                        height: canvas.clientHeight,
+                    },
+                    error,
+                );
+                this.state.chartErrorMsg = _t(
+                    "Some charts could not be rendered. Check browser console for details.",
+                );
+            }
+        }
+    }
+
+    _getDashboardRootEl() {
+        return (
+            this.dashboardRootRef.el ||
+            this.radarRef.el?.closest(".o_kpi_dashboard_page") ||
+            null
+        );
+    }
+
+    _getAvailableChartKeys(rootEl) {
+        if (!rootEl) return [];
+        return Array.from(rootEl.querySelectorAll("canvas[data-chart-key]"))
+            .map((canvas) => canvas.dataset.chartKey)
+            .filter(Boolean);
+    }
+
+    _renderLineChart(canvas, chartInfo) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        const chartData = chartInfo.chart_data || {};
+        const chartMeta = chartInfo.chart_meta || {};
+        const datasets = (chartData.datasets || []).map((dataset, index) => {
+            const accentColor = index === 0 ? COLOR_GREEN : COLOR_RED;
+            const shouldFill = dataset.fill ?? false;
+            return {
+                borderColor: accentColor,
+                backgroundColor: shouldFill ? "rgba(34,197,94,0.12)" : "rgba(0,0,0,0)",
+                borderWidth: 2,
+                pointBackgroundColor: accentColor,
+                pointRadius: index === 0 ? 4 : 0,
+                tension: 0.35,
+                spanGaps: false,
+                fill: shouldFill,
+                ...dataset,
+            };
+        });
+        const yAxis = chartMeta.y_axis || {};
+        const isHourAxis = yAxis.format === "hour";
+        const yTicks = { font: { size: 10 } };
+        if (yAxis.stepSize != null) {
+            yTicks.stepSize = yAxis.stepSize;
+        }
+        if (isHourAxis) {
+            yTicks.callback = (value) => formatHour(value);
+        } else if (yAxis.integerOnly) {
+            yTicks.callback = (value) => (Number.isInteger(value) ? value : "");
+        }
+
+        return new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: chartData.labels || [],
+                datasets,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: datasets.length > 1,
+                        position: "top",
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const value = context.parsed.y;
+                                if (isHourAxis) {
+                                    return `${context.dataset.label}: ${value != null ? formatHour(value) : "--"}`;
+                                }
+                                return `${context.dataset.label}: ${value != null ? value : "--"}`;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        ticks: { maxTicksLimit: 10, font: { size: 10 } },
+                        grid: { display: false },
+                    },
+                    y: {
+                        beginAtZero: isHourAxis ? false : (yAxis.beginAtZero ?? true),
+                        min: yAxis.min,
+                        max: yAxis.max,
+                        ticks: yTicks,
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                    },
+                },
+            },
+        });
+    }
+
+    _renderBarChart(canvas, chartInfo) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        const chartData = chartInfo.chart_data || {};
+        const datasets = (chartData.datasets || []).map((dataset) => ({
+            backgroundColor: COLOR_BLUE,
+            borderRadius: 6,
+            maxBarThickness: 42,
+            ...dataset,
+        }));
+        return new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: chartData.labels || [],
+                datasets,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: datasets.length > 1 },
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                    },
+                },
+            },
+        });
+    }
+
+    _renderDoughnutChart(canvas, chartInfo) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        const chartData = chartInfo.chart_data || {};
+        const labels = chartData.labels || [];
+        return new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels,
+                datasets: chartData.datasets || [],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: chartInfo.chart_meta?.cutout || "75%",
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const label = labels[context.dataIndex] || context.label || "";
+                                return `${label}: ${context.parsed}`;
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    _renderSpiderChart(canvas, data) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        return new Chart(ctx, {
+            type: "radar",
+            data: {
+                labels: data.labels,
+                datasets: [
+                    {
+                        label: _t("Score"),
+                        data: data.scores,
+                        backgroundColor: "rgba(99,102,241,0.25)",
+                        borderColor: COLOR_INDIGO,
+                        borderWidth: 2,
+                        pointBackgroundColor: COLOR_INDIGO,
+                        pointRadius: 4,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: 30,
+                },
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: {
+                        min: 0,
+                        max: data.max || this.scoreScale.base || 10,
+                        ticks: {
+                            stepSize: (data.max || this.scoreScale.base || 10) / 5,
+                            font: { size: 10 },
+                        },
+                        pointLabels: {
+                            font: { size: 11 },
+                            callback: function (label) {
+                                const maxLength = 15;
+                                if (typeof label === "string" && label.length > maxLength) {
+                                    const words = label.split(" ");
+                                    let lines = [];
+                                    let currentLine = "";
+
+                                    words.forEach((word) => {
+                                        if ((currentLine + word).length > maxLength) {
+                                            if (currentLine) lines.push(currentLine.trim());
+                                            currentLine = `${word} `;
+                                        } else {
+                                            currentLine += `${word} `;
+                                        }
+                                    });
+                                    if (currentLine) lines.push(currentLine.trim());
+
+                                    return lines;
+                                }
+                                return label;
+                            },
+                        },
+                        grid: { color: "rgba(0,0,0,0.07)" },
+                    },
+                },
+            },
+        });
+    }
+
     _destroyCharts() {
+        this._cancelScheduledChartRender();
         for (const k of Object.keys(this._charts)) {
             try {
                 this._charts[k].destroy();

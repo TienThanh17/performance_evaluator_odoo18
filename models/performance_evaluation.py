@@ -808,6 +808,7 @@ class PerformanceEvaluation(models.Model):
         score_scale = settings.get_score_scale_info()
         threshold_excellent, threshold_pass = evaluation._get_thresholds_for_record()
         widget_model = self.env["hr.kpi.dashboard.widget"]
+        chart_service = self.env["hr.kpi.dashboard.chart.service"]
         widgets = widget_model.get_dashboard_widgets("individual")
 
         result = {
@@ -837,172 +838,11 @@ class PerformanceEvaluation(models.Model):
             "performance_level": perf_key,
             # Translated label for display
             "performance_level_label": perf_label,
-            # "task_completion": self._get_task_completion_data(evaluation),
-            "done_tasks_by_day": self._get_done_tasks_by_day_data(evaluation),
-            "punctuality_log": self._get_punctuality_log_data(evaluation),
-            "attendance_overview": self._get_attendance_overview_data(evaluation),
             "spider_web": self._get_spider_web_data(evaluation),
             "quantitative_table": self._get_quantitative_table_data(evaluation),
+            "dynamic_charts": chart_service.build_dynamic_charts(evaluation),
         }
         return result
-
-    def _get_dashboard_line(self, evaluation):
-        self.ensure_one()
-        lines = evaluation.evaluation_line_ids.filtered(
-            lambda l: (
-                not l.is_section and l.kpi_type == "quantitative" and l.data_source_id
-            )
-        )
-        return lines[:1]
-
-    def _get_done_tasks_by_day_data(self, evaluation):
-        """Per-day task progress data cho widget tiến độ công việc.
-
-        Trục X = các ngày trong kỳ
-        Trục Y = số task done có date_deadline rơi vào ngày đó
-        Đường định mức = tổng task cả kỳ (total)
-
-        Returns dict:
-            labels      list[str]  — ["Day 1", "Day 2", ...]
-            done_by_day list[int]  — số task done từng ngày
-            total       int        — tổng task cả kỳ (đường định mức)
-        """
-        line = self._get_dashboard_line(evaluation)
-        if not line or not evaluation.start_date or not evaluation.end_date:
-            return {"labels": [], "done_by_day": [], "total": 0}
-
-        engine = self.env["hr.kpi.engine"]
-        result = engine.get_task_progress_series(
-            evaluation.employee_id,
-            evaluation.start_date,
-            evaluation.end_date,
-        )
-
-        days = (evaluation.end_date - evaluation.start_date).days + 1
-        return {
-            "labels": [f"Day {i + 1}" for i in range(days)],
-            "done_by_day": result.get("done_by_day", []),
-            "total": result.get("total", 0),
-        }
-
-    def _get_punctuality_log_data(self, evaluation):
-        """Per-day first check-in hour cho biểu đồ punctuality.
-
-        Thay vì tự tính, gọi engine để đảm bảo nhất quán với điểm KPI thực tế:
-        - Cùng timezone resolution
-        - Cùng cách xác định first check-in per day
-        - expected_hour phản ánh đúng giờ làm việc danh nghĩa trên calendar
-
-        Grace period KHÔNG được cộng vào expected_hour ở đây — đó là ngưỡng
-        tính "trễ" nội bộ trong engine, không phải giờ hiển thị cho người dùng.
-
-        Returns dict:
-            labels        list[str]         — ["Day 1", "Day 2", ...]
-            data          list[float|None]  — giờ check-in decimal, None nếu vắng
-            expected_hour float             — giờ bắt đầu từ calendar (ví dụ 8.0)
-            grace_minutes int               — grace period đang cấu hình (hiển thị
-                                              thêm trên UI nếu muốn)
-        """
-        line = self._get_dashboard_line(evaluation)
-        if not line or not evaluation.start_date or not evaluation.end_date:
-            return {"labels": [], "data": [], "expected_hour": 8.0, "grace_minutes": 0}
-
-        line = line[0]
-        employee = evaluation.employee_id
-        engine = self.env["hr.kpi.engine"]
-
-        per_day = engine.get_first_checkin_series(
-            employee,
-            line,
-            evaluation.start_date,
-            evaluation.end_date,
-        )
-
-        # Giờ bắt đầu danh nghĩa từ calendar (chưa cộng grace)
-        expected_hour = engine.get_expected_start_hour(employee)
-
-        # Grace period hiện tại — để dashboard có thể vẽ thêm đường ngưỡng nếu cần
-        grace_minutes = engine._get_late_grace_minutes()
-
-        days = (evaluation.end_date - evaluation.start_date).days + 1
-        labels = [f"Day {i + 1}" for i in range(days)]
-
-        return {
-            "labels": labels,
-            "data": per_day,
-            "expected_hour": expected_hour,
-            "grace_minutes": grace_minutes,
-        }
-
-    def _get_attendance_overview_data(self, evaluation):
-        """Dữ liệu tổng hợp cho widget attendance trên dashboard.
-
-        Trả về 2 phần:
-          summary   — các con số tổng hợp (worked/expected/leave days, v.v.)
-                      để render progress bar / số liệu tóm tắt.
-          calendar  — per-day status list để render calendar heatmap.
-
-        Tất cả tính toán đều uỷ quyền cho engine — dashboard chỉ format.
-
-        Returns dict:
-            summary:
-                value               float  — KPI actual (unpaid_leave_days hoặc %)
-                expected_work_days  float
-                worked_days         float
-                approved_leave_days float
-                public_holiday_days float
-                unpaid_leave_days   float
-                has_unpaid_leave    bool
-                target              float  — từ kpi line
-                unit_code           str    — e.g. 'percent', 'day', 'task'
-            calendar:
-                list[{'date': 'YYYY-MM-DD', 'status': str}]
-                status ∈ {'present', 'approved_leave', 'public_holiday', 'absent'}
-        """
-        empty = {
-            "summary": {
-                "value": 0.0,
-                "expected_work_days": 0.0,
-                "worked_days": 0.0,
-                "approved_leave_days": 0.0,
-                "public_holiday_days": 0.0,
-                "unpaid_leave_days": 0.0,
-                "has_unpaid_leave": False,
-                "target": 0.0,
-                "unit_code": "",
-            },
-            "calendar": [],
-        }
-
-        line = self._get_dashboard_line(evaluation)
-        if not line or not evaluation.start_date or not evaluation.end_date:
-            return empty
-
-        line = line[0]
-        employee = evaluation.employee_id
-        engine = self.env["hr.kpi.engine"]
-
-        metrics = engine.get_attendance_period_metrics(
-            employee,
-            line,
-            evaluation.start_date,
-            evaluation.end_date,
-        )
-        summary = dict(metrics)
-        summary["target"] = float(line.target or 0.0)
-        summary["unit_code"] = line.unit.code if line.unit else ""
-
-        # ── Per-day calendar data ─────────────────────────────────────────────
-        calendar_data = engine.get_attendance_worked_dates(
-            employee,
-            evaluation.start_date,
-            evaluation.end_date,
-        )
-
-        return {
-            "summary": summary,
-            "calendar": calendar_data,
-        }
 
     # ------------------------------------------------------------------
     # Spider Web – non-quantitative KPIs

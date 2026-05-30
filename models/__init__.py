@@ -4,6 +4,7 @@ from . import hr_kpi_period
 from . import hr_kpi_scoring_formula
 from . import hr_kpi_scoring_profile
 from . import hr_kpi_data_source
+from . import hr_kpi_dashboard_chart_service
 from . import hr_kpi_dashboard_widget
 from . import hr_performance_report
 from . import hr_score

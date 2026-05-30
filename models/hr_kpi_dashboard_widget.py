@@ -16,7 +16,6 @@ class HrKpiDashboardWidget(models.Model):
             ("individual", "Dashboard cá nhân"),
             ("department", "Dashboard phòng ban"),
             ("report", "Dashboard báo cáo"),
-            ("tree", "KPI tree dashboard"),
         ],
         required=True,
         default="individual",
@@ -27,14 +26,12 @@ class HrKpiDashboardWidget(models.Model):
             ("bar_chart", "Biểu đồ cột"),
             ("radar_chart", "Biểu đồ radar"),
             ("trend_line", "Đường xu hướng"),
-            ("kpi_tree", "Cây KPI"),
             ("distribution", "Phân phối điểm"),
         ],
         required=True,
     )
     scope = fields.Selection(
         [
-            ("company", "Toàn công ty"),
             ("department", "Theo phòng ban"),
             ("personal", "Cá nhân"),
         ],

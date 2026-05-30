@@ -10,6 +10,15 @@
             <field name="measure_field">performance_score</field>
             <field name="sequence">10</field>
         </record>
+        <record id="widget_individual_dynamic_charts" model="hr.kpi.dashboard.widget">
+            <field name="name">Dynamic KPI Charts</field>
+            <field name="code">individual_dynamic_charts</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_type">distribution</field>
+            <field name="scope">personal</field>
+            <field name="measure_field">dynamic_charts</field>
+            <field name="sequence">15</field>
+        </record>
         <record id="widget_individual_done_tasks" model="hr.kpi.dashboard.widget">
             <field name="name">Done Tasks Trend</field>
             <field name="code">individual_done_tasks</field>

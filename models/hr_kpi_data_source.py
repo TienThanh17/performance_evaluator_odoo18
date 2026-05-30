@@ -86,10 +86,49 @@ class HrKpiDataSource(models.Model):
             "result = 0.0\n"
         )
     )
+    dashboard_enabled = fields.Boolean(
+        string="Show on Dashboard",
+        default=False,
+        help="Enable this data source to render a dynamic KPI chart on the individual dashboard.",
+    )
+    dashboard_provider_key = fields.Selection(
+        [
+            ("generic_target_actual_bar", "Generic Target vs Actual"),
+            ("generic_domain_daily_series", "Generic Domain Daily Series"),
+            ("special_engine_punctuality", "Special Case: Punctuality"),
+            (
+                "special_engine_attendance_overview",
+                "Special Case: Attendance Overview",
+            ),
+        ],
+        string="Dashboard Provider",
+        help="Provider used by the dynamic dashboard chart service to build chart data.",
+    )
+    dashboard_chart_type = fields.Selection(
+        [
+            ("line", "Line"),
+            ("bar", "Bar"),
+            ("doughnut", "Doughnut"),
+        ],
+        string="Dashboard Chart Type",
+        help="Primitive chart type used by the frontend renderer.",
+    )
+    dashboard_special_case = fields.Boolean(
+        string="Dashboard Special Case",
+        compute="_compute_dashboard_special_case",
+        help="True when this dashboard chart reuses legacy KPI engine logic.",
+    )
 
     _sql_constraints = [
         ("code_unique", "UNIQUE(code)", "Mã kỹ thuật phải duy nhất."),
     ]
+
+    @api.depends("dashboard_provider_key")
+    def _compute_dashboard_special_case(self):
+        for rec in self:
+            rec.dashboard_special_case = bool(
+                (rec.dashboard_provider_key or "").startswith("special_")
+            )
 
     @api.constrains("code")
     def _check_code_format(self):
@@ -116,6 +155,39 @@ class HrKpiDataSource(models.Model):
             if record.source_type == "domain" and not record.model_id:
                 raise ValidationError(
                     _("Nguồn dữ liệu kiểu Domain bắt buộc phải chọn Model.")
+                )
+
+    @api.constrains(
+        "dashboard_enabled", "dashboard_provider_key", "dashboard_chart_type"
+    )
+    def _check_dashboard_config(self):
+        allowed_chart_types = {
+            "generic_target_actual_bar": {"bar" , "doughnut"},
+            "generic_domain_daily_series": {"line", "bar"},
+            "special_engine_punctuality": {"line"},
+            "special_engine_attendance_overview": {"doughnut"},
+        }
+        for record in self:
+            if not record.dashboard_enabled:
+                continue
+            if not record.dashboard_provider_key or not record.dashboard_chart_type:
+                raise ValidationError(
+                    _(
+                        "Nguồn dữ liệu '%s' bật dashboard thì bắt buộc phải chọn Provider và Chart Type."
+                    )
+                    % record.name
+                )
+            allowed = allowed_chart_types.get(record.dashboard_provider_key, set())
+            if allowed and record.dashboard_chart_type not in allowed:
+                raise ValidationError(
+                    _(
+                        "Dashboard Chart Type '%(chart)s' không hợp lệ cho provider '%(provider)s' của nguồn dữ liệu '%(name)s'."
+                    )
+                    % {
+                        "chart": record.dashboard_chart_type,
+                        "provider": record.dashboard_provider_key,
+                        "name": record.name,
+                    }
                 )
 
     def get_unit_id(self):

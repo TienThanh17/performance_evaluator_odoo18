@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
 
   <t t-name="performance_evaluator.KpiDashboardStandalone">
-    <div class="o_kpi_dashboard_page">
+    <div class="o_kpi_dashboard_page" t-ref="dashboardRoot">
 
       <!-- Selector Bar -->
       <div class="o_kpi_selector_bar">
@@ -163,72 +163,53 @@
 
         </div>
 
-        <!-- Row 1: Task Completion + Punctuality -->
-        <div
-          t-if="hasWidget('individual_done_tasks') or hasWidget('individual_punctuality')"
-          class="o_kpi_row o_kpi_row_2col"
-        >
+        <t t-if="hasWidget('individual_dynamic_charts') and state.data.dynamic_charts and state.data.dynamic_charts.length">
+          <p t-if="state.chartErrorMsg" class="o_kpi_chart_note o_kpi_chart_runtime_error" t-esc="state.chartErrorMsg"/>
+          <div class="o_kpi_row o_kpi_dynamic_grid">
+            <t t-foreach="state.data.dynamic_charts" t-as="chart" t-key="chart.key">
+              <div class="o_kpi_card o_kpi_chart_card">
+                <div class="o_kpi_card_header">
+                  <div class="o_kpi_chart_header_main">
+                    <span class="o_kpi_card_title">
+                      <i t-att-class="chartIcon(chart.chart_type)"/>
+                      <t t-esc="chart.title"/>
+                    </span> 
+                    <span t-if="chart.subtitle" class="o_kpi_chart_subtitle" t-esc="chart.subtitle"/>
+                  </div>
+                  <span t-if="chart.is_special_case" class="o_kpi_target_badge o_kpi_target_warn">Special Case</span>
+                </div>
 
-          <!--      <div class="o_kpi_card o_kpi_chart_card">-->
-          <!--        <div class="o_kpi_card_header">-->
-          <!--          <span class="o_kpi_card_title"><i class="fa fa-check-square-o"/> Task
-          Completion</span>-->
-          <!--          <span class="o_kpi_target_badge">Target: <b t-esc="state.data.task_completion.target
-          + '%'"/></span>-->
-          <!--        </div>-->
-          <!--        <div class="o_kpi_chart_container"
-          t-if="state.data.task_completion.labels.length">-->
-          <!--          <canvas t-ref="taskChart" height="160"/>-->
-          <!--        </div>-->
-          <!--        <p t-else="" class="o_kpi_chart_note o_kpi_muted">No task data for this
-          period.</p>-->
-          <!--        <p class="o_kpi_chart_note">% of tasks completed on time per day</p>-->
-          <!--      </div>-->
+                <div t-if="chartHasData(chart)" class="o_kpi_chart_container">
+                  <canvas t-att-data-chart-key="chart.key" height="180"/>
+                  <div t-if="chart.chart_type === 'doughnut' and chart.chart_meta and chart.chart_meta.center_value" class="o_kpi_doughnut_center">
+                    <div class="o_kpi_doughnut_val" t-esc="chart.chart_meta.center_value"/>
+                    <div class="o_kpi_doughnut_lbl" t-esc="chart.chart_meta.center_label"/>
+                  </div>
+                </div>
+                <p t-else="" class="o_kpi_chart_note o_kpi_muted">No chart data available for this period.</p>
 
-          <div t-if="hasWidget('individual_done_tasks')" class="o_kpi_card o_kpi_chart_card">
-            <div class="o_kpi_card_header">
-              <span class="o_kpi_card_title">
-                <i class="fa fa-check-square-o"/>
- Task Completion</span>
-              <span class="o_kpi_target_badge">Total Task: <b t-esc="state.data.done_tasks_by_day.total"/>
-              </span>
-            </div>
-            <div class="o_kpi_chart_container" t-if="state.data.done_tasks_by_day.labels.length">
-              <canvas t-ref="doneTasksChart" height="160"/>
-            </div>
-            <p t-else="" class="o_kpi_chart_note o_kpi_muted">No task data for this period.</p>
-            <p class="o_kpi_chart_note">Cumulative tasks completed vs Target</p>
+                <div t-if="chart.chart_meta and chart.chart_meta.legend_rows" class="o_kpi_attendance_legend">
+                  <t t-foreach="chart.chart_meta.legend_rows" t-as="legendRow" t-key="legendRow_index">
+                    <div class="o_kpi_legend_row">
+                      <span class="o_kpi_legend_label">
+                        <span class="o_kpi_legend_color" t-att-style="'background-color: ' + legendRow.color"/>
+                        <span t-esc="legendRow.label"/>
+                      </span>
+                      <span class="o_kpi_legend_value" t-esc="legendRow.value"/>
+                    </div>
+                  </t>
+                </div>
+
+                <p t-if="chart.chart_meta and chart.chart_meta.note" class="o_kpi_chart_note" t-esc="chart.chart_meta.note"/>
+              </div>
+            </t>
           </div>
+        </t>
 
-          <div t-if="hasWidget('individual_punctuality')" class="o_kpi_card o_kpi_chart_card">
-            <div class="o_kpi_card_header">
-              <span class="o_kpi_card_title">
-                <i class="fa fa-clock-o"/>
- Punctuality Log</span>
-              <span class="o_kpi_target_badge o_kpi_target_warn">
-            Start: <b t-esc="formatHour(state.data.punctuality_log.expected_hour)"/>
-              </span>
-            </div>
-            <div class="o_kpi_chart_container" t-if="state.data.punctuality_log.labels.length">
-              <canvas t-ref="punctualityChart" height="160"/>
-            </div>
-            <p t-else="" class="o_kpi_chart_note o_kpi_muted">No attendance data for this period.</p>
-            <p class="o_kpi_chart_note">First check-in time per day (h)</p>
-          </div>
-
-        </div>
-
-        <!-- Row 2: Spider Web + Attendance Overview -->
-        <div
-          t-if="hasWidget('individual_radar') or hasWidget('individual_attendance')"
-          class="o_kpi_row"
-          style="display: grid; grid-template-columns: 7fr 3fr; gap: 20px;"
-        >
-
-          <!-- Competency Spider Web -->
+        <div t-if="hasWidget('individual_radar')" class="o_kpi_row o_kpi_row_spider">
           <div
-            t-if="hasWidget('individual_radar') and state.data.spider_web.labels.length"
-            class="o_kpi_card o_kpi_spider_card"
+            t-if="state.data.spider_web.labels.length"
+            class="o_kpi_card o_kpi_spider_card o_kpi_card_full"
           >
             <div class="o_kpi_card_header">
               <span class="o_kpi_card_title">
@@ -250,48 +231,11 @@
             </div>
           </div>
           <div
-            t-elif="hasWidget('individual_radar')"
-            class="o_kpi_card o_kpi_spider_card"
+            t-else=""
+            class="o_kpi_card o_kpi_spider_card o_kpi_card_full"
           >
             <p class="o_kpi_empty">No competency data available.</p>
           </div>
-
-          <!-- Attendance Overview -->
-          <div t-if="hasWidget('individual_attendance')" class="o_kpi_card o_kpi_attendance_card">
-            <div class="o_kpi_card_header">
-              <span class="o_kpi_card_title">
-                <i class="fa fa-pie-chart"/>
- Attendance Overview</span>
-            </div>
-            <div class="o_kpi_attendance_body" t-if="state.data.attendance_overview and state.data.attendance_overview.summary.expected_work_days > 0">
-              <div class="o_kpi_chart_container o_kpi_chart_doughnut" style="position: relative; height: 180px; width: 100%; display: flex; align-items: center; justify-content: center;">
-                <canvas t-ref="attendanceChart"/>
-                <!-- Center Text for Doughnut Chart -->
-                <div style="position: absolute; text-align: center; pointer-events: none;">
-                  <div style="font-size: 24px; font-weight: bold; color: #1e293b;" t-esc="state.data.attendance_overview.summary.expected_work_days"></div>
-                  <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Total Days</div>
-                </div>
-              </div>
-              <div class="o_kpi_attendance_legend" style="margin-top: 15px;">
-                <div class="o_kpi_spider_legend_item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span class="o_kpi_spider_legend_label" style="display: flex; align-items: center;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: #3b82f6; margin-right: 8px;"></span>
-                Days Present
-                  </span>
-                  <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_overview.summary.worked_days"/>
-                </div>
-                <div class="o_kpi_spider_legend_item" style="display: flex; justify-content: space-between; align-items: center;">
-                  <span class="o_kpi_spider_legend_label" style="display: flex; align-items: center;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: #e2e8f0; margin-right: 8px;"></span>
-                Days Absent
-                  </span>
-                  <span class="o_kpi_spider_legend_score" style="font-weight: bold;" t-esc="state.data.attendance_overview.summary.expected_work_days - state.data.attendance_overview.summary.worked_days"/>
-                </div>
-              </div>
-            </div>
-            <p t-else="" class="o_kpi_empty" style="padding: 20px;">No attendance data available.</p>
-          </div>
-
         </div>
 
         <!-- Row 3: Quantitative Table -->
