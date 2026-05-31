@@ -14,17 +14,27 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
     name = fields.Char(compute="_compute_name", store=True)
-    department_id = fields.Many2one("hr.department", required=True)
-    department_kpi_id = fields.Many2one(
-        "hr.department.kpi.template", required=True, string="Department KPI Template"
+    department_id = fields.Many2one(
+        "hr.department", required=True, tracking=True
     )
-    performance_report_id = fields.Many2one("hr.performance.report", ondelete="cascade")
+    department_kpi_id = fields.Many2one(
+        "hr.department.kpi.template",
+        required=True,
+        string="Department KPI Template",
+        tracking=True,
+    )
+    performance_report_id = fields.Many2one(
+        "hr.performance.report",
+        ondelete="cascade",
+        tracking=True,
+    )
     period_id = fields.Many2one(
         "hr.kpi.period",
         string="KPI Period",
         compute="_compute_period_id",
         store=True,
         readonly=False,
+        tracking=True,
     )
     period_type = fields.Selection(
         related="period_id.period_type",
@@ -34,9 +44,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     )
     active = fields.Boolean(string="Active", default=True, tracking=True)
 
-    start_date = fields.Date(required=True)
-    end_date = fields.Date(required=True)
-    deadline = fields.Date()
+    start_date = fields.Date(required=True, tracking=True)
+    end_date = fields.Date(required=True, tracking=True)
+    deadline = fields.Date(tracking=True)
     period_status = fields.Selection(
         [
             ("upcoming", "Sắp diễn ra"),
@@ -154,7 +164,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             ("end_date", ">=", today),
         ])
         if evaluations:
-            evaluations.action_compute_auto_kpi()
+            evaluations.with_context(skip_line_chatter_audit=True).action_compute_auto_kpi()
 
     def action_submit(self):
         self.write({"state": "submitted"})
@@ -164,6 +174,18 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
     def action_cancel(self):
         self.write({"state": "cancel"})
+
+    def action_open_department_dashboard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.client",
+            "name": _("KPI Department Dashboard"),
+            "tag": "kpi_department_dashboard",
+            "context": {
+                "default_department_id": self.department_id.id,
+                "default_evaluation_id": self.id,
+            },
+        }
 
     def _sync_active_to_report_batch(self, active):
         """Đồng bộ trạng thái lưu trữ sang report batch và phiếu KPI cá nhân."""
@@ -330,20 +352,28 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         )
 
         user_ids = employees.mapped("user_id").ids
-        if not user_ids:
-            return []
         Task = self.env["project.task"].sudo()
-        period_tasks = Task.search(
-            [
-                ("user_ids", "in", user_ids),
-                # ('date_deadline', '>=', self.start_date),
-                # ('date_deadline', '<=', self.end_date),
-                ("project_id", "!=", False),
-            ]
+        period_tasks = (
+            Task.search(
+                [
+                    ("user_ids", "in", user_ids),
+                    # ('date_deadline', '>=', self.start_date),
+                    # ('date_deadline', '<=', self.end_date),
+                    ("project_id", "!=", False),
+                ]
+            )
+            if user_ids
+            else Task.browse()
         )
 
         # Lấy ID các dự án liên quan
         project_ids = period_tasks.mapped("project_id").ids
+        report_dashboard = {}
+        if self.performance_report_id:
+            report_dashboard = (
+                self.performance_report_id.with_context(active_test=False)
+                .get_report_dashboard_data()
+            )
 
         result = {
             "department_name": self.department_id.name or "",
@@ -353,6 +383,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             "widgets": widgets,
             "widget_map": {widget["code"]: widget for widget in widgets},
             "score_scale": self.env["res.config.settings"].get_score_scale_info(),
+            "report_dashboard": report_dashboard,
             # "manager_name": (
             #     self.department_id.manager_id.name
             #     if self.department_id.manager_id

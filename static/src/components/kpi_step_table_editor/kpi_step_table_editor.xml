@@ -12,7 +12,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr t-foreach="readonlyRows" t-as="row" t-key="row_index">
+                        <tr t-foreach="readonlyRows" t-as="row" t-key="row.from + '_' + row.to + '_' + row.score">
                             <td><t t-esc="row.from"/></td>
                             <td><t t-esc="row.unbounded ? 'Không giới hạn' : row.to"/></td>
                             <td><t t-esc="row.score"/></td>
@@ -35,10 +35,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr t-foreach="state.rows" t-as="row" t-key="row_index">
+                        <tr t-foreach="state.rows" t-as="row" t-key="row._rowId">
                             <td>
                                 <input type="number" step="any" class="form-control"
-                                    t-att-data-index="row_index"
+                                    t-att-data-row-id="row._rowId"
                                     data-field="from"
                                     t-att-value="row.from"
                                     t-on-input="onInput"/>
@@ -51,14 +51,14 @@
                                     t-att-value="row.unbounded ? '' : row.to"
                                     t-on-input="onInput"/> -->
                                 <input type="number" step="any" class="form-control"
-                                    t-att-data-index="row_index"
+                                    t-att-data-row-id="row._rowId"
                                     data-field="to"
                                     t-att-value="row.unbounded ? '' : row.to"
                                     t-on-input="onInput"/>
                             </td>
                             <td>
                                 <input type="number" step="any" class="form-control"
-                                    t-att-data-index="row_index"
+                                    t-att-data-row-id="row._rowId"
                                     data-field="score"
                                     t-att-value="row.score"
                                     t-on-input="onInput"/>
@@ -71,7 +71,7 @@
                             </td> -->
                             <td class="text-center">
                                 <button type="button" class="btn btn-link text-danger p-0"
-                                    t-att-data-index="row_index"
+                                    t-att-data-row-id="row._rowId"
                                     t-on-click="removeRow">
                                     <i class="fa fa-trash"/>
                                 </button>

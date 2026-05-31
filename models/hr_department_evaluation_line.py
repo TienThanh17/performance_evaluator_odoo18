@@ -1,12 +1,28 @@
 import json
 
+from markupsafe import Markup, escape
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.tools import html2plaintext
 
 
 class HrDepartmentEvaluationLine(models.Model):
     _name = "hr.department.evaluation.line"
     _description = "Department Evaluation Line"
+    _CHATTER_TRACK_FIELD_ORDER = (
+        "name",
+        "kpi_type",
+        "target",
+        "unit",
+        "weight",
+        "actual",
+        "scoring_formula_id",
+        "manager_rating_binary",
+        "manager_rating_selection",
+        "manager_rating_score",
+        "manager_comment",
+    )
+    _CHATTER_COMMENT_FIELDS = {"manager_comment"}
 
     evaluation_id = fields.Many2one(
         "hr.department.performance.evaluation", ondelete="cascade"
@@ -131,6 +147,100 @@ class HrDepartmentEvaluationLine(models.Model):
         compute="_compute_child_line_trace",
         store=False,
     )
+
+    def _get_chatter_tracked_fields(self, vals):
+        return [
+            field_name
+            for field_name in self._CHATTER_TRACK_FIELD_ORDER
+            if field_name in vals
+        ]
+
+    def _snapshot_chatter_tracked_values(self, field_names):
+        return {
+            line.id: {field_name: line[field_name] for field_name in field_names}
+            for line in self
+        }
+
+    def _format_chatter_preview(self, value):
+        preview = html2plaintext(value or "")
+        preview = " ".join(preview.split())
+        if len(preview) > 120:
+            preview = f"{preview[:117]}..."
+        return preview
+
+    def _format_chatter_value(self, field_name, value):
+        field = self._fields[field_name]
+        empty_value = _("Empty")
+
+        if field.type == "many2one":
+            return value.display_name if value else empty_value
+        if field.type == "selection":
+            selection = dict(field._description_selection(self.env))
+            return selection.get(value, value or empty_value)
+        if field.type in {"float", "integer", "monetary"}:
+            if value in (False, None):
+                return empty_value
+            return f"{value:g}"
+        if field.type == "date":
+            return fields.Date.to_string(value) if value else empty_value
+        if field.type == "datetime":
+            return fields.Datetime.to_string(value) if value else empty_value
+        if field.type == "boolean":
+            return _("Yes") if value else _("No")
+        if field.type in {"char", "text", "html"}:
+            return self._format_chatter_preview(value) or empty_value
+        return str(value) if value not in (False, None, "") else empty_value
+
+    def _post_parent_chatter_audit(self, tracked_fields, snapshot_by_line):
+        if self.env.context.get("skip_line_chatter_audit"):
+            return
+
+        for line in self:
+            parent = line.evaluation_id
+            before_values = snapshot_by_line.get(line.id) or {}
+            if not parent or not before_values:
+                continue
+
+            detail_items = []
+            for field_name in tracked_fields:
+                if field_name not in before_values:
+                    continue
+
+                old_value = before_values[field_name]
+                new_value = line[field_name]
+                if new_value == old_value or (not new_value and not old_value):
+                    continue
+
+                field_label = escape(line._fields[field_name].string)
+                if field_name in line._CHATTER_COMMENT_FIELDS:
+                    preview = line._format_chatter_preview(new_value)
+                    preview_markup = (
+                        Markup(": <i>%s</i>") % escape(preview)
+                        if preview
+                        else Markup("")
+                    )
+                    detail_items.append(
+                        Markup("<li><b>%s</b> updated%s</li>")
+                        % (field_label, preview_markup)
+                    )
+                    continue
+
+                old_display = escape(line._format_chatter_value(field_name, old_value))
+                new_display = escape(line._format_chatter_value(field_name, new_value))
+                detail_items.append(
+                    Markup("<li><b>%s</b>: %s &rarr; %s</li>")
+                    % (field_label, old_display, new_display)
+                )
+
+            if not detail_items:
+                continue
+
+            line_label = line.name or line.display_name or _("KPI line")
+            body = Markup("<p>KPI line <b>%s</b> was updated.</p><ul>%s</ul>") % (
+                escape(line_label),
+                Markup("").join(detail_items),
+            )
+            parent.message_post(body=body, subtype_xmlid="mail.mt_note")
 
     @api.depends(
         "child_evaluation_line_ids",
@@ -321,6 +431,19 @@ class HrDepartmentEvaluationLine(models.Model):
                     _("Manager score must be between 0 and %(max_score)s.")
                     % {"max_score": f"{score_base:g}"}
                 )
+
+    def write(self, vals):
+        tracked_fields = self._get_chatter_tracked_fields(vals or {})
+        snapshot_by_line = (
+            self._snapshot_chatter_tracked_values(tracked_fields)
+            if tracked_fields
+            else {}
+        )
+
+        res = super().write(vals)
+        if snapshot_by_line:
+            self._post_parent_chatter_audit(tracked_fields, snapshot_by_line)
+        return res
 
     def action_open_popup(self):
         self.ensure_one()

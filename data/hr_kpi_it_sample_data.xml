@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <record id="dept_information_technology" model="hr.department">
             <field name="name">Phòng Công nghệ thông tin</field>
         </record>
@@ -143,19 +143,6 @@
             <field name="scoring_formula_id" ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher"/>
             <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_attendance_score"/>
             <field name="sequence">50</field>
-        </record>
-
-        <record id="employee_kpi_it_on_time_days" model="hr.kpi.template.line">
-            <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
-            <field name="key_performance_area">Số ngày chấm công đúng giờ</field>
-            <field name="kpi_type">quantitative</field>
-            <field name="target">20</field>
-            <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day"/>
-            <field name="weight">15</field>
-            <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_attendance_on_time_days"/>
-            <field name="scoring_formula_id" ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher"/>
-            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_attendance_score"/>
-            <field name="sequence">60</field>
         </record>
 
         <record id="employee_kpi_it_late_days" model="hr.kpi.template.line">

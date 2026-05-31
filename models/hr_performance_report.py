@@ -463,8 +463,21 @@ class HrPerformanceReport(models.Model):
         threshold_excellent, threshold_pass = settings.get_thresholds()
         widget_model = self.env["hr.kpi.dashboard.widget"]
         widgets = widget_model.get_dashboard_widgets("report")
+        report_meta = {
+            "report_id": self.id,
+            "department_id": self.department_id.id if self.department_id else False,
+            "department_name": self.department_name or "",
+            "period_id": self.period_id.id if self.period_id else False,
+            "period_name": self.period_id.name if self.period_id else "",
+            "period_type": self.period_type or "",
+            "start_date": str(self.start_date) if self.start_date else False,
+            "end_date": str(self.end_date) if self.end_date else False,
+            "deadline": str(self.deadline) if self.deadline else False,
+            "active": bool(self.active),
+        }
         if not evalids:
             return {
+                **report_meta,
                 "score_scale": score_scale,
                 "widgets": widgets,
                 "widget_map": {widget["code"]: widget for widget in widgets},
@@ -472,7 +485,11 @@ class HrPerformanceReport(models.Model):
                     "excellent": threshold_excellent,
                     "pass": threshold_pass,
                 },
+                "total_employees": 0,
+                "avg_score": 0.0,
+                "pass_count": 0,
                 "employees": [],
+                "evaluations": [],
                 "task_summary": {},
                 "attendance_summary": {},
                 "late_summary": {},
@@ -483,6 +500,7 @@ class HrPerformanceReport(models.Model):
 
         # ── 1. Base employee list ──────────────────────────────────────────────
         employees = []
+        evaluation_rows = []
         for ev in evaluations:
             employees.append(
                 {
@@ -493,8 +511,37 @@ class HrPerformanceReport(models.Model):
                     "eval_id": ev.id,
                 }
             )
+            evaluation_rows.append(
+                {
+                    "id": ev.id,
+                    "employee_id": (
+                        [ev.employee_id.id, ev.employee_id.name]
+                        if ev.employee_id
+                        else False
+                    ),
+                    "job_id": [ev.job_id.id, ev.job_id.name] if ev.job_id else False,
+                    "performance_score": round(float(ev.performance_score or 0.0), 2),
+                    "performance_level": ev.performance_level or False,
+                    "state": ev.state or False,
+                }
+            )
 
         emp_names = [e["name"] for e in employees]
+        total_employees = len(evaluations)
+        avg_score = (
+            round(
+                sum(float(ev.performance_score or 0.0) for ev in evaluations)
+                / total_employees,
+                2,
+            )
+            if total_employees
+            else 0.0
+        )
+        pass_count = sum(
+            1
+            for ev in evaluations
+            if ev.performance_level in ("pass", "excellent")
+        )
 
         # ── 2. Task summary ────────────────────────────────────────────────────
         task_summary = {"names": emp_names, "total_tasks": [], "done_tasks": []}
@@ -605,6 +652,7 @@ class HrPerformanceReport(models.Model):
             )
 
         return {
+            **report_meta,
             "score_scale": score_scale,
             "widgets": widgets,
             "widget_map": {widget["code"]: widget for widget in widgets},
@@ -612,7 +660,11 @@ class HrPerformanceReport(models.Model):
                 "excellent": threshold_excellent,
                 "pass": threshold_pass,
             },
+            "total_employees": total_employees,
+            "avg_score": avg_score,
+            "pass_count": pass_count,
             "employees": employees,
+            "evaluations": evaluation_rows,
             "task_summary": task_summary,
             "attendance_summary": attendance_summary,
             "late_summary": late_summary,

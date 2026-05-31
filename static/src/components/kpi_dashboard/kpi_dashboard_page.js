@@ -3,7 +3,7 @@
  * kpi_dashboard_page.js  –  Standalone KPI Dashboard Client Action
  *
  * Registered as the "kpi_individual_dashboard" client action tag.
- * Template: static/src/xml/kpi_dashboard_template.xml
+ * Template: static/src/components/kpi_dashboard/kpi_dashboard_template.xml
  *           "performance_evaluator.KpiDashboardStandalone"
  */
 
@@ -106,6 +106,10 @@ export class KpiDashboard extends Component {
         onWillStart(async () => {
             await this._loadChartJs();
             // await loadJS("https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js");
+            // Tải thư viện Datalabels từ CDN trước khi Component render
+            await loadJS(
+                "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js",
+            );
 
             // Chạy song song tất cả các kiểm tra quyền
             const [isManager, isHR, isAdmin] = await Promise.all([
@@ -150,14 +154,20 @@ export class KpiDashboard extends Component {
         try {
             await loadBundle("web.chartjs_lib");
         } catch (bundleError) {
-            console.warn("KPI Dashboard: failed to load web.chartjs_lib bundle", bundleError);
+            console.warn(
+                "KPI Dashboard: failed to load web.chartjs_lib bundle",
+                bundleError,
+            );
         }
         if (window.Chart) return;
 
         try {
             await loadJS("/web/static/lib/Chart/Chart.js");
         } catch (assetError) {
-            console.error("KPI Dashboard: failed to load local Chart.js asset", assetError);
+            console.error(
+                "KPI Dashboard: failed to load local Chart.js asset",
+                assetError,
+            );
         }
         if (!window.Chart) {
             this.state.chartErrorMsg = _t(
@@ -301,7 +311,11 @@ export class KpiDashboard extends Component {
                 this.state.selectedEmployeeId
             ) {
                 domain = [["employee_id", "=", this.state.selectedEmployeeId]];
-            } else if (this.state.isManager && !this.state.isHR && !this.state.isAdmin) {
+            } else if (
+                this.state.isManager &&
+                !this.state.isHR &&
+                !this.state.isAdmin
+            ) {
                 domain = [["id", "=", 0]];
             } else if (this.state.employee_id) {
                 // Được truyền thẳng employee_id từ context (ví dụ: mở từ form nhân viên)
@@ -314,14 +328,20 @@ export class KpiDashboard extends Component {
                 "hr.performance.evaluation",
                 domain,
                 fields,
-                { order: "start_date desc", limit: 500, context: { active_test: false } }, // Thêm dòng này để lấy cả record archived
+                {
+                    order: "start_date desc",
+                    limit: 500,
+                    context: { active_test: false },
+                }, // Thêm dòng này để lấy cả record archived
             );
 
             this.state.evaluations = evals;
 
             if (evals.length > 0) {
                 // Kiểm tra xem passedEvaluationId có khớp với evaluation nào trong danh sách không
-                const targetEval = evals.find(e => e.id === this.state.passedEvaluationId);
+                const targetEval = evals.find(
+                    (e) => e.id === this.state.passedEvaluationId,
+                );
 
                 if (targetEval) {
                     this.state.selectedEvaluationId = targetEval.id;
@@ -426,7 +446,9 @@ export class KpiDashboard extends Component {
     }
 
     get scoreText() {
-        return this.formatScore(this.state.data ? this.state.data.performance_score : 0);
+        return this.formatScore(
+            this.state.data ? this.state.data.performance_score : 0,
+        );
     }
 
     get scoreRingStyle() {
@@ -506,7 +528,10 @@ export class KpiDashboard extends Component {
     // ── Final Score helpers (dùng cho breakdown section trong template) ────────
     get finalScoreText() {
         // Trả về final_score đã được làm tròn 2 chữ số thập phân
-        return this.formatScore(this.state.data ? this.state.data.final_score : 0, 2);
+        return this.formatScore(
+            this.state.data ? this.state.data.final_score : 0,
+            2,
+        );
     }
 
     get finalLevelClass() {
@@ -516,7 +541,8 @@ export class KpiDashboard extends Component {
     }
 
     get finalLevelLabel() {
-        if (this.state.data?.final_level_label) return this.state.data.final_level_label;
+        if (this.state.data?.final_level_label)
+            return this.state.data.final_level_label;
         const level = this.state.data ? this.state.data.final_level : "fail";
         const labels = { excellent: "Excellent", pass: "Pass", fail: "Fail" };
         return labels[level] || level;
@@ -524,16 +550,24 @@ export class KpiDashboard extends Component {
 
     // ── Quantitative table helpers ────────────────────────────────────────────
     // 1. Format text cho cột Variance (Thêm dấu + cho số dương)
-    formatVariance(row) { return _formatVariance(row); }
+    formatVariance(row) {
+        return _formatVariance(row);
+    }
 
     // 2. Màu sắc cho cột Variance
-    varianceClass(row) { return _varianceClass(row); }
+    varianceClass(row) {
+        return _varianceClass(row);
+    }
 
     // 3. Chữ hiển thị cho cột Status
-    statusText(row) { return _statusText(row); }
+    statusText(row) {
+        return _statusText(row);
+    }
 
     // 4. Màu nền cho Badge Status
-    statusClass(row) { return _statusClass(row); }
+    statusClass(row) {
+        return _statusClass(row);
+    }
 
     periodLabel(periodType) {
         return PERIOD_LABELS[periodType] || periodType;
@@ -557,7 +591,9 @@ export class KpiDashboard extends Component {
         const datasets = chart?.chart_data?.datasets || [];
         return (
             labels.length > 0 &&
-            datasets.some((dataset) => Array.isArray(dataset?.data) && dataset.data.length)
+            datasets.some(
+                (dataset) => Array.isArray(dataset?.data) && dataset.data.length,
+            )
         );
     }
 
@@ -579,11 +615,7 @@ export class KpiDashboard extends Component {
             periodLabel = PERIOD_LABELS[ev.period_type] || ev.period_type;
         }
 
-        return (
-            ev.name +
-            " — " +
-            periodLabel
-        );
+        return ev.name + " — " + periodLabel;
     }
 
     // ── Chart rendering ──────────────────────────────────────────────────────
@@ -628,7 +660,11 @@ export class KpiDashboard extends Component {
                     this._charts.spider = spider;
                 }
             } catch (error) {
-                console.error("KPI Dashboard: failed to render spider chart", error, d.spider_web);
+                console.error(
+                    "KPI Dashboard: failed to render spider chart",
+                    error,
+                    d.spider_web,
+                );
                 this.state.chartErrorMsg = _t(
                     "Some charts could not be rendered. Check browser console for details.",
                 );
@@ -656,7 +692,8 @@ export class KpiDashboard extends Component {
                 continue;
             }
 
-            const rendererName = this.constructor.CHART_RENDERERS[chartInfo.chart_type];
+            const rendererName =
+                this.constructor.CHART_RENDERERS[chartInfo.chart_type];
             if (!rendererName || typeof this[rendererName] !== "function") continue;
 
             try {
@@ -808,29 +845,95 @@ export class KpiDashboard extends Component {
     }
 
     _renderDoughnutChart(canvas, chartInfo) {
+        // Lấy plugin đã được nạp từ CDN ra sử dụng
+        const ChartDataLabels = window.ChartDataLabels;
         const Chart = window.Chart;
         const ctx = canvas?.getContext?.("2d");
         if (!ctx) return null;
         const chartData = chartInfo.chart_data || {};
         const labels = chartData.labels || [];
+        // Định nghĩa plugin vẽ chữ ở tâm vòng tròn
+        const centerTextPlugin = {
+            id: 'centerText',
+            afterDraw: (chart) => {
+                const { ctx, chartArea } = chart;
+                if (!chartArea) return;
+
+                // Đọc chuỗi target_center_text từ dữ liệu Python gửi xuống
+                const targetText = chart.config.data.target_center_text;
+                if (!targetText) return;
+
+                ctx.save();
+
+                // Tính toán tọa độ tâm chính xác của vòng tròn doughnut
+                const centerX = (chartArea.left + chartArea.right) / 2;
+                const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+                // --- VẼ CHỮ "TARGET" (Nhỏ, nằm ở trên tâm 10px) ---
+                ctx.font = '12px sans-serif';
+                ctx.fillStyle = '#6b7280'; // Màu xám nhạt (Tailwind gray-500)
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Target', centerX, centerY - 10);
+
+                // --- VẼ GIÁ TRỊ TARGET (To, in đậm, nằm dưới tâm 10px) ---
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillStyle = '#1f2937'; // Màu chữ tối (Tailwind gray-800)
+                ctx.fillText(targetText, centerX, centerY + 10);
+
+                ctx.restore();
+            }
+        };
         return new Chart(ctx, {
             type: "doughnut",
+            plugins: [ChartDataLabels, centerTextPlugin],
             data: {
                 labels,
                 datasets: chartData.datasets || [],
+                target_center_text: chartData.target_center_text,
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: chartInfo.chart_meta?.cutout || "75%",
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        display: true, // Bật hiển thị legend
+                        position: "top", // Vị trí: 'top', 'bottom', 'left', 'right'
+                        labels: {
+                            usePointStyle: true, // Biến ô vuông màu thành hình tròn cho đẹp
+                            boxWidth: 8,
+                            padding: 20,
+                            font: {
+                                size: 12,
+                            },
+                        },
+                    },
                     tooltip: {
                         callbacks: {
                             label: (context) => {
                                 const label = labels[context.dataIndex] || context.label || "";
                                 return `${label}: ${context.parsed}`;
                             },
+                        },
+                    },
+                    // CẤU HÌNH FORMAT HIỂN THỊ CỦA CÁC ĐẦU SỐ
+                    datalabels: {
+                        display: true,
+                        color: "#ffffff", // Màu mặc định nếu python không truyền xuống
+                        formatter: (value, ctx) => {
+                            // Nếu giá trị bằng 0 thì ẩn đi cho biểu đồ đỡ rác
+                            if (value === 0) return '';
+
+                            // Kéo cái "unit" mà chúng ta vừa truyền từ Python xuống
+                            const unit = ctx.dataset.unit || '';
+
+                            // Ghép giá trị và đơn vị lại với nhau
+                            return `${value} ${unit}`.trim();
+                        },
+                        font: {
+                            weight: "bold",
+                            size: 14,
                         },
                     },
                 },

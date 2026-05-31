@@ -3,8 +3,8 @@
  * kpi_helpers.js — Các hàm tiện ích dùng chung cho KPI Dashboard
  *
  * Được import bởi:
- *   - static/src/js/dept_kpi_dashboard.js
- *   - static/src/js/kpi_dashboard_page.js
+ *   - static/src/components/dept_kpi_dashboard/dept_kpi_dashboard.js
+ *   - static/src/components/kpi_dashboard/kpi_dashboard_page.js
  *   - static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.js
  */
 

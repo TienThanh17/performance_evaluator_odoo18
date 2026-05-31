@@ -24,6 +24,7 @@ class PerformanceEvaluation(models.Model):
         "hr.employee",
         string="Employee",
         required=True,
+        tracking=True,
         help="The employee being evaluated.",
     )
     kpi_id = fields.Many2one(
@@ -31,6 +32,7 @@ class PerformanceEvaluation(models.Model):
         string="KPI Template",
         required=False,
         domain="[('period_id', '=', period_id), ('department_id', '=', department_id)]",
+        tracking=True,
         help="KPI template used to generate evaluation lines.",
     )
     period_id = fields.Many2one(
@@ -39,6 +41,7 @@ class PerformanceEvaluation(models.Model):
         compute="_compute_period_id",
         store=True,
         readonly=False,
+        tracking=True,
         help="Canonical KPI period used by this evaluation.",
     )
     period_type = fields.Selection(
@@ -56,19 +59,29 @@ class PerformanceEvaluation(models.Model):
         ],
         default="self_evaluation",
         string="State",
+        tracking=True,
         help="Workflow stage of the evaluation (Self Evaluation → Manager Evaluating → Completed). Canceled evaluations are locked.",
     )
     active = fields.Boolean(
         string="Active",
         default=True,
+        tracking=True,
         help="Set to false to archive the evaluation.",
     )
     start_date = fields.Date(
-        string="Start Date", help="Start date of the evaluation period."
+        string="Start Date",
+        tracking=True,
+        help="Start date of the evaluation period.",
     )
-    end_date = fields.Date(string="End Date", help="End date of the evaluation period.")
+    end_date = fields.Date(
+        string="End Date",
+        tracking=True,
+        help="End date of the evaluation period.",
+    )
     deadline = fields.Date(
-        string="Deadline", help="Deadline for submitting the self-evaluation."
+        string="Deadline",
+        tracking=True,
+        help="Deadline for submitting the self-evaluation.",
     )
     period_status = fields.Selection(
         [
@@ -143,6 +156,7 @@ class PerformanceEvaluation(models.Model):
         string="Performance Report",
         domain=[("active", "=", True)],
         required=False,
+        tracking=True,
         help="Defines the active evaluation window (start/end/deadline) for the selected period.",
         ondelete="cascade",
     )
@@ -152,6 +166,7 @@ class PerformanceEvaluation(models.Model):
         domain="[('department_id', '=', department_id)]",
         required=False,
         ondelete="set null",
+        tracking=True,
         help="Link to the department KPI evaluation for the same period. "
         "Used to blend dept_kpi_score into the individual final_score.",
     )
@@ -750,7 +765,7 @@ class PerformanceEvaluation(models.Model):
             # Process record-by-record so one failure doesn't block the rest.
             for ev in evaluations:
                 try:
-                    ev.action_compute_auto_kpi()
+                    ev.with_context(skip_line_chatter_audit=True).action_compute_auto_kpi()
                     ev._compute_performance_score()
                 except Exception as e:
                     _logger.exception(
@@ -773,6 +788,18 @@ class PerformanceEvaluation(models.Model):
     # ------------------------------------------------------------
     # Dashboard
     # ------------------------------------------------------------
+    def action_open_kpi_dashboard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.client",
+            "tag": "kpi_individual_dashboard",
+            "name": _("KPI Dashboard"),
+            "context": {
+                "default_employee_id": self.employee_id.id,
+                "default_evaluation_id": self.id,
+            },
+        }
+
     def get_dashboard_data(self):
         """Return all data needed to render the individual KPI dashboard.
 

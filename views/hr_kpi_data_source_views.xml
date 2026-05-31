@@ -25,55 +25,82 @@
         <field name="arch" type="xml">
             <form string="Data Source">
                 <sheet>
-                    <group>
-                        <field name="name" />
-                        <field name="code" />
-                        <field name="unit_id" />
-                        <field name="source_type" />
-                        <field name="description" />
-                        <field name="active" />
-                    </group>
-                    <group string="Dashboard">
-                        <field name="dashboard_enabled" />
-                        <field name="dashboard_provider_key"
-                            invisible="not dashboard_enabled"
-                            required="dashboard_enabled" />
-                        <field name="dashboard_chart_type"
-                            invisible="not dashboard_enabled"
-                            required="dashboard_enabled" />
-                        <field name="dashboard_special_case"
-                            invisible="not dashboard_enabled"
-                            readonly="1" />
-                    </group>
-                    <group invisible="source_type != 'domain'">
-                        <field name="model_id" />
-                        <field name="model_name" invisible="1" />
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only" string="Tên Nguồn Dữ Liệu" />
+                        <h1>
+                            <field name="name" placeholder="VD: Số ngày đi làm thực tế..." />
+                        </h1>
+                    </div>
 
-                        <field name="aggregation" />
-                        <!-- <field name="employee_scope" /> -->
-                        <field name="user_field_id"
-                            options="{'no_create': True}"
-                            invisible="not model_id" />
-                        <field name="date_field_id" options="{'no_create': True}"
-                            invisible="not model_id" />
-                        <!-- <field name="date_field_start" />
-                        <field name="date_field_end" /> -->
-                        <field name="domain_numerator" widget="domain"
-                            options="{'model': 'model_name'}" />
-                        <field name="domain_denominator" widget="domain"
-                            options="{'model': 'model_name'}" invisible="aggregation != 'ratio'" />
-                        <field name="sum_avg_field_id" 
-                               options="{'no_create': True}" 
-                               invisible="aggregation not in ('sum', 'avg')" 
-                               required="aggregation in ('sum', 'avg')"/>
+                    <group>
+                        <group name="basic_info" string="Thông tin chung">
+                            <field name="code" />
+                            <field name="unit_id" />
+                            <field name="description" />
+                            <field name="active" widget="boolean_toggle" />
+                        </group>
+                        <group name="dashboard_config" string="Cấu hình Dashboard">
+                            <field name="dashboard_enabled" widget="boolean_toggle" />
+                            <field name="dashboard_provider_key"
+                                invisible="not dashboard_enabled"
+                                required="dashboard_enabled" />
+                            <field name="kpi_behavior"
+                                invisible="not dashboard_enabled or dashboard_provider_key != 'generic_domain_daily_series'"
+                                required="dashboard_enabled and dashboard_provider_key == 'generic_domain_daily_series'" />
+                            <field name="dashboard_chart_type"
+                                invisible="not dashboard_enabled"
+                                required="dashboard_enabled" />
+                            <field name="dashboard_special_case"
+                                invisible="not dashboard_enabled"
+                                readonly="1" />
+                        </group>
                     </group>
+
+                    <hr />
+                    <group name="source_config" string="Logic Xử Lý">
+                        <field name="source_type" widget="radio" options="{'horizontal': true}" />
+                    </group>
+
+                    <div class="alert alert-warning text-center mt-3" role="alert"
+                        invisible="source_type != 'system'">
+                        <strong><i class="fa fa-lock" /> Lưu ý:</strong> Nguồn dữ liệu này được tính
+                        toán tự động bởi hệ thống và không thể chỉnh sửa logic để đảm
+                        bảo tính chính xác. </div>
+
+                    <group invisible="source_type != 'domain'">
+                        <group>
+                            <field name="model_id" required="source_type == 'domain'" />
+                            <field name="model_name" invisible="1" />
+                            <field name="user_field_id" options="{'no_create': True}"
+                                invisible="not model_id" />
+                            <field name="date_field_id" options="{'no_create': True}"
+                                invisible="not model_id" />
+                        </group>
+                        <group>
+                            <field name="aggregation" required="source_type == 'domain'" />
+                            <field name="sum_avg_field_id"
+                                options="{'no_create': True}"
+                                invisible="aggregation not in ('sum', 'avg')"
+                                required="aggregation in ('sum', 'avg')" />
+                        </group>
+                        <group colspan="2">
+                            <field name="domain_numerator" widget="domain"
+                                options="{'model': 'model_name'}" />
+                            <field name="domain_denominator" widget="domain"
+                                options="{'model': 'model_name'}" invisible="aggregation != 'ratio'" />
+                        </group>
+                    </group>
+
                     <group invisible="source_type != 'python'">
-                        <field name="python_code" widget="text" />
+                        <field name="python_code" widget="ace" options="{'mode': 'python'}"
+                            nolabel="1" colspan="2" />
                     </group>
+
                 </sheet>
                 <footer>
                     <button name="action_test_execute" type="object" string="Chạy thử"
-                        class="btn-secondary" />
+                        class="btn-primary" icon="fa-play" />
+                    <button string="Đóng" class="btn-secondary" special="cancel" />
                 </footer>
             </form>
         </field>

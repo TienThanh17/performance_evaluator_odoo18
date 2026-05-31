@@ -53,34 +53,17 @@
             <field name="description">Bắt đầu từ max_score runtime, trừ 2 điểm mỗi đơn vị vi phạm.</field>
         </record>
 
-        <record id="formula_step_table_completion" model="hr.kpi.scoring.formula">
-            <field name="name">Bảng bậc thang - Mức độ hoàn thành</field>
-            <field name="sequence">20</field>
-            <field name="formula_type">step_table</field>
-            <field name="step_out_of_range">nearest</field>
-            <field name="step_table_json"><![CDATA[
-[
-  {"from": 0, "to": 50, "score": 0},
-  {"from": 50, "to": 80, "score": 5},
-  {"from": 80, "to": 100, "score": 8},
-  {"from": 100, "to": null, "score": 10}
-]
-            ]]></field>
-            
-            <field name="description">Mẫu bậc thang phổ biến cho KPI định lượng: dưới 50 thì 0 điểm, từ 100 trở lên đạt tối đa.</field>
-        </record>
-
         <record id="formula_step_table_target_gate" model="hr.kpi.scoring.formula">
-            <field name="name">Bảng bậc thang - Đạt target là tối đa</field>
+            <field name="name">Bảng bậc thang</field>
             <field name="sequence">21</field>
             <field name="formula_type">step_table</field>
             <field name="step_out_of_range">zero</field>
             <field name="step_table_json"><![CDATA[
 [
-  {"from": 0, "to": 70, "score": 0},
-  {"from": 70, "to": 90, "score": 6},
-  {"from": 90, "to": 100, "score": 8},
-  {"from": 100, "to": null, "score": 10}
+  {"from": 0, "to": 50, "score": 0},
+  {"from": 51, "to": 70, "score": 6},
+  {"from": 71, "to": 90, "score": 8},
+  {"from": 91, "to": 100, "score": 10}
 ]
             ]]></field>
             

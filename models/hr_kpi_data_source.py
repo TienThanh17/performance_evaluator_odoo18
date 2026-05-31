@@ -30,6 +30,7 @@ class HrKpiDataSource(models.Model):
         [
             ("domain", "Domain builder"),
             ("python", "Python code"),
+            ("system", "System"),
         ],
         required=True,
         default="domain",
@@ -118,6 +119,11 @@ class HrKpiDataSource(models.Model):
         compute="_compute_dashboard_special_case",
         help="True when this dashboard chart reuses legacy KPI engine logic.",
     )
+    kpi_behavior = fields.Selection(
+        [("cumulative", "Tích lũy"), ("maintenance", "Duy trì")],
+        string="KPI Behavior",
+        help="Quyết định cách xử lý chuỗi dữ liệu theo ngày trên Dashboard: Cộng dồn tăng dần hay giữ nguyên giá trị thực tế của ngày đó.",
+    )
 
     _sql_constraints = [
         ("code_unique", "UNIQUE(code)", "Mã kỹ thuật phải duy nhất."),
@@ -162,7 +168,7 @@ class HrKpiDataSource(models.Model):
     )
     def _check_dashboard_config(self):
         allowed_chart_types = {
-            "generic_target_actual_bar": {"bar" , "doughnut"},
+            "generic_target_actual_bar": {"bar", "doughnut"},
             "generic_domain_daily_series": {"line", "bar"},
             "special_engine_punctuality": {"line"},
             "special_engine_attendance_overview": {"doughnut"},

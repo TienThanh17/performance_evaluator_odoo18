@@ -158,6 +158,84 @@ function baseLineOpts(yLabel = "", xLabel = "") {
     };
 }
 
+function buildThresholdLinePlugin(thresholdValue = 10) {
+    return {
+        id: `deptThresholdLine_${thresholdValue}`,
+        beforeDraw: (chart) => {
+            const {
+                ctx,
+                chartArea,
+                scales: { y },
+            } = chart;
+            if (!chartArea || !y) {
+                return;
+            }
+            const yPos = y.getPixelForValue(thresholdValue);
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(chartArea.left, yPos);
+            ctx.lineTo(chartArea.right, yPos);
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = C_RED;
+            ctx.setLineDash([6, 4]);
+            ctx.stroke();
+            ctx.restore();
+        },
+    };
+}
+
+function reportDoughnutPlugins() {
+    return [
+        {
+            id: "deptReportEmptyStatePlugin",
+            afterDraw(chart) {
+                const data = chart.data.datasets[0]?.data || [];
+                const isEmpty =
+                    !data.length || data.every((val) => val === 0 || val === null);
+                if (!isEmpty) {
+                    return;
+                }
+                const ctx = chart.ctx;
+                const { width, height } = chart;
+                chart.clear();
+                ctx.save();
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.font = "14px sans-serif";
+                ctx.fillStyle = "#9ca3af";
+                ctx.fillText(_t("No evaluation data available"), width / 2, height / 2);
+                ctx.restore();
+            },
+        },
+        {
+            id: "deptReportSliceLabelsPlugin",
+            afterDatasetsDraw(chart) {
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (meta.hidden) {
+                        return;
+                    }
+                    meta.data.forEach((element, index) => {
+                        const data = dataset.data[index];
+                        if (!(data > 0)) {
+                            return;
+                        }
+                        const position = element.tooltipPosition();
+                        ctx.save();
+                        ctx.fillStyle = "#ffffff";
+                        ctx.font = "bold 12px sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(data, position.x, position.y);
+                        ctx.restore();
+                    });
+                });
+            },
+        },
+    ];
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // OWL Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -166,7 +244,15 @@ export class DeptKpiDashboard extends Component {
     static props = ["*"];
 
     setup() {
+        const actionContext = this.props.action?.context || {};
+        const defaultDepartmentId =
+            parseInt(actionContext.default_department_id, 10) || false;
+        const defaultEvaluationId =
+            parseInt(actionContext.default_evaluation_id, 10) || false;
+
         this.orm = useService("orm");
+        this.actionService = useService("action");
+        this.notification = useService("notification");
 
         // Canvas refs
         this.refA = useRef("chartA");
@@ -174,17 +260,24 @@ export class DeptKpiDashboard extends Component {
         this.refC = useRef("chartC");
         this.refD = useRef("chartD");
         this.refE = useRef("chartE");
+        this.refReportScore = useRef("reportChartScore");
+        this.refReportTask = useRef("reportChartA");
+        this.refReportAttendance = useRef("reportChartB");
+        this.refReportLate = useRef("reportChartC");
 
         this.state = useState({
             phase: "loading",           // "loading" | "done" | "empty" | "error"
             errorMsg: "",
             isManager: false,
             isHR: false,
+            defaultDepartmentId,
+            defaultEvaluationId,
             departments: [],
             selectedDepartmentId: null,
             evaluations: [],
             selectedEvaluationId: null,
             data: null,
+            approvingAll: false,
         });
 
         this._charts = {};
@@ -225,14 +318,46 @@ export class DeptKpiDashboard extends Component {
         return this.state.data?.score_scale || { suffix: " / 10" };
     }
 
+    get reportDashboard() {
+        return this.state.data?.report_dashboard || null;
+    }
+
+    get reportScoreScale() {
+        return this.reportDashboard?.score_scale || this.scoreScale;
+    }
+
+    get reportThresholds() {
+        return this.reportDashboard?.thresholds || { excellent: 9, pass: 5 };
+    }
+
+    get approvableCount() {
+        return (this.reportDashboard?.evaluations || []).filter(
+            (ev) => ev.state === "manager_evaluating"
+        ).length;
+    }
+
     hasWidget(code) {
         const widgetMap = this.state.data?.widget_map || {};
+        return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
+    }
+
+    hasReportWidget(code) {
+        const widgetMap = this.reportDashboard?.widget_map || {};
         return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
     }
 
     /** Hiển thị điểm số, mặc định 2 chữ số thập phân. */
     formatScore(val, decimals = 2) {
         return _formatScore(val, this.scoreScale, { decimals });
+    }
+
+    formatReportScore(val, decimals = 2) {
+        return _formatScore(val, this.reportScoreScale, { decimals });
+    }
+
+    reportScorePct(value) {
+        const base = Number(this.reportScoreScale.base || 10);
+        return Math.max(0, Math.min(100, ((Number(value) || 0) / base) * 100));
     }
 
     levelLabel(lvl) {
@@ -262,8 +387,12 @@ export class DeptKpiDashboard extends Component {
             this.state.departments = depts;
 
             if (depts.length) {
-                this.state.selectedDepartmentId = depts[0].id;
-                await this._loadEvaluations(depts[0].id);
+                const targetDepartment =
+                    depts.find((dept) => dept.id === this.state.defaultDepartmentId) ||
+                    depts[0];
+                this.state.selectedDepartmentId = targetDepartment.id;
+                this.state.defaultDepartmentId = false;
+                await this._loadEvaluations(targetDepartment.id);
             } else {
                 this.state.phase = "empty";
             }
@@ -288,9 +417,16 @@ export class DeptKpiDashboard extends Component {
             this.state.evaluations = evals;
 
             if (evals.length) {
-                this.state.selectedEvaluationId = evals[0].id;
-                await this._loadDashboardData(departmentId, evals[0]);
+                const targetEvaluation =
+                    evals.find(
+                        (evaluation) =>
+                            evaluation.id === this.state.defaultEvaluationId
+                    ) || evals[0];
+                this.state.selectedEvaluationId = targetEvaluation.id;
+                this.state.defaultEvaluationId = false;
+                await this._loadDashboardData(departmentId, targetEvaluation);
             } else {
+                this.state.defaultEvaluationId = false;
                 this.state.data = null;
                 this.state.phase = "empty";
             }
@@ -347,15 +483,88 @@ export class DeptKpiDashboard extends Component {
         }
     }
 
+    async exportExcelReport() {
+        const reportId = this.reportDashboard?.report_id;
+        if (!reportId) {
+            return;
+        }
+        const action = await this.orm.call(
+            "hr.performance.report",
+            "action_export_excel_report",
+            [reportId]
+        );
+        if (action) {
+            this.actionService.doAction(action);
+        }
+    }
+
+    async approveAllEvaluations() {
+        const evalIds = (this.reportDashboard?.evaluations || [])
+            .filter((ev) => ev.state === "manager_evaluating")
+            .map((ev) => ev.id);
+        if (!evalIds.length || this.state.approvingAll) {
+            return;
+        }
+        this.state.approvingAll = true;
+        try {
+            await this.orm.call("hr.performance.evaluation", "action_approve", [evalIds]);
+            const evaluation = this.state.evaluations.find(
+                (item) => item.id === this.state.selectedEvaluationId
+            );
+            if (evaluation && this.state.selectedDepartmentId) {
+                await this._loadDashboardData(this.state.selectedDepartmentId, evaluation);
+            }
+            this.notification.add(_t("All manager evaluations were approved."), {
+                type: "success",
+            });
+        } catch (error) {
+            this.notification.add(
+                error?.data?.message ||
+                    error?.message ||
+                    _t("Could not approve evaluations."),
+                { type: "danger" }
+            );
+        } finally {
+            this.state.approvingAll = false;
+        }
+    }
+
+    openEvaluation(evalId) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            res_model: "hr.performance.evaluation",
+            res_id: evalId,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    }
+
+    openIndividualDashboard(employeeId, evalId) {
+        if (!employeeId || !evalId) {
+            return;
+        }
+        this.actionService.doAction({
+            type: "ir.actions.client",
+            tag: "kpi_individual_dashboard",
+            name: _t("Individual KPI Dashboard"),
+            context: {
+                default_employee_id: employeeId,
+                default_evaluation_id: evalId,
+            },
+        });
+    }
+
     // ── Chart rendering ───────────────────────────────────────────────────────
     async _renderAllCharts() {
         const d = this.state.data;
         if (!d) return;
+        this._destroyCharts();
         this._renderChartA(d.task_summary_by_employee || []);
         this._renderChartB(d.project_progress || []);
         this._renderChartC(d.attendance_count || []);
         this._renderChartD(d.bug_count_by_employee || []);
         this._renderChartE(d.score_trend || {});
+        this._renderReportCharts(d.report_dashboard || null);
     }
 
     _renderChartA(employeeStats) {
@@ -591,6 +800,341 @@ export class DeptKpiDashboard extends Component {
                     },
                 },
             },
+        });
+    }
+
+    _renderReportCharts(reportData) {
+        if (!reportData) {
+            return;
+        }
+        this._renderReportScoreChart(reportData.employees || []);
+        this._renderReportTaskChart(reportData.task_summary || null);
+        this._renderReportAttendanceChart(reportData.attendance_summary || null);
+        this._renderReportLateChart(reportData.late_summary || null);
+        this._renderReportQualitativeCharts(reportData.qualitative_charts || []);
+    }
+
+    _chartReportScoreConfig(employees) {
+        const names = employees.map((employee) => employee.name);
+        const scores = employees.map((employee) => employee.score);
+        const scoreBase = this.reportScoreScale.base || 10;
+        const excellent = this.reportThresholds.excellent || 9;
+        const passed = this.reportThresholds.pass || 5;
+
+        return {
+            type: "bar",
+            data: {
+                labels: names,
+                datasets: [
+                    {
+                        label: _t("Individual KPI Score"),
+                        data: scores,
+                        backgroundColor: scores.map((score) =>
+                            score >= excellent
+                                ? C_BLUE + "cc"
+                                : score >= passed
+                                  ? C_GREEN + "cc"
+                                  : C_RED + "cc"
+                        ),
+                        borderColor: scores.map((score) =>
+                            score >= excellent ? C_BLUE : score >= passed ? C_GREEN : C_RED
+                        ),
+                        borderWidth: 1,
+                        borderRadius: 5,
+                    },
+                ],
+            },
+            options: {
+                ...baseBarOpts(_t("Score")),
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } },
+                    },
+                    y: {
+                        min: 0,
+                        max: scoreBase,
+                        title: {
+                            display: true,
+                            text: _t("Individual KPI Score"),
+                            font: { size: 11 },
+                        },
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                        ticks: { stepSize: scoreBase / 10, font: { size: 10 } },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${_t("Score")}: ${context.parsed.y}`,
+                        },
+                    },
+                },
+            },
+            plugins: [buildThresholdLinePlugin(scoreBase)],
+        };
+    }
+
+    _renderReportScoreChart(employees) {
+        const el = this.refReportScore.el;
+        if (!el || !employees.length) {
+            return;
+        }
+        this._charts.ReportScore = new Chart(el, this._chartReportScoreConfig(employees));
+    }
+
+    _chartReportTaskConfig(taskSummary) {
+        const pending = (taskSummary.total_tasks || []).map(
+            (total, index) => total - (taskSummary.done_tasks?.[index] || 0)
+        );
+        return {
+            type: "bar",
+            data: {
+                labels: taskSummary.names || [],
+                datasets: [
+                    {
+                        label: _t("Done"),
+                        data: taskSummary.done_tasks || [],
+                        backgroundColor: C_GREEN + "cc",
+                        borderColor: C_GREEN,
+                        borderWidth: 1,
+                        stack: "tasks",
+                        borderRadius: 4,
+                    },
+                    {
+                        label: _t("Pending"),
+                        data: pending,
+                        backgroundColor: C_AMBER + "99",
+                        borderColor: C_AMBER,
+                        borderWidth: 1,
+                        stack: "tasks",
+                        borderRadius: 4,
+                    },
+                ],
+            },
+            options: {
+                ...baseBarOpts(_t("Number of tasks")),
+                plugins: {
+                    legend: { display: true, position: "top" },
+                    tooltip: {
+                        callbacks: {
+                            afterBody: (items) => {
+                                const index = items[0]?.dataIndex ?? 0;
+                                return [`${_t("Total")}: ${taskSummary.total_tasks?.[index] || 0}`];
+                            },
+                        },
+                    },
+                },
+            },
+        };
+    }
+
+    _renderReportTaskChart(taskSummary) {
+        const el = this.refReportTask.el;
+        if (!el || !taskSummary?.names?.length) {
+            return;
+        }
+        this._charts.ReportTask = new Chart(el, this._chartReportTaskConfig(taskSummary));
+    }
+
+    _chartReportAttendanceConfig(attendanceSummary) {
+        const expected = attendanceSummary.expected_work_days || 0;
+        return {
+            type: "doughnut",
+            data: {
+                labels: attendanceSummary.names || [],
+                datasets: [
+                    {
+                        data: attendanceSummary.worked_days || [],
+                        backgroundColor: (attendanceSummary.names || []).map(
+                            (_, index) => POINT_COLORS[index % POINT_COLORS.length]
+                        ),
+                        borderWidth: 2,
+                        borderColor: "#fff",
+                        hoverOffset: 6,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "68%",
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: "right",
+                        labels: { font: { size: 11 } },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.label}: ${context.parsed} ${_t("days")}`,
+                        },
+                    },
+                    deptReportCenterText: {
+                        text: String(expected),
+                        subText: _t("Total Days"),
+                    },
+                },
+            },
+            plugins: reportDoughnutPlugins(),
+        };
+    }
+
+    _renderReportAttendanceChart(attendanceSummary) {
+        const el = this.refReportAttendance.el;
+        if (!el || !attendanceSummary?.names?.length) {
+            return;
+        }
+        if (!window.Chart.registry.plugins.get("deptReportCenterText")) {
+            window.Chart.register({
+                id: "deptReportCenterText",
+                beforeDraw(chart) {
+                    const cfg = chart.config.options.plugins.deptReportCenterText;
+                    if (!cfg) {
+                        return;
+                    }
+                    const {
+                        ctx,
+                        chartArea: { left, right, top, bottom },
+                    } = chart;
+                    const cx = (left + right) / 2;
+                    const cy = (top + bottom) / 2;
+                    ctx.save();
+                    ctx.font = "bold 22px Inter, sans-serif";
+                    ctx.fillStyle = "#111827";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(cfg.text, cx, cy - 10);
+                    ctx.font = "11px Inter, sans-serif";
+                    ctx.fillStyle = "#9ca3af";
+                    ctx.fillText(cfg.subText, cx, cy + 12);
+                    ctx.restore();
+                },
+            });
+        }
+        this._charts.ReportAttendance = new Chart(
+            el,
+            this._chartReportAttendanceConfig(attendanceSummary)
+        );
+    }
+
+    _chartReportLateConfig(lateSummary) {
+        return {
+            type: "line",
+            data: {
+                labels: lateSummary.names || [],
+                datasets: [
+                    {
+                        label: _t("Late Count"),
+                        data: lateSummary.late_count || [],
+                        borderColor: C_RED,
+                        backgroundColor: "rgba(224,60,60,0.08)",
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 8,
+                        pointHoverRadius: 10,
+                        pointBackgroundColor: (lateSummary.names || []).map(
+                            (_, index) => POINT_COLORS[index % POINT_COLORS.length]
+                        ),
+                        pointBorderColor: (lateSummary.names || []).map(
+                            (_, index) => POINT_COLORS[index % POINT_COLORS.length]
+                        ),
+                    },
+                ],
+            },
+            options: {
+                ...baseLineOpts(_t("Late Count"), _t("Employee")),
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) =>
+                                `${context.label}: ${context.parsed.y} ${_t("times late")}`,
+                        },
+                    },
+                },
+            },
+        };
+    }
+
+    _renderReportLateChart(lateSummary) {
+        const el = this.refReportLate.el;
+        if (!el || !lateSummary?.names?.length) {
+            return;
+        }
+        this._charts.ReportLate = new Chart(el, this._chartReportLateConfig(lateSummary));
+    }
+
+    _chartReportQualitativeConfig(qualitativeChart) {
+        const scoreBase = this.reportScoreScale.base || 10;
+        return {
+            type: "bar",
+            data: {
+                labels: qualitativeChart.labels || [],
+                datasets: [
+                    {
+                        label: _t("Score"),
+                        data: qualitativeChart.scores || [],
+                        backgroundColor: (qualitativeChart.labels || []).map(
+                            (_, index) => POINT_COLORS[index % POINT_COLORS.length] + "cc"
+                        ),
+                        borderColor: (qualitativeChart.labels || []).map(
+                            (_, index) => POINT_COLORS[index % POINT_COLORS.length]
+                        ),
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.raw} ${_t("points")}`,
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: scoreBase,
+                        title: {
+                            display: true,
+                            text: _t("Score"),
+                            color: "#6b7280",
+                            font: { size: 12 },
+                        },
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                        ticks: { stepSize: scoreBase / 10, font: { size: 10 } },
+                    },
+                },
+            },
+            plugins: [buildThresholdLinePlugin(scoreBase)],
+        };
+    }
+
+    _renderReportQualitativeCharts(qualitativeCharts) {
+        qualitativeCharts.forEach((qualitativeChart, index) => {
+            const el = document.getElementById(`dept-report-qual-chart-${index}`);
+            if (!el) {
+                return;
+            }
+            const key = `ReportQual_${index}`;
+            if (this._charts[key]) {
+                this._charts[key].destroy();
+            }
+            this._charts[key] = new Chart(
+                el,
+                this._chartReportQualitativeConfig(qualitativeChart)
+            );
         });
     }
 

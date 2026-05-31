@@ -333,6 +333,13 @@
                             invisible="state == 'cancel'" />
                     </header>
                     <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_open_kpi_dashboard" type="object" class="oe_stat_button" icon="fa-dashboard">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Dashboard</span>
+                                </div>
+                            </button>
+                        </div>
                         <group col="12">
                             <group colspan="2" class="custom_performance_col">
                                 <field name="performance_visual" nolabel="1" readonly="1" />
@@ -568,7 +575,7 @@
                             </page>
                         </notebook>
                     </sheet>
-                    <!--                                        <chatter/>-->
+                    <chatter/>
                 </form>
             </field>
         </record>

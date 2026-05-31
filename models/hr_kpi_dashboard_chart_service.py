@@ -31,7 +31,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             "generic_target_actual_bar": {
                 "builder": self._build_generic_target_actual_bar,
                 "default_chart_type": "bar",
-                "allowed_chart_types": {"bar","doughnut"},
+                "allowed_chart_types": {"bar", "doughnut"},
                 "is_special_case": False,
                 "special_case_source": False,
             },
@@ -107,19 +107,53 @@ class HrKpiDashboardChartService(models.AbstractModel):
         }
 
     def _build_generic_target_actual_bar(self, evaluation, line, source, chart_type):
-        chart_data = {
-            "labels": [_("Target"), _("Actual")],
-            "datasets": [
+        target_val = float(line.target or 0.0)
+        actual_val = float(line.actual or 0.0)
+        target_center_text = False
+        if chart_type == "doughnut":
+            remaining_val = round(max(target_val - actual_val, 0.0), 2)
+            labels = [_("Actual"), _("Remaining")]
+
+            # unit_str = ""
+            # if line.unit:
+            #     unit_str = "%" if line.unit.code == "percent" else line.unit.name
+
+            #  Tạo chuỗi format Target chuẩn chỉnh (Ví dụ: "90 %" hoặc "150 Hợp đồng")
+            target_center_text = self._format_value_with_unit(line, line.target)
+
+            datasets = [
                 {
                     "label": line.key_performance_area or source.name or _("KPI"),
-                    "data": [float(line.target or 0.0), float(line.actual or 0.0)],
+                    "data": [actual_val, remaining_val],
+                    "backgroundColor": ["#3b82f6", "#e2e8f0"],
+                    "borderWidth": 0,
+                    "hoverOffset": 4,
+                    "unit": line.unit.name,
+                    "datalabels": {
+                        "color": ["#ffffff", "#1f2937"], # Chữ trắng trên mảng xanh, chữ đen trên mảng xám
+                        "font": {
+                            "weight": "bold",
+                            "size": 12
+                        }
+                    }
                 }
-            ],
+            ]
+        else:
+            labels = [_("Target"), _("Actual")]
+            datasets = [
+                {
+                    "label": line.key_performance_area or source.name or _("KPI"),
+                    "data": [target_val, actual_val],
+                }
+            ]
+
+        chart_data = {
+            "labels": labels,
+            "datasets": datasets,
+            "target_center_text": target_center_text,
         }
         chart_meta = {
-            "note": _(
-                "Target: %(target)s | Actual: %(actual)s"
-            )
+            "note": _("Target: %(target)s | Actual: %(actual)s")
             % {
                 "target": self._format_value_with_unit(line, line.target),
                 "actual": self._format_value_with_unit(line, line.actual),
@@ -128,9 +162,13 @@ class HrKpiDashboardChartService(models.AbstractModel):
         return {"chart_data": chart_data, "chart_meta": chart_meta}
 
     def _build_generic_domain_daily_series(self, evaluation, line, source, chart_type):
-        if source.source_type != "domain" or source.aggregation != "count" or not source.date_field_id:
+        if (
+            source.source_type != "domain"
+            or source.aggregation not in ("count", "sum", "avg")
+            or not source.date_field_id
+        ):
             _logger.info(
-                "Skipping generic daily series for source '%s': requires domain/count/date_field.",
+                "Skipping generic daily series for source '%s': requires domain, valid aggregation (count/sum/avg) and date_field.",
                 source.code,
             )
             return False
@@ -138,11 +176,6 @@ class HrKpiDashboardChartService(models.AbstractModel):
         model_name = source.model_name
         Model = self.env.get(model_name)
         if Model is None:
-            _logger.warning(
-                "Skipping generic daily series for source '%s': model '%s' does not exist.",
-                source.code,
-                model_name,
-            )
             return False
 
         day_range = self._build_day_range(evaluation.start_date, evaluation.end_date)
@@ -160,20 +193,47 @@ class HrKpiDashboardChartService(models.AbstractModel):
         date_field_type = source.date_field_id.ttype
         tz = self._get_employee_tz(evaluation.employee_id)
 
-        counts_by_day = {day: 0 for day in day_range}
+        data_by_day = {day: [] for day in day_range}
+        sum_field = source.sum_avg_field_id.name if source.sum_avg_field_id else None
+
         for record in records:
             value = record[date_field_name]
             bucket_day = self._coerce_record_day(value, date_field_type, tz)
-            if bucket_day in counts_by_day:
-                counts_by_day[bucket_day] += 1
+            if bucket_day in data_by_day:
+                if source.aggregation == "count":
+                    data_by_day[bucket_day].append(1)
+                elif sum_field and record[sum_field] not in (False, None):
+                    data_by_day[bucket_day].append(float(record[sum_field]))
+
+        # Đọc trực tiếp logic hiển thị từ field cấu hình trên Data Source
+        is_maintenance = source.kpi_behavior == "maintenance"
+
+        final_values = []
+        running_total = 0.0
+
+        for day in day_range:
+            day_records = data_by_day[day]
+
+            if not day_records:
+                daily_val = 0.0
+            elif source.aggregation in ("count", "sum"):
+                daily_val = sum(day_records)
+            elif source.aggregation == "avg":
+                daily_val = sum(day_records) / len(day_records)
+
+            if is_maintenance:
+                final_values.append(daily_val)
+            else:
+                running_total += daily_val
+                final_values.append(running_total)
 
         labels = [self._format_day_label(day) for day in day_range]
-        values = [counts_by_day[day] for day in day_range]
 
         dataset = {
-            "label": line.key_performance_area or source.name or _("Value"),
-            "data": values,
+            "label": line.key_performance_area or line.name or source.name or _("Value"),
+            "data": final_values,
         }
+
         if chart_type == "line":
             dataset.update(
                 {
@@ -184,11 +244,30 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 }
             )
 
+        datasets = [dataset]
+
+        # Thêm đường Target nét đứt (Nếu KPI line có thiết lập Target)
+        if line.target:
+            target_val = float(line.target)
+            datasets.append(
+                {
+                    "type": "line",  # Ép kiểu Line (Giúp tạo Combo Chart nếu chart gốc là Bar)
+                    "label": _("Target"),
+                    "data": [target_val] * len(labels),
+                    "borderColor": "red",
+                    "borderDash": [5, 4],  # Tạo hiệu ứng nét đứt
+                    "borderWidth": 2,
+                    "pointRadius": 0,  # Ẩn chấm tròn để đường kẻ mượt hơn
+                    "fill": False,
+                    "tension": 0,  # Ép đường thẳng tắp, không uốn lượn
+                }
+            )
+
         note = _("Target: %s") % self._format_value_with_unit(line, line.target)
         return {
             "chart_data": {
                 "labels": labels,
-                "datasets": [dataset],
+                "datasets": datasets,
             },
             "chart_meta": {
                 "note": note,
@@ -230,9 +309,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             ],
         }
         chart_meta = {
-            "note": _(
-                "Start: %(start)s (Grace period: %(grace)s minutes)"
-            )
+            "note": _("Start: %(start)s")
             % {
                 "start": self._format_hour(expected_hour),
                 "grace": grace_minutes,
@@ -287,8 +364,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                     "color": "#e2e8f0",
                 },
             ],
-            "note": _("Target: %s")
-            % self._format_value_with_unit(line, line.target),
+            "note": _("Target: %s") % self._format_value_with_unit(line, line.target),
             "calendar": engine.get_attendance_worked_dates(
                 evaluation.employee_id,
                 evaluation.start_date,

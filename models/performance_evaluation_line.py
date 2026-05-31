@@ -1,7 +1,9 @@
 import logging
 
+from markupsafe import Markup, escape
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools import html2plaintext
 
 _logger = logging.getLogger(__name__)
 
@@ -10,6 +12,24 @@ class PerformanceEvaluationLine(models.Model):
     _name = "hr.performance.evaluation.line"
     _description = "Performance Evaluation Line"
     _order = "sequence, id"
+    _CHATTER_TRACK_FIELD_ORDER = (
+        "key_performance_area",
+        "kpi_type",
+        "target",
+        "unit",
+        "weight",
+        "actual",
+        "scoring_formula_id",
+        "employee_rating_binary",
+        "employee_rating_selection",
+        "employee_rating_score",
+        "manager_rating_binary",
+        "manager_rating_selection",
+        "manager_rating_score",
+        "employee_comment",
+        "manager_comment",
+    )
+    _CHATTER_COMMENT_FIELDS = {"employee_comment", "manager_comment"}
 
     # Optional: keep a backlink to the KPI template line that generated this evaluation line.
     # This makes the mapping explicit and allows future sync/update.
@@ -326,6 +346,100 @@ class PerformanceEvaluationLine(models.Model):
         default=10,
         help="Controls the order of lines in the evaluation (drag & drop).",
     )
+
+    def _get_chatter_tracked_fields(self, vals):
+        return [
+            field_name
+            for field_name in self._CHATTER_TRACK_FIELD_ORDER
+            if field_name in vals
+        ]
+
+    def _snapshot_chatter_tracked_values(self, field_names):
+        return {
+            line.id: {field_name: line[field_name] for field_name in field_names}
+            for line in self
+        }
+
+    def _format_chatter_preview(self, value):
+        preview = html2plaintext(value or "")
+        preview = " ".join(preview.split())
+        if len(preview) > 120:
+            preview = f"{preview[:117]}..."
+        return preview
+
+    def _format_chatter_value(self, field_name, value):
+        field = self._fields[field_name]
+        empty_value = _("Empty")
+
+        if field.type == "many2one":
+            return value.display_name if value else empty_value
+        if field.type == "selection":
+            selection = dict(field._description_selection(self.env))
+            return selection.get(value, value or empty_value)
+        if field.type in {"float", "integer", "monetary"}:
+            if value in (False, None):
+                return empty_value
+            return f"{value:g}"
+        if field.type == "date":
+            return fields.Date.to_string(value) if value else empty_value
+        if field.type == "datetime":
+            return fields.Datetime.to_string(value) if value else empty_value
+        if field.type == "boolean":
+            return _("Yes") if value else _("No")
+        if field.type in {"char", "text", "html"}:
+            return self._format_chatter_preview(value) or empty_value
+        return str(value) if value not in (False, None, "") else empty_value
+
+    def _post_parent_chatter_audit(self, tracked_fields, snapshot_by_line):
+        if self.env.context.get("skip_line_chatter_audit"):
+            return
+
+        for line in self:
+            parent = line.evaluation_id
+            before_values = snapshot_by_line.get(line.id) or {}
+            if not parent or not before_values:
+                continue
+
+            detail_items = []
+            for field_name in tracked_fields:
+                if field_name not in before_values:
+                    continue
+
+                old_value = before_values[field_name]
+                new_value = line[field_name]
+                if new_value == old_value or (not new_value and not old_value):
+                    continue
+
+                field_label = escape(line._fields[field_name].string)
+                if field_name in line._CHATTER_COMMENT_FIELDS:
+                    preview = line._format_chatter_preview(new_value)
+                    preview_markup = (
+                        Markup(": <i>%s</i>") % escape(preview)
+                        if preview
+                        else Markup("")
+                    )
+                    detail_items.append(
+                        Markup("<li><b>%s</b> updated%s</li>")
+                        % (field_label, preview_markup)
+                    )
+                    continue
+
+                old_display = escape(line._format_chatter_value(field_name, old_value))
+                new_display = escape(line._format_chatter_value(field_name, new_value))
+                detail_items.append(
+                    Markup("<li><b>%s</b>: %s &rarr; %s</li>")
+                    % (field_label, old_display, new_display)
+                )
+
+            if not detail_items:
+                continue
+
+            line_label = line.key_performance_area or line.display_name or _("KPI line")
+            body = Markup("<p>KPI line <b>%s</b> was updated.</p><ul>%s</ul>") % (
+                escape(line_label),
+                Markup("").join(detail_items),
+            )
+            parent.message_post(body=body, subtype_xmlid="mail.mt_note")
 
     @api.depends("kpi_type", "data_source_id")
     def _compute_auto(self):
@@ -744,87 +858,99 @@ class PerformanceEvaluationLine(models.Model):
 
         # Lưu lại bản sao dữ liệu GỐC trước khi bị mirror can thiệp
         vals_before = dict(vals or {})
+        tracked_fields = self._get_chatter_tracked_fields(vals_before)
+        snapshot_by_line = (
+            self._snapshot_chatter_tracked_values(tracked_fields)
+            if tracked_fields
+            else {}
+        )
 
         # Hàm mirror sẽ tự động copy điểm từ employee sang manager (nếu có)
         vals = self._mirror_employee_to_manager_vals(vals, vals_before=vals_before)
 
-        # Bỏ qua mọi check cho Superuser
-        if self.env.is_superuser():
-            return super().write(vals)
+        is_superuser = self.env.is_superuser()
 
-        user = self.env.user
+        if not is_superuser:
+            user = self.env.user
 
-        # Chặn toàn bộ hành động sửa trên phiếu đã bị hủy
-        if any(line.evaluation_id.state in ["cancel", "completed"] for line in self):
-            raise UserError(
-                _("You cannot modify lines of a canceled or completed evaluation.")
+            # Chặn toàn bộ hành động sửa trên phiếu đã bị hủy
+            if any(line.evaluation_id.state in ["cancel", "completed"] for line in self):
+                raise UserError(
+                    _("You cannot modify lines of a canceled or completed evaluation.")
+                )
+
+            # Các cờ (flags) định danh
+            is_manager_group = user.has_group(
+                "custom_adecsol_hr_performance_evaluator.group_manager"
+            )
+            is_own_evaluation = all(
+                line.evaluation_id.employee_id.user_id == user for line in self
             )
 
-        # Các cờ (flags) định danh
-        is_manager_group = user.has_group(
-            "custom_adecsol_hr_performance_evaluator.group_manager"
-        )
-        is_own_evaluation = all(
-            line.evaluation_id.employee_id.user_id == user for line in self
-        )
+            # Phân loại các trường dữ liệu
+            manager_fields = {
+                "manager_rating_value",
+                "manager_rating_binary",
+                "manager_rating_selection",
+                "manager_rating_score",
+                "manager_comment",
+            }
+            employee_fields = {
+                "employee_rating_value",
+                "employee_rating_binary",
+                "employee_rating_selection",
+                "employee_rating_score",
+                "employee_comment",
+            }
 
-        # Phân loại các trường dữ liệu
-        manager_fields = {
-            "manager_rating_value",
-            "manager_rating_binary",
-            "manager_rating_selection",
-            "manager_rating_score",
-            "manager_comment",
-        }
-        employee_fields = {
-            "employee_rating_value",
-            "employee_rating_binary",
-            "employee_rating_selection",
-            "employee_rating_score",
-            "employee_comment",
-        }
+            # Xác định xem người dùng đang CHỦ ĐỘNG sửa nhóm trường nào trên giao diện (kiểm tra từ vals_before)
+            editing_employee_fields = bool(
+                employee_fields.intersection(vals_before.keys())
+            )
+            editing_manager_fields = bool(
+                manager_fields.intersection(vals_before.keys())
+            )
 
-        # Xác định xem người dùng đang CHỦ ĐỘNG sửa nhóm trường nào trên giao diện (kiểm tra từ vals_before)
-        editing_employee_fields = bool(employee_fields.intersection(vals_before.keys()))
-        editing_manager_fields = bool(manager_fields.intersection(vals_before.keys()))
-
-        # =====================================================================
-        # LOGIC 1: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA EMPLOYEE
-        # =====================================================================
-        if editing_employee_fields:
-            if not is_own_evaluation:
-                raise UserError(
-                    _(
-                        "Only the employee being evaluated can edit self-rating and comments."
+            # =====================================================================
+            # LOGIC 1: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA EMPLOYEE
+            # =====================================================================
+            if editing_employee_fields:
+                if not is_own_evaluation:
+                    raise UserError(
+                        _(
+                            "Only the employee being evaluated can edit self-rating and comments."
+                        )
                     )
-                )
 
-            if any(line.evaluation_id.state != "self_evaluation" for line in self):
-                raise UserError(
-                    _(
-                        "Employee fields can only be edited in the Self Evaluation state."
+                if any(line.evaluation_id.state != "self_evaluation" for line in self):
+                    raise UserError(
+                        _(
+                            "Employee fields can only be edited in the Self Evaluation state."
+                        )
                     )
-                )
 
-        # =====================================================================
-        # LOGIC 2: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA MANAGER
-        # =====================================================================
-        if editing_manager_fields:
-            if not is_manager_group:
-                raise UserError(
-                    _(
-                        "You do not have the required Manager access to edit manager fields."
+            # =====================================================================
+            # LOGIC 2: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA MANAGER
+            # =====================================================================
+            if editing_manager_fields:
+                if not is_manager_group:
+                    raise UserError(
+                        _(
+                            "You do not have the required Manager access to edit manager fields."
+                        )
                     )
-                )
 
-            if any(line.evaluation_id.state != "manager_evaluating" for line in self):
-                raise UserError(
-                    _(
-                        "Manager rating is only editable in the Manager Evaluating state."
+                if any(line.evaluation_id.state != "manager_evaluating" for line in self):
+                    raise UserError(
+                        _(
+                            "Manager rating is only editable in the Manager Evaluating state."
+                        )
                     )
-                )
 
-        return super().write(vals)
+        res = super().write(vals)
+        if snapshot_by_line:
+            self._post_parent_chatter_audit(tracked_fields, snapshot_by_line)
+        return res
 
     def action_open_popup(self):
         self.ensure_one()

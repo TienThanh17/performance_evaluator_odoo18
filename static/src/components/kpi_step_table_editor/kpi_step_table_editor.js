@@ -11,6 +11,7 @@ export class KpiStepTableEditor extends Component {
     };
 
     setup() {
+        this._nextRowId = 1;
         this.state = useState(this._buildState(this.props));
         onWillUpdateProps((nextProps) => {
             const serialized = nextProps.record.data[nextProps.name] || "[]";
@@ -24,9 +25,19 @@ export class KpiStepTableEditor extends Component {
         const serialized = props.record.data[props.name] || "[]";
         const parsed = this._parseRows(serialized);
         return {
-            rows: parsed.rows,
+            rows: parsed.rows.map((row) => this._makeRow(row)),
             error: parsed.error,
             serialized,
+        };
+    }
+
+    _makeRow(row = {}) {
+        return {
+            _rowId: this._nextRowId++,
+            from: row.from ?? 0,
+            to: row.to ?? null,
+            score: row.score ?? 0,
+            unbounded: row.unbounded ?? (row.to === null || row.to === undefined),
         };
     }
 
@@ -56,48 +67,56 @@ export class KpiStepTableEditor extends Component {
     }
 
     addRow() {
-        this.state.rows.push({
-            from: 0,
-            to: null,
-            score: 0,
-            unbounded: this.state.rows.length === 0,
-        });
+        this.state.rows.push(
+            this._makeRow({
+                from: 0,
+                to: null,
+                score: 0,
+                unbounded: this.state.rows.length === 0,
+            })
+        );
         this._sync();
     }
 
     removeRow(ev) {
-        const index = Number(ev.currentTarget.dataset.index);
+        const rowId = Number(ev.currentTarget.dataset.rowId);
+        const index = this.state.rows.findIndex((row) => row._rowId === rowId);
+        if (index === -1) {
+            return;
+        }
         this.state.rows.splice(index, 1);
         this._sync();
     }
 
     onInput(ev) {
-        const index = Number(ev.currentTarget.dataset.index);
+        const rowId = Number(ev.currentTarget.dataset.rowId);
         const field = ev.currentTarget.dataset.field;
         const value = ev.currentTarget.value;
-        if (!this.state.rows[index]) {
+        const row = this.state.rows.find((item) => item._rowId === rowId);
+        if (!row) {
             return;
         }
         if (field === "from" || field === "score") {
-            this.state.rows[index][field] = value === "" ? 0 : Number(value);
+            row[field] = value === "" ? 0 : Number(value);
         } else if (field === "to") {
-            this.state.rows[index].to = value === "" ? null : Number(value);
-            this.state.rows[index].unbounded = value === "";
+            row.to = value === "" ? null : Number(value);
+            row.unbounded = value === "";
         }
         this._sync();
     }
 
     onToggleUnbounded(ev) {
-        const index = Number(ev.currentTarget.dataset.index);
+        const rowId = Number(ev.currentTarget.dataset.rowId);
         const checked = ev.currentTarget.checked;
-        if (!this.state.rows[index]) {
+        const row = this.state.rows.find((item) => item._rowId === rowId);
+        if (!row) {
             return;
         }
-        this.state.rows[index].unbounded = checked;
+        row.unbounded = checked;
         if (checked) {
-            this.state.rows[index].to = null;
-        } else if (this.state.rows[index].to === null) {
-            this.state.rows[index].to = Number(this.state.rows[index].from || 0) + 1;
+            row.to = null;
+        } else if (row.to === null) {
+            row.to = Number(row.from || 0) + 1;
         }
         this._sync();
     }
@@ -118,15 +137,13 @@ export class KpiStepTableEditor extends Component {
     }
 
     _sync() {
-        const rows = [...this.state.rows].sort(
-            (left, right) => Number(left.from || 0) - Number(right.from || 0)
-        );
-        this.state.rows.splice(0, this.state.rows.length, ...rows);
-        const payload = rows.map((row) => ({
-            from: Number(row.from || 0),
-            to: row.unbounded ? null : Number(row.to),
-            score: Number(row.score || 0),
-        }));
+        const payload = this.state.rows
+            .map((row) => ({
+                from: Number(row.from || 0),
+                to: row.unbounded ? null : Number(row.to),
+                score: Number(row.score || 0),
+            }))
+            .sort((left, right) => left.from - right.from);
         this.state.error = this._validateRows(payload);
         const serialized = JSON.stringify(payload);
         this.state.serialized = serialized;

@@ -163,7 +163,8 @@
 
         </div>
 
-        <t t-if="hasWidget('individual_dynamic_charts') and state.data.dynamic_charts and state.data.dynamic_charts.length">
+        <!-- <t t-if="hasWidget('individual_dynamic_charts') and state.data.dynamic_charts and state.data.dynamic_charts.length"> -->
+        <t t-if="state.data.dynamic_charts and state.data.dynamic_charts.length">
           <p t-if="state.chartErrorMsg" class="o_kpi_chart_note o_kpi_chart_runtime_error" t-esc="state.chartErrorMsg"/>
           <div class="o_kpi_row o_kpi_dynamic_grid">
             <t t-foreach="state.data.dynamic_charts" t-as="chart" t-key="chart.key">

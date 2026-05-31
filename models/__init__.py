@@ -9,13 +9,13 @@ from . import hr_kpi_dashboard_widget
 from . import hr_performance_report
 from . import hr_score
 from . import kpi_unit
-from . import kpi_line
-from . import kpi
+from . import hr_kpi_template_line
+from . import hr_kpi_template
 from . import performance_evaluation_line
 from . import performance_evaluation
 from . import res_config_settings
-from . import hr_department_kpi
-from . import hr_department_kpi_line
+from . import hr_department_kpi_template
+from . import hr_department_kpi_template_line
 from . import hr_department_performance_evaluation
 from . import hr_department_evaluation_line
 from . import hr_department

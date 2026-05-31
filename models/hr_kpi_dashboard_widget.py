@@ -15,14 +15,12 @@ class HrKpiDashboardWidget(models.Model):
         [
             ("individual", "Dashboard cá nhân"),
             ("department", "Dashboard phòng ban"),
-            ("report", "Dashboard báo cáo"),
         ],
         required=True,
         default="individual",
     )
     widget_type = fields.Selection(
         [
-            ("score_card", "Thẻ điểm"),
             ("bar_chart", "Biểu đồ cột"),
             ("radar_chart", "Biểu đồ radar"),
             ("trend_line", "Đường xu hướng"),
@@ -36,7 +34,7 @@ class HrKpiDashboardWidget(models.Model):
             ("personal", "Cá nhân"),
         ],
         required=True,
-        default="company",
+        default="personal",
     )
     measure_field = fields.Char(default="final_score")
     filter_domain = fields.Char(default="[]")

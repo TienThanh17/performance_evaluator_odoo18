@@ -31,9 +31,43 @@ class HrKpiEngine(models.AbstractModel):
             return 0.0
 
         source = getattr(kpi_line, "data_source_id", False)
-        if not source:
+        # TRƯỜNG HỢP 1: Nguồn dữ liệu từ Hệ thống (Hardcode đặc thù ở Backend)
+        if source.source_type == "system":
+            # Xử lý cho KPI "Số ngày đi làm thực tế"
+            if source.code == "attendance_present_days":
+                metrics = self.get_attendance_period_metrics(
+                    employee, kpi_line, date_from, date_to
+                )
+                return float(metrics.get("worked_days") or 0.0)
+
+            # Xử lý cho KPI "Đi muộn"
+            elif source.code == "attendance_late_days":
+                # Gọi thẳng hàm compute_late_arrival_value của engine
+                # Lưu ý: Truyền date_from và date_to tương ứng với start_date và end_date
+                result = self.compute_late_arrival_value(
+                    employee, 
+                    False, 
+                    date_from, 
+                    date_to
+                )
+                return float(result or 0.0)
+
             return 0.0
-        return source.execute(employee, date_from, date_to, line=kpi_line)
+
+        # TRƯỜNG HỢP 2: Nguồn dữ liệu dạng Python Code (User tự viết code ở UI)
+        elif source.source_type == "python":
+            if not source.python_code:
+                return 0.0
+            return source.execute(
+                employee=employee, start_date=date_from, end_date=date_to, line=kpi_line
+            )
+
+        # TRƯỜNG HỢP 3: Nguồn dữ liệu dạng Domain Builder
+        elif source.source_type == "domain":
+            # Giữ nguyên logic xử lý đếm/tính tổng records theo domain hiện tại của bạn ở đây
+            return source.execute(employee, date_from, date_to, line=kpi_line)
+
+        return 0.0
 
     @api.model
     def compute_with_metrics(self, employee, kpi_line, date_from, date_to):
@@ -66,7 +100,7 @@ class HrKpiEngine(models.AbstractModel):
     def _get_tz(self, employee):
         """Best-effort timezone used to bucket datetimes by local date."""
         tz_name = (
-                employee.resource_calendar_id.tz or employee.tz or self.env.user.tz or "UTC"
+            employee.resource_calendar_id.tz or employee.tz or self.env.user.tz or "UTC"
         )
         return pytz.timezone(tz_name)
 
@@ -75,11 +109,11 @@ class HrKpiEngine(models.AbstractModel):
         weekday = str(day_date.weekday())
         slots = calendar.attendance_ids.filtered(
             lambda a: (
-                    a.dayofweek == weekday
-                    and not a.display_type
-                    and a.day_period != "lunch"
-                    and (not a.date_from or a.date_from <= day_date)
-                    and (not a.date_to or a.date_to >= day_date)
+                a.dayofweek == weekday
+                and not a.display_type
+                and a.day_period != "lunch"
+                and (not a.date_from or a.date_from <= day_date)
+                and (not a.date_to or a.date_to >= day_date)
             )
         )
         if calendar.two_weeks_calendar:
@@ -102,7 +136,9 @@ class HrKpiEngine(models.AbstractModel):
         denominator = float(denominator or 0.0)
 
         # Unit percent là nguồn sự thật để engine biết có cần quy đổi tỷ lệ hay không.
-        is_percent = bool(kpi_line and kpi_line.unit and kpi_line.unit.code == "percent")
+        is_percent = bool(
+            kpi_line and kpi_line.unit and kpi_line.unit.code == "percent"
+        )
         if not is_percent:
             return numerator
 
@@ -246,7 +282,7 @@ class HrKpiEngine(models.AbstractModel):
 
     @api.model
     def compute_attendance_period_value_with_metrics(
-            self, employee, kpi_line, date_from, date_to
+        self, employee, kpi_line, date_from, date_to
     ):
         """Tính số ngày phải đi làm, nghỉ có phép, nghỉ không phép trong khoảng thời gian.
 
@@ -684,9 +720,7 @@ class HrKpiEngine(models.AbstractModel):
         return round(min(hours), 2) if hours else 8.0
 
     @api.model
-    def get_attendance_period_metrics(
-            self, employee, kpi_line, date_from, date_to
-    ):
+    def get_attendance_period_metrics(self, employee, kpi_line, date_from, date_to):
         """Trả về metrics tổng hợp cho nguồn dữ liệu attendance theo kỳ.
 
         Tái sử dụng hoàn toàn compute_attendance_period_value_with_metrics — dashboard
