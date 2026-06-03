@@ -81,7 +81,7 @@
     </record>
 
     <menuitem id="menu_kpi_scoring_formula"
-        name="Scoring formula"
+        name="Scoring Formula"
         parent="menu_kpi_configuration"
         action="action_hr_kpi_scoring_formula"
         sequence="25"/>

@@ -21,29 +21,35 @@ class HrKpiGenerateWizard(models.TransientModel):
         help="Generate evaluations for employees in this department.",
     )
     all_departments = fields.Boolean(string="All Departments", default=False)
-    period_id = fields.Many2one(
-        related="kpi_id.period_id",
-        string="KPI Period",
-        store=True,
-        readonly=False,
+    period_type = fields.Selection(
+        related="kpi_id.period_type",
+        string="Period Type",
     )
-    start_date = fields.Date(string="Start Date", required=True)
-    end_date = fields.Date(string="End Date", required=True)
+    period_id = fields.Many2one(
+        "hr.kpi.period",
+        string="KPI Period",
+        required=True,
+        domain="[('period_type', '=', period_type)]",
+    )
+    start_date = fields.Date(
+        related="period_id.date_start",
+        string="Start Date",
+        readonly=True,
+        store=True,
+    )
+    end_date = fields.Date(
+        related="period_id.date_end",
+        string="End Date",
+        readonly=True,
+        store=True,
+    )
     deadline = fields.Date(string="Deadline", required=True)
 
     @api.onchange("period_id")
     def _onchange_period_set_dates(self):
         if not self.period_id:
             return
-        self.start_date = self.period_id.date_start
-        self.end_date = self.period_id.date_end
         self.deadline = self.period_id.date_end + relativedelta(days=5)
-
-    @api.constrains("start_date", "end_date")
-    def _check_date_range(self):
-        for rec in self:
-            if rec.start_date and rec.end_date and rec.start_date > rec.end_date:
-                raise ValidationError(_("Start Date must be before or equal to End Date."))
 
     def _employee_matches_kpi(self, employee, kpi):
         if not kpi:

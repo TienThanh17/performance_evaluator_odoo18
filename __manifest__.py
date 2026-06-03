@@ -52,7 +52,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "views/hr_department_kpi_views.xml",
         "views/hr_department_performance_views.xml",
         "views/performance_evaluation.xml",
-        "views/performance_report_views.xml",
+        # "views/performance_report_views.xml",
         "views/hr_score.xml",
         "views/hr_department.xml",
         "views/kpi_tree_dashboard_views.xml",

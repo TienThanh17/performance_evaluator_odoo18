@@ -5,11 +5,11 @@
         <field name="model">hr.kpi.period</field>
         <field name="arch" type="xml">
             <list>
-                <field name="name"/>
-                <field name="period_type"/>
-                <field name="date_start"/>
-                <field name="date_end"/>
-                <field name="active"/>
+                <field name="name" />
+                <field name="period_type" />
+                <field name="date_start" />
+                <field name="date_end" />
+                <field name="active" />
             </list>
         </field>
     </record>
@@ -21,11 +21,11 @@
             <form string="KPI Period">
                 <sheet>
                     <group>
-                        <field name="name"/>
-                        <field name="period_type"/>
-                        <field name="date_start"/>
-                        <field name="date_end"/>
-                        <field name="active"/>
+                        <field name="name" />
+                        <field name="period_type" />
+                        <field name="date_start" />
+                        <field name="date_end" />
+                        <field name="active" />
                     </group>
                 </sheet>
             </form>
@@ -38,6 +38,9 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_kpi_configuration" name="Configuration" parent="menu_kpi_template" sequence="90"/>
-    <menuitem id="menu_kpi_period" name="KPI Periods" parent="menu_kpi_configuration" action="action_hr_kpi_period" sequence="10"/>
+    <menuitem id="menu_kpi_configuration" name="Configuration" parent="menu_kpi_template"
+        groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_hr"
+        sequence="90" />
+    <menuitem id="menu_kpi_period" name="KPI Periods" parent="menu_kpi_configuration"
+        action="action_hr_kpi_period" sequence="10" />
 </odoo>

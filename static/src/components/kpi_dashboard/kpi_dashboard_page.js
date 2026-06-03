@@ -62,6 +62,7 @@ export class KpiDashboard extends Component {
     static template = "performance_evaluator.KpiDashboardStandalone";
     static props = ["*"]; // client action props
     static CHART_RENDERERS = {
+        radar: "_renderRadarChart",
         line: "_renderLineChart",
         bar: "_renderBarChart",
         doughnut: "_renderDoughnutChart",
@@ -430,9 +431,33 @@ export class KpiDashboard extends Component {
         return this.state.data?.score_scale || { base: 10, suffix: " / 10" };
     }
 
-    hasWidget(code) {
-        const widgetMap = this.state.data?.widget_map || {};
-        return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
+    get orderedCharts() {
+        const charts = [...(this.state.data?.charts || [])];
+        return charts.sort((left, right) => {
+            const leftSequence = Number.isFinite(Number(left?.sequence))
+                ? Number(left.sequence)
+                : Number.MAX_SAFE_INTEGER;
+            const rightSequence = Number.isFinite(Number(right?.sequence))
+                ? Number(right.sequence)
+                : Number.MAX_SAFE_INTEGER;
+            if (leftSequence !== rightSequence) {
+                return leftSequence - rightSequence;
+            }
+
+            const leftWidgetId = Number.isFinite(Number(left?.widget_id))
+                ? Number(left.widget_id)
+                : Number.MAX_SAFE_INTEGER;
+            const rightWidgetId = Number.isFinite(Number(right?.widget_id))
+                ? Number(right.widget_id)
+                : Number.MAX_SAFE_INTEGER;
+            if (leftWidgetId !== rightWidgetId) {
+                return leftWidgetId - rightWidgetId;
+            }
+
+            const leftKey = String(left?.key || "");
+            const rightKey = String(right?.key || "");
+            return leftKey.localeCompare(rightKey);
+        });
     }
 
     /** Hiển thị điểm số, mặc định 2 chữ số thập phân. */
@@ -641,49 +666,30 @@ export class KpiDashboard extends Component {
 
     _renderCharts() {
         const Chart = window.Chart;
-        const d = this.state.data;
-        if (!Chart || !d) {
-            if (!Chart && !this.state.chartErrorMsg) {
-                this.state.chartErrorMsg = _t(
-                    "Chart library is not available in the browser.",
-                );
-            }
+        this._destroyCharts();
+        const charts = this.orderedCharts;
+        if (!Chart || !charts.length) {
             return;
         }
-        this._destroyCharts();
 
-        const radarEl = this.radarRef.el;
-        if (radarEl && d.spider_web?.labels?.length) {
-            try {
-                const spider = this._renderSpiderChart(radarEl, d.spider_web);
-                if (spider) {
-                    this._charts.spider = spider;
-                }
-            } catch (error) {
-                console.error(
-                    "KPI Dashboard: failed to render spider chart",
-                    error,
-                    d.spider_web,
-                );
-                this.state.chartErrorMsg = _t(
-                    "Some charts could not be rendered. Check browser console for details.",
-                );
+        for (const [index, chartInfo] of charts.entries()) {
+            if (!this.chartHasData(chartInfo)) {
+                continue;
             }
-        }
-
-        for (const chartInfo of d.dynamic_charts || []) {
-            if (!this.chartHasData(chartInfo)) continue;
+            const chartKey =
+                chartInfo.key ||
+                (chartInfo.widget_id ? `chart_widget_${chartInfo.widget_id}` : `chart_${index}`);
             const rootEl = this._getDashboardRootEl();
             const escapedKey = window.CSS?.escape
-                ? window.CSS.escape(chartInfo.key)
-                : chartInfo.key;
+                ? window.CSS.escape(chartKey)
+                : chartKey;
             const canvas = rootEl?.querySelector(
                 `canvas[data-chart-key="${escapedKey}"]`,
             );
             if (!canvas) {
                 console.warn(
                     "KPI Dashboard: canvas not found for chart",
-                    chartInfo.key,
+                    chartKey,
                     {
                         rootReady: Boolean(rootEl),
                         availableKeys: this._getAvailableChartKeys(rootEl),
@@ -694,22 +700,20 @@ export class KpiDashboard extends Component {
 
             const rendererName =
                 this.constructor.CHART_RENDERERS[chartInfo.chart_type];
-            if (!rendererName || typeof this[rendererName] !== "function") continue;
+            if (!rendererName || typeof this[rendererName] !== "function") {
+                continue;
+            }
 
             try {
                 const instance = this[rendererName](canvas, chartInfo);
                 if (instance) {
-                    this._charts[chartInfo.key] = instance;
+                    this._charts[chartKey] = instance;
                 }
             } catch (error) {
                 console.error(
                     "KPI Dashboard: failed to render chart",
-                    chartInfo.key,
+                    chartKey,
                     chartInfo,
-                    {
-                        width: canvas.clientWidth,
-                        height: canvas.clientHeight,
-                    },
                     error,
                 );
                 this.state.chartErrorMsg = _t(
@@ -718,7 +722,6 @@ export class KpiDashboard extends Component {
             }
         }
     }
-
     _getDashboardRootEl() {
         return (
             this.dashboardRootRef.el ||
@@ -810,6 +813,40 @@ export class KpiDashboard extends Component {
         });
     }
 
+    _renderRadarChart(canvas, chartInfo) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        const chartData = chartInfo.chart_data || {};
+        return new Chart(ctx, {
+            type: "radar",
+            data: {
+                labels: chartData.labels || [],
+                datasets: chartData.datasets || [],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        suggestedMax: Number(this.scoreScale.base || 10),
+                        ticks: {
+                            stepSize: 1,
+                            showLabelBackdrop: false,
+                        },
+                        grid: { color: "rgba(0,0,0,0.08)" },
+                        angleLines: { color: "rgba(0,0,0,0.08)" },
+                        pointLabels: { font: { size: 11 } },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                },
+            },
+        });
+    }
+
     _renderBarChart(canvas, chartInfo) {
         const Chart = window.Chart;
         const ctx = canvas?.getContext?.("2d");
@@ -845,44 +882,35 @@ export class KpiDashboard extends Component {
     }
 
     _renderDoughnutChart(canvas, chartInfo) {
-        // Lấy plugin đã được nạp từ CDN ra sử dụng
         const ChartDataLabels = window.ChartDataLabels;
         const Chart = window.Chart;
         const ctx = canvas?.getContext?.("2d");
         if (!ctx) return null;
         const chartData = chartInfo.chart_data || {};
         const labels = chartData.labels || [];
-        // Định nghĩa plugin vẽ chữ ở tâm vòng tròn
         const centerTextPlugin = {
-            id: 'centerText',
+            id: "centerText",
             afterDraw: (chart) => {
-                const { ctx, chartArea } = chart;
+                const { ctx: chartCtx, chartArea } = chart;
                 if (!chartArea) return;
 
-                // Đọc chuỗi target_center_text từ dữ liệu Python gửi xuống
                 const targetText = chart.config.data.target_center_text;
                 if (!targetText) return;
 
-                ctx.save();
-
-                // Tính toán tọa độ tâm chính xác của vòng tròn doughnut
                 const centerX = (chartArea.left + chartArea.right) / 2;
                 const centerY = (chartArea.top + chartArea.bottom) / 2;
 
-                // --- VẼ CHỮ "TARGET" (Nhỏ, nằm ở trên tâm 10px) ---
-                ctx.font = '12px sans-serif';
-                ctx.fillStyle = '#6b7280'; // Màu xám nhạt (Tailwind gray-500)
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('Target', centerX, centerY - 10);
-
-                // --- VẼ GIÁ TRỊ TARGET (To, in đậm, nằm dưới tâm 10px) ---
-                ctx.font = 'bold 16px sans-serif';
-                ctx.fillStyle = '#1f2937'; // Màu chữ tối (Tailwind gray-800)
-                ctx.fillText(targetText, centerX, centerY + 10);
-
-                ctx.restore();
-            }
+                chartCtx.save();
+                chartCtx.font = "12px sans-serif";
+                chartCtx.fillStyle = "#6b7280";
+                chartCtx.textAlign = "center";
+                chartCtx.textBaseline = "middle";
+                chartCtx.fillText("Target", centerX, centerY - 10);
+                chartCtx.font = "bold 16px sans-serif";
+                chartCtx.fillStyle = "#1f2937";
+                chartCtx.fillText(targetText, centerX, centerY + 10);
+                chartCtx.restore();
+            },
         };
         return new Chart(ctx, {
             type: "doughnut",
@@ -898,10 +926,10 @@ export class KpiDashboard extends Component {
                 cutout: chartInfo.chart_meta?.cutout || "75%",
                 plugins: {
                     legend: {
-                        display: true, // Bật hiển thị legend
-                        position: "top", // Vị trí: 'top', 'bottom', 'left', 'right'
+                        display: true,
+                        position: "top",
                         labels: {
-                            usePointStyle: true, // Biến ô vuông màu thành hình tròn cho đẹp
+                            usePointStyle: true,
                             boxWidth: 8,
                             padding: 20,
                             font: {
@@ -917,90 +945,18 @@ export class KpiDashboard extends Component {
                             },
                         },
                     },
-                    // CẤU HÌNH FORMAT HIỂN THỊ CỦA CÁC ĐẦU SỐ
                     datalabels: {
                         display: true,
-                        color: "#ffffff", // Màu mặc định nếu python không truyền xuống
+                        color: "#ffffff",
                         formatter: (value, ctx) => {
-                            // Nếu giá trị bằng 0 thì ẩn đi cho biểu đồ đỡ rác
-                            if (value === 0) return '';
-
-                            // Kéo cái "unit" mà chúng ta vừa truyền từ Python xuống
-                            const unit = ctx.dataset.unit || '';
-
-                            // Ghép giá trị và đơn vị lại với nhau
+                            if (value === 0) return "";
+                            const unit = ctx.dataset.unit || "";
                             return `${value} ${unit}`.trim();
                         },
                         font: {
                             weight: "bold",
                             size: 14,
                         },
-                    },
-                },
-            },
-        });
-    }
-
-    _renderSpiderChart(canvas, data) {
-        const Chart = window.Chart;
-        const ctx = canvas?.getContext?.("2d");
-        if (!ctx) return null;
-        return new Chart(ctx, {
-            type: "radar",
-            data: {
-                labels: data.labels,
-                datasets: [
-                    {
-                        label: _t("Score"),
-                        data: data.scores,
-                        backgroundColor: "rgba(99,102,241,0.25)",
-                        borderColor: COLOR_INDIGO,
-                        borderWidth: 2,
-                        pointBackgroundColor: COLOR_INDIGO,
-                        pointRadius: 4,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                layout: {
-                    padding: 30,
-                },
-                plugins: { legend: { display: false } },
-                scales: {
-                    r: {
-                        min: 0,
-                        max: data.max || this.scoreScale.base || 10,
-                        ticks: {
-                            stepSize: (data.max || this.scoreScale.base || 10) / 5,
-                            font: { size: 10 },
-                        },
-                        pointLabels: {
-                            font: { size: 11 },
-                            callback: function (label) {
-                                const maxLength = 15;
-                                if (typeof label === "string" && label.length > maxLength) {
-                                    const words = label.split(" ");
-                                    let lines = [];
-                                    let currentLine = "";
-
-                                    words.forEach((word) => {
-                                        if ((currentLine + word).length > maxLength) {
-                                            if (currentLine) lines.push(currentLine.trim());
-                                            currentLine = `${word} `;
-                                        } else {
-                                            currentLine += `${word} `;
-                                        }
-                                    });
-                                    if (currentLine) lines.push(currentLine.trim());
-
-                                    return lines;
-                                }
-                                return label;
-                            },
-                        },
-                        grid: { color: "rgba(0,0,0,0.07)" },
                     },
                 },
             },

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0">
+    <data>
         <record id="dept_information_technology" model="hr.department">
             <field name="name">Phòng Công nghệ thông tin</field>
         </record>
@@ -27,13 +27,6 @@
             <field name="individual_weight">0.6</field>
         </record>
 
-        <record id="department_kpi_it_section_delivery" model="hr.department.kpi.template.line">
-            <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_2026_05"/>
-            <field name="name">Hiệu quả giao việc</field>
-            <field name="is_section">True</field>
-            <field name="sequence">10</field>
-        </record>
-
         <record id="department_kpi_it_delivery_score" model="hr.department.kpi.template.line">
             <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_2026_05"/>
             <field name="name">Điểm giao việc đúng hạn</field>
@@ -44,13 +37,6 @@
             <field name="scoring_formula_id" ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher"/>
             <field name="weight">45</field>
             <field name="sequence">20</field>
-        </record>
-
-        <record id="department_kpi_it_section_attendance" model="hr.department.kpi.template.line">
-            <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_2026_05"/>
-            <field name="name">Kỷ luật và hiện diện</field>
-            <field name="is_section">True</field>
-            <field name="sequence">30</field>
         </record>
 
         <record id="department_kpi_it_attendance_score" model="hr.department.kpi.template.line">
@@ -65,16 +51,9 @@
             <field name="sequence">40</field>
         </record>
 
-        <record id="department_kpi_it_section_quality" model="hr.department.kpi.template.line">
-            <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_2026_05"/>
-            <field name="name">Chất lượng và phối hợp</field>
-            <field name="is_section">True</field>
-            <field name="sequence">50</field>
-        </record>
-
         <record id="department_kpi_it_quality_score" model="hr.department.kpi.template.line">
             <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_2026_05"/>
-            <field name="name">Điểm chất lượng phối hợp</field>
+            <field name="name">Điểm chất lượng và ý thức</field>
             <field name="kpi_type">quantitative</field>
             <field name="dept_source_type">child_kpi_average</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_score"/>
@@ -94,7 +73,7 @@
 
         <record id="employee_kpi_it_section_delivery" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
-            <field name="key_performance_area">Hiệu quả giao việc</field>
+            <field name="key_performance_area">Định lượng</field>
             <field name="is_section">True</field>
             <field name="sequence">10</field>
         </record>
@@ -105,7 +84,7 @@
             <field name="kpi_type">quantitative</field>
             <field name="target">20</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task"/>
-            <field name="weight">20</field>
+            <field name="weight">25</field>
             <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_task_done_count"/>
             <field name="scoring_formula_id" ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher_bonus"/>
             <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_delivery_score"/>
@@ -125,20 +104,13 @@
             <field name="sequence">30</field>
         </record>
 
-        <record id="employee_kpi_it_section_attendance" model="hr.kpi.template.line">
-            <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
-            <field name="key_performance_area">Kỷ luật và hiện diện</field>
-            <field name="is_section">True</field>
-            <field name="sequence">40</field>
-        </record>
-
         <record id="employee_kpi_it_present_days" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
-            <field name="key_performance_area">Số ngày đi làm thực tế</field>
+            <field name="key_performance_area">Đi làm đầy đủ</field>
             <field name="kpi_type">quantitative</field>
             <field name="target">22</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day"/>
-            <field name="weight">15</field>
+            <field name="weight">20</field>
             <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_attendance_present_days"/>
             <field name="scoring_formula_id" ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher"/>
             <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_attendance_score"/>
@@ -151,7 +123,7 @@
             <field name="kpi_type">quantitative</field>
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day"/>
-            <field name="weight">10</field>
+            <field name="weight">15</field>
             <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_attendance_late_days"/>
             <field name="scoring_formula_id" ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt"/>
             <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_attendance_score"/>
@@ -160,27 +132,138 @@
 
         <record id="employee_kpi_it_section_quality" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
-            <field name="key_performance_area">Chất lượng và phối hợp</field>
+            <field name="key_performance_area">Định tính</field>
             <field name="is_section">True</field>
             <field name="sequence">80</field>
         </record>
 
-        <record id="employee_kpi_it_process_compliance" model="hr.kpi.template.line">
+        <record id="employee_kpi_it_skill" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
-            <field name="key_performance_area">Tuân thủ quy trình</field>
-            <field name="kpi_type">rating</field>
-            <field name="weight">10</field>
             <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_quality_score"/>
+            <field name="key_performance_area">Tay nghề &amp; Kỹ năng lập trình Odoo</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong> Xuất sắc - Tự giải quyết task khó, tối ưu
+                        performance. </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong> Tốt - Hoàn thành đúng quy trình, code sạch, ít
+                        lỗi. </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong> Khá - Đáp ứng cơ bản, đôi khi cần hỗ trợ nhẹ. </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong> Trung bình - Còn thiếu sót, cần giám sát chặt
+                        chẽ. </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong> Yếu - Không hoàn thành, kỹ năng code kém. </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">6.0</field>
             <field name="sequence">90</field>
         </record>
 
-        <record id="employee_kpi_it_internal_support" model="hr.kpi.template.line">
+        <record id="employee_kpi_it_quality" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
-            <field name="key_performance_area">Hỗ trợ nội bộ</field>
-            <field name="kpi_type">binary</field>
-            <field name="weight">10</field>
             <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_quality_score"/>
+            <field name="key_performance_area">Chất lượng Code &amp; Tuân thủ Quy trình</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong> Tuyệt đối tuân thủ coding convention, không có
+                        bug logic. </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong> Tuân thủ quy trình, lỗi nhẹ không đáng kể. </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong> Có lỗi convention hoặc logic nhẹ cần fix lại. </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong> Thường xuyên phải rework do không đọc kỹ yêu
+                        cầu. </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong> Vi phạm nghiêm trọng quy trình phát triển. </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">4.0</field>
             <field name="sequence">100</field>
+        </record>
+
+        <record id="employee_kpi_it_teamwork" model="hr.kpi.template.line">
+            <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
+            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_quality_score"/>
+            <field name="key_performance_area">Làm việc nhóm &amp; Hỗ trợ đồng nghiệp</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong> Chủ động hỗ trợ, review code và chia sẻ kiến
+                        thức. </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong> Phối hợp tốt, phản hồi nhanh các yêu cầu hỗ
+                        trợ. </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong> Hoàn thành phần việc cá nhân, phối hợp ở mức
+                        vừa đủ. </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong> Ít tương tác, phản hồi chậm gây ảnh hưởng tiến
+                        độ chung. </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong> Thiếu tinh thần hợp tác, gây mất đoàn kết. </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">4.0</field>
+            <field name="sequence">110</field>
+        </record>
+
+        <record id="employee_kpi_it_asset" model="hr.kpi.template.line">
+            <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
+            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_quality_score"/>
+            <field name="key_performance_area">Ý thức bảo vệ tài sản &amp; Tiết kiệm</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong> Giữ gìn máy móc, bảo mật dữ liệu tuyệt đối,
+                        tiết kiệm điện nước. </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong> Có ý thức tốt trong việc sử dụng tài sản công
+                        ty. </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong> Đôi khi còn lãng phí văn phòng phẩm hoặc quên
+                        tắt thiết bị. </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong> Sử dụng thiết bị cẩu thả, không tuân thủ quy
+                        định bảo mật. </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong> Gây hư hỏng hoặc làm mất mát tài sản do thiếu
+                        trách nhiệm. </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">3.0</field>
+            <field name="sequence">120</field>
+        </record>
+
+        <record id="employee_kpi_it_discipline" model="hr.kpi.template.line">
+            <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
+            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_quality_score"/>
+            <field name="key_performance_area">Chấp hành nội quy</field>
+            <field name="description" type="html">
+                <ul>
+                    <li>
+                        <strong>5 sao (10đ):</strong> Không vi phạm bất kỳ nội quy nào. </li>
+                    <li>
+                        <strong>4 sao (8đ):</strong> Vi phạm tối đa 1 lần lỗi nhẹ trong tháng. </li>
+                    <li>
+                        <strong>3 sao (6đ):</strong> Vi phạm 2-3 lần lỗi nhẹ. </li>
+                    <li>
+                        <strong>2 sao (4đ):</strong> Vi phạm thường xuyên (trên 4 lần). </li>
+                    <li>
+                        <strong>1 sao (2đ):</strong> Vi phạm nghiêm trọng quy định của công ty. </li>
+                </ul>
+            </field>
+            <field name="kpi_type">rating</field>
+            <field name="weight">3.0</field>
+            <field name="sequence">130</field>
         </record>
     </data>
 </odoo>

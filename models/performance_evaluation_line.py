@@ -276,7 +276,7 @@ class PerformanceEvaluationLine(models.Model):
     )
 
     employee_comment = fields.Html(
-        string="Employee Comment",
+        string="Sefl Comment",
         sanitize=True,
         help="Employee notes or justification for the self-assessment.",
     )

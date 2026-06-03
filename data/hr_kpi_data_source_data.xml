@@ -6,9 +6,6 @@
             <field name="code">task_done_count</field>
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task" />
             <field name="source_type">domain</field>
-            <field name="dashboard_enabled">True</field>
-            <field name="dashboard_provider_key">generic_domain_daily_series</field>
-            <field name="dashboard_chart_type">line</field>
             <field name="description">Đếm số task đã hoàn thành trong kỳ theo người được giao.</field>
             <field name="model_id" search="[('model', '=', 'project.task')]" />
             <field name="aggregation">count</field>
@@ -24,9 +21,6 @@
             <field name="code">task_on_time_rate</field>
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent" />
             <field name="source_type">domain</field>
-            <field name="dashboard_enabled">False</field>
-            <field name="dashboard_provider_key" eval="False" />
-            <field name="dashboard_chart_type" eval="False" />
             <field name="description">Tính tỷ lệ task hoàn thành đúng hạn trong kỳ.</field>
             <field name="model_id" search="[('model', '=', 'project.task')]" />
             <field name="aggregation">ratio</field>
@@ -44,10 +38,6 @@
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
 
             <field name="source_type">system</field>
-
-            <field name="dashboard_enabled">True</field>
-            <field name="dashboard_provider_key">special_engine_attendance_overview</field>
-            <field name="dashboard_chart_type">doughnut</field>
             <field name="description">Đếm số ngày làm việc có check-in hợp lệ (Được quản lý bởi hệ
                 thống).</field>
         </record>
@@ -57,9 +47,6 @@
             <field name="code">attendance_on_time_days</field>
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
             <field name="source_type">python</field>
-            <field name="dashboard_enabled">False</field>
-            <field name="dashboard_provider_key" eval="False" />
-            <field name="dashboard_chart_type" eval="False" />
             <field name="description">Đếm số ngày vừa đi làm vừa không đi muộn trong kỳ.</field>
             <field name="python_code"><![CDATA[
 engine = env["hr.kpi.engine"]
@@ -83,10 +70,6 @@ result = max(present_days - late_days, 0.0)
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
 
             <field name="source_type">system</field>
-
-            <field name="dashboard_enabled">True</field>
-            <field name="dashboard_provider_key">special_engine_punctuality</field>
-            <field name="dashboard_chart_type">line</field>
             <field name="description">Đếm số ngày nhân viên đi muộn trong kỳ theo lịch làm việc và
                 grace minutes (Hệ thống tự động tính).</field>
         </record>

@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
 
 <t t-name="performance_evaluator.DeptKpiDashboard">
-<div class="o_dept_kpi_page">
+<div class="o_dept_kpi_page" t-ref="dashboardRoot">
 
   <!-- ══ Header / Selector Bar ══ -->
   <div class="o_dept_kpi_header_bar">
@@ -42,8 +42,9 @@
       </div>
 
       <button
-        t-if="state.phase === 'done' and state.data and state.data.report_dashboard and state.data.report_dashboard.report_id"
+        t-if="state.phase === 'done'"
         class="o_dept_kpi_header_action_btn"
+        t-att-disabled="!canExportReport"
         t-on-click="exportExcelReport"
       >
         <i class="fa fa-file-excel-o"/>
@@ -72,11 +73,10 @@
 
   <!-- ══ Dashboard Body ══ -->
   <div t-elif="state.phase === 'done'" class="o_dept_kpi_body">
+    <t t-set="report" t-value="state.data.report_dashboard || {}"/>
 
-    <!-- ── 4 Scorecards ── -->
-    <div t-if="hasWidget('department_summary')" class="o_dept_kpi_scorecards">
+    <div class="o_dept_kpi_scorecards">
 
-      <!-- Scorecard 1: Department Manager -->
       <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--blue">
         <div class="o_dept_kpi_scorecard_icon">
           <i class="fa fa-tasks"/>
@@ -84,11 +84,9 @@
         <div class="o_dept_kpi_scorecard_body">
           <div class="o_dept_kpi_scorecard_label">Total Project</div>
           <div class="o_dept_kpi_scorecard_value" t-esc="state.data.project_count || '—'"/>
-          <!-- <div class="o_dept_kpi_scorecard_sub" t-esc="state.data.department_name"/> -->
         </div>
       </div>
 
-      <!-- Scorecard 2: Total Employees -->
       <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--green">
         <div class="o_dept_kpi_scorecard_icon">
           <i class="fa fa-users"/>
@@ -96,11 +94,9 @@
         <div class="o_dept_kpi_scorecard_body">
           <div class="o_dept_kpi_scorecard_label">Total Employees</div>
           <div class="o_dept_kpi_scorecard_value" t-esc="state.data.employee_count"/>
-          <!-- <div class="o_dept_kpi_scorecard_sub">Active members</div> -->
         </div>
       </div>
 
-      <!-- Scorecard 3: Department Score -->
       <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--amber">
         <div class="o_dept_kpi_scorecard_icon">
           <i class="fa fa-star"/>
@@ -108,129 +104,181 @@
         <div class="o_dept_kpi_scorecard_body">
           <div class="o_dept_kpi_scorecard_label">Department KPI Score</div>
           <div class="o_dept_kpi_scorecard_value" t-esc="formatScore(state.data.dept_kpi_score)"/>
-          <!-- <div class="o_dept_kpi_scorecard_sub" t-esc="levelLabel(state.data.department_level)"/> -->
         </div>
       </div>
 
-      <!-- Scorecard 4: Period -->
-     <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard&#45;&#45;purple">
-       <div class="o_dept_kpi_scorecard_icon">
-         <i class="fa fa-calendar-check-o"/>
-       </div>
-       <div class="o_dept_kpi_scorecard_body">
-         <div class="o_dept_kpi_scorecard_label">Period</div>
-         <div class="o_dept_kpi_scorecard_value o_dept_kpi_scorecard_value--sm" t-esc="state.data.period_label || '—'"/>
-       </div>
-     </div>
-
-    </div>
-
-    <!-- ── Row 1: Chart A (Stacked Bar) + Chart B (Bar) ── -->
-    <div
-      t-if="hasWidget('department_task_distribution') or hasWidget('department_project_progress')"
-      class="o_dept_kpi_chart_row o_dept_kpi_chart_row--2col"
-    >
-
-      <!-- Chart A: Task stacked bar per employee -->
-      <div t-if="hasWidget('department_task_distribution')" class="o_dept_kpi_chart_card">
-        <div class="o_dept_kpi_chart_header">
-          <div class="o_dept_kpi_chart_title">
-            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--blue"/>
-            Task Distribution by Employee
-          </div>
-          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--blue">Stacked Bar</span>
+      <div class="o_dept_kpi_scorecard o_dept_kpi_scorecard--purple">
+        <div class="o_dept_kpi_scorecard_icon">
+          <i class="fa fa-calendar-check-o"/>
         </div>
-        <div class="o_dept_kpi_chart_body">
-          <div class="o_dept_kpi_chart_canvas_wrap">
-            <canvas t-ref="chartA"/>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chart B: Project progress bar -->
-      <div t-if="hasWidget('department_project_progress')" class="o_dept_kpi_chart_card">
-        <div class="o_dept_kpi_chart_header">
-          <div class="o_dept_kpi_chart_title">
-            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--green"/>
-            Project Progress (%)
-          </div>
-          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--green">Bar Chart</span>
-        </div>
-        <div class="o_dept_kpi_chart_body">
-          <div class="o_dept_kpi_chart_canvas_wrap">
-            <canvas t-ref="chartB"/>
-          </div>
+        <div class="o_dept_kpi_scorecard_body">
+          <div class="o_dept_kpi_scorecard_label">Period</div>
+          <div class="o_dept_kpi_scorecard_value o_dept_kpi_scorecard_value--sm" t-esc="state.data.period_label || '—'"/>
         </div>
       </div>
 
     </div>
 
-    <!-- ── Row 2: Chart C (Attendance Line) + Chart D (Bug Line) ── -->
-    <div
-      t-if="hasWidget('department_attendance') or hasWidget('department_bug_count')"
-      class="o_dept_kpi_chart_row o_dept_kpi_chart_row--2col"
-    >
+    <t t-if="state.data.dynamic_charts and state.data.dynamic_charts.length">
+      <p t-if="state.chartErrorMsg" class="o_kpi_chart_note o_kpi_chart_runtime_error" t-esc="state.chartErrorMsg"/>
+      <div class="o_dept_kpi_dynamic_grid">
+        <t t-foreach="state.data.dynamic_charts" t-as="chart" t-key="chart.key">
+          <div class="o_dept_kpi_chart_card">
+            <div class="o_dept_kpi_chart_header o_dept_kpi_dynamic_card_header">
+              <div class="o_dept_kpi_dynamic_header_main">
+                <span class="o_dept_kpi_dynamic_title">
+                  <i t-att-class="chartIcon(chart.chart_type)"/>
+                  <t t-esc="chart.title"/>
+                </span>
+                <span t-if="chart.subtitle" class="o_dept_kpi_dynamic_subtitle" t-esc="chart.subtitle"/>
+              </div>
+              <span t-if="chart.is_special_case" class="o_kpi_target_badge o_kpi_target_warn">Special Case</span>
+            </div>
 
-      <!-- Chart C: Attendance hours per employee -->
-      <div t-if="hasWidget('department_attendance')" class="o_dept_kpi_chart_card">
-        <div class="o_dept_kpi_chart_header">
-          <div class="o_dept_kpi_chart_title">
-            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--teal"/>
-            Attendance Hours by Employee
+            <div
+              t-if="chartHasData(chart)"
+              t-att-class="'o_dept_kpi_chart_body' + (chart.chart_type === 'doughnut' ? ' o_dept_kpi_chart_body--doughnut' : '')"
+            >
+              <div
+                t-att-class="'o_dept_kpi_chart_canvas_wrap' + (chart.chart_type === 'doughnut' ? ' o_dept_kpi_chart_canvas_wrap--doughnut' : '')"
+              >
+                <canvas t-att-data-chart-key="chart.key" height="180"/>
+                <div t-if="chart.chart_type === 'doughnut' and chart.chart_meta and chart.chart_meta.center_value" class="o_kpi_doughnut_center">
+                  <div class="o_kpi_doughnut_val" t-esc="chart.chart_meta.center_value"/>
+                  <div class="o_kpi_doughnut_lbl" t-esc="chart.chart_meta.center_label"/>
+                </div>
+              </div>
+            </div>
+            <p t-else="" class="o_kpi_chart_note o_kpi_muted">No chart data available for this period.</p>
+
+            <div t-if="chart.chart_meta and chart.chart_meta.legend_rows" class="o_kpi_attendance_legend">
+              <t t-foreach="chart.chart_meta.legend_rows" t-as="legendRow" t-key="legendRow_index">
+                <div class="o_kpi_legend_row">
+                  <span class="o_kpi_legend_label">
+                    <span class="o_kpi_legend_color" t-att-style="'background-color: ' + legendRow.color"/>
+                    <span t-esc="legendRow.label"/>
+                  </span>
+                  <span class="o_kpi_legend_value" t-esc="legendRow.value"/>
+                </div>
+              </t>
+            </div>
+
+            <p t-if="chart.chart_meta and chart.chart_meta.note" class="o_kpi_chart_note" t-esc="chart.chart_meta.note"/>
           </div>
-          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--teal">Line Chart</span>
-        </div>
-        <div class="o_dept_kpi_chart_body">
-          <div class="o_dept_kpi_chart_canvas_wrap">
-            <canvas t-ref="chartC"/>
+        </t>
+      </div>
+    </t>
+
+    <div class="performance_dashboard_form o_dept_kpi_report_shell">
+      <div class="o_dept_kpi_report_content">
+        <div class="pd-roster-section">
+          <div class="pd-roster-header">
+            <h2>Team Roster</h2>
+            <button class="pd-btn-approve-all" t-att-disabled="!approvableCount || state.approvingAll" t-on-click="approveAllEvaluations">
+              <i t-attf-class="fa #{state.approvingAll ? 'fa-spinner fa-spin' : 'fa-check-circle'}"/>
+              <span>
+                <t t-if="state.approvingAll">Approving...</t>
+                <t t-else="">Approve All</t>
+              </span>
+            </button>
           </div>
+          <t t-if="report.evaluations and report.evaluations.length > 0">
+            <table class="pd-table">
+              <thead>
+                <tr>
+                  <th>EMPLOYEE</th>
+                  <th>ROLE</th>
+                  <th>INDIVIDUAL KPI SCORE</th>
+                  <th>RESULT</th>
+                  <th>STATUS</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="report.evaluations" t-as="ev" t-key="ev.id">
+                  <tr>
+                    <td>
+                      <div class="pd-employee-cell">
+                        <t t-if="ev.employee_id">
+                          <img class="pd-avatar" t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'" t-att-alt="ev.employee_id[1]" loading="lazy"/>
+                        </t>
+                        <span class="pd-emp-name">
+                          <a t-if="ev.employee_id" href="#" class="pd-employee-link" t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0], ev.id)">
+                            <t t-esc="ev.employee_id[1]"/>
+                          </a>
+                          <t t-else="">—</t>
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="pd-emp-id">
+                        <t t-esc="ev.job_id ? ev.job_id[1] : ''"/>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="pd-score-cell">
+                        <span class="pd-score-num">
+                          <t t-esc="formatReportScore(ev.performance_score || 0, 1)"/>
+                        </span>
+                        <div class="pd-progress-bar-wrap">
+                          <div class="pd-progress-bar-fill" t-att-style="'width:' + reportScorePct(ev.performance_score || 0) + '%'"/>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <t t-if="ev.performance_level === 'excellent'">
+                        <span class="pd-badge badge-excellent"><i class="fa fa-star"/>EXCELLENT</span>
+                      </t>
+                      <t t-elif="ev.performance_level === 'pass'">
+                        <span class="pd-badge badge-pass"><i class="fa fa-check"/>PASS</span>
+                      </t>
+                      <t t-elif="ev.performance_level === 'fail'">
+                        <span class="pd-badge badge-fail"><i class="fa fa-times"/>FAIL</span>
+                      </t>
+                      <t t-else="">
+                        <span class="pd-badge" style="background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;">— N/A</span>
+                      </t>
+                    </td>
+                    <td>
+                      <span class="pd-badge">
+                        <t t-if="ev.state === 'self_evaluation'">
+                          <i class="fa fa-clock-o"/>SELF EVAL
+                        </t>
+                        <t t-elif="ev.state === 'manager_evaluating'">
+                          <i class="fa fa-spinner fa-spin pd-manager-eval-status"/>
+                          <span class="pd-manager-eval-status">MANAGER EVALUATING</span>
+                        </t>
+                        <t t-elif="ev.state === 'completed'">
+                          <i class="fa fa-check-circle pd-completed-status"/>
+                          <span class="pd-completed-status">COMPLETED</span>
+                        </t>
+                        <t t-elif="ev.state === 'cancel'">
+                          <i class="fa fa-ban"/>
+                          <span class="pd-cancel-status">CANCELLED</span>
+                        </t>
+                      </span>
+                    </td>
+                    <td>
+                      <button t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}" t-on-click="() => this.openEvaluation(ev.id)">
+                        <i class="fa fa-chevron-right"/>
+                      </button>
+                    </td>
+                  </tr>
+                </t>
+              </tbody>
+            </table>
+          </t>
+          <t t-else="">
+            <div class="pd-empty-state">
+              <i class="fa fa-users"/>
+              <p>No evaluations found for this period.</p>
+            </div>
+          </t>
         </div>
       </div>
-
-      <!-- Chart D: Bug count per employee -->
-      <div t-if="hasWidget('department_bug_count')" class="o_dept_kpi_chart_card">
-        <div class="o_dept_kpi_chart_header">
-          <div class="o_dept_kpi_chart_title">
-            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--amber"/>
-            Bug Count by Employee
-          </div>
-          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--amber">Line Chart</span>
-        </div>
-        <div class="o_dept_kpi_chart_body">
-          <div class="o_dept_kpi_chart_canvas_wrap">
-            <canvas t-ref="chartD"/>
-          </div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- ── Row 3: Chart E (Timeline score line, full width) ── -->
-    <div t-if="hasWidget('department_score_trend')" class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col">
-
-      <div class="o_dept_kpi_chart_card o_dept_kpi_chart_card--tall">
-        <div class="o_dept_kpi_chart_header">
-          <div class="o_dept_kpi_chart_title">
-            <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--purple"/>
-            Department KPI Trend
-          </div>
-          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--purple">Timeline</span>
-        </div>
-        <div class="o_dept_kpi_chart_body">
-          <div class="o_dept_kpi_chart_canvas_wrap">
-            <canvas t-ref="chartE"/>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ── Row 4: Quantitative Table ── -->
-    <div
-      t-if="hasWidget('department_quantitative_table')"
-      class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col"
-      style="margin-top: 20px;"
-    >
+    <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col" style="margin-top: 20px;">
       <div class="o_dept_kpi_chart_card">
         <div class="o_dept_kpi_chart_header">
           <div class="o_dept_kpi_chart_title">
@@ -262,7 +310,6 @@
                       <span class="ms-1" t-esc="row.target"/>
                     </td>
                     <td t-esc="row.actual"/>
-
                     <td><span t-att-class="varianceClass(row)" t-esc="formatVariance(row)"/></td>
                     <td><span t-att-class="statusClass(row)" t-esc="statusText(row)"/></td>
                     <td><b t-esc="formatScore(row.final_score)"/></td>
@@ -275,220 +322,6 @@
         </div>
       </div>
     </div>
-
-    <t t-if="state.data.report_dashboard and state.data.report_dashboard.report_id">
-      <t t-set="report" t-value="state.data.report_dashboard"/>
-      <div class="performance_dashboard_form o_dept_kpi_report_shell">
-        <div class="o_dept_kpi_report_content">
-          <div class="o_dept_kpi_section_intro">
-            <div>
-              <div class="o_dept_kpi_section_eyebrow">Employee Insights</div>
-              <div class="o_dept_kpi_section_title">
-                <i class="fa fa-users"/>
-                <span>Employee KPI Analytics</span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            t-if="hasReportWidget('report_score_bar') or hasReportWidget('report_task_summary')"
-            class="o_dept_kpi_chart_row o_dept_kpi_chart_row--2col"
-          >
-            <div t-if="hasReportWidget('report_score_bar')" class="o_dept_kpi_chart_card">
-              <div class="o_dept_kpi_chart_header">
-                <div class="o_dept_kpi_chart_title">
-                  <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--blue"/>
-                  Individual KPI Score by Employee
-                </div>
-                <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--blue">Bar</span>
-              </div>
-              <div class="o_dept_kpi_chart_body">
-                <div class="o_dept_kpi_chart_canvas_wrap">
-                  <canvas t-ref="reportChartScore"/>
-                </div>
-              </div>
-            </div>
-            <div t-if="hasReportWidget('report_task_summary')" class="o_dept_kpi_chart_card">
-              <div class="o_dept_kpi_chart_header">
-                <div class="o_dept_kpi_chart_title">
-                  <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--green"/>
-                  Completed Tasks by Employee
-                </div>
-                <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--green">Stacked Bar</span>
-              </div>
-              <div class="o_dept_kpi_chart_body">
-                <div class="o_dept_kpi_chart_canvas_wrap">
-                  <canvas t-ref="reportChartA"/>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            t-if="hasReportWidget('report_attendance') or hasReportWidget('report_late_summary')"
-            class="o_dept_kpi_chart_row o_dept_kpi_chart_row--13col"
-          >
-            <div t-if="hasReportWidget('report_attendance')" class="o_dept_kpi_chart_card">
-              <div class="o_dept_kpi_chart_header">
-                <div class="o_dept_kpi_chart_title">
-                  <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--blue"/>
-                  Attendance — Days Present
-                </div>
-                <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--blue">Doughnut</span>
-              </div>
-              <div class="o_dept_kpi_chart_body o_dept_kpi_chart_body--doughnut">
-                <div class="o_dept_kpi_chart_canvas_wrap o_dept_kpi_chart_canvas_wrap--doughnut">
-                  <canvas t-ref="reportChartB"/>
-                </div>
-              </div>
-            </div>
-            <div t-if="hasReportWidget('report_late_summary')" class="o_dept_kpi_chart_card">
-              <div class="o_dept_kpi_chart_header">
-                <div class="o_dept_kpi_chart_title">
-                  <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--red"/>
-                  Punctuality — Late Count by Employee
-                </div>
-                <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--red">Line</span>
-              </div>
-              <div class="o_dept_kpi_chart_body">
-                <div class="o_dept_kpi_chart_canvas_wrap">
-                  <canvas t-ref="reportChartC"/>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <t t-if="hasReportWidget('report_qualitative') and report.qualitative_charts and report.qualitative_charts.length">
-            <div class="o_dept_kpi_report_subtitle">
-              <i class="fa fa-star-o"/>
-              <span>Qualitative KPIs — Employee Comparison</span>
-            </div>
-            <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--qual">
-              <t t-foreach="report.qualitative_charts" t-as="qc" t-key="qc_index">
-                <div class="o_dept_kpi_chart_card">
-                  <div class="o_dept_kpi_chart_header">
-                    <div class="o_dept_kpi_chart_title">
-                      <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--purple"/>
-                      <t t-esc="qc.kpi_name"/>
-                    </div>
-                  </div>
-                  <div class="o_dept_kpi_chart_body o_dept_kpi_chart_body--doughnut">
-                    <div class="o_dept_kpi_chart_canvas_wrap o_dept_kpi_chart_canvas_wrap--doughnut">
-                      <canvas t-att-id="'dept-report-qual-chart-' + qc_index"/>
-                    </div>
-                  </div>
-                </div>
-              </t>
-            </div>
-          </t>
-
-          <div t-if="hasReportWidget('report_roster')" class="pd-roster-section">
-            <div class="pd-roster-header">
-              <h2>Team Roster</h2>
-              <button class="pd-btn-approve-all" t-att-disabled="!approvableCount || state.approvingAll" t-on-click="approveAllEvaluations">
-                <i t-attf-class="fa #{state.approvingAll ? 'fa-spinner fa-spin' : 'fa-check-circle'}"/>
-                <span>
-                  <t t-if="state.approvingAll">Approving...</t>
-                  <t t-else="">Approve All</t>
-                </span>
-              </button>
-            </div>
-            <t t-if="report.evaluations and report.evaluations.length > 0">
-              <table class="pd-table">
-                <thead>
-                  <tr>
-                    <th>EMPLOYEE</th>
-                    <th>ROLE</th>
-                    <th>INDIVIDUAL KPI SCORE</th>
-                    <th>RESULT</th>
-                    <th>STATUS</th>
-                    <th>ACTION</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <t t-foreach="report.evaluations" t-as="ev" t-key="ev.id">
-                    <tr>
-                      <td>
-                        <div class="pd-employee-cell">
-                          <t t-if="ev.employee_id">
-                            <img class="pd-avatar" t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'" t-att-alt="ev.employee_id[1]" loading="lazy"/>
-                          </t>
-                          <span class="pd-emp-name">
-                            <a t-if="ev.employee_id" href="#" class="pd-employee-link" t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0], ev.id)">
-                              <t t-esc="ev.employee_id[1]"/>
-                            </a>
-                            <t t-else="">—</t>
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="pd-emp-id">
-                          <t t-esc="ev.job_id ? ev.job_id[1] : ''"/>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="pd-score-cell">
-                          <span class="pd-score-num">
-                            <t t-esc="formatReportScore(ev.performance_score || 0, 1)"/>
-                          </span>
-                          <div class="pd-progress-bar-wrap">
-                            <div class="pd-progress-bar-fill" t-att-style="'width:' + reportScorePct(ev.performance_score || 0) + '%'"/>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <t t-if="ev.performance_level === 'excellent'">
-                          <span class="pd-badge badge-excellent"><i class="fa fa-star"/>EXCELLENT</span>
-                        </t>
-                        <t t-elif="ev.performance_level === 'pass'">
-                          <span class="pd-badge badge-pass"><i class="fa fa-check"/>PASS</span>
-                        </t>
-                        <t t-elif="ev.performance_level === 'fail'">
-                          <span class="pd-badge badge-fail"><i class="fa fa-times"/>FAIL</span>
-                        </t>
-                        <t t-else="">
-                          <span class="pd-badge" style="background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;">— N/A</span>
-                        </t>
-                      </td>
-                      <td>
-                        <span class="pd-badge">
-                          <t t-if="ev.state === 'self_evaluation'">
-                            <i class="fa fa-clock-o"/>SELF EVAL
-                          </t>
-                          <t t-elif="ev.state === 'manager_evaluating'">
-                            <i class="fa fa-spinner fa-spin pd-manager-eval-status"/>
-                            <span class="pd-manager-eval-status">MANAGER EVALUATING</span>
-                          </t>
-                          <t t-elif="ev.state === 'completed'">
-                            <i class="fa fa-check-circle pd-completed-status"/>
-                            <span class="pd-completed-status">COMPLETED</span>
-                          </t>
-                          <t t-elif="ev.state === 'cancel'">
-                            <i class="fa fa-ban"/>
-                            <span class="pd-cancel-status">CANCELLED</span>
-                          </t>
-                        </span>
-                      </td>
-                      <td>
-                        <button t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}" t-on-click="() => this.openEvaluation(ev.id)">
-                          <i class="fa fa-chevron-right"/>
-                        </button>
-                      </td>
-                    </tr>
-                  </t>
-                </tbody>
-              </table>
-            </t>
-            <t t-else="">
-              <div class="pd-empty-state">
-                <i class="fa fa-users"/>
-                <p>No evaluations found for this period.</p>
-              </div>
-            </t>
-          </div>
-        </div>
-      </div>
-    </t>
 
   </div><!-- /o_dept_kpi_body -->
 

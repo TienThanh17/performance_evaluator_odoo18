@@ -73,7 +73,7 @@
                         <group string="General Information">
                             <field name="name" />
                             <field name="department_id" />
-                            <field name="period_id" />
+                            <field name="period_type" />
                             <field name="scoring_profile_id" />
                         </group>
                         <group string="Bonus Calculation Weights">
@@ -139,7 +139,7 @@
             <list>
                 <field name="name" />
                 <field name="department_id" />
-                <field name="period_id" />
+                <field name="period_type" />
                 <!-- Hiển thị trọng số mới -->
                 <field name="dept_weight" string="Department Weight" />
                 <field name="individual_weight" string="Individual Weight" />

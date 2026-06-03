@@ -228,10 +228,10 @@ class PerformanceEvaluation(models.Model):
         compute="_compute_is_department_manager", store=False
     )
 
-    @api.depends("kpi_id.period_id", "performance_report_id.period_id")
+    @api.depends("performance_report_id.period_id")
     def _compute_period_id(self):
         for rec in self:
-            rec.period_id = rec.kpi_id.period_id or rec.performance_report_id.period_id
+            rec.period_id = rec.performance_report_id.period_id
 
     @api.depends_context("uid")
     def _compute_role(self):
@@ -627,8 +627,8 @@ class PerformanceEvaluation(models.Model):
     def _onchange_employee_or_period_clear_kpi(self):
         """Xóa KPI đã chọn nếu nó không còn phù hợp với Nhân viên (Phòng ban) hoặc Chu kỳ mới."""
         if self.kpi_id:
-            # Kiểm tra xem KPI hiện tại có khớp với Period và Department mới không
-            if (self.kpi_id.period_id != self.period_id) or (
+            # Kiểm tra xem KPI hiện tại có khớp với Tần suất đánh giá và Phòng ban mới không
+            if (self.kpi_id.period_type != self.period_type) or (
                 self.kpi_id.department_id
                 and self.kpi_id.department_id != self.department_id
             ):
@@ -834,15 +834,11 @@ class PerformanceEvaluation(models.Model):
         settings = self.env["res.config.settings"]
         score_scale = settings.get_score_scale_info()
         threshold_excellent, threshold_pass = evaluation._get_thresholds_for_record()
-        widget_model = self.env["hr.kpi.dashboard.widget"]
         chart_service = self.env["hr.kpi.dashboard.chart.service"]
-        widgets = widget_model.get_dashboard_widgets("individual")
 
         result = {
             "evaluation_id": evaluation.id,
             "score_scale": score_scale,
-            "widgets": widgets,
-            "widget_map": {widget["code"]: widget for widget in widgets},
             "thresholds": {
                 "excellent": threshold_excellent,
                 "pass": threshold_pass,
@@ -865,32 +861,33 @@ class PerformanceEvaluation(models.Model):
             "performance_level": perf_key,
             # Translated label for display
             "performance_level_label": perf_label,
-            "spider_web": self._get_spider_web_data(evaluation),
             "quantitative_table": self._get_quantitative_table_data(evaluation),
-            "dynamic_charts": chart_service.build_dynamic_charts(evaluation),
+            
+            # --- TẤT CẢ BIỂU ĐỒ (CẢ RADAR LẪN CHI TIẾT) GOM VÀO ĐÂY ---
+            "charts": chart_service.build_dynamic_charts(evaluation, dashboard_kind="individual"),
         }
         return result
 
     # ------------------------------------------------------------------
     # Spider Web – non-quantitative KPIs
     # ------------------------------------------------------------------
-    def _get_spider_web_data(self, evaluation):
-        lines = evaluation.evaluation_line_ids.filtered(
-            lambda l: not l.is_section and l.kpi_type != "quantitative"
-        )
-        labels = []
-        scores = []
-        max_val = self.env["res.config.settings"].get_score_scale_base()
+    # def _get_spider_web_data(self, evaluation):
+    #     lines = evaluation.evaluation_line_ids.filtered(
+    #         lambda l: not l.is_section and l.kpi_type != "quantitative"
+    #     )
+    #     labels = []
+    #     scores = []
+    #     max_val = self.env["res.config.settings"].get_score_scale_base()
 
-        for line in lines:
-            labels.append(line.key_performance_area or "KPI")
-            scores.append(round(float(line.final_rating or 0.0), 2))
+    #     for line in lines:
+    #         labels.append(line.key_performance_area or "KPI")
+    #         scores.append(round(float(line.final_rating or 0.0), 2))
 
-        return {
-            "labels": labels,
-            "scores": scores,
-            "max": max_val,
-        }
+    #     return {
+    #         "labels": labels,
+    #         "scores": scores,
+    #         "max": max_val,
+    #     }
 
     # ------------------------------------------------------------------
     # Quantitative Table

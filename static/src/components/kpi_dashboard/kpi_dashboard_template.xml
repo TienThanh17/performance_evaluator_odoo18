@@ -64,55 +64,7 @@
       <!-- Dashboard body -->
       <div t-else="" class="o_kpi_dashboard">
 
-        <!-- Header -->
-        <!-- <div class="o_kpi_header">
-      <div class="o_kpi_header_left">
-        <h2 class="o_kpi_title">
-          <t t-esc="state.data.employee_name"/>
-          <span class="o_kpi_period_badge" t-esc="periodLabel(state.data.period_type)"/>
-        </h2>
-        <p class="o_kpi_dates">
-          <i class="fa fa-calendar me-1"/>
-          <t t-esc="state.data.start_date"/> → <t t-esc="state.data.end_date"/>
-        </p>
-      </div>
-
-      <div class="o_kpi_formula_cards">
-        <div class="o_kpi_summary_card o_kpi_summary_card_input">
-          <div class="o_kpi_summary_label">Individual KPI</div>
-          <div class="o_kpi_summary_score">
-            <span t-esc="scoreText"/>
-          </div>
-          <span t-att-class="levelClass" t-esc="levelLabel"/>
-          <div class="o_kpi_summary_weight" t-esc="'Weight: ' + individualWeightText"/>
-        </div>
-
-        <div class="o_kpi_formula_operator">+</div>
-
-        <div class="o_kpi_summary_card o_kpi_summary_card_input" t-att-title="deptTooltip">
-          <div class="o_kpi_summary_label">Department KPI</div>
-          <div t-att-class="'o_kpi_summary_score ' + (state.data.has_dept_evaluation ? '' :
-        'o_kpi_summary_score_na')">
-            <span t-esc="deptScoreText"/>
-          </div>
-          <span t-att-class="deptStatusClass" t-esc="deptStatusLabel"/>
-          <div class="o_kpi_summary_weight" t-esc="'Weight: ' + deptWeightText"/>
-        </div>
-
-        <div class="o_kpi_formula_operator o_kpi_formula_operator_result">=</div>
-
-        <div class="o_kpi_summary_card o_kpi_summary_card_final">
-          <div class="o_kpi_summary_label">Final KPI Score</div>
-          <div class="o_kpi_summary_score">
-            <span t-esc="finalScoreText"/>
-          </div>
-          <span t-att-class="finalLevelClass" t-esc="finalLevelLabel"/>
-          <div class="o_kpi_summary_formula" t-esc="formulaText"/>
-        </div>
-      </div>
-    </div> -->
-
-        <div t-if="hasWidget('individual_summary')" class="o_kpi_header_cards">
+        <div class="o_kpi_header_cards">
 
           <div class="o_kpi_summary_card o_kpi_summary_card_profile">
             <p class="o_kpi_dates">
@@ -163,91 +115,35 @@
 
         </div>
 
-        <!-- <t t-if="hasWidget('individual_dynamic_charts') and state.data.dynamic_charts and state.data.dynamic_charts.length"> -->
-        <t t-if="state.data.dynamic_charts and state.data.dynamic_charts.length">
-          <p t-if="state.chartErrorMsg" class="o_kpi_chart_note o_kpi_chart_runtime_error" t-esc="state.chartErrorMsg"/>
-          <div class="o_kpi_row o_kpi_dynamic_grid">
-            <t t-foreach="state.data.dynamic_charts" t-as="chart" t-key="chart.key">
-              <div class="o_kpi_card o_kpi_chart_card">
-                <div class="o_kpi_card_header">
-                  <div class="o_kpi_chart_header_main">
-                    <span class="o_kpi_card_title">
-                      <i t-att-class="chartIcon(chart.chart_type)"/>
-                      <t t-esc="chart.title"/>
-                    </span> 
-                    <span t-if="chart.subtitle" class="o_kpi_chart_subtitle" t-esc="chart.subtitle"/>
-                  </div>
-                  <span t-if="chart.is_special_case" class="o_kpi_target_badge o_kpi_target_warn">Special Case</span>
-                </div>
-
-                <div t-if="chartHasData(chart)" class="o_kpi_chart_container">
-                  <canvas t-att-data-chart-key="chart.key" height="180"/>
-                  <div t-if="chart.chart_type === 'doughnut' and chart.chart_meta and chart.chart_meta.center_value" class="o_kpi_doughnut_center">
-                    <div class="o_kpi_doughnut_val" t-esc="chart.chart_meta.center_value"/>
-                    <div class="o_kpi_doughnut_lbl" t-esc="chart.chart_meta.center_label"/>
-                  </div>
-                </div>
-                <p t-else="" class="o_kpi_chart_note o_kpi_muted">No chart data available for this period.</p>
-
-                <div t-if="chart.chart_meta and chart.chart_meta.legend_rows" class="o_kpi_attendance_legend">
-                  <t t-foreach="chart.chart_meta.legend_rows" t-as="legendRow" t-key="legendRow_index">
-                    <div class="o_kpi_legend_row">
-                      <span class="o_kpi_legend_label">
-                        <span class="o_kpi_legend_color" t-att-style="'background-color: ' + legendRow.color"/>
-                        <span t-esc="legendRow.label"/>
-                      </span>
-                      <span class="o_kpi_legend_value" t-esc="legendRow.value"/>
-                    </div>
-                  </t>
-                </div>
-
-                <p t-if="chart.chart_meta and chart.chart_meta.note" class="o_kpi_chart_note" t-esc="chart.chart_meta.note"/>
+      <t t-if="orderedCharts.length">
+        <div class="o_kpi_row o_kpi_dynamic_grid">
+          <t t-foreach="orderedCharts" t-as="chart" t-key="chart.key || chart.widget_id || chart_index">
+            
+            <div t-attf-class="o_kpi_card o_kpi_chart_card {{ chart.chart_type === 'radar' ? 'o_kpi_card_full' : '' }}">
+              <div class="o_kpi_card_header">
+                <span class="o_kpi_card_title" t-esc="chart.title or chart.chart_meta?.title or 'Biểu đồ'"/>
               </div>
-            </t>
-          </div>
-        </t>
-
-        <div t-if="hasWidget('individual_radar')" class="o_kpi_row o_kpi_row_spider">
-          <div
-            t-if="state.data.spider_web.labels.length"
-            class="o_kpi_card o_kpi_spider_card o_kpi_card_full"
-          >
-            <div class="o_kpi_card_header">
-              <span class="o_kpi_card_title">
-                <i class="fa fa-bullseye"/>
- Competency Chart</span>
-            </div>
-            <div class="o_kpi_spider_body">
-              <div class="o_kpi_chart_container o_kpi_chart_radar">
-                <canvas t-ref="spiderChart"/>
+              
+              <div class="o_kpi_chart_container">
+                <canvas t-att-data-chart-key="chart.key || (chart.widget_id ? 'chart_widget_' + chart.widget_id : 'chart_' + chart_index)" height="250"></canvas>
               </div>
-              <div class="o_kpi_spider_legend">
-                <t t-foreach="state.data.spider_web.labels" t-as="label" t-key="label">
-                  <div class="o_kpi_spider_legend_item">
-                    <span class="o_kpi_spider_legend_label" t-esc="label"/>
-                    <span class="o_kpi_spider_legend_score" t-esc="formatScore(state.data.spider_web.scores[label_index])"/>
-                  </div>
-                </t>
+              
+              <div t-if="chart.chart_meta?.note" class="o_kpi_chart_note text-muted text-center mt-2" style="font-size: 0.85em;">
+                <t t-esc="chart.chart_meta.note"/>
               </div>
             </div>
-          </div>
-          <div
-            t-else=""
-            class="o_kpi_card o_kpi_spider_card o_kpi_card_full"
-          >
-            <p class="o_kpi_empty">No competency data available.</p>
-          </div>
+
+          </t>
         </div>
+      </t>
 
         <!-- Row 3: Quantitative Table -->
-        <div t-if="hasWidget('individual_quantitative_table')" class="o_kpi_row" style="margin-top: 20px;">
+        <div  class="o_kpi_row" style="margin-top: 20px;">
           <div class="o_kpi_card o_kpi_table_card o_kpi_card_full">
             <div class="o_kpi_card_header">
               <span class="o_kpi_card_title">
                 <i class="fa fa-table"/>
  Detailed Evaluation Log</span>
-              <!-- Optional Export button if needed: <button class="btn btn-primary btn-sm"><i
-              class="fa fa-download"/> Export PDF</button> -->
             </div>
             <div class="o_kpi_table_wrapper">
               <table class="o_kpi_table" t-if="state.data.quantitative_table.length">

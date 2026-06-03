@@ -270,7 +270,6 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             active: true,
             approvingAll: false,
             chartData: null, // data từ get_report_dashboard_data
-            widgetMap: {},
             scoreScale: { base: 10, suffix: " / 10" },
             thresholds: { excellent: 9, pass: 5 },
         });
@@ -317,11 +316,6 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         ).length;
     }
 
-    hasWidget(code) {
-        const widgetMap = this.state.widgetMap || {};
-        return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
-    }
-
     async _loadDashboardData() {
         const record = this.props.record;
         const data = record.data;
@@ -354,40 +348,39 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             this.state.passCount = "0";
             this.state.evaluations = [];
             this.state.chartData = null;
-            return;
+        } else {
+            // Đọc evaluations cho roster table
+            const evaluations = await this.orm.read(
+                "hr.performance.evaluation",
+                evalIds,
+                [
+                    "employee_id",
+                    "job_id",
+                    "performance_score",
+                    "performance_level",
+                    "state",
+                ],
+            );
+
+            const total = evaluations.length;
+            const scoreSum = evaluations.reduce(
+                (s, e) => s + (e.performance_score || 0),
+                0,
+            );
+            const passCount = evaluations.filter(
+                (e) =>
+                    e.performance_level === "pass" ||
+                    e.performance_level === "excellent",
+            ).length;
+
+            this.state.totalEmployees = total;
+            this.state.avgScore = total ? (scoreSum / total).toFixed(2) : "0.0";
+            // this.state.passRate = total
+            //     ? Math.round((passCount / total) * 100).toString()
+            //     : "0";
+            this.state.passCount = passCount;
+            this.state.evaluations = evaluations;
         }
-
-        // Đọc evaluations cho roster table
-        const evaluations = await this.orm.read(
-            "hr.performance.evaluation",
-            evalIds,
-            [
-                "employee_id",
-                "job_id",
-                "performance_score",
-                "performance_level",
-                "state",
-            ],
-        );
-
-        const total = evaluations.length;
-        const scoreSum = evaluations.reduce(
-            (s, e) => s + (e.performance_score || 0),
-            0,
-        );
-        const passCount = evaluations.filter(
-            (e) =>
-                e.performance_level === "pass" ||
-                e.performance_level === "excellent",
-        ).length;
-
-        this.state.totalEmployees = total;
-        this.state.avgScore = total ? (scoreSum / total).toFixed(2) : "0.0";
-        // this.state.passRate = total
-        //     ? Math.round((passCount / total) * 100).toString()
-        //     : "0";
-        this.state.passCount = passCount;
-        this.state.evaluations = evaluations;
 
         // Lấy chart data từ Python
         const reportId = record.resId;
@@ -398,9 +391,9 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                     "get_report_dashboard_data",
                     [reportId],
                 );
-                this.state.widgetMap = chartData.widget_map || {};
                 this.state.scoreScale = chartData.score_scale || this.state.scoreScale;
                 this.state.thresholds = chartData.thresholds || this.state.thresholds;
+                this.state.evaluations = chartData.evaluations || this.state.evaluations;
                 this.state.chartData = chartData;
             } catch (e) {
                 console.error(
@@ -416,11 +409,69 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         if (!window.Chart || !this.state.chartData) return;
         this._destroyCharts();
         const d = this.state.chartData;
-        this._renderChartScore(d.employees || []);
-        this._renderChartA(d.task_summary);
-        this._renderChartB(d.attendance_summary);
-        this._renderChartC(d.late_summary);
-        this._renderQualitativeCharts(d.qualitative_charts || []);
+        this._renderReportSections(d.report_sections || []);
+    }
+
+    _renderReportSections(sections) {
+        for (const section of sections || []) {
+            if (section.section_type === "chart_row") {
+                for (const item of section.items || []) {
+                    this._renderReportSectionItem(item);
+                }
+            } else if (section.section_type === "qualitative_grid") {
+                this._renderQualitativeCharts(
+                    section.charts || [],
+                    section.key || "pd-qual",
+                );
+            }
+        }
+    }
+
+    _renderReportSectionItem(item) {
+        const canvas = this._getSectionCanvas(item?.key);
+        if (!canvas) {
+            return;
+        }
+        switch (item.measure_field) {
+            case "report_score_bar":
+                this._renderChartScore(
+                    this.state.chartData?.employees || [],
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "report_task_summary":
+                this._renderChartA(
+                    this.state.chartData?.task_summary || null,
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "report_attendance":
+                this._renderChartB(
+                    this.state.chartData?.attendance_summary || null,
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "report_late_summary":
+                this._renderChartC(
+                    this.state.chartData?.late_summary || null,
+                    canvas,
+                    item.key,
+                );
+                break;
+        }
+    }
+
+    _getSectionCanvas(key) {
+        if (!key) {
+            return null;
+        }
+        const escapedKey = window.CSS?.escape ? window.CSS.escape(key) : key;
+        return (this.el || document).querySelector(
+            `canvas[data-section-key="${escapedKey}"]`
+        );
     }
 
     // ── Chart Score: Individual KPI Score per Employee — bar ─────────────────────
@@ -489,11 +540,10 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         };
     }
 
-    _renderChartScore(employees) {
-        const el = this.refChartScore.el;
-        if (!el || !employees.length) return;
-        this._charts.Score = new window.Chart(
-            el,
+    _renderChartScore(employees, canvas = this.refChartScore.el, chartKey = "Score") {
+        if (!canvas || !employees.length) return;
+        this._charts[chartKey] = new window.Chart(
+            canvas,
             this._chartScoreConfig(employees),
         );
     }
@@ -549,10 +599,9 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         };
     }
 
-    _renderChartA(ts) {
-        const el = this.refChartA.el;
-        if (!el || !ts || !ts.names?.length) return;
-        this._charts.A = new window.Chart(el, this._chartAConfig(ts));
+    _renderChartA(ts, canvas = this.refChartA.el, chartKey = "A") {
+        if (!canvas || !ts || !ts.names?.length) return;
+        this._charts[chartKey] = new window.Chart(canvas, this._chartAConfig(ts));
     }
 
     // ── Chart B: Attendance — doughnut ────────────────────────────────────────
@@ -601,9 +650,8 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         };
     }
 
-    _renderChartB(as) {
-        const el = this.refChartB.el;
-        if (!el || !as || !as.names?.length) return;
+    _renderChartB(as, canvas = this.refChartB.el, chartKey = "B") {
+        if (!canvas || !as || !as.names?.length) return;
 
         // Đăng ký plugin centerText một lần duy nhất
         if (!window.Chart.registry.plugins.get("centerText")) {
@@ -634,7 +682,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             });
         }
 
-        this._charts.B = new window.Chart(el, this._chartBConfig(as));
+        this._charts[chartKey] = new window.Chart(canvas, this._chartBConfig(as));
     }
 
     // ── Chart C: Late count — line ────────────────────────────────────────────
@@ -681,10 +729,9 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         };
     }
 
-    _renderChartC(ls) {
-        const el = this.refChartC.el;
-        if (!el || !ls || !ls.names?.length) return;
-        this._charts.C = new window.Chart(el, this._chartCConfig(ls));
+    _renderChartC(ls, canvas = this.refChartC.el, chartKey = "C") {
+        if (!canvas || !ls || !ls.names?.length) return;
+        this._charts[chartKey] = new window.Chart(canvas, this._chartCConfig(ls));
     }
 
     // ── Qualitative charts — bar per KPI ────────────────────────────────
@@ -750,11 +797,11 @@ export class PerformanceDashboardRenderer extends FormRenderer {
         };
     }
 
-    _renderQualitativeCharts(qualCharts) {
+    _renderQualitativeCharts(qualCharts, sectionKey = "pd-qual") {
         qualCharts.forEach((qc, idx) => {
-            const el = document.getElementById(`pd-qual-chart-${idx}`);
+            const el = document.getElementById(`${sectionKey}-qual-chart-${idx}`);
             if (!el) return;
-            const key = `qual_${idx}`;
+            const key = `${sectionKey}_qual_${idx}`;
             if (this._charts[key]) {
                 this._charts[key].destroy();
             }

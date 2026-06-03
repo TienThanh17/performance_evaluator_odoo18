@@ -83,12 +83,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     has_rating_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_score_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
 
-    @api.depends("department_kpi_id.period_id", "performance_report_id.period_id")
+    @api.depends("performance_report_id.period_id")
     def _compute_period_id(self):
         for rec in self:
-            rec.period_id = (
-                rec.department_kpi_id.period_id or rec.performance_report_id.period_id
-            )
+            rec.period_id = rec.performance_report_id.period_id
 
     @api.depends("evaluation_line_ids.kpi_type")
     def _compute_kpi_types(self):
@@ -206,6 +204,13 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         if "active" in vals and not self.env.context.get("skip_report_active_sync"):
             # boolean_toggle trên list view chỉ gọi write(active), nên sync phải nằm ở đây.
             self._sync_active_to_report_batch(vals["active"])
+        return res
+
+    def unlink(self):
+        reports = self.mapped("performance_report_id")
+        res = super().unlink()
+        if reports:
+            reports.unlink()
         return res
 
     def _set_active_with_report(self, active):
@@ -336,8 +341,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
     def get_dashboard_data(self):
         self.ensure_one()
-        widget_model = self.env["hr.kpi.dashboard.widget"]
-        widgets = widget_model.get_dashboard_widgets("department")
+        chart_service = self.env["hr.kpi.dashboard.chart.service"]
 
         employees = (
             self.env["hr.employee"]
@@ -375,14 +379,22 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 .get_report_dashboard_data()
             )
 
+        period_label = self.period_id.name if self.period_id else (
+            str(self.start_date) if self.start_date else ""
+        )
+        quantitative_table = self._get_quantitative_table_data()
+        macro_sections = []
+
         result = {
             "department_name": self.department_id.name or "",
             "period_id": self.period_id.id if self.period_id else False,
             "period_name": self.period_id.name if self.period_id else "",
             "period_type": self.period_type or "",
-            "widgets": widgets,
-            "widget_map": {widget["code"]: widget for widget in widgets},
             "score_scale": self.env["res.config.settings"].get_score_scale_info(),
+            "dynamic_charts": chart_service.build_dynamic_charts(
+                self, dashboard_kind="department"
+            ),
+            "macro_sections": macro_sections,
             "report_dashboard": report_dashboard,
             # "manager_name": (
             #     self.department_id.manager_id.name
@@ -400,7 +412,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             "attendance_count": self._dashboard_attendance_count(),
             "bug_count_by_employee": self._dashboard_bug_count_by_employee(),
             "score_trend": self._dashboard_score_trend(),
-            "quantitative_table": self._get_quantitative_table_data(),
+            "quantitative_table": quantitative_table,
         }
         return result
 
@@ -818,8 +830,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             DeptEvaluation = self.env["hr.department.performance.evaluation"].sudo()
             settings = self.env["res.config.settings"]
             score_scale = settings.get_score_scale_info()
-            widget_model = self.env["hr.kpi.dashboard.widget"]
-            widgets = widget_model.get_dashboard_widgets("tree")
+            widgets = []
 
             # ── Thresholds theo thang điểm cấu hình ───────────────────────────
             threshold_excellent, threshold_pass = settings.get_thresholds()
@@ -830,7 +841,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     "period": period or {"start": "", "end": "", "label": ""},
                     "available_periods": available_periods,
                     "widgets": widgets,
-                    "widget_map": {widget["code"]: widget for widget in widgets},
+                    "widget_map": {},
                     "score_scale": score_scale,
                     "company": {
                         "dept_kpi_score": 0.0,
@@ -1237,7 +1248,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 "period": current_period,
                 "available_periods": available_periods,
                 "widgets": widgets,
-                "widget_map": {widget["code"]: widget for widget in widgets},
+                "widget_map": {},
                 "score_scale": score_scale,
                 "company": {
                     "dept_kpi_score": round(company_dept_kpi, 2),

@@ -48,9 +48,7 @@
 
                 <!-- ══ HEADER ══ -->
 
-
-                <!-- ══ KPI SCORECARDS ══ -->
-                <div t-if="hasWidget('report_summary')" class="pd-scorecards">
+                <div class="pd-scorecards">
                     <div class="pd-scorecard pd-scorecard--blue">
                         <div class="pd-scorecard-icon">
                             <i class="fa fa-tachometer"/>
@@ -58,7 +56,7 @@
                         <div class="pd-scorecard-body">
                             <div class="pd-scorecard-label">Average Score</div>
                             <div class="pd-scorecard-value">
-                                <t t-esc="formatScore(state.avgScore)"/>
+                                <t t-esc="formatScore(state.chartData ? (state.chartData.avg_score || 0) : 0)"/>
                             </div>
                         </div>
                     </div>
@@ -69,10 +67,8 @@
                         <div class="pd-scorecard-body">
                             <div class="pd-scorecard-label">Pass Rate</div>
                             <div class="pd-scorecard-value">
-                                <t t-esc="state.passCount"/>
-
-                                <span class="pd-scorecard-unit"> /                                    <t t-esc="state.totalEmployees"/>
-                                </span>
+                                <t t-esc="state.chartData ? (state.chartData.pass_count || 0) : 0"/>
+                                <span class="pd-scorecard-unit"> / <t t-esc="state.chartData ? (state.chartData.total_employees || 0) : 0"/></span>
                             </div>
                         </div>
                     </div>
@@ -83,7 +79,7 @@
                         <div class="pd-scorecard-body">
                             <div class="pd-scorecard-label">Total Employees</div>
                             <div class="pd-scorecard-value">
-                                <t t-esc="state.totalEmployees"/>
+                                <t t-esc="state.chartData ? (state.chartData.total_employees || 0) : 0"/>
                             </div>
                         </div>
                     </div>
@@ -100,124 +96,54 @@
                     </div>
                 </div>
 
-                <!-- ══ CHARTS ROW 1: Score (trái) + Task (phải) ══ -->
-                <div
-                    t-if="hasWidget('report_score_bar') or hasWidget('report_task_summary')"
-                    class="pd-chart-row pd-chart-row--2col"
-                >
-                    <div t-if="hasWidget('report_score_bar')" class="pd-chart-card">
-                        <div class="pd-chart-header">
-                            <div class="pd-chart-title">
-                                <span class="pd-chart-dot pd-chart-dot--blue"/>
-                                <!-- Điểm Hiệu Suất theo Nhân Viên -->
-                                <span>Individual KPI Score by Employee</span>
-                            </div>
-                            <span class="pd-chart-badge pd-chart-badge--blue">Bar</span>
-                        </div>
-                        <div class="pd-chart-body">
-                            <canvas t-ref="chartScore"/>
-                        </div>
-                    </div>
-                    <div t-if="hasWidget('report_task_summary')" class="pd-chart-card">
-                        <div class="pd-chart-header">
-                            <div class="pd-chart-title">
-                                <span class="pd-chart-dot pd-chart-dot--green"/>
-                                <!-- Task Hoàn Thành theo Nhân Viên -->
-                                <span>Completed Tasks by Employee</span>
-                            </div>
-                            <span class="pd-chart-badge pd-chart-badge--green">Stacked Bar</span>
-                        </div>
-                        <div class="pd-chart-body">
-                            <canvas t-ref="chartA"/>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- ══ CHARTS ROW 2: Attendance (1/3 trái) + Late (2/3 phải) ══ -->
-                <div
-                    t-if="hasWidget('report_attendance') or hasWidget('report_late_summary')"
-                    class="pd-chart-row pd-chart-row--13col"
-                >
-                    <div t-if="hasWidget('report_attendance')" class="pd-chart-card">
-                        <div class="pd-chart-header">
-                            <div class="pd-chart-title">
-                                <span class="pd-chart-dot pd-chart-dot--blue"/>
-                                <!-- Đi Làm Đầy Đủ — Số Ngày Có Mặt -->
-
-                                <span>Attendance — Days Present</span>
-                            </div>
-                            <span class="pd-chart-badge pd-chart-badge--blue">Doughnut</span>
-                        </div>
-                        <div class="pd-chart-body pd-chart-body--doughnut">
-                            <canvas t-ref="chartB"/>
-                        </div>
-                    </div>
-                    <div t-if="hasWidget('report_late_summary')" class="pd-chart-card">
-                        <div class="pd-chart-header">
-                            <div class="pd-chart-title">
-                                <span class="pd-chart-dot pd-chart-dot--red"/>
-                                <!-- Đi Làm Đúng Giờ — Số Lần Trễ theo Nhân Viên -->
-                                <span>Punctuality — Late Count by Employee</span>
-                            </div>
-                            <span class="pd-chart-badge pd-chart-badge--red">Line</span>
-                        </div>
-                        <div class="pd-chart-body">
-                            <canvas t-ref="chartC"/>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ══ CHARTS ROW 3: Qualitative KPIs (dynamic) ══ -->
-                <t t-if="hasWidget('report_qualitative') and state.chartData and state.chartData.qualitative_charts.length">
-                    <div class="pd-section-title">
-                        <i class="fa fa-star-o"/>
-                        <!-- KPI Định Tính — So Sánh Nhân Viên -->
-                        <span>Qualitative KPIs — Employee Comparison</span>
-                    </div>
-                    <div class="pd-chart-row pd-chart-row--qual">
-                        <t t-foreach="state.chartData.qualitative_charts" t-as="qc" t-key="qc_index">
-                            <div class="pd-chart-card">
-                                <div class="pd-chart-header">
-                                    <div class="pd-chart-title">
-                                        <span class="pd-chart-dot pd-chart-dot--purple"/>
-                                        <t t-esc="qc.kpi_name"/>
+                <t t-if="state.chartData and state.chartData.report_sections">
+                    <t t-foreach="state.chartData.report_sections" t-as="section" t-key="section.key">
+                        <div
+                            t-if="section.section_type === 'chart_row'"
+                            t-attf-class="pd-chart-row pd-chart-row--#{section.layout}"
+                        >
+                            <t t-foreach="section.items" t-as="item" t-key="item.key">
+                                <div class="pd-chart-card">
+                                    <div class="pd-chart-header">
+                                        <div class="pd-chart-title">
+                                            <span t-attf-class="pd-chart-dot pd-chart-dot--#{item.dot_tone}"/>
+                                            <span t-esc="item.title"/>
+                                        </div>
+                                        <span t-attf-class="pd-chart-badge pd-chart-badge--#{item.badge_tone}" t-esc="item.badge"/>
                                     </div>
-                                    <!--                                                     <span class="pd-chart-badge pd-chart-badge&#45;&#45;purple">Doughnut</span> -->
+                                    <div t-attf-class="pd-chart-body#{item.measure_field === 'report_attendance' ? ' pd-chart-body--doughnut' : ''}">
+                                        <canvas t-att-data-section-key="item.key"/>
+                                    </div>
                                 </div>
-                                <div class="pd-chart-body pd-chart-body--doughnut">
-                                    <canvas t-att-id="'pd-qual-chart-' + qc_index"/>
-                                </div>
+                            </t>
+                        </div>
+
+                        <t t-if="section.section_type === 'qualitative_grid' and section.charts and section.charts.length">
+                            <div class="pd-section-title">
+                                <i class="fa fa-star-o"/>
+                                <span t-esc="section.title"/>
+                            </div>
+                            <div class="pd-chart-row pd-chart-row--qual">
+                                <t t-foreach="section.charts" t-as="qc" t-key="qc_index">
+                                    <div class="pd-chart-card">
+                                        <div class="pd-chart-header">
+                                            <div class="pd-chart-title">
+                                                <span class="pd-chart-dot pd-chart-dot--purple"/>
+                                                <t t-esc="qc.kpi_name"/>
+                                            </div>
+                                        </div>
+                                        <div class="pd-chart-body pd-chart-body--doughnut">
+                                            <canvas t-att-id="section.key + '-qual-chart-' + qc_index"/>
+                                        </div>
+                                    </div>
+                                </t>
                             </div>
                         </t>
-                    </div>
+                    </t>
                 </t>
 
-
-                <!--                <t t-if="state.chartData and state.chartData.qualitative_charts and state.chartData.qualitative_charts.length">-->
-                <!--                    <div class="pd-section-title">-->
-                <!--                        <i class="fa fa-star-o"/>-->
-                <!--                        KPI Định Tính — So Sánh Nhân Viên-->
-                <!--                    </div>-->
-                <!--                    <div class="pd-chart-row pd-chart-row&#45;&#45;qual" t-ref="qualContainer">-->
-                <!--                        <t t-foreach="state.chartData.qualitative_charts" t-as="qc" t-key="qc_index">-->
-                <!--                            <div class="pd-chart-card">-->
-                <!--                                <div class="pd-chart-header">-->
-                <!--                                    <div class="pd-chart-title">-->
-                <!--                                        <span class="pd-chart-dot pd-chart-dot&#45;&#45;purple"/>-->
-                <!--                                        <t t-esc="qc.kpi_name"/>-->
-                <!--                                    </div>-->
-                <!--                                    <span class="pd-chart-badge pd-chart-badge&#45;&#45;purple">Doughnut</span>-->
-                <!--                                </div>-->
-                <!--                                <div class="pd-chart-body pd-chart-body&#45;&#45;doughnut">-->
-                <!--                                    <canvas class="pd-qual-canvas"/>-->
-                <!--                                </div>-->
-                <!--                            </div>-->
-                <!--                        </t>-->
-                <!--                    </div>-->
-                <!--                </t>-->
-
-                <!-- ══ TEAM ROSTER ══ -->
-                <div t-if="hasWidget('report_roster')" class="pd-roster-section">
+                <div class="pd-roster-section">
                     <div class="pd-roster-header">
                         <h2>Team Roster</h2>
                         <button class="pd-btn-approve-all" t-att-disabled="!approvableCount || state.approvingAll" t-on-click="approveAllEvaluations">
@@ -228,7 +154,7 @@
                             </span>
                         </button>
                     </div>
-                    <t t-if="state.evaluations.length > 0">
+                    <t t-if="state.chartData and state.chartData.evaluations and state.chartData.evaluations.length > 0">
                         <table class="pd-table">
                             <thead>
                                 <tr>
@@ -241,7 +167,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="state.evaluations" t-as="ev" t-key="ev.id">
+                                <t t-foreach="state.chartData.evaluations" t-as="ev" t-key="ev.id">
                                     <tr>
                                         <td>
                                             <div class="pd-employee-cell">

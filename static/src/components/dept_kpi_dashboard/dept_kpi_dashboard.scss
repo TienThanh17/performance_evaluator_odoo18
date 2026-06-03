@@ -289,6 +289,44 @@ $dept-shadow-hover:  0 6px 24px rgba(3, 103, 176, 0.18);
   }
 }
 
+.o_dept_kpi_dynamic_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.o_dept_kpi_dynamic_card_header {
+  align-items: flex-start;
+}
+
+.o_dept_kpi_dynamic_header_main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.o_dept_kpi_dynamic_title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: $dept-text;
+  line-height: 1.3;
+
+  .fa {
+    color: $dept-primary;
+  }
+}
+
+.o_dept_kpi_dynamic_subtitle {
+  font-size: 12px;
+  color: $dept-muted;
+  line-height: 1.35;
+}
+
 .o_dept_kpi_scorecard {
   background: $dept-surface;
   border-radius: $dept-radius;

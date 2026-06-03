@@ -111,7 +111,8 @@
                                     invisible="kpi_type != 'quantitative'" />
                                 <field name="data_source_id" invisible="kpi_type != 'quantitative'"
                                     readonly="not is_manager and not is_department_manager" />
-                                <field name="scoring_formula_id" invisible="kpi_type != 'quantitative'"
+                                <field name="scoring_formula_id"
+                                    invisible="kpi_type != 'quantitative'"
                                     readonly="not is_manager and not is_department_manager" />
                             </group>
                         </group>
@@ -334,7 +335,8 @@
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
-                            <button name="action_open_kpi_dashboard" type="object" class="oe_stat_button" icon="fa-dashboard">
+                            <button name="action_open_kpi_dashboard" type="object"
+                                class="oe_stat_button" icon="fa-dashboard">
                                 <div class="o_stat_info">
                                     <span class="o_stat_text">Dashboard</span>
                                 </div>
@@ -395,7 +397,7 @@
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="kpi_id"
                                     readonly="1"
-                                    domain="[('period_id', '=', period_id), ('department_id', '=', department_id)]"
+                                    domain="[('period_type', '=', period_type), ('department_id', '=', department_id)]"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md " />
                             </group>
                             <group colspan="5">
@@ -443,99 +445,135 @@
                                     context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
                                         decoration-bf="is_section">
-                                        <!--                                        <field name="sequence" widget="handle" />-->
+                                        <!-- Hidden control fields -->
                                         <field name="is_section" column_invisible="1" />
                                         <field name="is_auto" column_invisible="1" />
+                                        <field name="manager_edited" column_invisible="1" />
+                                        <field name="final_rating_badge_class" column_invisible="1" />
 
+                                        <!-- Main text fields -->
                                         <field name="key_performance_area" string="Title"
+                                            width="250px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="description"
-                                            string="Info"
+
+                                        <field name="description" string="Info"
                                             widget="kpi_description_icon"
+                                            width="100px"
                                             invisible="is_section"
                                             optional="show" />
 
                                         <field name="parent_dept_evaluation_line_id"
+                                            width="150px"
                                             invisible="is_section"
                                             optional="show" />
 
-                                        <field name="kpi_type" invisible="is_section"
+                                        <!-- Configurations -->
+                                        <field name="kpi_type"
+                                            width="100px"
+                                            invisible="is_section"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="unit" optional="show"
+
+                                        <field name="unit"
+                                            width="80px"
+                                            optional="show"
                                             invisible="is_section or kpi_type != 'quantitative'"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="data_source_id" optional="hide"
+
+                                        <field name="data_source_id"
+                                            width="120px"
+                                            optional="hide"
                                             invisible="is_section or not is_auto"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="scoring_formula_id" optional="hide"
+
+                                        <field name="scoring_formula_id"
+                                            width="120px"
+                                            optional="hide"
                                             invisible="is_section or not is_auto"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="employee_comment" optional="hide"
+
+                                        <!-- Comments -->
+                                        <field name="employee_comment"
+                                            width="150px"
+                                            optional="hide"
                                             invisible="is_section"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
-                                        />
-                                        <field name="manager_comment" optional="hide"
+                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
+
+                                        <field name="manager_comment"
+                                            width="150px"
+                                            optional="hide"
                                             invisible="is_section"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
 
-                                        <!--                                        <field name="target" column_invisible="1"
-                                        force_save="1"/>-->
-                                        <!--                                        <field name="target_display" string="Target"-->
-                                        <!--                                               invisible="is_section or kpi_type != 'quantitative' or
-                                        is_special_scoring"/>-->
-                                        <!--                                        <field name="actual_display" string="Actual"-->
-                                        <!--                                               invisible="is_section or kpi_type !=
-                                        'quantitative'"/>-->
-
+                                        <!-- Targets & Actuals -->
                                         <field name="target"
+                                            width="80px"
                                             invisible="is_section or kpi_type != 'quantitative' or is_special_scoring"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
+
                                         <field name="actual"
+                                            width="80px"
                                             invisible="is_section or kpi_type != 'quantitative'"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager and is_special_scoring" />
 
+                                        <!-- Self Ratings -->
                                         <field name="employee_rating_binary"
                                             string="Self Rating (Y/N)"
+                                            width="100px"
                                             column_invisible="not parent.has_binary_kpi"
                                             invisible="is_section or kpi_type != 'binary'"
                                             readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
-                                        <field name="employee_rating_selection"
-                                            string="Self Rating" widget="priority"
+
+                                        <field name="employee_rating_selection" string="Self Rating"
+                                            widget="priority"
+                                            width="120px"
                                             column_invisible="not parent.has_rating_kpi"
                                             invisible="is_section or kpi_type != 'rating'"
                                             readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
+
                                         <field name="employee_rating_score" string="Self Score"
+                                            width="80px"
                                             column_invisible="not parent.has_score_kpi"
                                             invisible="is_section or kpi_type != 'score'"
                                             readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
 
+                                        <!-- Manager Ratings -->
                                         <field name="manager_rating_binary"
                                             string="Manager Rating (Y/N)"
+                                            width="120px"
                                             column_invisible="not parent.has_binary_kpi"
                                             invisible="is_section or kpi_type != 'binary'"
                                             readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager" />
+
                                         <field name="manager_rating_selection"
                                             string="Manager Rating" widget="priority"
+                                            width="200px"
                                             column_invisible="not parent.has_rating_kpi"
                                             invisible="is_section or kpi_type != 'rating'"
                                             readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager" />
+
                                         <field name="manager_rating_score" string="Manager Score"
+                                            width="100px"
                                             column_invisible="not parent.has_score_kpi"
                                             invisible="is_section or kpi_type != 'score'"
                                             readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager" />
 
-                                        <field name="weight" invisible="is_section"
+                                        <!-- Metrics & Badges -->
+                                        <field name="weight"
+                                            width="60px"
+                                            invisible="is_section"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="manager_edited" column_invisible="1" />
-                                        <field name="final_rating_badge_class" column_invisible="1" />
+
                                         <field name="final_rating_badge_text" readonly="1"
-                                            string="Score"
-                                            widget="badge"
+                                            string="Score" widget="badge"
+                                            width="80px"
                                             decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
                                             decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
                                             decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" />
+
+                                        <!-- Actions -->
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
+                                            width="40px"
                                             invisible="is_section" />
 
                                         <control>
@@ -546,8 +584,15 @@
                                     </list>
                                 </field>
 
-                                <div class="o_perf_summary mt-3"
+                                <div class="o_perf_summary mt-3 d-flex justify-content-between align-items-center"
                                     t-attf-class="o_perf_summary #{performance_badge_class}">
+                                    <div class="o_perf_summary_body o_perf_summary_body_left flex-grow-1 pe-3">
+                                        <div class="o_perf_summary_title">Công thức tính điểm</div>
+                                        <div class="text-muted mt-2" style="font-size: 14px;">
+                                            <strong>Individual KPI Score</strong> = ∑ (KPI Score × Weight) / ∑ Weight<br/>
+                                            <span style="font-size: 14px; font-style: italic;">(Trung bình cộng có trọng số của các tiêu chí đánh giá)</span>
+                                        </div>
+                                    </div>
                                     <div class="o_perf_summary_body o_perf_summary_body_right">
 
                                         <div class="o_perf_summary_title">Evaluation results</div>
@@ -575,7 +620,7 @@
                             </page>
                         </notebook>
                     </sheet>
-                    <chatter/>
+                    <chatter />
                 </form>
             </field>
         </record>
@@ -611,7 +656,8 @@
 
                     <separator />
 
-                    <filter string="Monthly" name="monthly" domain="[('period_type', '=', 'monthly')]" />
+                    <filter string="Monthly" name="monthly"
+                        domain="[('period_type', '=', 'monthly')]" />
                     <filter string="Quarterly" name="quarterly"
                         domain="[('period_type', '=', 'quarterly')]" />
                     <filter string="Half-Yearly" name="half_yearly"

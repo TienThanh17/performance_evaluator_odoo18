@@ -10,10 +10,6 @@
                 <field name="source_type" />
                 <field name="model_name" />
                 <field name="aggregation" />
-                <field name="dashboard_enabled" />
-                <field name="dashboard_provider_key" />
-                <field name="dashboard_chart_type" />
-                <field name="dashboard_special_case" />
                 <field name="active" />
             </list>
         </field>
@@ -38,21 +34,6 @@
                             <field name="unit_id" />
                             <field name="description" />
                             <field name="active" widget="boolean_toggle" />
-                        </group>
-                        <group name="dashboard_config" string="Cấu hình Dashboard">
-                            <field name="dashboard_enabled" widget="boolean_toggle" />
-                            <field name="dashboard_provider_key"
-                                invisible="not dashboard_enabled"
-                                required="dashboard_enabled" />
-                            <field name="kpi_behavior"
-                                invisible="not dashboard_enabled or dashboard_provider_key != 'generic_domain_daily_series'"
-                                required="dashboard_enabled and dashboard_provider_key == 'generic_domain_daily_series'" />
-                            <field name="dashboard_chart_type"
-                                invisible="not dashboard_enabled"
-                                required="dashboard_enabled" />
-                            <field name="dashboard_special_case"
-                                invisible="not dashboard_enabled"
-                                readonly="1" />
                         </group>
                     </group>
 

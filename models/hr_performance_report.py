@@ -445,6 +445,118 @@ class HrPerformanceReport(models.Model):
             "target": "self",
         }
 
+    def _build_report_chart_item(
+        self,
+        key,
+        sequence,
+        measure_field,
+        default_title,
+        badge,
+        badge_tone,
+        dot_tone,
+    ):
+        return {
+            "section_type": "chart_item",
+            "widget_id": 0,
+            "key": key,
+            "sequence": sequence,
+            "measure_field": measure_field,
+            "title": default_title,
+            "badge": badge,
+            "badge_tone": badge_tone,
+            "dot_tone": dot_tone,
+        }
+
+    def _build_report_chart_row(self, items, layout):
+        active_items = [item for item in items if item]
+        if not active_items:
+            return False
+        return {
+            "section_type": "chart_row",
+            "layout": layout,
+            "sequence": min(item["sequence"] for item in active_items),
+            "key": "report_row_%s"
+            % "_".join(item["key"] for item in active_items),
+            "items": active_items,
+        }
+
+    def _build_report_sections(self, context_data):
+        sections = []
+
+        sections_row_top = self._build_report_chart_row(
+            [
+                self._build_report_chart_item(
+                    "report_score_bar",
+                    120,
+                    "report_score_bar",
+                    _("Individual KPI Score by Employee"),
+                    "Bar",
+                    "blue",
+                    "blue",
+                ),
+                self._build_report_chart_item(
+                    "report_task_summary",
+                    130,
+                    "report_task_summary",
+                    _("Completed Tasks by Employee"),
+                    _("Stacked Bar"),
+                    "green",
+                    "green",
+                ),
+            ],
+            "2col",
+        )
+        if sections_row_top:
+            sections.append(sections_row_top)
+
+        sections_row_bottom = self._build_report_chart_row(
+            [
+                self._build_report_chart_item(
+                    "report_attendance",
+                    140,
+                    "report_attendance",
+                    _("Attendance — Days Present"),
+                    "Doughnut",
+                    "blue",
+                    "blue",
+                ),
+                self._build_report_chart_item(
+                    "report_late_summary",
+                    150,
+                    "report_late_summary",
+                    _("Punctuality — Late Count by Employee"),
+                    "Line",
+                    "red",
+                    "red",
+                ),
+            ],
+            "13col",
+        )
+        if sections_row_bottom:
+            sections.append(sections_row_bottom)
+
+        if context_data["qualitative_charts"]:
+            sections.append(
+                {
+                    "section_type": "qualitative_grid",
+                    "widget_id": 0,
+                    "key": "report_qualitative",
+                    "sequence": 160,
+                    "measure_field": "report_qualitative",
+                    "title": _("Qualitative KPIs — Employee Comparison"),
+                    "charts": context_data["qualitative_charts"],
+                }
+            )
+
+        return sorted(
+            sections,
+            key=lambda section: (
+                section.get("sequence", 0),
+                section.get("widget_id", 0),
+                section.get("key", ""),
+            ),
+        )
+
     def get_report_dashboard_data(self):
         """Chuẩn bị toàn bộ data cho PerformanceDashboard charts.
 
@@ -461,8 +573,6 @@ class HrPerformanceReport(models.Model):
         settings = self.env["res.config.settings"]
         score_scale = settings.get_score_scale_info()
         threshold_excellent, threshold_pass = settings.get_thresholds()
-        widget_model = self.env["hr.kpi.dashboard.widget"]
-        widgets = widget_model.get_dashboard_widgets("report")
         report_meta = {
             "report_id": self.id,
             "department_id": self.department_id.id if self.department_id else False,
@@ -475,12 +585,23 @@ class HrPerformanceReport(models.Model):
             "deadline": str(self.deadline) if self.deadline else False,
             "active": bool(self.active),
         }
+        period_label = self.period_id.name if self.period_id else (
+            str(self.start_date) if self.start_date else ""
+        )
         if not evalids:
+            report_sections = self._build_report_sections(
+                {
+                    "avg_score": 0.0,
+                    "pass_count": 0,
+                    "total_employees": 0,
+                    "period_label": period_label,
+                    "evaluations": [],
+                    "qualitative_charts": [],
+                },
+            )
             return {
                 **report_meta,
                 "score_scale": score_scale,
-                "widgets": widgets,
-                "widget_map": {widget["code"]: widget for widget in widgets},
                 "thresholds": {
                     "excellent": threshold_excellent,
                     "pass": threshold_pass,
@@ -494,6 +615,7 @@ class HrPerformanceReport(models.Model):
                 "attendance_summary": {},
                 "late_summary": {},
                 "qualitative_charts": [],
+                "report_sections": report_sections,
             }
 
         evaluations = self.env["hr.performance.evaluation"].sudo().browse(evalids)
@@ -651,11 +773,20 @@ class HrPerformanceReport(models.Model):
                 }
             )
 
+        report_sections = self._build_report_sections(
+            {
+                "avg_score": avg_score,
+                "pass_count": pass_count,
+                "total_employees": total_employees,
+                "period_label": period_label,
+                "evaluations": evaluation_rows,
+                "qualitative_charts": qualitative_charts,
+            },
+        )
+
         return {
             **report_meta,
             "score_scale": score_scale,
-            "widgets": widgets,
-            "widget_map": {widget["code"]: widget for widget in widgets},
             "thresholds": {
                 "excellent": threshold_excellent,
                 "pass": threshold_pass,
@@ -669,4 +800,5 @@ class HrPerformanceReport(models.Model):
             "attendance_summary": attendance_summary,
             "late_summary": late_summary,
             "qualitative_charts": qualitative_charts,
+            "report_sections": report_sections,
         }

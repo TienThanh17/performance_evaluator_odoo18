@@ -23,18 +23,18 @@ class HrKpiTemplate(models.Model):
         string="Department",
         help="Apply this KPI template to employees in the selected department.",
     )
-    period_id = fields.Many2one(
-        "hr.kpi.period",
-        string="KPI Period",
-        required=True,
-        ondelete="restrict",
-        tracking=True,
-    )
     period_type = fields.Selection(
-        related="period_id.period_type",
-        string="Period Type",
-        store=True,
-        readonly=True,
+        [
+            ("monthly", "Hàng tháng"),
+            ("quarterly", "Hàng quý"),
+            ("biannual", "Nửa năm"),
+            ("yearly", "Hàng năm"),
+        ],
+        string="Tần suất đánh giá",
+        required=True,
+        default="monthly",
+        tracking=True,
+        help="Quy định tần suất sử dụng bản mẫu này."
     )
     scoring_profile_id = fields.Many2one(
         "hr.kpi.scoring.profile",
@@ -44,7 +44,7 @@ class HrKpiTemplate(models.Model):
     department_kpi_id = fields.Many2one(
         "hr.department.kpi.template",
         string=_("Parent Department KPI Template"),
-        domain="[('department_id', '=', department_id), ('period_id', '=', period_id)]",
+        domain="[('department_id', '=', department_id), ('period_type', '=', period_type)]",
         ondelete="set null",
     )
 

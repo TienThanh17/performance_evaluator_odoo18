@@ -40,6 +40,16 @@ function formatPeriodLabel(dateStr) {
     return `${_t(monthName)} / ${year}`;
 }
 
+function formatHour(h) {
+    if (h === null || h === undefined || Number.isNaN(Number(h))) {
+        return "--";
+    }
+    const value = Number(h);
+    const hours = Math.trunc(value);
+    const minutes = Math.round((value - hours) * 60);
+    return `${hours}:${String(minutes).padStart(2, "0")}`;
+}
+
 /** Chart A — stacked bar: total vs done tasks per employee */
 function buildChartAData(employeeStats) {
     const names = employeeStats.map((e) => e.name);
@@ -242,6 +252,11 @@ function reportDoughnutPlugins() {
 export class DeptKpiDashboard extends Component {
     static template = "performance_evaluator.DeptKpiDashboard";
     static props = ["*"];
+    static CHART_RENDERERS = {
+        line: "_renderLineChart",
+        bar: "_renderBarChart",
+        doughnut: "_renderDoughnutChart",
+    };
 
     setup() {
         const actionContext = this.props.action?.context || {};
@@ -255,6 +270,7 @@ export class DeptKpiDashboard extends Component {
         this.notification = useService("notification");
 
         // Canvas refs
+        this.dashboardRootRef = useRef("dashboardRoot");
         this.refA = useRef("chartA");
         this.refB = useRef("chartB");
         this.refC = useRef("chartC");
@@ -268,6 +284,7 @@ export class DeptKpiDashboard extends Component {
         this.state = useState({
             phase: "loading",           // "loading" | "done" | "empty" | "error"
             errorMsg: "",
+            chartErrorMsg: "",
             isManager: false,
             isHR: false,
             defaultDepartmentId,
@@ -322,6 +339,10 @@ export class DeptKpiDashboard extends Component {
         return this.state.data?.report_dashboard || null;
     }
 
+    get canExportReport() {
+        return !!this.reportDashboard?.report_id;
+    }
+
     get reportScoreScale() {
         return this.reportDashboard?.score_scale || this.scoreScale;
     }
@@ -336,14 +357,24 @@ export class DeptKpiDashboard extends Component {
         ).length;
     }
 
-    hasWidget(code) {
-        const widgetMap = this.state.data?.widget_map || {};
-        return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
+    chartIcon(chartType) {
+        const icons = {
+            line: "fa fa-line-chart",
+            bar: "fa fa-bar-chart",
+            doughnut: "fa fa-pie-chart",
+        };
+        return icons[chartType] || "fa fa-area-chart";
     }
 
-    hasReportWidget(code) {
-        const widgetMap = this.reportDashboard?.widget_map || {};
-        return !Object.keys(widgetMap).length || Boolean(widgetMap[code]);
+    chartHasData(chart) {
+        const labels = chart?.chart_data?.labels || [];
+        const datasets = chart?.chart_data?.datasets || [];
+        return (
+            labels.length > 0 &&
+            datasets.some(
+                (dataset) => Array.isArray(dataset?.data) && dataset.data.length
+            )
+        );
     }
 
     /** Hiển thị điểm số, mặc định 2 chữ số thập phân. */
@@ -448,6 +479,7 @@ export class DeptKpiDashboard extends Component {
             data.period_label =
                 data.period_name || formatPeriodLabel(evaluation.start_date);
 
+            this.state.chartErrorMsg = "";
             this.state.data = data;
             this.state.phase = "done";
 
@@ -559,20 +591,302 @@ export class DeptKpiDashboard extends Component {
         const d = this.state.data;
         if (!d) return;
         this._destroyCharts();
-        this._renderChartA(d.task_summary_by_employee || []);
-        this._renderChartB(d.project_progress || []);
-        this._renderChartC(d.attendance_count || []);
-        this._renderChartD(d.bug_count_by_employee || []);
-        this._renderChartE(d.score_trend || {});
-        this._renderReportCharts(d.report_dashboard || null);
+        this._renderDynamicCharts(d.dynamic_charts || []);
     }
 
-    _renderChartA(employeeStats) {
-        const el = this.refA.el;
-        if (!el) return;
+    _renderMacroSections(sections) {
+        for (const section of sections || []) {
+            if (section.section_type !== "chart_row") {
+                continue;
+            }
+            for (const item of section.items || []) {
+                this._renderMacroSectionItem(item);
+            }
+        }
+    }
+
+    _renderMacroSectionItem(item) {
+        const canvas = this._getSectionCanvas(item?.key);
+        if (!canvas) {
+            return;
+        }
+        switch (item.measure_field) {
+            case "department_task_distribution":
+                this._renderChartA(
+                    this.state.data?.task_summary_by_employee || [],
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "department_project_progress":
+                this._renderChartB(
+                    this.state.data?.project_progress || [],
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "department_attendance":
+                this._renderChartC(
+                    this.state.data?.attendance_count || [],
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "department_bug_count":
+                this._renderChartD(
+                    this.state.data?.bug_count_by_employee || [],
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "department_score_trend":
+                this._renderChartE(
+                    this.state.data?.score_trend || {},
+                    canvas,
+                    item.key,
+                );
+                break;
+        }
+    }
+
+    _renderDynamicCharts(charts) {
+        for (const chartInfo of charts || []) {
+            if (!this.chartHasData(chartInfo)) continue;
+            const rootEl = this._getDashboardRootEl();
+            const escapedKey = window.CSS?.escape
+                ? window.CSS.escape(chartInfo.key)
+                : chartInfo.key;
+            const canvas = rootEl?.querySelector(
+                `canvas[data-chart-key="${escapedKey}"]`
+            );
+            if (!canvas) {
+                console.warn(
+                    "DeptKpiDashboard: canvas not found for dynamic chart",
+                    chartInfo.key,
+                    {
+                        rootReady: Boolean(rootEl),
+                        availableKeys: this._getAvailableChartKeys(rootEl),
+                    }
+                );
+                continue;
+            }
+
+            const rendererName =
+                this.constructor.CHART_RENDERERS[chartInfo.chart_type];
+            if (!rendererName || typeof this[rendererName] !== "function") {
+                continue;
+            }
+
+            try {
+                const instance = this[rendererName](canvas, chartInfo);
+                if (instance) {
+                    this._charts[chartInfo.key] = instance;
+                }
+            } catch (error) {
+                console.error(
+                    "DeptKpiDashboard: failed to render dynamic chart",
+                    chartInfo.key,
+                    chartInfo,
+                    error
+                );
+                this.state.chartErrorMsg = _t(
+                    "Some charts could not be rendered. Check browser console for details."
+                );
+            }
+        }
+    }
+
+    _getDashboardRootEl() {
+        return this.dashboardRootRef.el || null;
+    }
+
+    _getSectionCanvas(key) {
+        if (!key) return null;
+        const rootEl = this._getDashboardRootEl();
+        const escapedKey = window.CSS?.escape ? window.CSS.escape(key) : key;
+        return rootEl?.querySelector(`canvas[data-section-key="${escapedKey}"]`);
+    }
+
+    _getAvailableChartKeys(rootEl) {
+        if (!rootEl) return [];
+        return Array.from(rootEl.querySelectorAll("canvas[data-chart-key]"))
+            .map((canvas) => canvas.dataset.chartKey)
+            .filter(Boolean);
+    }
+
+    _renderLineChart(canvas, chartInfo) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        const chartData = chartInfo.chart_data || {};
+        const chartMeta = chartInfo.chart_meta || {};
+        const datasets = (chartData.datasets || []).map((dataset, index) => {
+            const accentColor = index === 0 ? C_GREEN : C_RED;
+            const shouldFill = dataset.fill ?? false;
+            return {
+                borderColor: accentColor,
+                backgroundColor: shouldFill ? "rgba(34,197,94,0.12)" : "rgba(0,0,0,0)",
+                borderWidth: 2,
+                pointBackgroundColor: accentColor,
+                pointRadius: index === 0 ? 4 : 0,
+                tension: 0.35,
+                spanGaps: false,
+                fill: shouldFill,
+                ...dataset,
+            };
+        });
+        const yAxis = chartMeta.y_axis || {};
+        const isHourAxis = yAxis.format === "hour";
+        const yTicks = {
+            stepSize: yAxis.stepSize,
+            callback: isHourAxis ? (value) => formatHour(value) : undefined,
+        };
+        return new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: chartData.labels || [],
+                datasets,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: datasets.length > 1 },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const value = context.parsed?.y;
+                                if (isHourAxis) {
+                                    return `${context.dataset.label}: ${value != null ? formatHour(value) : "--"}`;
+                                }
+                                return `${context.dataset.label}: ${value != null ? value : "--"}`;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        ticks: { maxTicksLimit: 10, font: { size: 10 } },
+                        grid: { display: false },
+                    },
+                    y: {
+                        beginAtZero: isHourAxis ? false : (yAxis.beginAtZero ?? true),
+                        min: yAxis.min,
+                        max: yAxis.max,
+                        ticks: yTicks,
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                    },
+                },
+            },
+        });
+    }
+
+    _renderBarChart(canvas, chartInfo) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        const chartData = chartInfo.chart_data || {};
+        const datasets = (chartData.datasets || []).map((dataset) => ({
+            backgroundColor: C_BLUE,
+            borderRadius: 6,
+            maxBarThickness: 42,
+            ...dataset,
+        }));
+        return new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: chartData.labels || [],
+                datasets,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: datasets.length > 1 },
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                    },
+                },
+            },
+        });
+    }
+
+    _renderDoughnutChart(canvas, chartInfo) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        const chartData = chartInfo.chart_data || {};
+        const labels = chartData.labels || [];
+        const centerTextPlugin = {
+            id: "centerText",
+            afterDraw: (chart) => {
+                const { ctx: chartCtx, chartArea } = chart;
+                if (!chartArea) return;
+                const targetText = chart.config.data.target_center_text;
+                if (!targetText) return;
+
+                const centerX = (chartArea.left + chartArea.right) / 2;
+                const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+                chartCtx.save();
+                chartCtx.font = "12px sans-serif";
+                chartCtx.fillStyle = "#6b7280";
+                chartCtx.textAlign = "center";
+                chartCtx.textBaseline = "middle";
+                chartCtx.fillText("Target", centerX, centerY - 10);
+                chartCtx.font = "bold 16px sans-serif";
+                chartCtx.fillStyle = "#1f2937";
+                chartCtx.fillText(targetText, centerX, centerY + 10);
+                chartCtx.restore();
+            },
+        };
+        return new Chart(ctx, {
+            type: "doughnut",
+            plugins: [centerTextPlugin],
+            data: {
+                labels,
+                datasets: chartData.datasets || [],
+                target_center_text: chartData.target_center_text,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: chartInfo.chart_meta?.cutout || "75%",
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: "top",
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 20,
+                            font: {
+                                size: 12,
+                            },
+                        },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const label = labels[context.dataIndex] || context.label || "";
+                                return `${label}: ${context.parsed}`;
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    _renderChartA(employeeStats, canvas = this.refA.el, chartKey = "A") {
+        if (!canvas) return;
         const source = employeeStats;
         const { names, done, pending, total } = buildChartAData(source);
-        this._charts.A = new Chart(el, {
+        this._charts[chartKey] = new Chart(canvas, {
             type: "bar",
             data: {
                 labels: names,
@@ -627,14 +941,13 @@ export class DeptKpiDashboard extends Component {
         });
     }
 
-    _renderChartB(projectProgress) {
-        const el = this.refB.el;
-        if (!el) return;
+    _renderChartB(projectProgress, canvas = this.refB.el, chartKey = "B") {
+        if (!canvas) return;
 
         const source = projectProgress;
         const { projects, pct, totals, done } = buildChartBData(source);
 
-        this._charts.B = new Chart(el, {
+        this._charts[chartKey] = new Chart(canvas, {
             type: "bar",
             data: {
                 labels: projects,
@@ -682,12 +995,11 @@ export class DeptKpiDashboard extends Component {
         });
     }
 
-    _renderChartC(attendanceData) {
-        const el = this.refC.el;
-        if (!el) return;
+    _renderChartC(attendanceData, canvas = this.refC.el, chartKey = "C") {
+        if (!canvas) return;
         const source = attendanceData;
         const data = buildChartCData(source);
-        this._charts.C = new Chart(el, {
+        this._charts[chartKey] = new Chart(canvas, {
             type: "line",
             data: {
                 labels: data.map((d) => d.name),
@@ -731,12 +1043,11 @@ export class DeptKpiDashboard extends Component {
         });
     }
 
-    _renderChartD(bugData) {
-        const el = this.refD.el;
-        if (!el) return;
+    _renderChartD(bugData, canvas = this.refD.el, chartKey = "D") {
+        if (!canvas) return;
         const source = bugData;
         const data = buildChartDData(source);
-        this._charts.D = new Chart(el, {
+        this._charts[chartKey] = new Chart(canvas, {
             type: "line",
             data: {
                 labels: data.map((d) => d.name),
@@ -776,12 +1087,11 @@ export class DeptKpiDashboard extends Component {
         });
     }
 
-    _renderChartE(trendData) {
-        const el = this.refE.el;
-        if (!el) return;
+    _renderChartE(trendData, canvas = this.refE.el, chartKey = "E") {
+        if (!canvas) return;
         const { labels, datasets } = buildChartEData(trendData);
         if (!labels.length) return;
-        this._charts.E = new Chart(el, {
+        this._charts[chartKey] = new Chart(canvas, {
             type: "line",
             data: { labels, datasets },
             options: {
@@ -803,15 +1113,56 @@ export class DeptKpiDashboard extends Component {
         });
     }
 
-    _renderReportCharts(reportData) {
-        if (!reportData) {
+    _renderReportSections(sections) {
+        for (const section of sections || []) {
+            if (section.section_type === "chart_row") {
+                for (const item of section.items || []) {
+                    this._renderReportSectionItem(item);
+                }
+            } else if (section.section_type === "qualitative_grid") {
+                this._renderReportQualitativeCharts(
+                    section.charts || [],
+                    section.key || "dept-report-qual",
+                );
+            }
+        }
+    }
+
+    _renderReportSectionItem(item) {
+        const canvas = this._getSectionCanvas(item?.key);
+        if (!canvas) {
             return;
         }
-        this._renderReportScoreChart(reportData.employees || []);
-        this._renderReportTaskChart(reportData.task_summary || null);
-        this._renderReportAttendanceChart(reportData.attendance_summary || null);
-        this._renderReportLateChart(reportData.late_summary || null);
-        this._renderReportQualitativeCharts(reportData.qualitative_charts || []);
+        switch (item.measure_field) {
+            case "report_score_bar":
+                this._renderReportScoreChart(
+                    this.reportDashboard?.employees || [],
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "report_task_summary":
+                this._renderReportTaskChart(
+                    this.reportDashboard?.task_summary || null,
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "report_attendance":
+                this._renderReportAttendanceChart(
+                    this.reportDashboard?.attendance_summary || null,
+                    canvas,
+                    item.key,
+                );
+                break;
+            case "report_late_summary":
+                this._renderReportLateChart(
+                    this.reportDashboard?.late_summary || null,
+                    canvas,
+                    item.key,
+                );
+                break;
+        }
     }
 
     _chartReportScoreConfig(employees) {
@@ -876,12 +1227,18 @@ export class DeptKpiDashboard extends Component {
         };
     }
 
-    _renderReportScoreChart(employees) {
-        const el = this.refReportScore.el;
-        if (!el || !employees.length) {
+    _renderReportScoreChart(
+        employees,
+        canvas = this.refReportScore.el,
+        chartKey = "ReportScore",
+    ) {
+        if (!canvas || !employees.length) {
             return;
         }
-        this._charts.ReportScore = new Chart(el, this._chartReportScoreConfig(employees));
+        this._charts[chartKey] = new Chart(
+            canvas,
+            this._chartReportScoreConfig(employees)
+        );
     }
 
     _chartReportTaskConfig(taskSummary) {
@@ -930,12 +1287,18 @@ export class DeptKpiDashboard extends Component {
         };
     }
 
-    _renderReportTaskChart(taskSummary) {
-        const el = this.refReportTask.el;
-        if (!el || !taskSummary?.names?.length) {
+    _renderReportTaskChart(
+        taskSummary,
+        canvas = this.refReportTask.el,
+        chartKey = "ReportTask",
+    ) {
+        if (!canvas || !taskSummary?.names?.length) {
             return;
         }
-        this._charts.ReportTask = new Chart(el, this._chartReportTaskConfig(taskSummary));
+        this._charts[chartKey] = new Chart(
+            canvas,
+            this._chartReportTaskConfig(taskSummary)
+        );
     }
 
     _chartReportAttendanceConfig(attendanceSummary) {
@@ -981,9 +1344,12 @@ export class DeptKpiDashboard extends Component {
         };
     }
 
-    _renderReportAttendanceChart(attendanceSummary) {
-        const el = this.refReportAttendance.el;
-        if (!el || !attendanceSummary?.names?.length) {
+    _renderReportAttendanceChart(
+        attendanceSummary,
+        canvas = this.refReportAttendance.el,
+        chartKey = "ReportAttendance",
+    ) {
+        if (!canvas || !attendanceSummary?.names?.length) {
             return;
         }
         if (!window.Chart.registry.plugins.get("deptReportCenterText")) {
@@ -1013,8 +1379,8 @@ export class DeptKpiDashboard extends Component {
                 },
             });
         }
-        this._charts.ReportAttendance = new Chart(
-            el,
+        this._charts[chartKey] = new Chart(
+            canvas,
             this._chartReportAttendanceConfig(attendanceSummary)
         );
     }
@@ -1058,12 +1424,18 @@ export class DeptKpiDashboard extends Component {
         };
     }
 
-    _renderReportLateChart(lateSummary) {
-        const el = this.refReportLate.el;
-        if (!el || !lateSummary?.names?.length) {
+    _renderReportLateChart(
+        lateSummary,
+        canvas = this.refReportLate.el,
+        chartKey = "ReportLate",
+    ) {
+        if (!canvas || !lateSummary?.names?.length) {
             return;
         }
-        this._charts.ReportLate = new Chart(el, this._chartReportLateConfig(lateSummary));
+        this._charts[chartKey] = new Chart(
+            canvas,
+            this._chartReportLateConfig(lateSummary)
+        );
     }
 
     _chartReportQualitativeConfig(qualitativeChart) {
@@ -1121,13 +1493,18 @@ export class DeptKpiDashboard extends Component {
         };
     }
 
-    _renderReportQualitativeCharts(qualitativeCharts) {
+    _renderReportQualitativeCharts(
+        qualitativeCharts,
+        sectionKey = "dept-report-qual",
+    ) {
         qualitativeCharts.forEach((qualitativeChart, index) => {
-            const el = document.getElementById(`dept-report-qual-chart-${index}`);
+            const el = document.getElementById(
+                `${sectionKey}-qual-chart-${index}`
+            );
             if (!el) {
                 return;
             }
-            const key = `ReportQual_${index}`;
+            const key = `${sectionKey}_ReportQual_${index}`;
             if (this._charts[key]) {
                 this._charts[key].destroy();
             }

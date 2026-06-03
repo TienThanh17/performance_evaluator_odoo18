@@ -57,7 +57,7 @@
             <field name="name">Bảng bậc thang</field>
             <field name="sequence">21</field>
             <field name="formula_type">step_table</field>
-            <field name="step_out_of_range">zero</field>
+            <field name="step_out_of_range">nearest</field>
             <field name="step_table_json"><![CDATA[
 [
   {"from": 0, "to": 50, "score": 0},

@@ -26,24 +26,37 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
         string="Employee KPI Template",
         help="KPI template to use for generating individual employee evaluations.",
     )
-    period_id = fields.Many2one(
-        related="department_kpi_id.period_id",
-        string="KPI Period",
-        store=True,
-        readonly=False,
+    period_type = fields.Selection(
+        related="department_kpi_id.period_type",
+        string="Period Type",
     )
-    start_date = fields.Date(string="Start Date", required=True)
-    end_date = fields.Date(string="End Date", required=True)
+    period_id = fields.Many2one(
+        "hr.kpi.period",
+        string="KPI Period",
+        required=True,
+        domain="[('period_type', '=', period_type)]",
+    )
+    start_date = fields.Date(
+        related="period_id.date_start",
+        string="Start Date",
+        readonly=True,
+        store=True,
+    )
+    end_date = fields.Date(
+        related="period_id.date_end",
+        string="End Date",
+        readonly=True,
+        store=True,
+    )
     deadline = fields.Date(string="Deadline", required=True)
 
-    @api.onchange("department_kpi_id")
+    @api.onchange("department_kpi_id", "period_id")
     def _onchange_department_kpi_id(self):
         if self.department_kpi_id and self.department_id and self.period_id:
             kpi = self.env["hr.kpi.template"].search(
                 [
                     ("department_kpi_id", "=", self.department_kpi_id.id),
                     ("department_id", "=", self.department_id.id),
-                    ("period_id", "=", self.period_id.id),
                 ],
                 limit=1,
             )
@@ -51,7 +64,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                 kpi = self.env["hr.kpi.template"].search(
                     [
                         ("department_id", "=", self.department_id.id),
-                        ("period_id", "=", self.period_id.id),
+                        ("period_type", "=", self.period_id.period_type),
                     ],
                     limit=1,
                 )
@@ -61,15 +74,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
     def _onchange_period_set_dates(self):
         if not self.period_id:
             return
-        self.start_date = self.period_id.date_start
-        self.end_date = self.period_id.date_end
         self.deadline = self.period_id.date_end + relativedelta(days=5)
-
-    @api.constrains("start_date", "end_date")
-    def _check_date_range(self):
-        for rec in self:
-            if rec.start_date and rec.end_date and rec.start_date > rec.end_date:
-                raise ValidationError(_("Start Date must be before or equal to End Date."))
 
     def _employee_matches_kpi(self, employee, kpi):
         if not kpi:
@@ -86,9 +91,9 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             raise ValidationError(
                 _("The Department KPI Template must have a Department assigned.")
             )
-        if self.kpi_template_id and self.kpi_template_id.period_id != self.period_id:
+        if self.kpi_template_id and self.kpi_template_id.period_type != self.period_id.period_type:
             raise ValidationError(
-                _("The Employee KPI Template period must match the selected Department KPI period.")
+                _("The Employee KPI Template period type must match the selected Department KPI period type.")
             )
 
         employees = self.env["hr.employee"].search(
@@ -178,7 +183,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                         [
                             ("employee_id", "=", emp.id),
                             ("kpi_id", "=", self.kpi_template_id.id),
-                            ("period_id", "=", self.kpi_template_id.period_id.id),
+                            ("period_id", "=", self.period_id.id),
                             ("start_date", "=", self.start_date),
                             ("end_date", "=", self.end_date),
                         ],
@@ -191,7 +196,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                 scratch = Evaluation.new(
                     {
                         "kpi_id": self.kpi_template_id.id,
-                        "period_id": self.kpi_template_id.period_id.id,
+                        "period_id": self.period_id.id,
                     }
                 )
                 line_cmds = scratch._prepare_evaluation_line_commands_from_template(
@@ -202,7 +207,7 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                     {
                         "employee_id": emp.id,
                         "kpi_id": self.kpi_template_id.id,
-                        "period_id": self.kpi_template_id.period_id.id,
+                        "period_id": self.period_id.id,
                         "start_date": self.start_date,
                         "end_date": self.end_date,
                         "deadline": self.deadline,
