@@ -99,6 +99,27 @@ class PerformanceEvaluation(models.Model):
         string="Evaluation Lines",
         help="The KPI lines to be evaluated for this employee (generated from the KPI template and editable based on roles).",
     )
+    evaluation_line_p2_1_ids = fields.One2many(
+        "hr.performance.evaluation.line",
+        "evaluation_id",
+        domain=[("pillar_code", "=", "p2_1")],
+        string="P2.1 Evaluation Lines",
+        help="Evaluation lines that belong to the P2.1 pillar.",
+    )
+    evaluation_line_p2_2_ids = fields.One2many(
+        "hr.performance.evaluation.line",
+        "evaluation_id",
+        domain=[("pillar_code", "=", "p2_2")],
+        string="P2.2 Evaluation Lines",
+        help="Evaluation lines that belong to the P2.2 pillar.",
+    )
+    evaluation_line_p3_individual_ids = fields.One2many(
+        "hr.performance.evaluation.line",
+        "evaluation_id",
+        domain=[("pillar_code", "=", "p3_individual")],
+        string="P3 Individual Evaluation Lines",
+        help="Evaluation lines that belong to the P3 individual pillar.",
+    )
     name = fields.Char(string="Reference", readonly=True)
     performance_score = fields.Float(
         string="Individual KPI Score",
@@ -479,19 +500,50 @@ class PerformanceEvaluation(models.Model):
                 continue
             record.state = "cancel"
 
-    @api.depends("evaluation_line_ids.final_rating", "evaluation_line_ids.weight")
+    @api.depends(
+        "evaluation_line_ids.final_rating",
+        "evaluation_line_ids.weight",
+        "evaluation_line_ids.parent_line_id",
+    )
     def _compute_performance_score(self):
         for record in self:
-            scorable_lines = record.evaluation_line_ids.filtered(
-                lambda l: not l.is_section
+            record.performance_score = record._compute_weighted_score_from_lines(
+                record._get_top_level_scorable_lines()
             )
-            total_weighted_score_sum = sum(
-                line.final_rating * line.weight for line in scorable_lines
-            )
-            total_weight_sum = sum(line.weight for line in scorable_lines)
-            record.performance_score = (
-                total_weighted_score_sum / total_weight_sum if total_weight_sum else 0.0
-            )
+
+    def _get_top_level_scorable_lines(self, pillar_code=None):
+        self.ensure_one()
+        lines = self.evaluation_line_ids.filtered(
+            lambda line: not line.is_section and not line.parent_line_id
+        )
+        if pillar_code:
+            lines = lines.filtered(lambda line: line.pillar_code == pillar_code)
+        return lines
+
+    def _compute_weighted_score_from_lines(self, lines):
+        self.ensure_one()
+        if not lines:
+            return 0.0
+        total_weight_sum = sum(lines.mapped("weight"))
+        if total_weight_sum > 0:
+            return sum(line.final_rating * line.weight for line in lines) / total_weight_sum
+        return sum(lines.mapped("final_rating")) / len(lines)
+
+    def get_weighted_score_by_pillar_code(self, pillar_code):
+        self.ensure_one()
+        return self._compute_weighted_score_from_lines(
+            self._get_top_level_scorable_lines(pillar_code)
+        )
+
+    def _get_level_from_score(self, score):
+        self.ensure_one()
+        excellent, passed = self._get_thresholds_for_record()
+        score = float(score or 0.0)
+        if score >= excellent:
+            return "excellent"
+        if score >= passed:
+            return "pass"
+        return "fail"
 
     def action_recompute_performance_score(self):
         """Manual refresh for performance_score to reflect current evaluation lines.
@@ -609,7 +661,10 @@ class PerformanceEvaluation(models.Model):
                 or "0001"
             )
             vals["name"] = f"KPI/{sequence}/{year}"
-        return super().create(vals_list)
+
+        records = super().create(vals_list)
+        records._rebuild_line_hierarchy_from_template()
+        return records
 
     @api.depends("employee_id")
     def _compute_employee_info(self):
@@ -669,16 +724,20 @@ class PerformanceEvaluation(models.Model):
                     fields.Command.create(
                         {
                             "kpi_line_id": line.id,
+                            "parent_template_line_id": line.parent_line_id.id,
                             "sequence": line.sequence,
                             "is_section": True,
                             "display_type": (line.display_type or "line_section"),
                             "key_performance_area": line.key_performance_area,
+                            "pillar_id": line.pillar_id.id,
+                            "category_id": line.category_id.id,
                             "description": False,
                             # Safe defaults for required KPI fields on section rows
                             "kpi_type": "quantitative",
                             "target": 0.0,
                             "unit": False,
                             "weight": 0.0,
+                            "score_scale_base_override": line.score_scale_base_override,
                             "is_auto": False,
                         }
                     )
@@ -690,23 +749,45 @@ class PerformanceEvaluation(models.Model):
                 fields.Command.create(
                     {
                         "kpi_line_id": line.id,
+                        "parent_template_line_id": line.parent_line_id.id,
                         "parent_dept_line_id": parent_dept_line.id,
                         "parent_dept_evaluation_line_id": dept_eval_line_by_template_line.get(
                             parent_dept_line.id
                         ),
                         "sequence": line.sequence,
+                        "pillar_id": line.pillar_id.id,
+                        "category_id": line.category_id.id,
                         "key_performance_area": line.key_performance_area,
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
                         "target": line.target,
                         "unit": line.unit.id or False,
                         "weight": line.weight,
+                        "score_scale_base_override": line.score_scale_base_override,
                         "is_auto": bool(line.is_auto),
                     }
                 )
             )
         return commands
 
+    def _rebuild_line_hierarchy_from_template(self):
+        for evaluation in self:
+            line_by_template = {
+                line.kpi_line_id.id: line
+                for line in evaluation.evaluation_line_ids
+                if line.kpi_line_id
+            }
+            for line in evaluation.evaluation_line_ids:
+                parent_line = (
+                    line_by_template.get(line.parent_template_line_id.id)
+                    if line.parent_template_line_id
+                    else False
+                )
+                if line.parent_line_id != parent_line:
+                    line.with_context(skip_line_chatter_audit=True).write(
+                        {"parent_line_id": parent_line.id if parent_line else False}
+                    )
+        
     @api.onchange("kpi_id")
     def _onchange_kpi_id(self):
         # if not self.kpi_id:
@@ -734,7 +815,7 @@ class PerformanceEvaluation(models.Model):
             date_from = evaluation.start_date
             date_to = evaluation.end_date
             for line in evaluation.evaluation_line_ids:
-                if not line.is_auto:
+                if not line.is_auto or line.child_line_ids:
                     continue
                 # Evaluation line carries the template data_source/unit for auto-compute.
                 vals = {}
@@ -896,6 +977,7 @@ class PerformanceEvaluation(models.Model):
         lines = evaluation.evaluation_line_ids.filtered(
             lambda l: (
                 not l.is_section
+                and not l.parent_line_id
                 and l.kpi_type == "quantitative"
             )
         )

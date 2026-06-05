@@ -58,6 +58,37 @@ class HrDepartmentKpiTemplateLine(models.Model):
     department_kpi_id = fields.Many2one(
         "hr.department.kpi.template", ondelete="cascade"
     )
+    pillar_id = fields.Many2one(
+        "hr.evaluation.pillar",
+        string="Pillar",
+        ondelete="restrict",
+    )
+    pillar_code = fields.Char(
+        related="pillar_id.code",
+        string="Pillar Code",
+        store=True,
+        readonly=True,
+    )
+    category_id = fields.Many2one(
+        "hr.evaluation.category",
+        string="Category",
+        ondelete="restrict",
+    )
+    parent_line_id = fields.Many2one(
+        "hr.department.kpi.template.line",
+        string="Parent Line",
+        ondelete="set null",
+        index=True,
+    )
+    child_line_ids = fields.One2many(
+        "hr.department.kpi.template.line",
+        "parent_line_id",
+        string="Child Lines",
+    )
+    score_scale_base_override = fields.Float(
+        string="Score Scale Base Override",
+        help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
+    )
     child_template_line_ids = fields.One2many(
         "hr.kpi.template.line",
         "parent_dept_line_id",
@@ -129,6 +160,35 @@ class HrDepartmentKpiTemplateLine(models.Model):
             if rec.kpi_type == "quantitative" and (rec.target or 0.0) < 0.0:
                 raise ValidationError(
                     _("For Quantitative KPI type, Target must be greater than or equal 0.")
+                )
+
+    @api.constrains("category_id", "pillar_id")
+    def _check_category_pillar(self):
+        for rec in self:
+            if rec.category_id and rec.pillar_id and rec.category_id.pillar_id != rec.pillar_id:
+                raise ValidationError(
+                    _("The selected category must belong to the selected pillar.")
+                )
+
+    @api.constrains("parent_line_id", "department_kpi_id")
+    def _check_parent_line(self):
+        for rec in self:
+            parent = rec.parent_line_id
+            if not parent:
+                continue
+            if parent == rec:
+                raise ValidationError(_("A KPI line cannot be its own parent."))
+            if parent.department_kpi_id != rec.department_kpi_id:
+                raise ValidationError(
+                    _("The parent KPI line must belong to the same department KPI template.")
+                )
+            if parent.is_section:
+                raise ValidationError(
+                    _("A section line cannot be selected as a parent KPI line.")
+                )
+            if parent.parent_line_id == rec:
+                raise ValidationError(
+                    _("Recursive KPI line hierarchy is not allowed.")
                 )
 
     @api.constrains("is_section", "kpi_type", "scoring_formula_id")

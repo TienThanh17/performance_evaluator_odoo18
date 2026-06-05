@@ -13,6 +13,27 @@ class HrKpiTemplate(models.Model):
         "kpi_id",
         help="The KPI lines included in this KPI template.",
     )
+    kpi_line_p2_1_ids = fields.One2many(
+        "hr.kpi.template.line",
+        "kpi_id",
+        domain=[("pillar_code", "=", "p2_1")],
+        string="P2.1 KPI Lines",
+        help="KPI lines that belong to the P2.1 pillar.",
+    )
+    kpi_line_p2_2_ids = fields.One2many(
+        "hr.kpi.template.line",
+        "kpi_id",
+        domain=[("pillar_code", "=", "p2_2")],
+        string="P2.2 KPI Lines",
+        help="KPI lines that belong to the P2.2 pillar.",
+    )
+    kpi_line_p3_individual_ids = fields.One2many(
+        "hr.kpi.template.line",
+        "kpi_id",
+        domain=[("pillar_code", "=", "p3_individual")],
+        string="P3 Individual KPI Lines",
+        help="KPI lines that belong to the P3 individual pillar.",
+    )
     job_id = fields.Many2one(
         "hr.job",
         string="Job Position",

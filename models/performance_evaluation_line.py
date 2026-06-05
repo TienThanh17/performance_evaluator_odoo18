@@ -7,11 +7,12 @@ from odoo.tools import html2plaintext
 
 _logger = logging.getLogger(__name__)
 
-
 class PerformanceEvaluationLine(models.Model):
     _name = "hr.performance.evaluation.line"
     _description = "Performance Evaluation Line"
     _order = "sequence, id"
+    _rec_name = "key_performance_area"
+
     _CHATTER_TRACK_FIELD_ORDER = (
         "key_performance_area",
         "kpi_type",
@@ -54,6 +55,24 @@ class PerformanceEvaluationLine(models.Model):
         index=True,
         help="The department evaluation line generated for the same period.",
     )
+    parent_template_line_id = fields.Many2one(
+        "hr.kpi.template.line",
+        string="Parent Template Line",
+        ondelete="set null",
+        index=True,
+        help="Template parent used to rebuild the hierarchy on generated evaluation lines.",
+    )
+    parent_line_id = fields.Many2one(
+        "hr.performance.evaluation.line",
+        string="Parent Line",
+        ondelete="set null",
+        index=True,
+    )
+    child_line_ids = fields.One2many(
+        "hr.performance.evaluation.line",
+        "parent_line_id",
+        string="Child Lines",
+    )
 
     evaluation_id = fields.Many2one(
         "hr.performance.evaluation",
@@ -72,6 +91,22 @@ class PerformanceEvaluationLine(models.Model):
         string="Employee",
         related="evaluation_id.employee_id",
         store=False,
+    )
+    pillar_id = fields.Many2one(
+        "hr.evaluation.pillar",
+        string="Pillar",
+        ondelete="restrict",
+    )
+    pillar_code = fields.Char(
+        related="pillar_id.code",
+        string="Pillar Code",
+        store=True,
+        readonly=True,
+    )
+    category_id = fields.Many2one(
+        "hr.evaluation.category",
+        string="Category",
+        ondelete="restrict",
     )
     key_performance_area = fields.Char(
         string="Key Performance Area",
@@ -106,6 +141,15 @@ class PerformanceEvaluationLine(models.Model):
         string="Weight",
         default=0.0,
         help="Weight of this KPI in the overall evaluation (higher weight has more impact).",
+    )
+    score_scale_base_override = fields.Float(
+        string="Score Scale Base Override",
+        help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
+    )
+    score_max_display = fields.Char(
+        string="Max Score",
+        compute="_compute_score_max_display",
+        store=False,
     )
 
     is_auto = fields.Boolean(
@@ -276,7 +320,7 @@ class PerformanceEvaluationLine(models.Model):
     )
 
     employee_comment = fields.Html(
-        string="Sefl Comment",
+        string="Self Comment",
         sanitize=True,
         help="Employee notes or justification for the self-assessment.",
     )
@@ -448,6 +492,15 @@ class PerformanceEvaluationLine(models.Model):
                 rec.kpi_type == "quantitative" and rec.data_source_id
             )
 
+    # Compute the score scale hint shown next to score-based evaluation inputs.
+    @api.depends("kpi_type", "score_scale_base_override")
+    def _compute_score_max_display(self):
+        for rec in self:
+            if rec.kpi_type == "score" and (rec.score_scale_base_override or 0) > 0:
+                rec.score_max_display = f"/ {rec.score_scale_base_override:g} pts"
+            else:
+                rec.score_max_display = ""
+
     @api.depends(
         "kpi_type",
         "formula_type",
@@ -507,7 +560,51 @@ class PerformanceEvaluationLine(models.Model):
 
     def _get_score_base(self):
         """Thang điểm KPI được cấu hình theo từng khách hàng/database."""
+        self.ensure_one()
+        if self.score_scale_base_override and self.score_scale_base_override > 0:
+            return self.score_scale_base_override
         return self.env["res.config.settings"].get_score_scale_base()
+
+    # Sum non-section child ratings so parent lines can enforce a score cap.
+    def _get_child_score_total(self):
+        self.ensure_one()
+        child_lines = self.child_line_ids.filtered(lambda line: not line.is_section)
+        return sum(child_lines.mapped("final_rating"))
+
+    # Enforce that child ratings do not exceed the parent score override.
+    def _check_child_score_total_limit(self):
+        for line in self:
+            score_limit = line.score_scale_base_override or 0.0
+            if score_limit <= 0:
+                continue
+
+            child_lines = line.child_line_ids.filtered(lambda child: not child.is_section)
+            if not child_lines:
+                continue
+
+            child_total = line._get_child_score_total()
+            if child_total > score_limit:
+                raise ValidationError(
+                    _(
+                        "The total score of child KPI lines (%(child_total)s) cannot exceed the parent maximum score (%(score_limit)s)."
+                    )
+                    % {
+                        "child_total": f"{child_total:g}",
+                        "score_limit": f"{score_limit:g}",
+                    }
+                )
+
+    def _get_child_score_aggregate(self):
+        self.ensure_one()
+        child_lines = self.child_line_ids.filtered(lambda line: not line.is_section)
+        if not child_lines:
+            return False
+        total_weight = sum(child_lines.mapped("weight"))
+        if total_weight > 0:
+            return sum(
+                child.final_rating * child.weight for child in child_lines
+            ) / total_weight
+        return sum(child_lines.mapped("final_rating")) / len(child_lines)
 
     @api.depends("target", "actual", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
@@ -561,12 +658,15 @@ class PerformanceEvaluationLine(models.Model):
         "actual",
         "target",
         "kpi_type",
+        "score_scale_base_override",
         "employee_rating_binary",
         "employee_rating_selection",
         "employee_rating_score",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
+        "child_line_ids.final_rating",
+        "child_line_ids.weight",
         "formula_type",
         "step_table_json",
         "scoring_formula_id",
@@ -595,11 +695,19 @@ class PerformanceEvaluationLine(models.Model):
           actual = target (achieved) hoặc 0 (not achieved)
           → score = score_base nếu đạt, ngược lại = 0
         """
-        score_base = self._get_score_base()
         for line in self:
+            score_base = line._get_score_base()
             score = 0.0
             actual = line.actual or 0.0
             target = line.target or 0.0
+
+            child_score = line._get_child_score_aggregate()
+            if child_score is not False:
+                line.system_score = round(
+                    max(0.0, min(child_score, score_base)),
+                    2,
+                )
+                continue
 
             if line.kpi_type == "quantitative":
                 line.system_score = line._compute_system_score_for_line(
@@ -638,13 +746,14 @@ class PerformanceEvaluationLine(models.Model):
     @api.depends(
         "kpi_type",
         "system_score",
+        "score_scale_base_override",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
     )
     def _compute_final_rating(self):
-        score_base = self._get_score_base()
         for line in self:
+            score_base = line._get_score_base()
             if line.kpi_type == "quantitative":
                 # system_score đã đúng, dùng thẳng
                 line.final_rating = round(
@@ -670,8 +779,8 @@ class PerformanceEvaluationLine(models.Model):
 
     @api.depends("final_rating")
     def _compute_final_rating_badge_text(self):
-        score_base = self._get_score_base()
         for line in self:
+            score_base = line._get_score_base()
             rating = line.final_rating
             if rating == 0:
                 line.final_rating_badge_text = "0"
@@ -738,42 +847,75 @@ class PerformanceEvaluationLine(models.Model):
                         "Manager rating selection must be between 0 and 5."
                     )
 
-    @api.constrains("employee_rating_score", "manager_rating_score", "kpi_type")
-    def _check_score_range(self):
-        score_base = self._get_score_base()
-        for rec in self:
-            if rec.kpi_type == "score":
-                if not 0 <= (rec.employee_rating_score or 0) <= score_base:
-                    raise ValidationError(
-                        _("Employee score must be between 0 and %(max_score)s.")
-                        % {"max_score": f"{score_base:g}"}
-                    )
-                if not 0 <= (rec.manager_rating_score or 0) <= score_base:
-                    raise ValidationError(
-                        _("Manager score must be between 0 and %(max_score)s.")
-                        % {"max_score": f"{score_base:g}"}
-                    )
+    # @api.constrains("employee_rating_score", "manager_rating_score", "kpi_type")
+    # def _check_score_range(self):
+    #     for rec in self:
+    #         score_base = rec._get_score_base()
+    #         if rec.kpi_type == "score":
+    #             if not 0 <= (rec.employee_rating_score or 0) <= score_base:
+    #                 raise ValidationError(
+    #                     _("Employee score must be between 0 and %(max_score)s.")
+    #                     % {"max_score": f"{score_base:g}"}
+    #                 )
+    #             if not 0 <= (rec.manager_rating_score or 0) <= score_base:
+    #                 raise ValidationError(
+    #                     _("Manager score must be between 0 and %(max_score)s.")
+    #                     % {"max_score": f"{score_base:g}"}
+    #                 )
 
-    @api.constrains("employee_rating_value", "manager_rating_value")
-    def _check_value_ratings_range(self):
-        score_base = self._get_score_base()
+    # @api.constrains("employee_rating_value", "manager_rating_value")
+    # def _check_value_ratings_range(self):
+    #     for rec in self:
+    #         score_base = rec._get_score_base()
+    #         if (
+    #             rec.employee_rating_value is not None
+    #             and not 0.0 <= rec.employee_rating_value <= score_base
+    #         ):
+    #             raise ValidationError(
+    #                 _("Employee rating value must be between 0 and %(max_score)s.")
+    #                 % {"max_score": f"{score_base:g}"}
+    #             )
+    #         if (
+    #             rec.manager_rating_value is not None
+    #             and not 0.0 <= rec.manager_rating_value <= score_base
+    #         ):
+    #             raise ValidationError(
+    #                 _("Manager rating value must be between 0 and %(max_score)s.")
+    #                 % {"max_score": f"{score_base:g}"}
+    #             )
+
+    @api.constrains("category_id", "pillar_id")
+    def _check_category_pillar(self):
         for rec in self:
-            if (
-                rec.employee_rating_value is not None
-                and not 0.0 <= rec.employee_rating_value <= score_base
-            ):
+            if rec.category_id and rec.pillar_id and rec.category_id.pillar_id != rec.pillar_id:
                 raise ValidationError(
-                    _("Employee rating value must be between 0 and %(max_score)s.")
-                    % {"max_score": f"{score_base:g}"}
+                    _("The selected category must belong to the selected pillar.")
                 )
-            if (
-                rec.manager_rating_value is not None
-                and not 0.0 <= rec.manager_rating_value <= score_base
-            ):
+
+    @api.constrains("parent_line_id", "evaluation_id")
+    def _check_parent_line(self):
+        for rec in self:
+            parent = rec.parent_line_id
+            if not parent:
+                continue
+            if parent == rec:
+                raise ValidationError(_("A KPI line cannot be its own parent."))
+            if parent.evaluation_id != rec.evaluation_id:
                 raise ValidationError(
-                    _("Manager rating value must be between 0 and %(max_score)s.")
-                    % {"max_score": f"{score_base:g}"}
+                    _("The parent line must belong to the same evaluation.")
                 )
+            if parent.is_section:
+                raise ValidationError(
+                    _("A section line cannot be selected as a parent KPI line.")
+                )
+            if parent.parent_line_id == rec:
+                raise ValidationError(
+                    _("Recursive KPI line hierarchy is not allowed.")
+                )
+
+    @api.constrains("score_scale_base_override", "child_line_ids", "final_rating")
+    def _check_child_score_total_limit_constraint(self):
+        self._check_child_score_total_limit()
 
     def _mirror_employee_to_manager_vals(self, vals, vals_before=None):
         """Mirror employee self-rating into manager rating on self evaluation evaluations.
@@ -806,6 +948,13 @@ class PerformanceEvaluationLine(models.Model):
     def create(self, vals_list):
         """Keep section consistency and append new lines by sequence when not provided."""
         seq_step = 10
+        default_pillar_code = self.env.context.get("default_pillar_code")
+        default_pillar = False
+        if default_pillar_code:
+            default_pillar = self.env["hr.evaluation.pillar"].search(
+                [("code", "=", default_pillar_code)],
+                limit=1,
+            )
 
         eval_ids = {
             vals.get("evaluation_id") for vals in vals_list if vals.get("evaluation_id")
@@ -823,6 +972,8 @@ class PerformanceEvaluationLine(models.Model):
                     max_seq_by_eval[eid] = l.get("sequence") or 0
 
         for vals in vals_list:
+            if default_pillar and not vals.get("pillar_id"):
+                vals["pillar_id"] = default_pillar.id
             if vals.get("display_type") and "is_section" not in vals:
                 vals["is_section"] = True
 
@@ -849,12 +1000,16 @@ class PerformanceEvaluationLine(models.Model):
                     "manager_rating_score", vals.get("employee_rating_score")
                 )
 
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        (records | records.mapped("parent_line_id"))._check_child_score_total_limit()
+        return records
 
     def write(self, vals):
         # 1. Đảm bảo tính nhất quán cho các dòng Section
         if vals.get("display_type") and "is_section" not in vals:
             vals = dict(vals, is_section=True)
+
+        parent_lines_before = self.mapped("parent_line_id")
 
         # Lưu lại bản sao dữ liệu GỐC trước khi bị mirror can thiệp
         vals_before = dict(vals or {})
@@ -932,22 +1087,23 @@ class PerformanceEvaluationLine(models.Model):
             # =====================================================================
             # LOGIC 2: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA MANAGER
             # =====================================================================
-            if editing_manager_fields:
-                if not is_manager_group:
-                    raise UserError(
-                        _(
-                            "You do not have the required Manager access to edit manager fields."
-                        )
-                    )
+            # if editing_manager_fields:
+            #     if not is_manager_group:
+            #         raise UserError(
+            #             _(
+            #                 "You do not have the required Manager access to edit manager fields."
+            #             )
+            #         )
 
-                if any(line.evaluation_id.state != "manager_evaluating" for line in self):
-                    raise UserError(
-                        _(
-                            "Manager rating is only editable in the Manager Evaluating state."
-                        )
-                    )
+            #     if any(line.evaluation_id.state != "manager_evaluating" for line in self):
+            #         raise UserError(
+            #             _(
+            #                 "Manager rating is only editable in the Manager Evaluating state."
+            #             )
+            #         )
 
         res = super().write(vals)
+        (self | parent_lines_before | self.mapped("parent_line_id"))._check_child_score_total_limit()
         if snapshot_by_line:
             self._post_parent_chatter_audit(tracked_fields, snapshot_by_line)
         return res

@@ -28,8 +28,42 @@ class HrDepartmentEvaluationLine(models.Model):
         "hr.department.performance.evaluation", ondelete="cascade"
     )
     department_kpi_line_id = fields.Many2one("hr.department.kpi.template.line")
+    parent_template_line_id = fields.Many2one(
+        "hr.department.kpi.template.line",
+        string="Parent Template Line",
+        ondelete="set null",
+        index=True,
+        help="Template parent used to rebuild the hierarchy on generated department evaluation lines.",
+    )
+    parent_line_id = fields.Many2one(
+        "hr.department.evaluation.line",
+        string="Parent Line",
+        ondelete="set null",
+        index=True,
+    )
+    child_line_ids = fields.One2many(
+        "hr.department.evaluation.line",
+        "parent_line_id",
+        string="Child Lines",
+    )
 
     name = fields.Char()
+    pillar_id = fields.Many2one(
+        "hr.evaluation.pillar",
+        string="Pillar",
+        ondelete="restrict",
+    )
+    pillar_code = fields.Char(
+        related="pillar_id.code",
+        string="Pillar Code",
+        store=True,
+        readonly=True,
+    )
+    category_id = fields.Many2one(
+        "hr.evaluation.category",
+        string="Category",
+        ondelete="restrict",
+    )
     kpi_type = fields.Selection(
         [
             ("quantitative", "Quantitative"),
@@ -48,6 +82,10 @@ class HrDepartmentEvaluationLine(models.Model):
         help="Display unit for Target/Actual, e.g. %, tasks, days, score.",
     )
     weight = fields.Float()
+    score_scale_base_override = fields.Float(
+        string="Score Scale Base Override",
+        help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
+    )
     is_auto = fields.Boolean()
     dept_source_type = fields.Selection(
         related="department_kpi_line_id.dept_source_type",
@@ -287,9 +325,27 @@ class HrDepartmentEvaluationLine(models.Model):
                 )
             line.child_line_rows_json = json.dumps(child_rows, ensure_ascii=False)
 
+    def _get_score_base(self):
+        self.ensure_one()
+        if self.score_scale_base_override and self.score_scale_base_override > 0:
+            return self.score_scale_base_override
+        return self.env["res.config.settings"].get_score_scale_base()
+
+    def _get_child_score_aggregate(self):
+        self.ensure_one()
+        child_lines = self.child_line_ids.filtered(lambda line: not line.is_section)
+        if not child_lines:
+            return False
+        total_weight = sum(child_lines.mapped("weight"))
+        if total_weight > 0:
+            return sum(
+                child.final_score * child.weight for child in child_lines
+            ) / total_weight
+        return sum(child_lines.mapped("final_score")) / len(child_lines)
+
     def _compute_system_score_for_line(self, line, actual, target, score_base=None):
         score_base = float(
-            score_base or self.env["res.config.settings"].get_score_scale_base() or 0.0
+            score_base or line._get_score_base() or 0.0
         )
         formula = (
             line.department_kpi_line_id.get_effective_formula()
@@ -313,9 +369,12 @@ class HrDepartmentEvaluationLine(models.Model):
         "actual",
         "target",
         "kpi_type",
+        "score_scale_base_override",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
+        "child_line_ids.final_score",
+        "child_line_ids.weight",
         "scoring_formula_id",
         "scoring_formula_id.formula_type",
         "scoring_formula_id.linear_direction",
@@ -327,10 +386,18 @@ class HrDepartmentEvaluationLine(models.Model):
         "scoring_formula_id.expression_code",
     )
     def _compute_system_score(self):
-        score_base = self.env["res.config.settings"].get_score_scale_base()
         for line in self:
+            score_base = line._get_score_base()
             if line.is_section:
                 line.system_score = 0.0
+                continue
+
+            child_score = line._get_child_score_aggregate()
+            if child_score is not False:
+                line.system_score = round(
+                    max(0.0, min(child_score, score_base)),
+                    2,
+                )
                 continue
 
             score = 0.0
@@ -359,8 +426,8 @@ class HrDepartmentEvaluationLine(models.Model):
 
     @api.depends("system_score")
     def _compute_final_score(self):
-        score_base = self.env["res.config.settings"].get_score_scale_base()
         for line in self:
+            score_base = line._get_score_base()
             line.final_score = round(max(0.0, min(line.system_score or 0.0, score_base)), 2)
 
     # Thay thế hàm hiện tại bằng đoạn code này:
@@ -424,12 +491,41 @@ class HrDepartmentEvaluationLine(models.Model):
 
     @api.constrains("manager_rating_score", "kpi_type")
     def _check_manager_rating_score_range(self):
-        score_base = self.env["res.config.settings"].get_score_scale_base()
         for rec in self:
+            score_base = rec._get_score_base()
             if rec.kpi_type == "score" and not 0 <= (rec.manager_rating_score or 0.0) <= score_base:
                 raise ValidationError(
                     _("Manager score must be between 0 and %(max_score)s.")
                     % {"max_score": f"{score_base:g}"}
+                )
+
+    @api.constrains("category_id", "pillar_id")
+    def _check_category_pillar(self):
+        for rec in self:
+            if rec.category_id and rec.pillar_id and rec.category_id.pillar_id != rec.pillar_id:
+                raise ValidationError(
+                    _("The selected category must belong to the selected pillar.")
+                )
+
+    @api.constrains("parent_line_id", "evaluation_id")
+    def _check_parent_line(self):
+        for rec in self:
+            parent = rec.parent_line_id
+            if not parent:
+                continue
+            if parent == rec:
+                raise ValidationError(_("A KPI line cannot be its own parent."))
+            if parent.evaluation_id != rec.evaluation_id:
+                raise ValidationError(
+                    _("The parent line must belong to the same evaluation.")
+                )
+            if parent.is_section:
+                raise ValidationError(
+                    _("A section line cannot be selected as a parent KPI line.")
+                )
+            if parent.parent_line_id == rec:
+                raise ValidationError(
+                    _("Recursive KPI line hierarchy is not allowed.")
                 )
 
     def write(self, vals):

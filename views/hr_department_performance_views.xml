@@ -15,6 +15,21 @@
                         </h2>
                     </div>
 
+                    <group string="Structure" invisible="is_section">
+                        <group>
+                            <field name="pillar_id" options="{'no_create': True}"/>
+                            <field name="category_id"
+                                   domain="[('pillar_id', '=', pillar_id)]"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="parent_line_id"
+                                   domain="[('evaluation_id', '=', evaluation_id), ('id', '!=', id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="score_scale_base_override"/>
+                        </group>
+                    </group>
+
                     <group string="Target / Actual"
                            invisible="is_section or kpi_type != 'quantitative'">
                         <group>
@@ -61,6 +76,7 @@
                         <group>
                             <field name="kpi_type"/>
                             <field name="weight"/>
+                            <field name="score_scale_base_override"/>
                         </group>
                         <group invisible="kpi_type != 'quantitative'">
                             <field name="dept_source_type" invisible="kpi_type != 'quantitative'"/>
@@ -174,6 +190,20 @@
                                     <field name="child_line_rows_json" column_invisible="1"/>
 
                                     <field name="name" string="Title" readonly="1" force_save="1"/>
+                                    <field name="pillar_id"
+                                           options="{'no_create': True}"
+                                           invisible="is_section"
+                                           optional="show"/>
+                                    <field name="category_id"
+                                           options="{'no_create': True}"
+                                           domain="[('pillar_id', '=', pillar_id)]"
+                                           invisible="is_section"
+                                           optional="show"/>
+                                    <field name="parent_line_id"
+                                           domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
+                                           options="{'no_create': True}"
+                                           invisible="is_section"
+                                           optional="show"/>
                                     <field name="description"
                                            string="Info"
                                            widget="kpi_description_icon"
@@ -216,6 +246,10 @@
                                            column_invisible="not parent.has_score_kpi"
                                     />
                                     <field name="weight" invisible="is_section" readonly="1"/>
+                                    <field name="score_scale_base_override"
+                                           invisible="is_section"
+                                           optional="show"
+                                           readonly="1"/>
 
                                     <field name="final_score_badge_class" column_invisible="1"/>
                                     <field name="final_score_badge_text" string="Score" readonly="1"

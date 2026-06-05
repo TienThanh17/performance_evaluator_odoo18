@@ -1183,7 +1183,7 @@ msgstr "Nhân viên"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__employee_comment
-msgid "Sefl Comment"
+msgid "Self Comment"
 msgstr "Tự nhận xét"
 
 #. module: custom_adecsol_hr_performance_evaluator

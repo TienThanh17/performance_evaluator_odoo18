@@ -19,6 +19,13 @@
                     <group invisible="is_section">
                         <group string="KPI Info">
                             <field name="department_kpi_id" invisible="1" />
+                            <field name="pillar_id" options="{'no_create': True}" />
+                            <field name="category_id"
+                                domain="[('pillar_id', '=', pillar_id)]"
+                                options="{'no_create': True}" />
+                            <field name="parent_line_id"
+                                domain="[('department_kpi_id', '=', department_kpi_id), ('id', '!=', id)]"
+                                options="{'no_create': True}" />
                             <field name="kpi_type" />
                             <field name="unit"
                                 invisible="kpi_type != 'quantitative'" />
@@ -26,6 +33,7 @@
                                 invisible="kpi_type != 'quantitative'"
                                 options="{'no_create': True}" />
                             <field name="weight" />
+                            <field name="score_scale_base_override" />
                         </group>
                         <group string="Auto Compute" invisible="kpi_type != 'quantitative'">
                             <field name="is_auto" readonly="1"
@@ -93,6 +101,17 @@
                                     <field name="child_template_line_count" column_invisible="1" />
 
                                     <field name="name" string="Title" />
+                                    <field name="pillar_id" options="{'no_create': True}" />
+                                    <field name="category_id"
+                                        options="{'no_create': True}"
+                                        domain="[('pillar_id', '=', pillar_id)]"
+                                        invisible="is_section"
+                                        optional="show" />
+                                    <field name="parent_line_id"
+                                        domain="[('department_kpi_id', '=', parent.id), ('id', '!=', id)]"
+                                        options="{'no_create': True}"
+                                        invisible="is_section"
+                                        optional="show" />
                                     <field name="description"
                                         string="Info"
                                         widget="kpi_description_icon"
@@ -117,6 +136,9 @@
                                         invisible="is_section or not is_auto or dept_source_type != 'data_source'" />
 
                                     <field name="weight" invisible="is_section" />
+                                    <field name="score_scale_base_override"
+                                        invisible="is_section"
+                                        optional="show" />
                                     <control>
                                         <create name="add_section" string="Add Section"
                                             context="{'default_is_section': True}"

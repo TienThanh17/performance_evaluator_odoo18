@@ -48,6 +48,42 @@ class HrKpiTemplateLine(models.Model):
         string="Parent KPI",
         help="Department KPI template line.",
     )
+    pillar_id = fields.Many2one(
+        "hr.evaluation.pillar",
+        string="Pillar",
+        ondelete="restrict",
+    )
+    pillar_code = fields.Char(
+        related="pillar_id.code",
+        string="Pillar Code",
+        store=True,
+        readonly=True,
+    )
+    category_id = fields.Many2one(
+        "hr.evaluation.category",
+        string="Category",
+        ondelete="restrict",
+    )
+    parent_line_id = fields.Many2one(
+        "hr.kpi.template.line",
+        string="Parent Line",
+        ondelete="set null",
+        index=True,
+    )
+    child_line_ids = fields.One2many(
+        "hr.kpi.template.line",
+        "parent_line_id",
+        string="Child Lines",
+    )
+    score_scale_base_override = fields.Float(
+        string="Score Scale Base Override",
+        help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
+    )
+    score_max_display = fields.Char(
+        string="Max Score",
+        compute="_compute_score_max_display",
+        store=False,
+    )
     description = fields.Html(string="Description", sanitize=True)
 
     data_source_id = fields.Many2one(
@@ -101,10 +137,41 @@ class HrKpiTemplateLine(models.Model):
     )
     sequence = fields.Integer(default=10)
 
+    # Resolve the pillar configured by the current tab context.
+    def _get_default_pillar_from_context(self):
+        pillar_code = (self.env.context.get("default_pillar_code") or "").strip().lower()
+        if not pillar_code:
+            return self.env["hr.evaluation.pillar"]
+        return self.env["hr.evaluation.pillar"].search(
+            [("code", "=", pillar_code)],
+            limit=1,
+        )
+
+    # Prefill pillar_id so popup and inline creation inherit the tab pillar.
+    @api.model
+    def default_get(self, fields_list):
+        defaults = super().default_get(fields_list)
+        if defaults.get("pillar_id"):
+            return defaults
+
+        default_pillar = self._get_default_pillar_from_context()
+        if default_pillar:
+            defaults["pillar_id"] = default_pillar.id
+        return defaults
+
     @api.depends("kpi_type", "data_source_id")
     def _compute_auto(self):
         for rec in self:
             rec.is_auto = bool(rec.kpi_type == "quantitative" and rec.data_source_id)
+
+    # Compute the score scale hint shown next to score-based KPI inputs.
+    @api.depends("kpi_type", "score_scale_base_override")
+    def _compute_score_max_display(self):
+        for rec in self:
+            if rec.kpi_type == "score" and rec.score_scale_base_override > 0:
+                rec.score_max_display = f"/ {rec.score_scale_base_override:g} pts"
+            else:
+                rec.score_max_display = ""
 
     @api.depends("kpi_type", "formula_type", "scoring_formula_id", "scoring_formula_id.formula_type")
     def _compute_is_special_scoring(self):
@@ -200,6 +267,35 @@ class HrKpiTemplateLine(models.Model):
     def _check_parent_dept_line(self):
         self._validate_parent_dept_line_consistency()
 
+    @api.constrains("category_id", "pillar_id")
+    def _check_category_pillar(self):
+        for rec in self:
+            if rec.category_id and rec.pillar_id and rec.category_id.pillar_id != rec.pillar_id:
+                raise ValidationError(
+                    _("The selected category must belong to the selected pillar.")
+                )
+
+    @api.constrains("parent_line_id", "kpi_id")
+    def _check_parent_line(self):
+        for rec in self:
+            parent = rec.parent_line_id
+            if not parent:
+                continue
+            if parent == rec:
+                raise ValidationError(_("A KPI line cannot be its own parent."))
+            if parent.kpi_id != rec.kpi_id:
+                raise ValidationError(
+                    _("The parent KPI line must belong to the same KPI template.")
+                )
+            if parent.is_section:
+                raise ValidationError(
+                    _("A section line cannot be selected as a parent KPI line.")
+                )
+            if parent.parent_line_id == rec:
+                raise ValidationError(
+                    _("Recursive KPI line hierarchy is not allowed.")
+                )
+
     def _validate_parent_dept_line_consistency(self, parent_kpi=None):
         for rec in self:
             parent_line = rec.parent_dept_line_id
@@ -232,6 +328,17 @@ class HrKpiTemplateLine(models.Model):
         if vals.get("display_type") and "is_section" not in vals:
             vals = dict(vals, is_section=True)
         return super().write(vals)
+
+    # Enforce the tab pillar on create as a backend fallback when UI defaults are missing.
+    @api.model_create_multi
+    def create(self, vals_list):
+        default_pillar = self._get_default_pillar_from_context()
+        for vals in vals_list:
+            if vals.get("display_type") and "is_section" not in vals:
+                vals["is_section"] = True
+            if default_pillar and not vals.get("pillar_id"):
+                vals["pillar_id"] = default_pillar.id
+        return super().create(vals_list)
 
     def action_open_popup(self):
         self.ensure_one()

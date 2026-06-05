@@ -120,17 +120,34 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             else:
                 rec.name = "New Dept KPI"
 
-    @api.depends("evaluation_line_ids.final_score", "evaluation_line_ids.weight")
+    @api.depends(
+        "evaluation_line_ids.final_score",
+        "evaluation_line_ids.weight",
+        "evaluation_line_ids.parent_line_id",
+    )
     def _compute_dept_kpi_score(self):
         for rec in self:
-            lines = rec.evaluation_line_ids.filtered(lambda l: not l.is_section)
-            total_weight = sum(lines.mapped("weight"))
-            if total_weight > 0:
-                rec.dept_kpi_score = (
-                    sum(l.final_score * l.weight for l in lines) / total_weight
-                )
-            else:
-                rec.dept_kpi_score = 0.0
+            rec.dept_kpi_score = rec._compute_weighted_score_from_lines(
+                rec._get_top_level_scorable_lines()
+            )
+
+    def _get_top_level_scorable_lines(self, pillar_code=None):
+        self.ensure_one()
+        lines = self.evaluation_line_ids.filtered(
+            lambda line: not line.is_section and not line.parent_line_id
+        )
+        if pillar_code:
+            lines = lines.filtered(lambda line: line.pillar_code == pillar_code)
+        return lines
+
+    def _compute_weighted_score_from_lines(self, lines):
+        self.ensure_one()
+        if not lines:
+            return 0.0
+        total_weight = sum(lines.mapped("weight"))
+        if total_weight > 0:
+            return sum(line.final_score * line.weight for line in lines) / total_weight
+        return sum(lines.mapped("final_score")) / len(lines)
 
     def action_compute_auto_kpi(self):
         engine = self.env["hr.kpi.engine"]
@@ -138,7 +155,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             if not evaluation.department_id or not evaluation.department_kpi_id:
                 continue
             for line in evaluation.evaluation_line_ids:
-                if not line.is_auto:
+                if not line.is_auto or line.child_line_ids:
                     continue
                 actual = engine.with_context(
                     department_evaluation_line=line.id
@@ -292,6 +309,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         )
         score_base = self.env["res.config.settings"].get_score_scale_base()
         for line in template_lines:
+            line_score_base = line.score_scale_base_override or score_base
             # Kiểm tra nếu dòng hiện tại là một Section (tiêu đề nhóm) dựa trên thuộc tính.
             is_section = bool(getattr(line, "is_section", False))
             if is_section:
@@ -300,15 +318,19 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     fields.Command.create(
                         {
                             "department_kpi_line_id": line.id,
+                            "parent_template_line_id": line.parent_line_id.id,
                             # "sequence": line.sequence,
                             "is_section": True,
                             "name": line.name,
+                            "pillar_id": line.pillar_id.id,
+                            "category_id": line.category_id.id,
                             "description": False,
                             # Safe defaults for required KPI fields on section rows
                             "kpi_type": "quantitative",
                             "target": 0.0,
                             "unit": False,
                             "weight": 0.0,
+                            "score_scale_base_override": line.score_scale_base_override,
                             "is_auto": False,
                         }
                     )
@@ -319,11 +341,14 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 fields.Command.create(
                     {
                         "department_kpi_line_id": line.id,
+                        "parent_template_line_id": line.parent_line_id.id,
                         # "sequence": line.sequence,
                         "name": line.name,
+                        "pillar_id": line.pillar_id.id,
+                        "category_id": line.category_id.id,
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
-                        "target": score_base
+                        "target": line_score_base
                         if line.dept_source_type == "child_kpi_average"
                         else line.target,
                         "unit": line.unit.id
@@ -333,11 +358,36 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             else False
                         ),
                         "weight": line.weight,
+                        "score_scale_base_override": line.score_scale_base_override,
                         "is_auto": bool(line.is_auto),
                     }
                 )
             )
         return commands
+
+    def _rebuild_line_hierarchy_from_template(self):
+        for evaluation in self:
+            line_by_template = {
+                line.department_kpi_line_id.id: line
+                for line in evaluation.evaluation_line_ids
+                if line.department_kpi_line_id
+            }
+            for line in evaluation.evaluation_line_ids:
+                parent_line = (
+                    line_by_template.get(line.parent_template_line_id.id)
+                    if line.parent_template_line_id
+                    else False
+                )
+                if line.parent_line_id != parent_line:
+                    line.with_context(skip_line_chatter_audit=True).write(
+                        {"parent_line_id": parent_line.id if parent_line else False}
+                    )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._rebuild_line_hierarchy_from_template()
+        return records
 
     def get_dashboard_data(self):
         self.ensure_one()
@@ -419,7 +469,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     def _get_quantitative_table_data(self):
         self.ensure_one()
         lines = self.evaluation_line_ids.filtered(
-            lambda l: not l.is_section and l.kpi_type == "quantitative"
+            lambda l: (
+                not l.is_section
+                and not l.parent_line_id
+                and l.kpi_type == "quantitative"
+            )
         )
         rows = []
         for line in lines:
