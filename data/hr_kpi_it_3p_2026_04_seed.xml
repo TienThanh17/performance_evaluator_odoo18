@@ -515,7 +515,7 @@
              TEMPLATE NHÂN VIÊN - P2.1 + P2.2 + P3.1.1
         ============================================================= -->
         <record id="tpl_emp_kpi_it_3p_202604" model="hr.kpi.template">
-            <field name="name">Bộ tiêu chí 3P IT - Tháng 04/2026 (P2.1 + P2.2 + P3.1.1)</field>
+            <field name="name">Bộ tiêu chí 3P IT - Hàng tháng 2026 (P2.1 + P2.2 + P3.1.1)</field>
             <field name="department_id" ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604"/>
             <field name="period_type">monthly</field>
             <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604"/>
@@ -531,7 +531,6 @@
             <field name="weight">0.0</field>
             <field name="score_scale_base_override">35</field>
             <field name="sequence">100</field>
-            <field name="description">Thang điểm 100: 35 điểm. Kết quả tháng 04/2026: Phạm Tommy 33; Huỳnh Trọng Đại 29; Đỗ Minh Đường 29; Võ Châu Đăng Khoa 29; Huỳnh Thanh Tiến 28; Đinh Đại Dương 30.</field>
         </record>
         <record id="line_emp_p21_tc1_grp1_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
@@ -886,7 +885,6 @@
             <field name="weight">0.0</field>
             <field name="score_scale_base_override">40</field>
             <field name="sequence">200</field>
-            <field name="description">Thang điểm 100: 40 điểm. Kết quả tháng 04/2026: Phạm Tommy 27; Huỳnh Trọng Đại 27; Đỗ Minh Đường 31; Võ Châu Đăng Khoa 29; Huỳnh Thanh Tiến 29; Đinh Đại Dương 32.</field>
         </record>
         <record id="line_emp_p21_tc2_grp1_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
@@ -1411,7 +1409,6 @@
             <field name="weight">0.0</field>
             <field name="score_scale_base_override">15</field>
             <field name="sequence">300</field>
-            <field name="description">Kết quả tháng 04/2026: Phạm Tommy 15; Huỳnh Trọng Đại 15; Đỗ Minh Đường 15; Võ Châu Đăng Khoa 15; Huỳnh Thanh Tiến 15; Đinh Đại Dương 15.</field>
         </record>
         <record id="line_emp_p21_tc3_grp1_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
@@ -1485,7 +1482,6 @@
             <field name="weight">0.0</field>
             <field name="score_scale_base_override">5</field>
             <field name="sequence">400</field>
-            <field name="description">Kết quả tháng 04/2026: Phạm Tommy 5; Huỳnh Trọng Đại 4; Đỗ Minh Đường 5; Võ Châu Đăng Khoa 5; Huỳnh Thanh Tiến 5; Đinh Đại Dương 4.</field>
         </record>
         <record id="line_emp_p21_tc4_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
@@ -1552,7 +1548,6 @@
             <field name="weight">0.0</field>
             <field name="score_scale_base_override">5</field>
             <field name="sequence">500</field>
-            <field name="description">Kết quả tháng 04/2026: Phạm Tommy 3; Huỳnh Trọng Đại 3; Đỗ Minh Đường 3; Võ Châu Đăng Khoa 5; Huỳnh Thanh Tiến 5; Đinh Đại Dương 3.</field>
         </record>
         <record id="line_emp_p21_tc5_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
@@ -1802,7 +1797,7 @@
         <!-- P3.1.1 cá nhân -->
         <record id="line_emp_p3_tc1_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
-            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc1_202604"/>
+            <!-- <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc1_202604"/> -->
             <field name="key_performance_area">TC1 - An Toàn</field>
             <field name="pillar_id" ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual"/>
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.cat_p3_ind_an_toan_202604"/>
@@ -1810,7 +1805,6 @@
             <field name="weight">0.10</field>
             <field name="score_scale_base_override">1.0</field>
             <field name="sequence">700</field>
-            <field name="description">P IT-KPI 1. Sheet tháng 04/2026: Phạm Tommy 0 vi phạm, Huỳnh Trọng Đại 0 vi phạm, điểm thưởng bị trừ = 0.</field>
         </record>
         <record id="line_emp_p3_tc1_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
@@ -1845,7 +1839,7 @@
 
         <record id="line_emp_p3_tc2_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
-            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc2_202604"/>
+            <!-- <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc2_202604"/> -->
             <field name="key_performance_area">TC2 - Kỹ thuật/ Chất lượng</field>
             <field name="pillar_id" ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual"/>
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.cat_p3_ind_ky_thuat_202604"/>
@@ -1888,7 +1882,7 @@
 
         <record id="line_emp_p3_tc3_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
-            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc3_202604"/>
+            <!-- <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc3_202604"/> -->
             <field name="key_performance_area">TC3 - Qui trình</field>
             <field name="pillar_id" ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual"/>
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.cat_p3_ind_quy_trinh_202604"/>
@@ -1896,11 +1890,10 @@
             <field name="weight">0.15</field>
             <field name="score_scale_base_override">1.0</field>
             <field name="sequence">720</field>
-            <field name="description">P IT-KPI 3. Sheet tháng 04/2026: Phạm Tommy 0 vi phạm, Huỳnh Trọng Đại 0 vi phạm, điểm thưởng bị trừ = 0.</field>
         </record>
         <record id="line_emp_p3_tc4_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
-            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc4_202604"/>
+            <!-- <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc4_202604"/> -->
             <field name="key_performance_area">TC4 - Tiến độ</field>
             <field name="pillar_id" ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual"/>
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.cat_p3_ind_tien_do_202604"/>
@@ -1908,11 +1901,10 @@
             <field name="weight">0.20</field>
             <field name="score_scale_base_override">1.0</field>
             <field name="sequence">730</field>
-            <field name="description">P IT-KPI 4. Sheet tháng 04/2026: Phạm Tommy 0 vi phạm, Huỳnh Trọng Đại 0 vi phạm, điểm thưởng bị trừ = 0.</field>
         </record>
         <record id="line_emp_p3_tc5_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
-            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc5_202604"/>
+            <!-- <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc5_202604"/> -->
             <field name="key_performance_area">TC5 - Chi Phí</field>
             <field name="pillar_id" ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual"/>
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.cat_p3_ind_chi_phi_202604"/>
@@ -1920,11 +1912,10 @@
             <field name="weight">0.15</field>
             <field name="score_scale_base_override">1.0</field>
             <field name="sequence">740</field>
-            <field name="description">P IT-KPI 5. Sheet tháng 04/2026: Phạm Tommy 0 vi phạm, Huỳnh Trọng Đại 0 vi phạm, điểm thưởng bị trừ = 0.</field>
         </record>
         <record id="line_emp_p3_tc6_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
-            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc6_202604"/>
+            <!-- <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc6_202604"/> -->
             <field name="key_performance_area">TC6 - Đào tạo và Phẫm chất</field>
             <field name="pillar_id" ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual"/>
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.cat_p3_ind_dao_tao_202604"/>
@@ -1932,11 +1923,10 @@
             <field name="weight">0.15</field>
             <field name="score_scale_base_override">1.0</field>
             <field name="sequence">750</field>
-            <field name="description">P IT-KPI 6. Sheet tháng 04/2026: Phạm Tommy 0 vi phạm, Huỳnh Trọng Đại 0 vi phạm, điểm thưởng bị trừ = 0.</field>
         </record>
         <record id="line_emp_p3_tc7_202604" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604"/>
-            <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc7_202604"/>
+            <!-- <field name="parent_dept_line_id" ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc7_202604"/> -->
             <field name="key_performance_area">TC7 - Thẩm Mỹ</field>
             <field name="pillar_id" ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual"/>
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.cat_p3_ind_tham_my_202604"/>
@@ -1944,13 +1934,12 @@
             <field name="weight">0.05</field>
             <field name="score_scale_base_override">1.0</field>
             <field name="sequence">760</field>
-            <field name="description">P IT-KPI 7. Sheet tháng 04/2026: Phạm Tommy 0 vi phạm, Huỳnh Trọng Đại 0 vi phạm, điểm thưởng bị trừ = 0.</field>
         </record>
 
         <!-- ============================================================
              KẾT QUẢ ĐÁNH GIÁ 3P
         ============================================================= -->
-        <record id="summary_it_3p_202604" model="hr.evaluation.3p.summary">
+        <!-- <record id="summary_it_3p_202604" model="hr.evaluation.3p.summary">
             <field name="name">Kết quả đánh giá 3P - Công nghệ thông tin (IT) - 04/2026</field>
             <field name="department_id" ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604"/>
             <field name="period_id" ref="custom_adecsol_hr_performance_evaluator.period_it_3p_202604"/>
@@ -2006,6 +1995,6 @@
             <field name="job_id" ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604"/>
             <field name="p2_1_score_raw">84</field>
             <field name="p2_2_score_raw">90</field>
-        </record>
+        </record> -->
     </data>
 </odoo>

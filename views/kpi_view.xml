@@ -48,11 +48,11 @@
                                 <label for="score_scale_base_override" />
                                 <div class="o_row">
                                     <field name="score_scale_base_override" nolabel="1" />
-                                    <field name="score_max_display"
+                                    <!-- <field name="score_max_display"
                                         nolabel="1"
                                         readonly="1"
                                         class="oe_inline"
-                                        invisible="kpi_type != 'score' or not score_max_display" />
+                                        invisible="kpi_type != 'score' or not score_max_display" /> -->
                                 </div>
                             </group>
                             <group string="Auto Compute" invisible="kpi_type != 'quantitative'">
@@ -185,11 +185,11 @@
                                         <field name="score_scale_base_override"
                                             invisible="is_section"
                                             optional="show" width="100px" />
-                                        <field name="score_max_display"
+                                        <!-- <field name="score_max_display"
                                             string="Max"
                                             invisible="is_section or kpi_type != 'score'"
                                             optional="show"
-                                            readonly="1" width="80px" />
+                                            readonly="1" width="80px" /> -->
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
                                             invisible="is_section" width="40px" />
@@ -259,11 +259,11 @@
                                         <field name="score_scale_base_override"
                                             invisible="is_section"
                                             optional="show" width="100px" />
-                                        <field name="score_max_display"
+                                        <!-- <field name="score_max_display"
                                             string="Max"
                                             invisible="is_section or kpi_type != 'score'"
                                             optional="show"
-                                            readonly="1" width="80px" />
+                                            readonly="1" width="80px" /> -->
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
                                             invisible="is_section" width="40px" />
@@ -333,11 +333,11 @@
                                         <field name="score_scale_base_override"
                                             invisible="is_section"
                                             optional="show" width="100px" />
-                                        <field name="score_max_display"
+                                        <!-- <field name="score_max_display"
                                             string="Max"
                                             invisible="is_section or kpi_type != 'score'"
                                             optional="show"
-                                            readonly="1" width="80px" />
+                                            readonly="1" width="80px" /> -->
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
                                             invisible="is_section" width="40px" />
@@ -407,11 +407,11 @@
                                         <field name="score_scale_base_override"
                                             invisible="is_section"
                                             optional="show" width="100px" />
-                                        <field name="score_max_display"
+                                        <!-- <field name="score_max_display"
                                             string="Max"
                                             invisible="is_section or kpi_type != 'score'"
                                             optional="show"
-                                            readonly="1" width="80px" />
+                                            readonly="1" width="80px" /> -->
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
                                             invisible="is_section" width="40px" />

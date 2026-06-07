@@ -83,6 +83,15 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             return bool(employee.department_id and employee.department_id == kpi.department_id)
         return False
 
+    # Ensure the 3P summary exists and is refreshed for the generated period.
+    def _ensure_3p_summary(self):
+        self.ensure_one()
+        return self.env["hr.evaluation.3p.summary"].ensure_summary_for_period(
+            self.department_id,
+            self.period_id,
+        )
+
+    # Generate department and individual evaluations, then build the matching 3P summary.
     def action_generate(self):
         self.ensure_one()
         if not self.department_kpi_id:
@@ -123,13 +132,16 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             limit=1,
         )
         if exists_dept_eval:
+            self._ensure_3p_summary()
             return {
                 "type": "ir.actions.client",
                 "tag": "display_notification",
                 "params": {
-                    "title": "No new data",
-                    "message": _("A department performance evaluation already exists for this period."),
-                    "type": "danger",
+                    "title": _("No New Data"),
+                    "message": _(
+                        "A department performance evaluation already exists for this period. The 3P summary has been refreshed."
+                    ),
+                    "type": "warning",
                     "sticky": False,
                 },
             }
@@ -223,13 +235,15 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
         if individual_evals:
             individual_evals._compute_final_score()
 
+        self._ensure_3p_summary()
+
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": "Thành công",
                 "message": _(
-                    "Created 1 Department Evaluation and %(count)s Individual Evaluations for the %(period)s period."
+                    "Created 1 Department Evaluation, %(count)s Individual Evaluations, and refreshed the 3P summary for the %(period)s period."
                 )
                 % {"count": count, "period": self.period_id.name},
                 "type": "success",

@@ -465,71 +465,71 @@
                             </group>
                         </group>
                         <notebook>
-                            <page string="P2.1">
+                            <page string="P2.1 Kiến Thức">
                                 <field name="evaluation_line_p2_1_ids" widget="kpi_one2many" 
                                     context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_1'}">
                                     <list editable="bottom" decoration-warning="manager_edited" decoration-bf="is_section">
                                         <field name="pillar_code" column_invisible="1" />
                                         <field name="is_section" column_invisible="1" />
                                         <field name="final_rating_badge_class" column_invisible="1" />
-                                        <field name="key_performance_area" string="Title" width="250px"
+                                        <field name="key_performance_area" string="Title" width="300px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="category_id" optional="show" invisible="is_section" />
-                                        <field name="parent_line_id" optional="show" invisible="is_section" />
-                                        <field name="kpi_type" invisible="is_section" />
-                                        <field name="actual" invisible="is_section or kpi_type != 'quantitative'" />
-                                        <field name="employee_rating_binary" invisible="is_section or kpi_type != 'binary'" />
-                                        <field name="employee_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" />
-                                        <field name="employee_rating_score" invisible="is_section or kpi_type != 'score'" />
-                                        <field name="manager_rating_binary" invisible="is_section or kpi_type != 'binary'" />
-                                        <field name="manager_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" />
-                                        <field name="manager_rating_score" invisible="is_section or kpi_type != 'score'" />
+                                        <field name="category_id" optional="show" invisible="is_section" width="150px" />
+                                        <field name="parent_line_id" optional="show" invisible="is_section" width="150px" />
+                                        <field name="kpi_type" invisible="is_section" width="100px" />
+                                        <field name="actual" invisible="is_section or kpi_type != 'quantitative'" width="80px" />
+                                        <field name="employee_rating_binary" invisible="is_section or kpi_type != 'binary'" width="100px" />
+                                        <field name="employee_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" width="120px" />
+                                        <field name="employee_rating_score" invisible="is_section or kpi_type != 'score'" width="80px" />
+                                        <field name="manager_rating_binary" invisible="is_section or kpi_type != 'binary'" width="100px" />
+                                        <field name="manager_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" width="120px" />
+                                        <field name="manager_rating_score" invisible="is_section or kpi_type != 'score'" width="80px" />
                                         <field name="score_max_display" string="Max"
                                             invisible="is_section or kpi_type != 'score'"
                                             column_invisible="not parent.has_score_kpi"
-                                            readonly="1" />
-                                        <field name="weight" invisible="is_section" />
+                                            readonly="1" width="80px" />
+                                        <field name="weight" invisible="is_section" width="80px" />
                                         <field name="final_rating_badge_text" readonly="1" string="Score" widget="badge"
                                             decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
                                             decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
-                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" />
-                                        <button name="action_open_popup" type="object" icon="fa-pencil" title="Open Details" invisible="is_section" />
+                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" width="80px" />
+                                        <button name="action_open_popup" type="object" icon="fa-pencil" title="Open Details" invisible="is_section" width="40px" />
                                     </list>
                                 </field>
                             </page>
-                            <page string="P2.2">
+                            <page string="P2.2 Kỹ năng chuyên môn">
                                 <field name="evaluation_line_p2_2_ids" widget="kpi_one2many"
                                     context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_2'}">
                                     <list editable="bottom" decoration-warning="manager_edited" decoration-bf="is_section">
                                         <field name="pillar_code" column_invisible="1" />
                                         <field name="is_section" column_invisible="1" />
                                         <field name="final_rating_badge_class" column_invisible="1" />
-                                        <field name="key_performance_area" string="Title" width="250px"
+                                        <field name="key_performance_area" string="Title" width="300px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="category_id" optional="show" invisible="is_section" />
-                                        <field name="parent_line_id" optional="show" invisible="is_section" />
-                                        <field name="kpi_type" invisible="is_section" />
-                                        <field name="actual" invisible="is_section or kpi_type != 'quantitative'" />
-                                        <field name="employee_rating_binary" invisible="is_section or kpi_type != 'binary'" />
-                                        <field name="employee_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" />
-                                        <field name="employee_rating_score" invisible="is_section or kpi_type != 'score'" />
-                                        <field name="manager_rating_binary" invisible="is_section or kpi_type != 'binary'" />
-                                        <field name="manager_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" />
-                                        <field name="manager_rating_score" invisible="is_section or kpi_type != 'score'" />
+                                        <field name="category_id" optional="show" invisible="is_section" width="150px" />
+                                        <field name="parent_line_id" optional="show" invisible="is_section" width="150px" />
+                                        <field name="kpi_type" invisible="is_section" width="100px" />
+                                        <field name="actual" invisible="is_section or kpi_type != 'quantitative'" width="80px" />
+                                        <field name="employee_rating_binary" invisible="is_section or kpi_type != 'binary'" width="100px" />
+                                        <field name="employee_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" width="120px" />
+                                        <field name="employee_rating_score" invisible="is_section or kpi_type != 'score'" width="80px" />
+                                        <field name="manager_rating_binary" invisible="is_section or kpi_type != 'binary'" width="100px" />
+                                        <field name="manager_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" width="120px" />
+                                        <field name="manager_rating_score" invisible="is_section or kpi_type != 'score'" width="80px" />
                                         <field name="score_max_display" string="Max"
                                             invisible="is_section or kpi_type != 'score'"
                                             column_invisible="not parent.has_score_kpi"
-                                            readonly="1" />
-                                        <field name="weight" invisible="is_section" />
+                                            readonly="1" width="80px" />
+                                        <field name="weight" invisible="is_section" width="80px" />
                                         <field name="final_rating_badge_text" readonly="1" string="Score" widget="badge"
                                             decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
                                             decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
-                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" />
-                                        <button name="action_open_popup" type="object" icon="fa-pencil" title="Open Details" invisible="is_section" />
+                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" width="80px" />
+                                        <button name="action_open_popup" type="object" icon="fa-pencil" title="Open Details" invisible="is_section" width="40px" />
                                     </list>
                                 </field>
                             </page>
-                            <page string="P3 Individual">
+                            <page string="P3.1.1 KPI Cá Nhân">
                                 <button name="action_compute_auto_kpi"
                                     type="object"
                                     string="Compute KPI"
@@ -541,30 +541,30 @@
                                         <field name="is_section" column_invisible="1" />
                                         <field name="is_auto" column_invisible="1" />
                                         <field name="final_rating_badge_class" column_invisible="1" />
-                                        <field name="key_performance_area" string="Title" width="250px"
+                                        <field name="key_performance_area" string="Title" width="300px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="category_id" optional="show" invisible="is_section" />
-                                        <field name="parent_dept_evaluation_line_id" optional="show" invisible="is_section" />
-                                        <field name="kpi_type" invisible="is_section" />
-                                        <field name="unit" optional="show" invisible="is_section or kpi_type != 'quantitative'" />
-                                        <field name="target" invisible="is_section or kpi_type != 'quantitative' or is_special_scoring" />
-                                        <field name="actual" invisible="is_section or kpi_type != 'quantitative'" />
-                                        <field name="employee_rating_binary" invisible="is_section or kpi_type != 'binary'" />
-                                        <field name="employee_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" />
-                                        <field name="employee_rating_score" invisible="is_section or kpi_type != 'score'" />
-                                        <field name="manager_rating_binary" invisible="is_section or kpi_type != 'binary'" />
-                                        <field name="manager_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" />
-                                        <field name="manager_rating_score" invisible="is_section or kpi_type != 'score'" />
+                                        <field name="category_id" optional="show" invisible="is_section" width="150px" />
+                                        <field name="parent_dept_evaluation_line_id" optional="show" invisible="is_section" width="150px" />
+                                        <field name="kpi_type" invisible="is_section" width="100px" />
+                                        <field name="unit" optional="show" invisible="is_section or kpi_type != 'quantitative'" width="80px" />
+                                        <field name="target" invisible="is_section or kpi_type != 'quantitative' or is_special_scoring" width="100px" />
+                                        <field name="actual" invisible="is_section or kpi_type != 'quantitative'" width="100px" />
+                                        <field name="employee_rating_binary" invisible="is_section or kpi_type != 'binary'" width="100px" />
+                                        <field name="employee_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" width="120px" />
+                                        <field name="employee_rating_score" invisible="is_section or kpi_type != 'score'" width="80px" />
+                                        <field name="manager_rating_binary" invisible="is_section or kpi_type != 'binary'" width="100px" />
+                                        <field name="manager_rating_selection" widget="priority" invisible="is_section or kpi_type != 'rating'" width="120px" />
+                                        <field name="manager_rating_score" invisible="is_section or kpi_type != 'score'" width="80px" />
                                         <field name="score_max_display" string="Max"
                                             invisible="is_section or kpi_type != 'score'"
                                             column_invisible="not parent.has_score_kpi"
-                                            readonly="1" />
-                                        <field name="weight" invisible="is_section" />
+                                            readonly="1" width="80px" />
+                                        <field name="weight" invisible="is_section" width="80px" />
                                         <field name="final_rating_badge_text" readonly="1" string="Score" widget="badge"
                                             decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
                                             decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
-                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" />
-                                        <button name="action_open_popup" type="object" icon="fa-pencil" title="Open Details" invisible="is_section" />
+                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" width="80px" />
+                                        <button name="action_open_popup" type="object" icon="fa-pencil" title="Open Details" invisible="is_section" width="40px" />
                                     </list>
                                 </field>
                             </page>
@@ -585,7 +585,7 @@
 
                                         <!-- Main text fields -->
                                         <field name="key_performance_area" string="Title"
-                                            width="250px"
+                                            width="300px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
                                         <field name="pillar_id"
                                             options="{'no_create': True}"

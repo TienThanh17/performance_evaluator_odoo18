@@ -74,6 +74,39 @@ class HrEvaluation3PSummary(models.Model):
         self.write({"state": "draft"})
         return True
 
+    # Find or create the summary header for a department and KPI period.
+    @api.model
+    def get_or_create_summary(self, department, period):
+        department_id = department.id if hasattr(department, "id") else department
+        period_id = period.id if hasattr(period, "id") else period
+        summary = self.search(
+            [
+                ("department_id", "=", department_id),
+                ("period_id", "=", period_id),
+            ],
+            order="id desc",
+            limit=1,
+        )
+        if summary:
+            return summary
+
+        period_record = period if hasattr(period, "date_start") else self.env["hr.kpi.period"].browse(period_id)
+        return self.create(
+            {
+                "department_id": department_id,
+                "period_id": period_id,
+                "start_date": period_record.date_start,
+                "end_date": period_record.date_end,
+            }
+        )
+
+    # Ensure the summary exists and refresh its lines from current evaluations.
+    @api.model
+    def ensure_summary_for_period(self, department, period):
+        summary = self.get_or_create_summary(department, period)
+        summary.action_aggregate()
+        return summary
+
     def _get_department_evaluation(self):
         self.ensure_one()
         dept_eval = self.env["hr.department.performance.evaluation"].search(

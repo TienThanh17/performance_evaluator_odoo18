@@ -1069,20 +1069,20 @@ class PerformanceEvaluationLine(models.Model):
             # =====================================================================
             # LOGIC 1: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA EMPLOYEE
             # =====================================================================
-            if editing_employee_fields:
-                if not is_own_evaluation:
-                    raise UserError(
-                        _(
-                            "Only the employee being evaluated can edit self-rating and comments."
-                        )
-                    )
+            # if editing_employee_fields:
+            #     if not is_own_evaluation:
+            #         raise UserError(
+            #             _(
+            #                 "Only the employee being evaluated can edit self-rating and comments."
+            #             )
+            #         )
 
-                if any(line.evaluation_id.state != "self_evaluation" for line in self):
-                    raise UserError(
-                        _(
-                            "Employee fields can only be edited in the Self Evaluation state."
-                        )
-                    )
+            #     if any(line.evaluation_id.state != "self_evaluation" for line in self):
+            #         raise UserError(
+            #             _(
+            #                 "Employee fields can only be edited in the Self Evaluation state."
+            #             )
+            #         )
 
             # =====================================================================
             # LOGIC 2: NẾU NGƯỜI DÙNG SỬA CÁC TRƯỜNG CỦA MANAGER

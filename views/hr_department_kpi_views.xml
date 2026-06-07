@@ -91,7 +91,7 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="KPI Lines">
+                        <page string="P3.1.2 KPI Phòng Ban">
                             <field name="kpi_line_ids" widget="kpi_one2many"
                                 context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_department_line_form_popup'}">
                                 <list editable="bottom" decoration-bf="is_section">
