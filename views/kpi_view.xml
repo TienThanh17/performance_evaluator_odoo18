@@ -38,12 +38,6 @@
                                 <field name="scoring_formula_id"
                                     invisible="kpi_type != 'quantitative'"
                                     options="{'no_create': True}" />
-                                <field name="formula_type"
-                                    invisible="1"
-                                    readonly="1" />
-                                <field name="step_table_json"
-                                    invisible="1"
-                                    readonly="1" />
                                 <field name="weight" />
                                 <label for="score_scale_base_override" />
                                 <div class="o_row">

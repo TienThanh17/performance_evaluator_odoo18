@@ -166,22 +166,10 @@ class PerformanceEvaluationLine(models.Model):
         store=True,
         readonly=True,
     )
-    formula_type = fields.Selection(
-        related="kpi_line_id.formula_type",
-        string="Scoring Formula",
-        store=True,
-        readonly=True,
-    )
     scoring_formula_id = fields.Many2one(
         "hr.kpi.scoring.formula",
         related="kpi_line_id.scoring_formula_id",
         string="Scoring Formula",
-        store=True,
-        readonly=True,
-    )
-    step_table_json = fields.Text(
-        related="kpi_line_id.step_table_json",
-        string="Step Table JSON",
         store=True,
         readonly=True,
     )
@@ -503,20 +491,15 @@ class PerformanceEvaluationLine(models.Model):
 
     @api.depends(
         "kpi_type",
-        "formula_type",
         "scoring_formula_id",
         "scoring_formula_id.formula_type",
     )
     def _compute_is_special_scoring(self):
         for rec in self:
-            effective_formula_type = (
-                rec.scoring_formula_id.formula_type
-                if rec.scoring_formula_id
-                else rec.formula_type
-            )
-
+            effective_formula_type = rec.scoring_formula_id.formula_type if rec.scoring_formula_id else False
             rec.is_special_scoring = bool(
                 rec.kpi_type == "quantitative"
+                and effective_formula_type
                 and effective_formula_type != "linear"
             )
 
@@ -667,8 +650,6 @@ class PerformanceEvaluationLine(models.Model):
         "manager_rating_score",
         "child_line_ids.final_rating",
         "child_line_ids.weight",
-        "formula_type",
-        "step_table_json",
         "scoring_formula_id",
         "scoring_formula_id.formula_type",
         "scoring_formula_id.linear_direction",

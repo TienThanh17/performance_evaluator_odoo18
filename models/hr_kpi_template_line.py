@@ -95,19 +95,8 @@ class HrKpiTemplateLine(models.Model):
         "hr.kpi.scoring.formula",
         string="Scoring Formula",
         ondelete="restrict",
-        help="Field canonical de HR chon cong thuc tinh diem. De trong thi dung fallback legacy.",
+        help="Công thức tính điểm được áp dụng cho KPI này.",
     )
-    formula_type = fields.Selection(
-        [
-            ("linear", "Tuyến tính"),
-            ("step_table", "Bảng bậc thang"),
-            ("lower_zero", "Trừ điểm"),
-        ],
-        string="Scoring Formula",
-        default="linear",
-        required=True,
-    )
-    step_table_json = fields.Text()
     scoring_formula_type = fields.Selection(
         related="scoring_formula_id.formula_type",
         string="Scoring Formula Type",
@@ -173,15 +162,12 @@ class HrKpiTemplateLine(models.Model):
             else:
                 rec.score_max_display = ""
 
-    @api.depends("kpi_type", "formula_type", "scoring_formula_id", "scoring_formula_id.formula_type")
+    @api.depends("kpi_type", "scoring_formula_id", "scoring_formula_id.formula_type")
     def _compute_is_special_scoring(self):
         for rec in self:
-            effective_formula_type = rec.formula_type
-            if rec.scoring_formula_id:
-                effective_formula_type = rec.scoring_formula_id.formula_type
-
+            effective_formula_type = rec.scoring_formula_id.formula_type if rec.scoring_formula_id else False
             rec.is_special_scoring = bool(
-                rec.kpi_type == "quantitative" and effective_formula_type != "linear"
+                rec.kpi_type == "quantitative" and effective_formula_type and effective_formula_type != "linear"
             )
 
     def _get_unit_by_code(self, code):
@@ -202,36 +188,9 @@ class HrKpiTemplateLine(models.Model):
             if rec.data_source_id:
                 rec.unit = rec._get_default_unit()
 
-    def _build_legacy_step_table_formula(self):
-        self.ensure_one()
-        return self.env["hr.kpi.scoring.formula"].new(
-            {
-                "name": "%s (legacy)" % (self.key_performance_area or "Legacy Step Table"),
-                "formula_type": "step_table",
-                "step_table_json": self.step_table_json or "[]",
-                "step_out_of_range": "zero",
-            }
-        )
-
     def get_effective_formula(self):
         self.ensure_one()
-        if self.scoring_formula_id:
-            return self.scoring_formula_id
-
-        xml_id = False
-
-        if self.formula_type == "linear":
-            xml_id = "custom_adecsol_hr_performance_evaluator.formula_linear_higher"
-        elif self.formula_type == "lower_zero":
-            xml_id = "custom_adecsol_hr_performance_evaluator.formula_penalty_1pt"
-        elif self.formula_type == "step_table" and self.step_table_json:
-            return self._build_legacy_step_table_formula()
-
-        if xml_id:
-            formula = self.env.ref(xml_id, raise_if_not_found=False)
-            if formula:
-                return formula
-        return False
+        return self.scoring_formula_id or False
 
     @api.depends("target", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
