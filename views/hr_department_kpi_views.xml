@@ -20,32 +20,31 @@
                         <group string="KPI Info">
                             <field name="department_kpi_id" invisible="1" />
                             <field name="pillar_id" options="{'no_create': True}" />
-                            <field name="category_id"
-                                domain="[('pillar_id', '=', pillar_id)]"
-                                options="{'no_create': True}" />
                             <field name="parent_line_id"
                                 domain="[('department_kpi_id', '=', department_kpi_id), ('id', '!=', id)]"
                                 options="{'no_create': True}" />
                             <field name="kpi_type" />
+                            <field name="manual_scoring_type"
+                                invisible="kpi_type != 'manual'" />
                             <field name="unit"
-                                invisible="kpi_type != 'quantitative'" />
+                                invisible="kpi_type != 'auto'" />
                             <field name="scoring_formula_id"
-                                invisible="kpi_type != 'quantitative'"
+                                invisible="kpi_type != 'auto'"
                                 options="{'no_create': True}" />
                             <field name="weight" />
                             <field name="score_scale_base_override" />
                         </group>
-                        <group string="Auto Compute" invisible="kpi_type != 'quantitative'">
+                        <group string="Auto Compute" invisible="kpi_type != 'auto'">
                             <field name="is_auto" readonly="1"
-                                invisible="kpi_type != 'quantitative'" />
-                            <field name="dept_source_type" invisible="kpi_type != 'quantitative'" />
-                            <field name="data_source_id" invisible="kpi_type != 'quantitative' or dept_source_type != 'data_source'" />
+                                invisible="kpi_type != 'auto'" />
+                            <field name="dept_source_type" invisible="kpi_type != 'auto'" />
+                            <field name="data_source_id" invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
                         </group>
                     </group>
 
                     <group invisible="is_section">
                         <group string="Target"
-                            invisible="kpi_type != 'quantitative'">
+                            invisible="kpi_type != 'auto'">
                             <field name="target" />
                         </group>
                     </group>
@@ -102,11 +101,6 @@
 
                                     <field name="name" string="Title" />
                                     <field name="pillar_id" options="{'no_create': True}" />
-                                    <field name="category_id"
-                                        options="{'no_create': True}"
-                                        domain="[('pillar_id', '=', pillar_id)]"
-                                        invisible="is_section"
-                                        optional="show" />
                                     <field name="parent_line_id"
                                         domain="[('department_kpi_id', '=', parent.id), ('id', '!=', id)]"
                                         options="{'no_create': True}"
@@ -119,14 +113,16 @@
                                         optional="show" />
 
                                     <field name="kpi_type" invisible="is_section" />
+                                    <field name="manual_scoring_type"
+                                        invisible="is_section or kpi_type != 'manual'" />
                                     <field name="unit"
                                         string="Unit"
-                                        invisible="is_section or kpi_type != 'quantitative'"
+                                        invisible="is_section or kpi_type != 'auto'"
                                         optional="show" />
                                     <field name="target" string="Target"
-                                        invisible="is_section or kpi_type != 'quantitative'" />
+                                        invisible="is_section or kpi_type != 'auto'" />
                                     <field name="scoring_formula_id"
-                                        invisible="is_section or kpi_type != 'quantitative'"
+                                        invisible="is_section or kpi_type != 'auto'"
                                         options="{'no_create': True}" />
 
                                     <field name="is_auto" column_invisible="1" />

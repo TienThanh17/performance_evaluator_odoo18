@@ -21,42 +21,5 @@
             <field name="code">p3_department</field>
             <field name="sequence">40</field>
         </record>
-
-        <!-- <record id="hr_evaluation_category_knowledge" model="hr.evaluation.category">
-            <field name="name">Knowledge</field>
-            <field name="code">knowledge</field>
-            <field name="pillar_id" ref="hr_evaluation_pillar_p2_1"/>
-            <field name="sequence">10</field>
-        </record>
-        <record id="hr_evaluation_category_safety" model="hr.evaluation.category">
-            <field name="name">Safety</field>
-            <field name="code">safety</field>
-            <field name="pillar_id" ref="hr_evaluation_pillar_p2_1"/>
-            <field name="sequence">20</field>
-        </record>
-        <record id="hr_evaluation_category_professional_skills" model="hr.evaluation.category">
-            <field name="name">Professional Skills</field>
-            <field name="code">professional_skills</field>
-            <field name="pillar_id" ref="hr_evaluation_pillar_p2_2"/>
-            <field name="sequence">10</field>
-        </record>
-        <record id="hr_evaluation_category_technical_quality" model="hr.evaluation.category">
-            <field name="name">Technical / Quality</field>
-            <field name="code">technical_quality</field>
-            <field name="pillar_id" ref="hr_evaluation_pillar_p2_2"/>
-            <field name="sequence">20</field>
-        </record>
-        <record id="hr_evaluation_category_p3_individual_general" model="hr.evaluation.category">
-            <field name="name">Individual KPI</field>
-            <field name="code">individual_kpi</field>
-            <field name="pillar_id" ref="hr_evaluation_pillar_p3_individual"/>
-            <field name="sequence">10</field>
-        </record>
-        <record id="hr_evaluation_category_p3_department_general" model="hr.evaluation.category">
-            <field name="name">Department KPI</field>
-            <field name="code">department_kpi</field>
-            <field name="pillar_id" ref="hr_evaluation_pillar_p3_department"/>
-            <field name="sequence">10</field>
-        </record> -->
     </data>
 </odoo>

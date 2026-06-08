@@ -249,6 +249,27 @@ class PerformanceEvaluation(models.Model):
         compute="_compute_is_department_manager", store=False
     )
 
+    # Khai báo các field chứa tên động của từng Pillar
+    pillar_p2_1_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.1")
+    pillar_p2_2_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.2")
+    pillar_p3_ind_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P3")
+
+    def _compute_dynamic_pillar_names(self):
+        # Truy vấn database một lần để lấy tất cả các pillar cần thiết (Tối ưu hiệu suất)
+        # Giả định model hr.evaluation.pillar của bạn có trường 'code' để nhận diện
+        pillars = self.env['hr.evaluation.pillar'].sudo().search([
+            ('code', 'in', ['p2_1', 'p2_2', 'p3_individual'])
+        ])
+        
+        # Tạo một dictionary { 'p2_1': 'Kiến Thức', 'p2_2': 'Kỹ năng chuyên môn', ... }
+        pillar_dict = {p.code: p.name for p in pillars}
+
+        for rec in self:
+            # Gán tên từ database, nếu không tìm thấy thì dùng tên mặc định
+            rec.pillar_p2_1_name = pillar_dict.get('p2_1', 'P2.1')
+            rec.pillar_p2_2_name = pillar_dict.get('p2_2', 'P2.2')
+            rec.pillar_p3_ind_name = pillar_dict.get('p3_individual', 'P3 Individual')
+
     @api.depends("performance_report_id.period_id")
     def _compute_period_id(self):
         for rec in self:
@@ -305,13 +326,20 @@ class PerformanceEvaluation(models.Model):
             else:
                 rec.period_status = "ongoing"
 
-    @api.depends("evaluation_line_ids.kpi_type")
+    # Detect which manual scoring widgets must stay visible in the evaluation grid.
+    @api.depends(
+        "evaluation_line_ids.kpi_type",
+        "evaluation_line_ids.manual_scoring_type",
+    )
     def _compute_kpi_types(self):
         for rec in self:
-            kpi_types = rec.evaluation_line_ids.mapped("kpi_type")
-            rec.has_binary_kpi = "binary" in kpi_types
-            rec.has_rating_kpi = "rating" in kpi_types
-            rec.has_score_kpi = "score" in kpi_types
+            manual_lines = rec.evaluation_line_ids.filtered(
+                lambda line: line.kpi_type == "manual"
+            )
+            manual_types = manual_lines.mapped("manual_scoring_type")
+            rec.has_binary_kpi = "binary" in manual_types
+            rec.has_rating_kpi = "rating" in manual_types
+            rec.has_score_kpi = "score" in manual_types
 
     @api.depends("performance_score")
     def _compute_score_scale_display(self):
@@ -397,16 +425,14 @@ class PerformanceEvaluation(models.Model):
                 )
 
             lines = record.evaluation_line_ids.filtered(
-                lambda l: (
-                    (l.kpi_type != "quantitative")
-                    and (not l.is_auto)
-                    and (not l.is_section)
-                )
+                lambda l: l.kpi_type == "manual" and not l.is_section
             )
 
-            # Validate self input before submit for non-quantitative manual KPIs
+            # Validate self input before submit for manual KPI lines.
             missing_binary = lines.filtered(
-                lambda l: l.kpi_type == "binary" and not l.employee_rating_binary
+                lambda l: (
+                    l.manual_scoring_type == "binary" and not l.employee_rating_binary
+                )
             )
             if missing_binary:
                 raise ValidationError(
@@ -414,13 +440,19 @@ class PerformanceEvaluation(models.Model):
                 )
 
             missing_rating = lines.filtered(
-                lambda l: l.kpi_type == "rating" and not l.employee_rating_selection
+                lambda l: (
+                    l.manual_scoring_type == "rating"
+                    and not l.employee_rating_selection
+                )
             )
             if missing_rating:
                 missing_rating.write({"employee_rating_selection": "0"})
 
             missing_score = lines.filtered(
-                lambda l: l.kpi_type == "score" and l.employee_rating_score is None
+                lambda l: (
+                    l.manual_scoring_type == "score"
+                    and l.employee_rating_score is None
+                )
             )
             if missing_score:
                 raise ValidationError(
@@ -730,10 +762,10 @@ class PerformanceEvaluation(models.Model):
                             "display_type": (line.display_type or "line_section"),
                             "key_performance_area": line.key_performance_area,
                             "pillar_id": line.pillar_id.id,
-                            "category_id": line.category_id.id,
                             "description": False,
                             # Safe defaults for required KPI fields on section rows
-                            "kpi_type": "quantitative",
+                            "kpi_type": "auto",
+                            "manual_scoring_type": False,
                             "target": 0.0,
                             "unit": False,
                             "weight": 0.0,
@@ -756,10 +788,10 @@ class PerformanceEvaluation(models.Model):
                         ),
                         "sequence": line.sequence,
                         "pillar_id": line.pillar_id.id,
-                        "category_id": line.category_id.id,
                         "key_performance_area": line.key_performance_area,
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
+                        "manual_scoring_type": line.manual_scoring_type,
                         "target": line.target,
                         "unit": line.unit.id or False,
                         "weight": line.weight,
@@ -943,18 +975,17 @@ class PerformanceEvaluation(models.Model):
             # Translated label for display
             "performance_level_label": perf_label,
             "quantitative_table": self._get_quantitative_table_data(evaluation),
-            
-            # --- TẤT CẢ BIỂU ĐỒ (CẢ RADAR LẪN CHI TIẾT) GOM VÀO ĐÂY ---
+            # Keep every dashboard chart payload, including radar and detail charts, in one list.
             "charts": chart_service.build_dynamic_charts(evaluation, dashboard_kind="individual"),
         }
         return result
 
     # ------------------------------------------------------------------
-    # Spider Web – non-quantitative KPIs
+    # Spider Web – manual KPI lines
     # ------------------------------------------------------------------
     # def _get_spider_web_data(self, evaluation):
     #     lines = evaluation.evaluation_line_ids.filtered(
-    #         lambda l: not l.is_section and l.kpi_type != "quantitative"
+    #         lambda l: not l.is_section and l.kpi_type == "manual"
     #     )
     #     labels = []
     #     scores = []
@@ -978,7 +1009,7 @@ class PerformanceEvaluation(models.Model):
             lambda l: (
                 not l.is_section
                 and not l.parent_line_id
-                and l.kpi_type == "quantitative"
+                and l.kpi_type == "auto"
             )
         )
         rows = []

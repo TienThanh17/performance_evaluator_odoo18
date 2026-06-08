@@ -1,6 +1,12 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+from .kpi_type_utils import (
+    KPI_TYPE_SELECTION,
+    MANUAL_SCORING_TYPE_SELECTION,
+    get_manual_scoring_type_required_message,
+)
+
 
 class HrKpiTemplateLine(models.Model):
     _name = "hr.kpi.template.line"
@@ -13,15 +19,18 @@ class HrKpiTemplateLine(models.Model):
         required=True,
     )
     kpi_type = fields.Selection(
-        [
-            ("quantitative", "Quantitative"),
-            ("binary", "Binary"),
-            ("rating", "Rating"),
-            ("score", "Score"),
-        ],
+        KPI_TYPE_SELECTION,
         string="KPI Type",
-        default="quantitative",
+        default="auto",
         required=True,
+    )
+    manual_scoring_type = fields.Selection(
+        MANUAL_SCORING_TYPE_SELECTION,
+        string="Manual Scoring Type",
+    )
+    manual_scoring_type = fields.Selection(
+        MANUAL_SCORING_TYPE_SELECTION,
+        string="Manual Scoring Type",
     )
     target = fields.Float(string="Target", default=0.0)
     target_display = fields.Char(string="Target", compute="_compute_display")
@@ -53,16 +62,11 @@ class HrKpiTemplateLine(models.Model):
         string="Pillar",
         ondelete="restrict",
     )
-    pillar_code = fields.Char(
+    pillar_code = fields.Selection(
         related="pillar_id.code",
         string="Pillar Code",
         store=True,
         readonly=True,
-    )
-    category_id = fields.Many2one(
-        "hr.evaluation.category",
-        string="Category",
-        ondelete="restrict",
     )
     parent_line_id = fields.Many2one(
         "hr.kpi.template.line",
@@ -148,26 +152,42 @@ class HrKpiTemplateLine(models.Model):
             defaults["pillar_id"] = default_pillar.id
         return defaults
 
+    # Compute whether the template line can auto-fill its actual value from a data source.
+    # Compute whether the template line can auto-fill its actual value from a data source.
     @api.depends("kpi_type", "data_source_id")
     def _compute_auto(self):
         for rec in self:
-            rec.is_auto = bool(rec.kpi_type == "quantitative" and rec.data_source_id)
+            rec.is_auto = bool(rec.kpi_type == "auto" and rec.data_source_id)
+            rec.is_auto = bool(rec.kpi_type == "auto" and rec.data_source_id)
 
-    # Compute the score scale hint shown next to score-based KPI inputs.
-    @api.depends("kpi_type", "score_scale_base_override")
+    # Compute the score scale hint shown next to manual score inputs.
+    @api.depends("kpi_type", "manual_scoring_type", "score_scale_base_override")
+    # Compute the score scale hint shown next to manual score inputs.
+    @api.depends("kpi_type", "manual_scoring_type", "score_scale_base_override")
     def _compute_score_max_display(self):
         for rec in self:
-            if rec.kpi_type == "score" and rec.score_scale_base_override > 0:
+            if (
+                rec.kpi_type == "manual"
+                and rec.manual_scoring_type == "score"
+                and rec.score_scale_base_override > 0
+            ):
+            if (
+                rec.kpi_type == "manual"
+                and rec.manual_scoring_type == "score"
+                and rec.score_scale_base_override > 0
+            ):
                 rec.score_max_display = f"/ {rec.score_scale_base_override:g} pts"
             else:
                 rec.score_max_display = ""
 
+    # Flag template lines that use non-linear auto scoring formulas.
+    # Flag template lines that use non-linear auto scoring formulas.
     @api.depends("kpi_type", "scoring_formula_id", "scoring_formula_id.formula_type")
     def _compute_is_special_scoring(self):
         for rec in self:
             effective_formula_type = rec.scoring_formula_id.formula_type if rec.scoring_formula_id else False
             rec.is_special_scoring = bool(
-                rec.kpi_type == "quantitative" and effective_formula_type and effective_formula_type != "linear"
+                rec.kpi_type == "auto" and effective_formula_type and effective_formula_type != "linear"
             )
 
     def _get_unit_by_code(self, code):
@@ -192,10 +212,13 @@ class HrKpiTemplateLine(models.Model):
         self.ensure_one()
         return self.scoring_formula_id or False
 
+    # Format the target preview only for auto KPI lines.
+    # Format the target preview only for auto KPI lines.
     @api.depends("target", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
         for rec in self:
-            if rec.display_type or rec.is_section or rec.kpi_type != "quantitative":
+            if rec.display_type or rec.is_section or rec.kpi_type != "auto":
+            if rec.display_type or rec.is_section or rec.kpi_type != "auto":
                 rec.target_display = ""
                 continue
             if rec._is_percent_unit():
@@ -210,29 +233,51 @@ class HrKpiTemplateLine(models.Model):
         for rec in self:
             rec.display_type = "line_section" if rec.is_section else False
 
+    # Validate the target only for auto KPI lines that use numeric goals.
+    # Validate the target only for auto KPI lines that use numeric goals.
     @api.constrains("kpi_type", "target")
     def _check_numeric_target(self):
         for rec in self:
             if rec.display_type or rec.is_section:
                 continue
-            if rec.kpi_type == "quantitative" and (rec.target or 0.0) < 0.0:
+            if rec.kpi_type == "auto" and (rec.target or 0.0) < 0.0:
+            if rec.kpi_type == "auto" and (rec.target or 0.0) < 0.0:
                 raise ValidationError(
                     _(
-                        "For Quantitative KPI type, Target must be greater than or equal 0."
+                        "For Auto KPI type, Target must be greater than or equal to 0."
+                        "For Auto KPI type, Target must be greater than or equal to 0."
                     )
+                )
+
+    # Keep manual subtype required for manual lines and empty for auto lines.
+    @api.constrains("kpi_type", "manual_scoring_type")
+    def _check_manual_scoring_type(self):
+        for rec in self:
+            if rec.display_type or rec.is_section:
+                continue
+            if rec.kpi_type == "manual" and not rec.manual_scoring_type:
+                raise ValidationError(get_manual_scoring_type_required_message())
+            if rec.kpi_type == "auto" and rec.manual_scoring_type:
+                raise ValidationError(
+                    _("Manual scoring type must be empty for auto KPI lines.")
+                )
+
+    # Keep manual subtype required for manual lines and empty for auto lines.
+    @api.constrains("kpi_type", "manual_scoring_type")
+    def _check_manual_scoring_type(self):
+        for rec in self:
+            if rec.display_type or rec.is_section:
+                continue
+            if rec.kpi_type == "manual" and not rec.manual_scoring_type:
+                raise ValidationError(get_manual_scoring_type_required_message())
+            if rec.kpi_type == "auto" and rec.manual_scoring_type:
+                raise ValidationError(
+                    _("Manual scoring type must be empty for auto KPI lines.")
                 )
 
     @api.constrains("parent_dept_line_id", "kpi_id", "is_section")
     def _check_parent_dept_line(self):
         self._validate_parent_dept_line_consistency()
-
-    @api.constrains("category_id", "pillar_id")
-    def _check_category_pillar(self):
-        for rec in self:
-            if rec.category_id and rec.pillar_id and rec.category_id.pillar_id != rec.pillar_id:
-                raise ValidationError(
-                    _("The selected category must belong to the selected pillar.")
-                )
 
     @api.constrains("parent_line_id", "kpi_id")
     def _check_parent_line(self):
@@ -246,10 +291,8 @@ class HrKpiTemplateLine(models.Model):
                 raise ValidationError(
                     _("The parent KPI line must belong to the same KPI template.")
                 )
-            if parent.is_section:
-                raise ValidationError(
-                    _("A section line cannot be selected as a parent KPI line.")
-                )
+            # Allow section parents because aggregate section rows own the child KPI tree.
+            # Allow section parents because aggregate section rows own the child KPI tree.
             if parent.parent_line_id == rec:
                 raise ValidationError(
                     _("Recursive KPI line hierarchy is not allowed.")

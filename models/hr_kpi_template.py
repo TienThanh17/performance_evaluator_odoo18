@@ -68,6 +68,26 @@ class HrKpiTemplate(models.Model):
         domain="[('department_id', '=', department_id), ('period_type', '=', period_type)]",
         ondelete="set null",
     )
+    # Khai báo các field chứa tên động của từng Pillar
+    pillar_p2_1_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.1")
+    pillar_p2_2_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.2")
+    pillar_p3_ind_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P3")
+
+    def _compute_dynamic_pillar_names(self):
+        # Truy vấn database một lần để lấy tất cả các pillar cần thiết (Tối ưu hiệu suất)
+        # Giả định model hr.evaluation.pillar của bạn có trường 'code' để nhận diện
+        pillars = self.env['hr.evaluation.pillar'].sudo().search([
+            ('code', 'in', ['p2_1', 'p2_2', 'p3_individual'])
+        ])
+        
+        # Tạo một dictionary { 'p2_1': 'Kiến Thức', 'p2_2': 'Kỹ năng chuyên môn', ... }
+        pillar_dict = {p.code: p.name for p in pillars}
+
+        for rec in self:
+            # Gán tên từ database, nếu không tìm thấy thì dùng tên mặc định
+            rec.pillar_p2_1_name = pillar_dict.get('p2_1', 'P2.1')
+            rec.pillar_p2_2_name = pillar_dict.get('p2_2', 'P2.2')
+            rec.pillar_p3_ind_name = pillar_dict.get('p3_individual', 'P3.1.1 KPI Cá Nhân')
 
     # @api.constrains("kpi_line_ids")
     # def _check_total_weight(self):

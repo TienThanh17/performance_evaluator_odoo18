@@ -143,6 +143,7 @@ class HrPerformanceReport(models.Model):
                                 "department_kpi_line_id": line.id,
                                 "name": line.name,
                                 "kpi_type": line.kpi_type,
+                                "manual_scoring_type": line.manual_scoring_type,
                                 "target": score_base
                                 if line.dept_source_type == "child_kpi_average"
                                 else line.target,
@@ -671,7 +672,7 @@ class HrPerformanceReport(models.Model):
             line = ev.evaluation_line_ids.filtered(
                 lambda l: (
                     not l.is_section
-                    and l.kpi_type == "quantitative"
+                    and l.kpi_type == "auto"
                 )
             )
             if not line or not ev.employee_id or not ev.start_date or not ev.end_date:
@@ -709,7 +710,7 @@ class HrPerformanceReport(models.Model):
             line = ev.evaluation_line_ids.filtered(
                 lambda l: (
                     not l.is_section
-                    and l.kpi_type == "quantitative"        
+                    and l.kpi_type == "auto"
                 )
             )
             if not line or not ev.start_date or not ev.end_date:
@@ -737,7 +738,7 @@ class HrPerformanceReport(models.Model):
             line = ev.evaluation_line_ids.filtered(
                 lambda l: (
                     not l.is_section
-                    and l.kpi_type == "quantitative"
+                    and l.kpi_type == "auto"
                 )
             )
             if not line or not ev.start_date or not ev.end_date:
@@ -748,14 +749,13 @@ class HrPerformanceReport(models.Model):
             val = engine.compute(ev.employee_id, line[0], ev.start_date, ev.end_date)
             late_summary["late_count"].append(int(val or 0))
 
-        # ── 5. Qualitative charts (kpi_type = rating) ─────────────────────────
-        # Gom tất cả KPI rating theo key_performance_area
+        # ── 5. Manual qualitative charts ──────────────────────────────────────
+        # Group all manual KPI lines by key performance area.
         qual_map = {}  # {kpi_name: {emp_name: score}}
         for ev in evaluations:
             emp_name = ev.employee_id.name if ev.employee_id else "?"
             rating_lines = ev.evaluation_line_ids.filtered(
-                # lambda l: not l.is_section and l.kpi_type == "rating"
-                lambda l: not l.is_section and l.kpi_type != "quantitative"
+                lambda l: not l.is_section and l.kpi_type == "manual"
             )
             for line in rating_lines:
                 kname = line.key_performance_area or line.name or "KPI"

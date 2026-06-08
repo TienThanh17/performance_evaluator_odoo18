@@ -104,8 +104,6 @@ class HrKpiScoreScaleConvertWizard(models.TransientModel):
                 "final_rating",
                 "employee_rating_score",
                 "manager_rating_score",
-                "employee_rating_value",
-                "manager_rating_value",
             ],
             factor,
         )

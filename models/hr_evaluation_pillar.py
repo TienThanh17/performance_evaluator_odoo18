@@ -7,16 +7,22 @@ class HrEvaluationPillar(models.Model):
     _description = "Evaluation Pillar"
     _order = "sequence, id"
 
+    _CODE_SELECTION = [
+        ("p2_1", "P2.1"),
+        ("p2_2", "P2.2"),
+        ("p3_individual", "P3.1.1"),
+        ("p3_department", "P3.1.2"),
+    ]
+
     name = fields.Char(required=True)
-    code = fields.Char(required=True, index=True)
+    code = fields.Selection(
+        selection=_CODE_SELECTION,
+        required=True,
+        index=True,
+    )
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
     description = fields.Text()
-    category_ids = fields.One2many(
-        "hr.evaluation.category",
-        "pillar_id",
-        string="Categories",
-    )
 
     _sql_constraints = [
         (
@@ -26,25 +32,8 @@ class HrEvaluationPillar(models.Model):
         )
     ]
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get("code"):
-                vals["code"] = self._normalize_code(vals["code"])
-        return super().create(vals_list)
-
-    def write(self, vals):
-        if vals.get("code"):
-            vals = dict(vals, code=self._normalize_code(vals["code"]))
-        return super().write(vals)
-
-    @api.model
-    def _normalize_code(self, code):
-        return (code or "").strip().lower()
-
     @api.constrains("code")
     def _check_code(self):
         for rec in self:
-            code = self._normalize_code(rec.code)
-            if not code:
+            if not rec.code:
                 raise ValidationError("Pillar code is required.")

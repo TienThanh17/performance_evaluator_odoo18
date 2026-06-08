@@ -3,6 +3,12 @@ import json
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+from .kpi_type_utils import (
+    KPI_TYPE_SELECTION,
+    MANUAL_SCORING_TYPE_SELECTION,
+    get_manual_scoring_type_required_message,
+)
+
 
 class HrDepartmentKpiTemplateLine(models.Model):
     _name = "hr.department.kpi.template.line"
@@ -10,14 +16,13 @@ class HrDepartmentKpiTemplateLine(models.Model):
 
     name = fields.Char(string="Tên Tiêu Chí", required=True)
     kpi_type = fields.Selection(
-        [
-            ("quantitative", "Quantitative"),
-            ("binary", "Binary"),
-            ("rating", "Rating"),
-            ("score", "Score"),
-        ],
+        KPI_TYPE_SELECTION,
         required=True,
-        default="quantitative",
+        default="auto",
+    )
+    manual_scoring_type = fields.Selection(
+        MANUAL_SCORING_TYPE_SELECTION,
+        string="Manual Scoring Type",
     )
     description = fields.Html(string="Description", sanitize=True)
     target = fields.Float(default=0.0)
@@ -54,6 +59,13 @@ class HrDepartmentKpiTemplateLine(models.Model):
         help="Công thức chấm điểm dùng để tính điểm cho KPI định lượng.",
     )
     is_section = fields.Boolean(default=False)
+    display_type = fields.Selection(
+        [("line_section", "Section")],
+        string="Display Type",
+        compute="_compute_display_type",
+        store=True,
+        readonly=False,
+    )
     sequence = fields.Integer(default=10)
     department_kpi_id = fields.Many2one(
         "hr.department.kpi.template", ondelete="cascade"
@@ -63,16 +75,11 @@ class HrDepartmentKpiTemplateLine(models.Model):
         string="Pillar",
         ondelete="restrict",
     )
-    pillar_code = fields.Char(
+    pillar_code = fields.Selection(
         related="pillar_id.code",
         string="Pillar Code",
         store=True,
         readonly=True,
-    )
-    category_id = fields.Many2one(
-        "hr.evaluation.category",
-        string="Category",
-        ondelete="restrict",
     )
     parent_line_id = fields.Many2one(
         "hr.department.kpi.template.line",
@@ -157,17 +164,22 @@ class HrDepartmentKpiTemplateLine(models.Model):
         for rec in self:
             if rec.is_section:
                 continue
-            if rec.kpi_type == "quantitative" and (rec.target or 0.0) < 0.0:
+            if rec.kpi_type == "auto" and (rec.target or 0.0) < 0.0:
                 raise ValidationError(
-                    _("For Quantitative KPI type, Target must be greater than or equal 0.")
+                    _("For Auto KPI type, Target must be greater than or equal to 0.")
                 )
 
-    @api.constrains("category_id", "pillar_id")
-    def _check_category_pillar(self):
+    # Keep manual subtype required for manual lines and empty for auto lines.
+    @api.constrains("kpi_type", "manual_scoring_type")
+    def _check_manual_scoring_type(self):
         for rec in self:
-            if rec.category_id and rec.pillar_id and rec.category_id.pillar_id != rec.pillar_id:
+            if rec.is_section:
+                continue
+            if rec.kpi_type == "manual" and not rec.manual_scoring_type:
+                raise ValidationError(get_manual_scoring_type_required_message())
+            if rec.kpi_type == "auto" and rec.manual_scoring_type:
                 raise ValidationError(
-                    _("The selected category must belong to the selected pillar.")
+                    _("Manual scoring type must be empty for auto KPI lines.")
                 )
 
     @api.constrains("parent_line_id", "department_kpi_id")
@@ -182,10 +194,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 raise ValidationError(
                     _("The parent KPI line must belong to the same department KPI template.")
                 )
-            if parent.is_section:
-                raise ValidationError(
-                    _("A section line cannot be selected as a parent KPI line.")
-                )
+            # Allow section parents because aggregate section rows own the child KPI tree.
             if parent.parent_line_id == rec:
                 raise ValidationError(
                     _("Recursive KPI line hierarchy is not allowed.")
@@ -196,9 +205,9 @@ class HrDepartmentKpiTemplateLine(models.Model):
         for rec in self:
             if rec.is_section:
                 continue
-            if rec.kpi_type == "quantitative" and not rec.scoring_formula_id:
+            if rec.kpi_type == "auto" and not rec.scoring_formula_id:
                 raise ValidationError(
-                    _("Please select a scoring formula for quantitative department KPIs.")
+                    _("Please select a scoring formula for auto department KPI lines.")
                 )
 
     def _get_unit_by_code(self, code):
@@ -230,10 +239,11 @@ class HrDepartmentKpiTemplateLine(models.Model):
         self.ensure_one()
         return self.scoring_formula_id
 
+    # Format the target preview only for auto department KPI lines.
     @api.depends("target", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
         for rec in self:
-            if rec.is_section or rec.kpi_type != "quantitative":
+            if rec.is_section or rec.kpi_type != "auto":
                 rec.target_display = ""
                 continue
             if rec._is_percent_unit():
@@ -243,11 +253,18 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 unit_name = rec.unit.name if rec.unit else ""
                 rec.target_display = f"{target} {unit_name}" if unit_name else target
 
+    # Keep the technical display type aligned with the section flag.
+    @api.depends("is_section")
+    def _compute_display_type(self):
+        for rec in self:
+            rec.display_type = "line_section" if rec.is_section else False
+
+    # Compute whether the department template line can auto-fill its actual value.
     @api.depends("kpi_type", "dept_source_type", "data_source_id")
     def _compute_auto(self):
         for rec in self:
             rec.is_auto = bool(
-                rec.kpi_type == "quantitative"
+                rec.kpi_type == "auto"
                 and rec.dept_source_type in ("child_kpi_average", "data_source")
                 and (
                     rec.dept_source_type == "child_kpi_average"

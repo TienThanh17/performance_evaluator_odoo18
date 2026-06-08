@@ -14,7 +14,7 @@
             <field name="department_kpi_id" ref="kpi_department_template_it" />
             <field name="name">Kỷ luật chuyên cần</field>
             <field name="weight">10.0</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="is_auto">True</field>
@@ -27,7 +27,7 @@
             <field name="department_kpi_id" ref="kpi_department_template_it" />
             <field name="name">Hiệu suất hoàn thành công việc</field>
             <field name="weight">20.0</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="is_auto">True</field>
@@ -40,7 +40,7 @@
             <field name="department_kpi_id" ref="kpi_department_template_it" />
             <field name="name">Chất lượng chuyên môn</field>
             <field name="weight">35.0</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="is_auto">True</field>
@@ -53,7 +53,7 @@
             <field name="department_kpi_id" ref="kpi_department_template_it" />
             <field name="name">Văn hóa &amp; Ý thức</field>
             <field name="weight">35.0</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="is_auto">True</field>
@@ -87,7 +87,7 @@
                     <strong>Điểm = Tỷ lệ hoàn thành quy đổi theo thang điểm cấu hình</strong>
                 </p>
             </field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="unit" ref="kpi_unit_percent"/>
             <field name="direction">higher_better</field>
             <field name="target">100.0</field>
@@ -107,7 +107,7 @@
         <!--                    <strong>Điểm = Tỷ lệ hoàn thành đúng hạn quy đổi theo thang điểm cấu hình</strong>-->
         <!--                </p>-->
         <!--            </field>-->
-        <!--            <field name="kpi_type">quantitative</field>-->
+        <!--            <field name="kpi_type">auto</field>-->
         <!--            <field name="direction">higher_better</field>-->
         <!--            <field name="target">100.0</field>-->
         <!--            <field name="weight">15.0</field>-->
@@ -132,7 +132,7 @@
                 </ul>
                 <p>Cột <strong>Thực Tế</strong> thể hiện cho số ngày đi trễ</p>
             </field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="direction">lower_better</field>
             <field name="target">0.0</field>
             <field name="weight">5.0</field>
@@ -166,7 +166,7 @@
                         <strong>Nghỉ > 5 ngày có phép hoặc 1 ngày không phép:</strong> 0đ </li>
                 </ul>
             </field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="direction">lower_better</field>
             <field name="target">0.0</field>
             <field name="weight">5.0</field>
@@ -204,7 +204,8 @@
                         <strong>1 sao (2đ):</strong> Yếu - Không hoàn thành, kỹ năng code kém. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="weight">20.0</field>
@@ -233,7 +234,8 @@
                         <strong>1 sao (2đ):</strong> Vi phạm nghiêm trọng quy trình phát triển. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="direction">higher_better</field>
             <field name="target">100.0</field>
             <field name="weight">15.0</field>
@@ -264,7 +266,8 @@
                         <strong>1 sao (2đ):</strong> Thiếu tinh thần hợp tác, gây mất đoàn kết. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="weight">15.0</field>
@@ -296,7 +299,8 @@
                         trách nhiệm. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="weight">10.0</field>
@@ -323,7 +327,8 @@
                         <strong>1 sao (2đ):</strong> Vi phạm nghiêm trọng quy định của công ty. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="direction">higher_better</field>
             <field name="target">10.0</field>
             <field name="weight">10.0</field>

@@ -30,7 +30,7 @@
         <record id="department_kpi_it_delivery_score" model="hr.department.kpi.template.line">
             <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_2026_05"/>
             <field name="name">Điểm giao việc đúng hạn</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="dept_source_type">child_kpi_average</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_score"/>
             <field name="target">10</field>
@@ -42,7 +42,7 @@
         <record id="department_kpi_it_attendance_score" model="hr.department.kpi.template.line">
             <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_2026_05"/>
             <field name="name">Điểm chấm công và đúng giờ</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="dept_source_type">child_kpi_average</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_score"/>
             <field name="target">10</field>
@@ -54,7 +54,7 @@
         <record id="department_kpi_it_quality_score" model="hr.department.kpi.template.line">
             <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.department_kpi_it_2026_05"/>
             <field name="name">Điểm chất lượng và ý thức</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="dept_source_type">child_kpi_average</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_score"/>
             <field name="target">10</field>
@@ -81,7 +81,7 @@
         <record id="employee_kpi_it_done_tasks" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
             <field name="key_performance_area">Số task hoàn thành</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="target">20</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task"/>
             <field name="weight">25</field>
@@ -94,7 +94,7 @@
         <record id="employee_kpi_it_on_time_rate" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
             <field name="key_performance_area">Tỷ lệ task đúng hạn</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="target">90</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent"/>
             <field name="weight">20</field>
@@ -107,7 +107,7 @@
         <record id="employee_kpi_it_present_days" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
             <field name="key_performance_area">Đi làm đầy đủ</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="target">22</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day"/>
             <field name="weight">20</field>
@@ -120,7 +120,7 @@
         <record id="employee_kpi_it_late_days" model="hr.kpi.template.line">
             <field name="kpi_id" ref="custom_adecsol_hr_performance_evaluator.employee_kpi_it_2026_05"/>
             <field name="key_performance_area">Số ngày đi muộn</field>
-            <field name="kpi_type">quantitative</field>
+            <field name="kpi_type">auto</field>
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day"/>
             <field name="weight">15</field>
@@ -158,7 +158,8 @@
                         <strong>1 sao (2đ):</strong> Yếu - Không hoàn thành, kỹ năng code kém. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="weight">6.0</field>
             <field name="sequence">90</field>
         </record>
@@ -183,7 +184,8 @@
                         <strong>1 sao (2đ):</strong> Vi phạm nghiêm trọng quy trình phát triển. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="weight">4.0</field>
             <field name="sequence">100</field>
         </record>
@@ -210,7 +212,8 @@
                         <strong>1 sao (2đ):</strong> Thiếu tinh thần hợp tác, gây mất đoàn kết. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="weight">4.0</field>
             <field name="sequence">110</field>
         </record>
@@ -238,7 +241,8 @@
                         trách nhiệm. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="weight">3.0</field>
             <field name="sequence">120</field>
         </record>
@@ -261,7 +265,8 @@
                         <strong>1 sao (2đ):</strong> Vi phạm nghiêm trọng quy định của công ty. </li>
                 </ul>
             </field>
-            <field name="kpi_type">rating</field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">rating</field>
             <field name="weight">3.0</field>
             <field name="sequence">130</field>
         </record>

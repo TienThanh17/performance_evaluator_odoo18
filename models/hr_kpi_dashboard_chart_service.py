@@ -85,7 +85,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
         matched_line = evaluation.evaluation_line_ids.filtered(
             lambda line: (
                 not line.is_section
-                and line.kpi_type == "quantitative"
+                and line.kpi_type == "auto"
                 and line.data_source_id.id == widget.data_source_id.id
             )
         )
@@ -154,7 +154,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
         lines = line_model.search(
             [
                 ("is_section", "=", False),
-                ("kpi_type", "=", "quantitative"),
+                ("kpi_type", "=", "auto"),
                 ("data_source_id", "=", widget.data_source_id.id),
                 ("evaluation_id.department_id", "=", evaluation.department_id.id),
                 ("evaluation_id.period_id", "=", evaluation.period_id.id),
@@ -236,7 +236,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
         matched_lines = evaluation.evaluation_line_ids.filtered(
             lambda line: (
                 not line.is_section
-                and line.kpi_type == "quantitative"
+                and line.kpi_type == "auto"
                 and line.data_source_id.id == widget.data_source_id.id
             )
         )

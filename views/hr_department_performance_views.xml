@@ -18,9 +18,6 @@
                     <group string="Structure" invisible="is_section">
                         <group>
                             <field name="pillar_id" options="{'no_create': True}"/>
-                            <field name="category_id"
-                                   domain="[('pillar_id', '=', pillar_id)]"
-                                   options="{'no_create': True}"/>
                         </group>
                         <group>
                             <field name="parent_line_id"
@@ -31,33 +28,35 @@
                     </group>
 
                     <group string="Target / Actual"
-                           invisible="is_section or kpi_type != 'quantitative'">
+                           invisible="is_section or kpi_type != 'auto'">
                         <group>
                             <field name="target"/>
-                            <field name="unit" invisible="kpi_type != 'quantitative'"/>
+                            <field name="unit" invisible="kpi_type != 'auto'"/>
                         </group>
                         <group>
                             <field name="actual" placeholder="Actual value"/>
                         </group>
                     </group>
 
-                    <group string="Assessment" invisible="is_section or kpi_type == 'quantitative'">
+                    <group string="Assessment" invisible="is_section or kpi_type == 'auto'">
                         <group>
+                            <field name="manual_scoring_type"
+                                   invisible="kpi_type != 'manual'"/>
                             <label for="manager_rating_binary" string="Manager Rating"
-                                   invisible="kpi_type != 'binary'"/>
+                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'"/>
                             <field name="manager_rating_binary" nolabel="1" widget="radio"
-                                   invisible="kpi_type != 'binary'"/>
+                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'"/>
 
                             <label for="manager_rating_selection" string="Manager Rating"
-                                   invisible="kpi_type != 'rating'"/>
+                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'"/>
                             <field name="manager_rating_selection" nolabel="1"
                                    widget="priority_onchange"
-                                   invisible="kpi_type != 'rating'"/>
+                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'"/>
 
                             <label for="manager_rating_score" string="Manager Score"
-                                   invisible="kpi_type != 'score'"/>
+                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'score'"/>
                             <field name="manager_rating_score" nolabel="1"
-                                   invisible="kpi_type != 'score'"/>
+                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'score'"/>
                         </group>
                     </group>
 
@@ -75,13 +74,15 @@
                     <group string="KPI Info" invisible="is_section">
                         <group>
                             <field name="kpi_type"/>
+                            <field name="manual_scoring_type"
+                                   invisible="kpi_type != 'manual'"/>
                             <field name="weight"/>
                             <field name="score_scale_base_override"/>
                         </group>
-                        <group invisible="kpi_type != 'quantitative'">
-                            <field name="dept_source_type" invisible="kpi_type != 'quantitative'"/>
-                            <field name="data_source_id" invisible="kpi_type != 'quantitative' or dept_source_type != 'data_source'"/>
-                            <field name="scoring_formula_id" invisible="kpi_type != 'quantitative' or dept_source_type != 'data_source'"/>
+                        <group invisible="kpi_type != 'auto'">
+                            <field name="dept_source_type" invisible="kpi_type != 'auto'"/>
+                            <field name="data_source_id" invisible="kpi_type != 'auto' or dept_source_type != 'data_source'"/>
+                            <field name="scoring_formula_id" invisible="kpi_type != 'auto' or dept_source_type != 'data_source'"/>
                         </group>
                     </group>
 
@@ -194,11 +195,6 @@
                                            options="{'no_create': True}"
                                            invisible="is_section"
                                            optional="show"/>
-                                    <field name="category_id"
-                                           options="{'no_create': True}"
-                                           domain="[('pillar_id', '=', pillar_id)]"
-                                           invisible="is_section"
-                                           optional="show"/>
                                     <field name="parent_line_id"
                                            domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
                                            options="{'no_create': True}"
@@ -212,6 +208,10 @@
 
                                     <field name="kpi_type" readonly="1" invisible="is_section"
                                            force_save="1"/>
+                                    <field name="manual_scoring_type"
+                                           readonly="1"
+                                           invisible="is_section or kpi_type != 'manual'"
+                                           force_save="1"/>
 
                                     <field name="dept_source_type" optional="show" readonly="1"
                                            invisible="is_section or not is_auto"/>
@@ -223,26 +223,26 @@
                                            invisible="is_section"/>
 
                                     <field name="unit" optional="show" readonly="1"
-                                           invisible="is_section or kpi_type != 'quantitative'"/>
-                                    <field name="target" readonly="1" invisible="is_section or kpi_type != 'quantitative'"/>
-                                    <field name="actual" readonly="is_auto" invisible="is_section or kpi_type != 'quantitative'"/>
+                                           invisible="is_section or kpi_type != 'auto'"/>
+                                    <field name="target" readonly="1" invisible="is_section or kpi_type != 'auto'"/>
+                                    <field name="actual" readonly="is_auto" invisible="is_section or kpi_type != 'auto'"/>
                                     <!-- <field name="target_display" string="Target"
-                                        invisible="is_section or kpi_type != 'quantitative'" />
+                                        invisible="is_section or kpi_type != 'auto'" />
                                     <field name="actual_display" string="Actual"
-                                        invisible="is_section or kpi_type != 'quantitative'" /> -->
+                                        invisible="is_section or kpi_type != 'auto'" /> -->
 
                                     <field name="manager_rating_binary"
                                            string="Manager Rating (Y/N)"
-                                           invisible="is_section or kpi_type != 'binary'"
+                                           invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
                                            column_invisible="not parent.has_binary_kpi"
                                     />
                                     <field name="manager_rating_selection"
                                            string="Manager Rating" widget="priority_onchange"
-                                           invisible="is_section or kpi_type != 'rating'"
+                                           invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
                                            column_invisible="not parent.has_rating_kpi"
                                     />
                                     <field name="manager_rating_score" string="Manager Score"
-                                           invisible="is_section or kpi_type != 'score'"
+                                           invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
                                            column_invisible="not parent.has_score_kpi"
                                     />
                                     <field name="weight" invisible="is_section" readonly="1"/>

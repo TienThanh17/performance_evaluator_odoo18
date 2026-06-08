@@ -5,6 +5,12 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools import html2plaintext
 
+from .kpi_type_utils import (
+    KPI_TYPE_SELECTION,
+    MANUAL_SCORING_TYPE_SELECTION,
+    get_manual_scoring_type_required_message,
+)
+
 
 class HrDepartmentEvaluationLine(models.Model):
     _name = "hr.department.evaluation.line"
@@ -12,6 +18,7 @@ class HrDepartmentEvaluationLine(models.Model):
     _CHATTER_TRACK_FIELD_ORDER = (
         "name",
         "kpi_type",
+        "manual_scoring_type",
         "target",
         "unit",
         "weight",
@@ -53,25 +60,19 @@ class HrDepartmentEvaluationLine(models.Model):
         string="Pillar",
         ondelete="restrict",
     )
-    pillar_code = fields.Char(
+    pillar_code = fields.Selection(
         related="pillar_id.code",
         string="Pillar Code",
         store=True,
         readonly=True,
     )
-    category_id = fields.Many2one(
-        "hr.evaluation.category",
-        string="Category",
-        ondelete="restrict",
-    )
     kpi_type = fields.Selection(
-        [
-            ("quantitative", "Quantitative"),
-            ("binary", "Binary"),
-            ("rating", "Rating"),
-            ("score", "Score"),
-        ],
-        string=_("KPI Type"),
+        KPI_TYPE_SELECTION,
+        string="KPI Type",
+    )
+    manual_scoring_type = fields.Selection(
+        MANUAL_SCORING_TYPE_SELECTION,
+        string="Manual Scoring Type",
     )
     target = fields.Float()
     actual = fields.Float()
@@ -369,6 +370,7 @@ class HrDepartmentEvaluationLine(models.Model):
         "actual",
         "target",
         "kpi_type",
+        "manual_scoring_type",
         "score_scale_base_override",
         "manager_rating_binary",
         "manager_rating_selection",
@@ -385,13 +387,10 @@ class HrDepartmentEvaluationLine(models.Model):
         "scoring_formula_id.penalty_floor",
         "scoring_formula_id.expression_code",
     )
+    # Compute the department line score from either auto formulas or manual scoring inputs.
     def _compute_system_score(self):
         for line in self:
             score_base = line._get_score_base()
-            if line.is_section:
-                line.system_score = 0.0
-                continue
-
             child_score = line._get_child_score_aggregate()
             if child_score is not False:
                 line.system_score = round(
@@ -400,25 +399,30 @@ class HrDepartmentEvaluationLine(models.Model):
                 )
                 continue
 
+            # Section rows without children remain non-scorable placeholders.
+            if line.is_section:
+                line.system_score = 0.0
+                continue
+
             score = 0.0
             actual = line.actual or 0.0
             target = line.target or 0.0
 
-            if line.kpi_type == "quantitative":
+            if line.kpi_type == "auto":
                 score = line._compute_system_score_for_line(
                     line,
                     actual,
                     target,
                     score_base=score_base,
                 )
-            elif line.kpi_type == "binary":
+            elif line.kpi_type == "manual" and line.manual_scoring_type == "binary":
                 val = line.manager_rating_binary
                 score = score_base if val == "yes" else 0.0
-            elif line.kpi_type == "rating":
+            elif line.kpi_type == "manual" and line.manual_scoring_type == "rating":
                 raw = line.manager_rating_selection or "0"
                 rating = float(raw)
                 score = (rating / 5.0) * score_base
-            elif line.kpi_type == "score":
+            elif line.kpi_type == "manual" and line.manual_scoring_type == "score":
                 val = line.manager_rating_score or 0
                 score = float(val)
 
@@ -432,14 +436,15 @@ class HrDepartmentEvaluationLine(models.Model):
 
     # Thay thế hàm hiện tại bằng đoạn code này:
     def _is_percent_unit(self):
-        """Đơn vị percent là nguồn sự thật để nhận diện KPI phần trăm."""
+        """Use the unit code as the source of truth for percentage KPI lines."""
         self.ensure_one()
         return (self.unit.code or "") == "percent" if self.unit else False
 
+    # Format the target and actual previews only for auto department KPI lines.
     @api.depends("target", "actual", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
         for rec in self:
-            if rec.kpi_type != "quantitative":
+            if rec.kpi_type != "auto":
                 rec.target_display = ""
                 rec.actual_display = ""
                 continue
@@ -489,22 +494,32 @@ class HrDepartmentEvaluationLine(models.Model):
                     "."
                 )
 
-    @api.constrains("manager_rating_score", "kpi_type")
+    # Keep manual subtype required for manual lines and empty for auto lines.
+    @api.constrains("kpi_type", "manual_scoring_type")
+    def _check_manual_scoring_type(self):
+        for rec in self:
+            if rec.is_section:
+                continue
+            if rec.kpi_type == "manual" and not rec.manual_scoring_type:
+                raise ValidationError(get_manual_scoring_type_required_message())
+            if rec.kpi_type == "auto" and rec.manual_scoring_type:
+                raise ValidationError(
+                    _("Manual scoring type must be empty for auto KPI lines.")
+                )
+
+    # Validate manual score inputs against the configured score base.
+    @api.constrains("manager_rating_score", "kpi_type", "manual_scoring_type")
     def _check_manager_rating_score_range(self):
         for rec in self:
             score_base = rec._get_score_base()
-            if rec.kpi_type == "score" and not 0 <= (rec.manager_rating_score or 0.0) <= score_base:
+            if (
+                rec.kpi_type == "manual"
+                and rec.manual_scoring_type == "score"
+                and not 0 <= (rec.manager_rating_score or 0.0) <= score_base
+            ):
                 raise ValidationError(
                     _("Manager score must be between 0 and %(max_score)s.")
                     % {"max_score": f"{score_base:g}"}
-                )
-
-    @api.constrains("category_id", "pillar_id")
-    def _check_category_pillar(self):
-        for rec in self:
-            if rec.category_id and rec.pillar_id and rec.category_id.pillar_id != rec.pillar_id:
-                raise ValidationError(
-                    _("The selected category must belong to the selected pillar.")
                 )
 
     @api.constrains("parent_line_id", "evaluation_id")
@@ -519,10 +534,7 @@ class HrDepartmentEvaluationLine(models.Model):
                 raise ValidationError(
                     _("The parent line must belong to the same evaluation.")
                 )
-            if parent.is_section:
-                raise ValidationError(
-                    _("A section line cannot be selected as a parent KPI line.")
-                )
+            # Allow section parents because aggregate section rows own the child KPI tree.
             if parent.parent_line_id == rec:
                 raise ValidationError(
                     _("Recursive KPI line hierarchy is not allowed.")

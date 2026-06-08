@@ -1,7 +1,6 @@
 from . import hr_kpi_engine
 from . import hr_kpi_engine_dept_ext
 from . import hr_evaluation_pillar
-from . import hr_evaluation_category
 from . import hr_evaluation_3p_summary
 from . import hr_kpi_period
 from . import hr_kpi_scoring_formula

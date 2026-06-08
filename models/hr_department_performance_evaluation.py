@@ -88,13 +88,20 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         for rec in self:
             rec.period_id = rec.performance_report_id.period_id
 
-    @api.depends("evaluation_line_ids.kpi_type")
+    # Detect which manual scoring widgets must stay visible in the department grid.
+    @api.depends(
+        "evaluation_line_ids.kpi_type",
+        "evaluation_line_ids.manual_scoring_type",
+    )
     def _compute_kpi_types(self):
         for rec in self:
-            kpi_types = rec.evaluation_line_ids.mapped("kpi_type")
-            rec.has_binary_kpi = "binary" in kpi_types
-            rec.has_rating_kpi = "rating" in kpi_types
-            rec.has_score_kpi = "score" in kpi_types
+            manual_lines = rec.evaluation_line_ids.filtered(
+                lambda line: line.kpi_type == "manual"
+            )
+            manual_types = manual_lines.mapped("manual_scoring_type")
+            rec.has_binary_kpi = "binary" in manual_types
+            rec.has_rating_kpi = "rating" in manual_types
+            rec.has_score_kpi = "score" in manual_types
 
     @api.depends("start_date", "end_date")
     def _compute_period_status(self):
@@ -323,10 +330,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "is_section": True,
                             "name": line.name,
                             "pillar_id": line.pillar_id.id,
-                            "category_id": line.category_id.id,
                             "description": False,
                             # Safe defaults for required KPI fields on section rows
-                            "kpi_type": "quantitative",
+                            "kpi_type": "auto",
+                            "manual_scoring_type": False,
                             "target": 0.0,
                             "unit": False,
                             "weight": 0.0,
@@ -345,9 +352,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         # "sequence": line.sequence,
                         "name": line.name,
                         "pillar_id": line.pillar_id.id,
-                        "category_id": line.category_id.id,
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
+                        "manual_scoring_type": line.manual_scoring_type,
                         "target": line_score_base
                         if line.dept_source_type == "child_kpi_average"
                         else line.target,
@@ -472,7 +479,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             lambda l: (
                 not l.is_section
                 and not l.parent_line_id
-                and l.kpi_type == "quantitative"
+                and l.kpi_type == "auto"
             )
         )
         rows = []
@@ -1199,6 +1206,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "score": round(score, 2),
                         "level": "fail",
                         "kpi_type": line.kpi_type or "",
+                        "manual_scoring_type": line.manual_scoring_type or "",
                     }
                 )
             for line in department_risk_line_records:
@@ -1219,6 +1227,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "score": round(score, 2),
                         "level": "fail",
                         "kpi_type": line.kpi_type or "",
+                        "manual_scoring_type": line.manual_scoring_type or "",
                     }
                 )
             risk_lines.sort(
@@ -1237,7 +1246,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     ("is_section", "=", False),
                     ("is_auto", "=", True),
                     ("is_special_scoring", "=", False),
-                    ("kpi_type", "=", "quantitative"),
+                    ("kpi_type", "=", "auto"),
                     ("actual", "=", False),
                 ],
                 order="id asc",
@@ -1247,7 +1256,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     ("evaluation_id", "in", dept_evals.ids),
                     ("is_section", "=", False),
                     ("is_auto", "=", True),
-                    ("kpi_type", "=", "quantitative"),
+                    ("kpi_type", "=", "auto"),
                     ("actual", "=", False),
                 ],
                 order="id asc",
@@ -1269,6 +1278,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": ev.employee_id.name if ev.employee_id else "",
                         "kpi_type": line.kpi_type or "",
+                        "manual_scoring_type": line.manual_scoring_type or "",
                     }
                 )
             for line in department_missing_line_records:
@@ -1286,6 +1296,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": "",
                         "kpi_type": line.kpi_type or "",
+                        "manual_scoring_type": line.manual_scoring_type or "",
                     }
                 )
             missing_data_lines.sort(
