@@ -840,7 +840,7 @@ class PerformanceEvaluation(models.Model):
                             "display_type": (line.display_type or "line_section"),
                             "key_performance_area": line.key_performance_area,
                             "pillar_id": line.pillar_id.id,
-                            "description": False,
+                            "description": getattr(line, "description", False),
                             # Safe defaults for required KPI fields on section rows
                             "kpi_type": "auto",
                             "manual_scoring_type": False,
@@ -848,7 +848,11 @@ class PerformanceEvaluation(models.Model):
                             "unit": False,
                             "weight": line.weight,
                             "score_scale_base_override": line.score_scale_base_override,
-                            "violation_threshold": line.violation_threshold,
+                            "wipeout_if_child_zero": bool(
+                                line.wipeout_if_child_zero
+                            ),
+                            "data_source_id": False,
+                            "scoring_formula_id": False,
                             "is_auto": False,
                         }
                     )
@@ -875,7 +879,9 @@ class PerformanceEvaluation(models.Model):
                         "unit": line.unit.id or False,
                         "weight": line.weight,
                         "score_scale_base_override": line.score_scale_base_override,
-                        "violation_threshold": line.violation_threshold,
+                        "wipeout_if_child_zero": bool(line.wipeout_if_child_zero),
+                        "data_source_id": line.data_source_id.id or False,
+                        "scoring_formula_id": line.scoring_formula_id.id or False,
                         "is_auto": bool(line.is_auto),
                     }
                 )
@@ -896,7 +902,10 @@ class PerformanceEvaluation(models.Model):
                     else False
                 )
                 if line.parent_line_id != parent_line:
-                    line.with_context(skip_line_chatter_audit=True).write(
+                    line.with_context(
+                        skip_line_chatter_audit=True,
+                        skip_score_tree_recompute=True,
+                    ).write(
                         {"parent_line_id": parent_line.id if parent_line else False}
                     )
 
@@ -929,6 +938,8 @@ class PerformanceEvaluation(models.Model):
         """Compute Actual for auto KPI lines based on their template data source."""
         engine = self.env["hr.kpi.engine"]
         for evaluation in self:
+            if evaluation.state in ['cancel', 'completed']:
+                continue
             if not evaluation.employee_id:
                 continue
             if not evaluation.kpi_id:

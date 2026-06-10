@@ -36,8 +36,8 @@
                                     invisible="is_section or kpi_type != 'auto'"
                                     options="{'no_create': True}" />
                                 <field name="weight" />
-                                <field name="violation_threshold"
-                                    invisible="is_section or kpi_type != 'auto'" />
+                                <field name="wipeout_if_child_zero"
+                                    invisible="not is_section" />
                                 <label for="score_scale_base_override" />
                                 <div class="o_row">
                                     <field name="score_scale_base_override" nolabel="1" />
@@ -149,8 +149,8 @@
                     <field name="weight" width="80px" />
                     <field name="score_scale_base_override"
                         optional="show" width="100px" />
-                    <field name="violation_threshold"
-                        invisible="is_section or kpi_type != 'auto'"
+                    <field name="wipeout_if_child_zero"
+                        invisible="not is_section"
                         optional="hide" width="100px" />
                     <button name="action_open_popup" type="object"
                         icon="fa-pencil" title="Open Details"
@@ -165,7 +165,7 @@
             <field name="model">hr.kpi.template</field>
             <field name="arch" type="xml">
                 <form string="KPI">
-                    <header>
+                    <!-- <header>
                         <button
                             name="%(custom_adecsol_hr_performance_evaluator.action_hr_kpi_generate_wizard)d"
                             type="action"
@@ -173,7 +173,7 @@
                             class="btn-primary"
                             groups="custom_adecsol_hr_performance_evaluator.group_hr,custom_adecsol_hr_performance_evaluator.group_manager"
                             context="{'default_kpi_id': id, 'default_department_id': department_id}" />
-                    </header>
+                    </header> -->
                     <sheet>
                         <!-- Use Odoo native grid to keep labels/fields aligned consistently -->
                         <group>
@@ -259,8 +259,8 @@
                                         <field name="weight" width="80px" />
                                         <field name="score_scale_base_override"
                                             optional="show" width="100px" />
-                                        <field name="violation_threshold"
-                                            invisible="is_section or kpi_type != 'auto'"
+                                        <field name="wipeout_if_child_zero"
+                                            invisible="not is_section"
                                             optional="hide" width="100px" />
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"

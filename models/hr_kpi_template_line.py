@@ -108,10 +108,9 @@ class HrKpiTemplateLine(models.Model):
         store=False,
         readonly=True,
     )
-    violation_threshold = fields.Integer(
-        string="Violation Threshold",
-        default=0,
-        help="For P3 KPI lines, a violation count above this threshold triggers wipeout for the whole branch.",
+    wipeout_if_child_zero = fields.Boolean(
+        string="Wipeout If Child Zero",
+        help="Enable this on section rows to force the section score to zero when any descendant KPI leaf reaches zero.",
     )
     is_auto = fields.Boolean(
         string="Auto Compute",
@@ -475,15 +474,6 @@ class HrKpiTemplateLine(models.Model):
                     )
                 )
 
-    # Keep the wipeout threshold non-negative.
-    @api.constrains("violation_threshold")
-    def _check_violation_threshold(self):
-        for rec in self:
-            if rec.violation_threshold < 0:
-                raise ValidationError(
-                    _("Violation Threshold must be greater than or equal to 0.")
-                )
-
     # Validate the optional department KPI link used for bottom-up mapping.
     @api.constrains("parent_dept_line_id", "kpi_id", "is_section")
     def _check_parent_dept_line(self):
@@ -522,14 +512,14 @@ class HrKpiTemplateLine(models.Model):
             parent_line = rec.parent_dept_line_id
             if not parent_line:
                 continue
-            if rec.is_section:
-                raise ValidationError(
-                    _("Section lines cannot be linked to department KPI lines.")
-                )
-            if parent_line.is_section:
-                raise ValidationError(
-                    _("Please select a KPI item, not a department section.")
-                )
+            # if rec.is_section:
+            #     raise ValidationError(
+            #         _("Section lines cannot be linked to department KPI lines.")
+            #     )
+            # if parent_line.is_section:
+            #     raise ValidationError(
+            #         _("Please select a KPI item, not a department section.")
+            #     )
 
             parent_dept_kpi = parent_kpi or rec.kpi_id.department_kpi_id
             if not parent_dept_kpi:
@@ -601,6 +591,16 @@ class HrKpiTemplateLine(models.Model):
                             }
                         )
 
+    # Chuẩn hóa cờ wipeout để chỉ section row mới giữ được cấu hình này.
+    def _reset_wipeout_flag_on_leaf_rows(self):
+        leaf_rows = self.filtered(
+            lambda line: not line.is_section and line.wipeout_if_child_zero
+        )
+        if leaf_rows:
+            super(HrKpiTemplateLine, leaf_rows.with_context(skip_hierarchy_sequence_sync=True)).write(
+                {"wipeout_if_child_zero": False}
+            )
+
     # Keep section rows technically consistent and validate normalized 3P trees after edits.
     def write(self, vals):
         vals = dict(vals or {})
@@ -608,6 +608,8 @@ class HrKpiTemplateLine(models.Model):
             vals["is_section"] = True
         if vals.get("is_section") or vals.get("kpi_type") == "auto":
             vals["manual_scoring_type"] = False
+        if vals.get("is_section") is False:
+            vals["wipeout_if_child_zero"] = False
 
         # Skip recursive hierarchy syncing for internal normalization writes.
         if self.env.context.get("skip_hierarchy_sequence_sync"):
@@ -627,6 +629,7 @@ class HrKpiTemplateLine(models.Model):
             self._normalize_hierarchy_scopes(
                 old_scope_keys + self._get_sequence_scope_keys()
             )
+        self._reset_wipeout_flag_on_leaf_rows()
         self._validate_normalized_3p_weight_structure()
         return res
 
@@ -647,6 +650,8 @@ class HrKpiTemplateLine(models.Model):
                 or normalized_vals.get("kpi_type") == "auto"
             ):
                 normalized_vals["manual_scoring_type"] = False
+            if not normalized_vals.get("is_section"):
+                normalized_vals["wipeout_if_child_zero"] = False
             if default_pillar and not normalized_vals.get("pillar_id"):
                 normalized_vals["pillar_id"] = default_pillar.id
             normalized_vals_list.append(normalized_vals)
@@ -658,6 +663,7 @@ class HrKpiTemplateLine(models.Model):
 
             # Auto-place new lines at the end of their root or parent subtree block.
             rec._move_subtree_to_parent_end()
+        records._reset_wipeout_flag_on_leaf_rows()
         records._validate_normalized_3p_weight_structure()
         return records
 

@@ -236,6 +236,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     def action_compute_auto_kpi(self):
         engine = self.env["hr.kpi.engine"]
         for evaluation in self:
+            if evaluation.state in ["cancel", "approved"]:
+                continue
             if not evaluation.department_id or not evaluation.department_kpi_id:
                 continue
             for line in evaluation.evaluation_line_ids:
@@ -245,7 +247,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     department_evaluation_line=line.id
                 ).compute_for_department(
                     evaluation.department_id,
-                    line.department_kpi_line_id,
+                    line,
                     evaluation.start_date,
                     evaluation.end_date,
                 )
@@ -421,7 +423,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "is_section": True,
                             "name": line.name,
                             "pillar_id": line.pillar_id.id,
-                            "description": False,
+                            "description": getattr(line, "description", False),
                             # Safe defaults for required KPI fields on section rows
                             "kpi_type": "auto",
                             "manual_scoring_type": False,
@@ -429,7 +431,12 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "unit": False,
                             "weight": line.weight,
                             "score_scale_base_override": line.score_scale_base_override,
-                            "violation_threshold": line.violation_threshold,
+                            "wipeout_if_child_zero": bool(
+                                line.wipeout_if_child_zero
+                            ),
+                            "dept_source_type": "manual",
+                            "data_source_id": False,
+                            "scoring_formula_id": False,
                             "is_auto": False,
                         }
                     )
@@ -459,7 +466,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         ),
                         "weight": line.weight,
                         "score_scale_base_override": line.score_scale_base_override,
-                        "violation_threshold": line.violation_threshold,
+                        "wipeout_if_child_zero": bool(line.wipeout_if_child_zero),
+                        "dept_source_type": line.dept_source_type or "manual",
+                        "data_source_id": line.data_source_id.id or False,
+                        "scoring_formula_id": line.scoring_formula_id.id or False,
                         "is_auto": bool(line.is_auto),
                     }
                 )
@@ -480,30 +490,19 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     else False
                 )
                 if line.parent_line_id != parent_line:
-                    line.with_context(skip_line_chatter_audit=True).write(
+                    line.with_context(
+                        skip_line_chatter_audit=True,
+                        skip_score_tree_recompute=True,
+                    ).write(
                         {"parent_line_id": parent_line.id if parent_line else False}
                     )
 
-    # Recompute the KPI tree bottom-up so section lines receive scores immediately after generation.
+    # Tính lại toàn bộ cây KPI từ lá lên gốc sau khi rebuild hierarchy để section có điểm ngay.
     def _recompute_line_scores_after_hierarchy_rebuild(self):
         for evaluation in self:
-
-            def _depth(line):
-                depth = 0
-                current = line.parent_line_id
-                while current:
-                    depth += 1
-                    current = current.parent_line_id
-                return depth
-
-            ordered_lines = evaluation.evaluation_line_ids.sorted(
-                lambda line: (-_depth(line), line.sequence or 0, line.id or 0)
-            )
-            for line in ordered_lines:
-                line._compute_is_wipeout_triggered()
-                line._compute_system_score()
-                line._compute_final_score()
-
+            if evaluation.evaluation_line_ids:
+                evaluation.evaluation_line_ids._recompute_score_tree()
+                continue
             evaluation._compute_dept_kpi_score()
 
     @api.model_create_multi

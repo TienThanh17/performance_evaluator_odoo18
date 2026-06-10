@@ -4,7 +4,7 @@
         <field name="name">hr.department.evaluation.line.form.popup</field>
         <field name="model">hr.department.evaluation.line</field>
         <field name="arch" type="xml">
-            <form string="Department Evaluation Line">
+            <form string="Evaluation Line">
                 <sheet>
                     <field name="is_section" invisible="1" />
                     <field name="is_auto" invisible="1" />
@@ -15,7 +15,7 @@
                         </h2>
                     </div>
 
-                    <group string="Structure" invisible="is_section">
+                    <group string="Structure">
                         <group>
                             <field name="pillar_id" options="{'no_create': True}" />
                         </group>
@@ -24,30 +24,6 @@
                                 domain="[('evaluation_id', '=', evaluation_id), ('id', '!=', id)]"
                                 options="{'no_create': True}" />
                             <field name="score_scale_base_override" />
-                        </group>
-                    </group>
-
-                    <group string="Target / Actual"
-                        invisible="is_section or kpi_type != 'auto'">
-                        <group>
-                            <field name="target" />
-                            <field name="unit" invisible="kpi_type != 'auto'" />
-                        </group>
-                        <group>
-                            <field name="actual" placeholder="Actual value"
-                                readonly="is_auto and dept_source_type in ['data_source', 'child_kpi_average']" />
-                        </group>
-                    </group>
-
-                    <group string="P3 Wipeout"
-                        invisible="is_section or kpi_type != 'auto'">
-                        <group>
-                            <field name="violation_threshold" />
-                            <field name="violation_count" />
-                        </group>
-                        <group>
-                            <field name="is_severe_violation" />
-                            <field name="is_wipeout_triggered" readonly="1" />
                         </group>
                     </group>
 
@@ -71,39 +47,53 @@
                             <field name="manager_rating_score" nolabel="1"
                                 invisible="kpi_type != 'manual' or manual_scoring_type != 'score'" />
                         </group>
+                        <group />
                     </group>
 
-                    <group string="Scoring" invisible="is_section">
+                    <group string="Target / Actual" invisible="is_section or kpi_type != 'auto'">
                         <group>
-                            <field name="final_score" string="Score" readonly="1" />
+                            <field name="target" />
+                            <field name="unit" invisible="kpi_type != 'auto'" />
+                        </group>
+                        <group>
+                            <field name="actual" placeholder="Actual value"
+                                readonly="is_auto and dept_source_type in ['data_source', 'child_kpi_average']" />
+                        </group>
+                    </group>
+
+                    <group string="Scoring">
+                        <field name="final_score_badge_class" invisible="1" />
+                        <field name="final_score_badge_text" string="Score"
+                            widget="badge" readonly="1"
+                            decoration-info="final_score_badge_class == 'o_kpi_badge_excellent'"
+                            decoration-success="final_score_badge_class == 'o_kpi_badge_pass'"
+                            decoration-danger="final_score_badge_class == 'o_kpi_badge_fail'" />
+                    </group>
+
+                    <group string="KPI Info">
+                        <group>
+                            <field name="kpi_type" invisible="is_section" />
+                            <field name="manual_scoring_type"
+                                invisible="kpi_type != 'manual' or is_section" />
+                            <field name="weight" />
+                            <field name="wipeout_if_child_zero"
+                                invisible="not is_section"
+                                readonly="1" />
+                        </group>
+                        <group invisible="kpi_type != 'auto' or is_section">
+                            <field name="is_auto" readonly="1"
+                                invisible="kpi_type != 'auto'" />
+                            <field name="dept_source_type" invisible="kpi_type != 'auto'" />
+                            <field name="data_source_id"
+                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
+                            <field name="scoring_formula_id"
+                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
                         </group>
                     </group>
 
                     <group string="Child KPI Lines" invisible="child_evaluation_line_count == 0">
                         <field name="child_line_rows_json" widget="kpi_child_matrix"
                             readonly="1" nolabel="1" colspan="2" />
-                    </group>
-
-                    <group string="KPI Info" invisible="is_section">
-                        <group>
-                            <field name="kpi_type" />
-                            <field name="manual_scoring_type"
-                                invisible="kpi_type != 'manual'" />
-                            <field name="weight" />
-                            <field name="score_scale_base_override" />
-                            <field name="violation_threshold"
-                                invisible="kpi_type != 'auto'" />
-                        </group>
-                        <group invisible="kpi_type != 'auto'">
-                            <field name="dept_source_type" invisible="kpi_type != 'auto'" />
-                            <field name="violation_count" />
-                            <field name="is_severe_violation" />
-                            <field name="is_wipeout_triggered" readonly="1" />
-                            <field name="data_source_id"
-                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
-                            <field name="scoring_formula_id"
-                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
-                        </group>
                     </group>
 
                     <group string="Comments" invisible="is_section">
@@ -118,7 +108,6 @@
                             style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                     </group>
                 </sheet>
-                <chatter />
             </form>
         </field>
     </record>
@@ -213,7 +202,6 @@
                                     decoration-bf="is_section"
                                     create='0'
                                 >
-                                    <field name="sequence" widget="handle" />
                                     <field name="is_section" column_invisible="1" />
                                     <field name="is_auto" column_invisible="1" />
                                     <field name="dept_source_type" column_invisible="1" />
@@ -258,17 +246,8 @@
                                     <field name="actual"
                                         readonly="is_auto and dept_source_type in ['data_source', 'child_kpi_average']"
                                         invisible="is_section or kpi_type != 'auto'" />
-                                    <field name="violation_threshold"
-                                        invisible="is_section or kpi_type != 'auto'"
-                                        optional="hide" />
-                                    <field name="violation_count"
-                                        invisible="is_section or kpi_type != 'auto'"
-                                        optional="hide" />
-                                    <field name="is_severe_violation"
-                                        invisible="is_section or kpi_type != 'auto'"
-                                        optional="hide" />
-                                    <field name="is_wipeout_triggered"
-                                        invisible="is_section or kpi_type != 'auto'"
+                                    <field name="wipeout_if_child_zero"
+                                        invisible="not is_section"
                                         optional="hide"
                                         readonly="1" />
                                     <!-- <field name="target_display" string="Target"

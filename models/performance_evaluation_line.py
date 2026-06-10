@@ -9,7 +9,6 @@ from .kpi_type_utils import (
     KPI_TYPE_SELECTION,
     MANUAL_SCORING_TYPE_SELECTION,
     NORMALIZED_3P_PILLAR_CODES,
-    P3_PILLAR_CODES,
     get_manual_scoring_type_required_message,
 )
 
@@ -152,10 +151,10 @@ class PerformanceEvaluationLine(models.Model):
         string="Score Scale Base Override",
         help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
     )
-    violation_threshold = fields.Integer(
-        string="Violation Threshold",
-        default=0,
-        help="For P3 KPI lines, a violation count above this threshold triggers wipeout for the whole branch.",
+    wipeout_if_child_zero = fields.Boolean(
+        string="Wipeout If Child Zero",
+        default=False,
+        help="Stored snapshot of the template wipeout rule so historical evaluations do not change when the template is updated later.",
     )
     score_max_display = fields.Char(
         string="Max Score",
@@ -172,17 +171,15 @@ class PerformanceEvaluationLine(models.Model):
     )
     data_source_id = fields.Many2one(
         "hr.kpi.data.source",
-        related="kpi_line_id.data_source_id",
         string="Data Source",
-        store=True,
-        readonly=True,
+        ondelete="set null",
+        help="Stored snapshot of the template data source used by this historical evaluation line.",
     )
     scoring_formula_id = fields.Many2one(
         "hr.kpi.scoring.formula",
-        related="kpi_line_id.scoring_formula_id",
         string="Scoring Formula",
-        store=True,
-        readonly=True,
+        ondelete="set null",
+        help="Stored snapshot of the template scoring formula used by this historical evaluation line.",
     )
 
     # ------------------------------------------------------------
@@ -232,23 +229,6 @@ class PerformanceEvaluationLine(models.Model):
         compute="_compute_display",
         store=False,
         help="Formatted Actual value for display (shows % when Target Type is Percentage).",
-    )
-    is_severe_violation = fields.Boolean(
-        string="Severe Violation",
-        default=False,
-        help="For P3 KPI lines, enable this when the KPI line has a severe violation that wipes out the whole branch.",
-    )
-    violation_count = fields.Integer(
-        string="Violation Count",
-        default=0,
-        help="For P3 KPI lines, this stores the counted number of violations for wipeout checks.",
-    )
-    is_wipeout_triggered = fields.Boolean(
-        string="Wipeout Triggered",
-        compute="_compute_is_wipeout_triggered",
-        store=True,
-        recursive=True,
-        help="Technical flag: True when this KPI branch is wiped out because a severe violation exists in the branch.",
     )
 
     system_score = fields.Float(
@@ -588,15 +568,92 @@ class PerformanceEvaluationLine(models.Model):
         self.ensure_one()
         return self.pillar_code in NORMALIZED_3P_PILLAR_CODES
 
-    # Detect whether the line belongs to a P3 pillar that supports wipeout rules.
-    def _is_p3_line(self):
-        self.ensure_one()
-        return self.pillar_code in P3_PILLAR_CODES
-
     # Return the direct children that participate in score roll-up.
     def _get_direct_scoring_children(self):
         self.ensure_one()
         return self.child_line_ids.sorted(lambda line: (line.sequence or 0, line.id or 0))
+
+    # Đọc bộ field snapshot từ template line để lưu cứng vào evaluation line khi khởi tạo.
+    def _build_template_snapshot_vals(self, template_line):
+        # Với section row, vẫn snapshot nội dung hiển thị nhưng giữ manual subtype rỗng để tránh noise kỹ thuật.
+        if template_line.is_section:
+            return {
+                "key_performance_area": template_line.key_performance_area,
+                "pillar_id": template_line.pillar_id.id,
+                "description": template_line.description or False,
+                "kpi_type": "auto",
+                "manual_scoring_type": False,
+                "target": 0.0,
+                "unit": False,
+                "weight": template_line.weight,
+                "score_scale_base_override": template_line.score_scale_base_override,
+                "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
+                "data_source_id": False,
+                "scoring_formula_id": False,
+                "is_auto": False,
+                "parent_dept_line_id": False,
+            }
+
+        # Với KPI leaf, snapshot toàn bộ cấu hình nghiệp vụ cốt lõi từ template line.
+        return {
+            "key_performance_area": template_line.key_performance_area,
+            "pillar_id": template_line.pillar_id.id,
+            "description": template_line.description or False,
+            "kpi_type": template_line.kpi_type,
+            "manual_scoring_type": template_line.manual_scoring_type,
+            "target": template_line.target,
+            "unit": template_line.unit.id or False,
+            "weight": template_line.weight,
+            "score_scale_base_override": template_line.score_scale_base_override,
+            "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
+            "data_source_id": template_line.data_source_id.id or False,
+            "scoring_formula_id": template_line.scoring_formula_id.id or False,
+            "is_auto": bool(template_line.is_auto),
+            "parent_dept_line_id": template_line.parent_dept_line_id.id or False,
+        }
+
+    # Bổ sung snapshot mặc định từ template line để mọi luồng create đều giữ dữ liệu lịch sử ổn định.
+    @api.model
+    def _apply_template_snapshot_defaults(self, vals):
+        normalized_vals = dict(vals or {})
+        template_line_id = normalized_vals.get("kpi_line_id")
+        if not template_line_id:
+            return normalized_vals
+
+        # Chỉ snapshot khi template line còn tồn tại và caller chưa chủ động ghi đè field tương ứng.
+        template_line = (
+            self.env["hr.kpi.template.line"].browse(template_line_id).exists()
+        )
+        if not template_line:
+            return normalized_vals
+
+        snapshot_vals = self._build_template_snapshot_vals(template_line)
+        for field_name, field_value in snapshot_vals.items():
+            normalized_vals.setdefault(field_name, field_value)
+
+        # Giữ thêm template parent link để rebuild hierarchy nội bộ mà không làm evaluation line phụ thuộc động.
+        normalized_vals.setdefault(
+            "parent_template_line_id",
+            template_line.parent_line_id.id or False,
+        )
+        return normalized_vals
+
+    # Kiểm tra đệ quy xem section hiện tại có bất kỳ KPI leaf hậu duệ nào đang bằng 0 hay không.
+    def _has_zero_score_descendant_leaf(self):
+        self.ensure_one()
+
+        # Chỉ section có con mới cần quét cây hậu duệ cho rule wipeout mới.
+        if not self.is_section or not self.child_line_ids:
+            return False
+
+        # Duyệt toàn bộ con trực tiếp theo đúng thứ tự hiển thị để kiểm tra cả cây KPI.
+        for child in self._get_direct_scoring_children():
+            if child.child_line_ids and child._has_zero_score_descendant_leaf():
+                return True
+            if not child.child_line_ids and not child.is_section:
+                if (child.final_rating or 0.0) <= 0.0:
+                    return True
+        return False
 
     # Collect the edited lines and every ancestor whose score depends on them.
     def _get_score_recompute_lines(self):
@@ -610,7 +667,7 @@ class PerformanceEvaluationLine(models.Model):
             frontier = frontier.mapped("parent_line_id")
         return lines_to_recompute
 
-    # Recompute the affected score branch bottom-up so parent lines refresh immediately.
+    # Tính lại cây điểm theo thứ tự từ lá lên gốc để parent line cập nhật ngay trong cùng lần lưu.
     def _recompute_score_tree(self):
         if self.env.context.get("skip_score_tree_recompute"):
             return
@@ -637,7 +694,6 @@ class PerformanceEvaluationLine(models.Model):
             lambda line: (-_depth(line), line.sequence or 0, line.id or 0)
         )
         for line in ordered_lines:
-            line._compute_is_wipeout_triggered()
             line._compute_system_score()
             line._compute_final_rating()
 
@@ -691,35 +747,6 @@ class PerformanceEvaluationLine(models.Model):
             )
         return sum(child_lines.mapped("final_rating")) / len(child_lines)
 
-    # Compute the branch wipeout flag used by normalized P3 scoring.
-    @api.depends(
-        "pillar_code",
-        "is_section",
-        "is_severe_violation",
-        "violation_count",
-        "violation_threshold",
-        "child_line_ids",
-        "child_line_ids.parent_line_id",
-        "child_line_ids.is_wipeout_triggered",
-    )
-    def _compute_is_wipeout_triggered(self):
-        for line in self:
-            if not line._is_p3_line():
-                line.is_wipeout_triggered = False
-                continue
-
-            child_lines = line._get_direct_scoring_children()
-            if child_lines:
-                line.is_wipeout_triggered = any(
-                    child.is_wipeout_triggered for child in child_lines
-                )
-                continue
-
-            line.is_wipeout_triggered = bool(
-                line.is_severe_violation
-                or (line.violation_count or 0) > (line.violation_threshold or 0)
-            )
-
     # Format the target and actual previews only for auto KPI lines.
     @api.depends("target", "actual", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
@@ -745,9 +772,7 @@ class PerformanceEvaluationLine(models.Model):
     # ------------------------------------------------------------------
     def _compute_system_score_for_line(self, line, actual, target, score_base=None):
         score_base = float(score_base or self._get_score_base() or 0.0)
-        formula = (
-            line.kpi_line_id.get_effective_formula() if line.kpi_line_id else False
-        )
+        formula = line.scoring_formula_id
         if not formula:
             return 0.0
         try:
@@ -785,8 +810,7 @@ class PerformanceEvaluationLine(models.Model):
         "child_line_ids.parent_line_id",
         "child_line_ids.final_rating",
         "child_line_ids.weight",
-        "child_line_ids.is_wipeout_triggered",
-        "is_wipeout_triggered",
+        "wipeout_if_child_zero",
         "scoring_formula_id",
         "scoring_formula_id.formula_type",
         "scoring_formula_id.linear_direction",
@@ -798,7 +822,7 @@ class PerformanceEvaluationLine(models.Model):
         "scoring_formula_id.penalty_floor",
         "scoring_formula_id.expression_code",
     )
-    # Compute the line score from either auto formulas or manual scoring inputs.
+    # Tính điểm dòng KPI theo leaf/manual/auto và áp rule wipeout mới ở section parent khi cần.
     def _compute_system_score(self):
         """
         Compute system_score on the configured score scale (10 or 100):
@@ -813,13 +837,15 @@ class PerformanceEvaluationLine(models.Model):
           score = score_base when the answer is Yes, otherwise 0
         """
         for line in self:
+            if line.evaluation_id.state in ['cancel', 'completed']:
+                continue
             score_base = line._get_score_base()
             score = 0.0
             actual = line.actual or 0.0
             target = line.target or 0.0
 
-            # Wipeout always overrides every score branch in normalized P3.
-            if line.is_wipeout_triggered:
+            # Nếu section được cấu hình wipeout và có leaf hậu duệ bằng 0 thì ép cả nhánh về 0.
+            if line.wipeout_if_child_zero and line._has_zero_score_descendant_leaf():
                 line.system_score = 0.0
                 continue
 
@@ -882,6 +908,8 @@ class PerformanceEvaluationLine(models.Model):
     # Clamp the final rating to the configured score base after scoring is computed.
     def _compute_final_rating(self):
         for line in self:
+            if line.evaluation_id.state in ['cancel', 'completed']:
+                continue
             score_base = line._get_score_base()
             line.final_rating = round(
                 min(max(line.system_score or 0.0, 0.0), score_base), 2
@@ -981,9 +1009,6 @@ class PerformanceEvaluationLine(models.Model):
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
-        "is_severe_violation",
-        "violation_count",
-        "violation_threshold",
     )
     # Recompute the score tree in-memory so parent rows update on the first edit.
     def _onchange_recompute_score_tree(self):
@@ -1041,15 +1066,6 @@ class PerformanceEvaluationLine(models.Model):
                     _("Manager score must be between 0 and %(max_score)s.")
                     % {"max_score": f"{score_base:g}"}
                 )
-
-    # Keep P3 wipeout inputs non-negative.
-    @api.constrains("violation_threshold", "violation_count")
-    def _check_violation_values(self):
-        for rec in self:
-            if (rec.violation_threshold or 0) < 0:
-                raise ValidationError(_("Violation threshold cannot be negative."))
-            if (rec.violation_count or 0) < 0:
-                raise ValidationError(_("Violation count cannot be negative."))
 
     @api.constrains("parent_line_id", "evaluation_id")
     def _check_parent_line(self):
@@ -1116,6 +1132,11 @@ class PerformanceEvaluationLine(models.Model):
     # Keep section consistency, normalize KPI type values, and append new lines by sequence.
     @api.model_create_multi
     def create(self, vals_list):
+        normalized_vals_list = []
+        for vals in vals_list:
+            normalized_vals_list.append(self._apply_template_snapshot_defaults(vals))
+        vals_list = normalized_vals_list
+
         seq_step = 10
         default_pillar_code = self.env.context.get("default_pillar_code")
         default_pillar = False
@@ -1309,7 +1330,7 @@ class PerformanceEvaluationLine(models.Model):
     def action_open_popup(self):
         self.ensure_one()
         return {
-            "name": _("Edit KPI Line"),
+            "name": _("KPI Line Detail"),
             "type": "ir.actions.act_window",
             "res_model": "hr.performance.evaluation.line",
             "res_id": self.id,

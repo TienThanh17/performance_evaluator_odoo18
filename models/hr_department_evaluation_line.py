@@ -8,9 +8,14 @@ from odoo.tools import html2plaintext
 from .kpi_type_utils import (
     KPI_TYPE_SELECTION,
     MANUAL_SCORING_TYPE_SELECTION,
-    P3_PILLAR_CODES,
     get_manual_scoring_type_required_message,
 )
+
+DEPARTMENT_SOURCE_TYPE_SELECTION = [
+    ("manual", "Manual"),
+    ("child_kpi_average", "Average From Child KPIs"),
+    ("data_source", "Automatic Data Source"),
+]
 
 
 class HrDepartmentEvaluationLine(models.Model):
@@ -35,7 +40,11 @@ class HrDepartmentEvaluationLine(models.Model):
     evaluation_id = fields.Many2one(
         "hr.department.performance.evaluation", ondelete="cascade"
     )
-    department_kpi_line_id = fields.Many2one("hr.department.kpi.template.line")
+    department_kpi_line_id = fields.Many2one(
+        "hr.department.kpi.template.line",
+        ondelete="set null",
+        help="The department KPI template line this evaluation line comes from.",
+    )
     parent_template_line_id = fields.Many2one(
         "hr.department.kpi.template.line",
         string="Parent Template Line",
@@ -88,31 +97,29 @@ class HrDepartmentEvaluationLine(models.Model):
         string="Score Scale Base Override",
         help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
     )
-    violation_threshold = fields.Integer(
-        string="Violation Threshold",
-        default=0,
-        help="For P3 KPI lines, a violation count above this threshold triggers wipeout for the whole branch.",
+    wipeout_if_child_zero = fields.Boolean(
+        string="Wipeout If Child Zero",
+        default=False,
+        help="Stored snapshot of the template wipeout rule so historical department evaluations do not change when the template is updated later.",
     )
     is_auto = fields.Boolean()
     dept_source_type = fields.Selection(
-        related="department_kpi_line_id.dept_source_type",
+        DEPARTMENT_SOURCE_TYPE_SELECTION,
         string="Department Source Type",
-        store=True,
-        readonly=True,
+        default="manual",
+        help="Stored snapshot of the department source mode used by this historical evaluation line.",
     )
     data_source_id = fields.Many2one(
         "hr.kpi.data.source",
-        related="department_kpi_line_id.data_source_id",
         string="Data Source",
-        store=True,
-        readonly=True,
+        ondelete="set null",
+        help="Stored snapshot of the template data source used by this historical evaluation line.",
     )
     scoring_formula_id = fields.Many2one(
         "hr.kpi.scoring.formula",
-        related="department_kpi_line_id.scoring_formula_id",
         string="Scoring Formula",
-        store=True,
-        readonly=True,
+        ondelete="set null",
+        help="Stored snapshot of the template scoring formula used by this historical evaluation line.",
     )
     is_section = fields.Boolean()
     description = fields.Html(
@@ -175,22 +182,6 @@ class HrDepartmentEvaluationLine(models.Model):
         string="Actual",
         compute="_compute_display",
         store=False,
-    )
-    is_severe_violation = fields.Boolean(
-        string="Severe Violation",
-        default=False,
-        help="For P3 KPI lines, enable this when the KPI line has a severe violation that wipes out the whole branch.",
-    )
-    violation_count = fields.Integer(
-        string="Violation Count",
-        default=0,
-        help="For P3 KPI lines, this stores the counted number of violations for wipeout checks.",
-    )
-    is_wipeout_triggered = fields.Boolean(
-        string="Wipeout Triggered",
-        compute="_compute_is_wipeout_triggered",
-        store=True,
-        help="Technical flag: True when this KPI branch is wiped out because a severe violation exists in the branch.",
     )
     
     # link to individual evaluation line
@@ -368,15 +359,110 @@ class HrDepartmentEvaluationLine(models.Model):
             passed = settings.convert_score(passed, configured_base, target_base)
         return excellent, passed
 
-    # Detect whether the line belongs to a P3 pillar that supports wipeout rules.
-    def _is_p3_line(self):
-        self.ensure_one()
-        return self.pillar_code in P3_PILLAR_CODES
-
     # Return the direct children that participate in score roll-up.
     def _get_direct_scoring_children(self):
         self.ensure_one()
         return self.child_line_ids.sorted(lambda line: (line.sequence or 0, line.id or 0))
+
+    # Đọc bộ field snapshot từ template line phòng ban để lưu cứng vào evaluation line khi khởi tạo.
+    def _build_template_snapshot_vals(self, template_line):
+        score_unit = self.env.ref(
+            "custom_adecsol_hr_performance_evaluator.kpi_unit_score",
+            raise_if_not_found=False,
+        )
+        score_base = self.env["res.config.settings"].get_score_scale_base()
+        line_score_base = template_line.score_scale_base_override or score_base
+
+        # Với section row, chỉ snapshot dữ liệu hiển thị và rule tổng hợp, không giữ config auto kỹ thuật.
+        if template_line.is_section:
+            return {
+                "name": template_line.name,
+                "pillar_id": template_line.pillar_id.id,
+                "description": getattr(template_line, "description", False),
+                "kpi_type": "auto",
+                "manual_scoring_type": False,
+                "target": 0.0,
+                "unit": False,
+                "weight": template_line.weight,
+                "score_scale_base_override": template_line.score_scale_base_override,
+                "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
+                "is_auto": False,
+                "dept_source_type": "manual",
+                "data_source_id": False,
+                "scoring_formula_id": False,
+                "is_section": True,
+                "sequence": template_line.sequence,
+            }
+
+        return {
+            "name": template_line.name,
+            "pillar_id": template_line.pillar_id.id,
+            "description": getattr(template_line, "description", False),
+            "kpi_type": template_line.kpi_type,
+            "manual_scoring_type": template_line.manual_scoring_type,
+            "target": line_score_base
+            if template_line.dept_source_type == "child_kpi_average"
+            else template_line.target,
+            "unit": template_line.unit.id
+            or (
+                score_unit.id
+                if template_line.dept_source_type == "child_kpi_average" and score_unit
+                else False
+            ),
+            "weight": template_line.weight,
+            "score_scale_base_override": template_line.score_scale_base_override,
+            "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
+            "is_auto": bool(template_line.is_auto),
+            "dept_source_type": template_line.dept_source_type or "manual",
+            "data_source_id": template_line.data_source_id.id or False,
+            "scoring_formula_id": template_line.scoring_formula_id.id or False,
+            "is_section": bool(template_line.is_section),
+            "sequence": template_line.sequence,
+        }
+
+    # Bổ sung snapshot mặc định từ template line để mọi luồng create đều giữ dữ liệu lịch sử ổn định.
+    @api.model
+    def _apply_template_snapshot_defaults(self, vals):
+        normalized_vals = dict(vals or {})
+        template_line_id = normalized_vals.get("department_kpi_line_id")
+        if not template_line_id:
+            return normalized_vals
+
+        template_line = (
+            self.env["hr.department.kpi.template.line"]
+            .browse(template_line_id)
+            .exists()
+        )
+        if not template_line:
+            return normalized_vals
+
+        snapshot_vals = self._build_template_snapshot_vals(template_line)
+        for field_name, field_value in snapshot_vals.items():
+            normalized_vals.setdefault(field_name, field_value)
+
+        # Giữ thêm template parent link để rebuild hierarchy nội bộ mà không làm line phụ thuộc động.
+        normalized_vals.setdefault(
+            "parent_template_line_id",
+            template_line.parent_line_id.id or False,
+        )
+        return normalized_vals
+
+    # Kiểm tra đệ quy xem section hiện tại có bất kỳ KPI leaf hậu duệ nào đang bằng 0 hay không.
+    def _has_zero_score_descendant_leaf(self):
+        self.ensure_one()
+
+        # Chỉ section có con mới cần quét cây hậu duệ cho rule wipeout mới.
+        if not self.is_section or not self.child_line_ids:
+            return False
+
+        # Duyệt toàn bộ con trực tiếp theo đúng thứ tự hiển thị để kiểm tra cả cây KPI.
+        for child in self._get_direct_scoring_children():
+            if child.child_line_ids and child._has_zero_score_descendant_leaf():
+                return True
+            if not child.child_line_ids and not child.is_section:
+                if (child.final_score or 0.0) <= 0.0:
+                    return True
+        return False
 
     def _get_child_score_aggregate(self):
         self.ensure_one()
@@ -390,44 +476,56 @@ class HrDepartmentEvaluationLine(models.Model):
             ) / total_weight
         return sum(child_lines.mapped("final_score")) / len(child_lines)
 
-    # Compute the branch wipeout flag used by normalized P3 scoring.
-    @api.depends(
-        "pillar_code",
-        "is_section",
-        "is_severe_violation",
-        "violation_count",
-        "violation_threshold",
-        "child_line_ids",
-        "child_line_ids.parent_line_id",
-        "child_line_ids.is_wipeout_triggered",
-    )
-    def _compute_is_wipeout_triggered(self):
-        for line in self:
-            if not line._is_p3_line():
-                line.is_wipeout_triggered = False
-                continue
+    # Thu thập dòng đang sửa và toàn bộ ancestor cần tính lại điểm theo cây.
+    def _get_score_recompute_lines(self):
+        lines_to_recompute = self.env["hr.department.evaluation.line"]
+        frontier = self
+        while frontier:
+            frontier = frontier - lines_to_recompute
+            if not frontier:
+                break
+            lines_to_recompute |= frontier
+            frontier = frontier.mapped("parent_line_id")
+        return lines_to_recompute
 
-            child_lines = line._get_direct_scoring_children()
-            if child_lines:
-                line.is_wipeout_triggered = any(
-                    child.is_wipeout_triggered for child in child_lines
-                )
-                continue
+    # Tính lại cây điểm theo thứ tự từ lá lên gốc để parent line cập nhật ngay trong cùng lần lưu.
+    def _recompute_score_tree(self):
+        if self.env.context.get("skip_score_tree_recompute"):
+            return
 
-            line.is_wipeout_triggered = bool(
-                line.is_severe_violation
-                or (line.violation_count or 0) > (line.violation_threshold or 0)
-            )
+        lines_to_recompute = self._get_score_recompute_lines()
+        if not lines_to_recompute:
+            return
+
+        # Chặn vòng lặp khi stored compute tự ghi ngược vào cùng model.
+        guarded_lines = lines_to_recompute.with_context(skip_score_tree_recompute=True)
+
+        # Tính độ sâu để luôn tính các lá trước rồi mới tính section cha.
+        def _depth(line):
+            depth = 0
+            current = line.parent_line_id
+            while current:
+                depth += 1
+                current = current.parent_line_id
+            return depth
+
+        # Sắp xếp từ lá lên gốc để mỗi parent luôn đọc score mới nhất của con.
+        ordered_lines = guarded_lines.sorted(
+            lambda line: (-_depth(line), line.sequence or 0, line.id or 0)
+        )
+        for line in ordered_lines:
+            line._compute_system_score()
+            line._compute_final_score()
+
+        # Tính lại tổng điểm phiếu phòng ban sau khi từng line đã ổn định.
+        for evaluation in ordered_lines.mapped("evaluation_id"):
+            evaluation._compute_dept_kpi_score()
 
     def _compute_system_score_for_line(self, line, actual, target, score_base=None):
         score_base = float(
             score_base or line._get_score_base() or 0.0
         )
-        formula = (
-            line.department_kpi_line_id.get_effective_formula()
-            if line.department_kpi_line_id
-            else False
-        )
+        formula = line.scoring_formula_id
         if not formula:
             return 0.0
         try:
@@ -454,8 +552,7 @@ class HrDepartmentEvaluationLine(models.Model):
         "child_line_ids.parent_line_id",
         "child_line_ids.final_score",
         "child_line_ids.weight",
-        "child_line_ids.is_wipeout_triggered",
-        "is_wipeout_triggered",
+        "wipeout_if_child_zero",
         "scoring_formula_id",
         "scoring_formula_id.formula_type",
         "scoring_formula_id.linear_direction",
@@ -466,11 +563,13 @@ class HrDepartmentEvaluationLine(models.Model):
         "scoring_formula_id.penalty_floor",
         "scoring_formula_id.expression_code",
     )
-    # Compute the department line score from either auto formulas or manual scoring inputs.
+    # Tính điểm dòng KPI phòng ban và áp rule wipeout mới trên section parent khi cần.
     def _compute_system_score(self):
         for line in self:
+            if line.evaluation_id.state in ["cancel", "approved"]:
+                continue
             score_base = line._get_score_base()
-            if line.is_wipeout_triggered:
+            if line.wipeout_if_child_zero and line._has_zero_score_descendant_leaf():
                 line.system_score = 0.0
                 continue
             child_score = line._get_child_score_aggregate()
@@ -513,6 +612,8 @@ class HrDepartmentEvaluationLine(models.Model):
     @api.depends("system_score")
     def _compute_final_score(self):
         for line in self:
+            if line.evaluation_id.state in ["cancel", "approved"]:
+                continue
             score_base = line._get_score_base()
             line.final_score = round(max(0.0, min(line.system_score or 0.0, score_base)), 2)
 
@@ -576,6 +677,22 @@ class HrDepartmentEvaluationLine(models.Model):
                     "."
                 )
 
+    @api.onchange(
+        "actual",
+        "target",
+        "weight",
+        "parent_line_id",
+        "kpi_type",
+        "manual_scoring_type",
+        "score_scale_base_override",
+        "manager_rating_binary",
+        "manager_rating_selection",
+        "manager_rating_score",
+    )
+    # Tính lại cây điểm ngay trên form để section parent phản ánh thay đổi từ lần sửa đầu tiên.
+    def _onchange_recompute_score_tree(self):
+        self._recompute_score_tree()
+
     # Keep manual subtype required for manual lines and empty for auto lines.
     @api.constrains("kpi_type", "manual_scoring_type")
     def _check_manual_scoring_type(self):
@@ -604,15 +721,6 @@ class HrDepartmentEvaluationLine(models.Model):
                     % {"max_score": f"{score_base:g}"}
                 )
 
-    # Keep P3 wipeout inputs non-negative.
-    @api.constrains("violation_threshold", "violation_count")
-    def _check_violation_values(self):
-        for rec in self:
-            if (rec.violation_threshold or 0) < 0:
-                raise ValidationError(_("Violation threshold cannot be negative."))
-            if (rec.violation_count or 0) < 0:
-                raise ValidationError(_("Violation count cannot be negative."))
-
     @api.constrains("parent_line_id", "evaluation_id")
     def _check_parent_line(self):
         for rec in self:
@@ -631,7 +739,11 @@ class HrDepartmentEvaluationLine(models.Model):
                     _("Recursive KPI line hierarchy is not allowed.")
                 )
 
+    # Đồng bộ chatter và score tree ngay sau khi người dùng sửa line phòng ban.
     def write(self, vals):
+        if self.env.context.get("skip_score_tree_recompute"):
+            return super().write(vals)
+
         tracked_fields = self._get_chatter_tracked_fields(vals or {})
         snapshot_by_line = (
             self._snapshot_chatter_tracked_values(tracked_fields)
@@ -639,15 +751,35 @@ class HrDepartmentEvaluationLine(models.Model):
             else {}
         )
 
+        evaluations_before = self.mapped("evaluation_id")
+        parent_lines_before = self.mapped("parent_line_id")
         res = super().write(vals)
+        affected_lines = self | parent_lines_before | self.mapped("parent_line_id")
+        affected_lines._recompute_score_tree()
+
+        old_evaluations = evaluations_before - self.mapped("evaluation_id")
+        for evaluation in old_evaluations:
+            evaluation._compute_dept_kpi_score()
         if snapshot_by_line:
             self._post_parent_chatter_audit(tracked_fields, snapshot_by_line)
         return res
 
+    # Tính lại cây điểm sau khi tạo line mới để section parent có score ngay lập tức.
+    @api.model_create_multi
+    def create(self, vals_list):
+        normalized_vals_list = []
+        for vals in vals_list:
+            normalized_vals_list.append(self._apply_template_snapshot_defaults(vals))
+
+        records = super().create(normalized_vals_list)
+        affected_lines = records | records.mapped("parent_line_id")
+        affected_lines._recompute_score_tree()
+        return records
+
     def action_open_popup(self):
         self.ensure_one()
         return {
-            "name": _("Edit KPI Line"),
+            "name": _("KPI Line Detail"),
             "type": "ir.actions.act_window",
             "res_model": "hr.department.evaluation.line",
             "res_id": self.id,

@@ -118,21 +118,6 @@
                             </group>
                         </group>
 
-                        <group string="P3 Wipeout"
-                            invisible="is_section or kpi_type != 'auto'">
-                            <group>
-                                <field name="violation_threshold"
-                                    readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                <field name="violation_count"
-                                    readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                            </group>
-                            <group>
-                                <field name="is_severe_violation"
-                                    readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                <field name="is_wipeout_triggered" readonly="1" />
-                            </group>
-                        </group>
-
                         <!-- ============================
                              SCORING
                              ============================ -->
@@ -157,9 +142,9 @@
                                     invisible="kpi_type != 'manual' or is_section" />
                                 <field name="weight"
                                     readonly="not is_manager and not is_department_manager" />
-                                <field name="violation_threshold"
-                                    invisible="kpi_type != 'auto' or is_section"
-                                    readonly="not is_manager and not is_department_manager" />
+                                <field name="wipeout_if_child_zero"
+                                    invisible="not is_section"
+                                    readonly="1" />
                                 <field name="actual"
                                     invisible="not is_special_scoring or is_section"
                                     readonly="not is_manager and not is_department_manager" />
@@ -167,11 +152,6 @@
                             <group invisible="kpi_type != 'auto' or is_section">
                                 <field name="is_auto" readonly="1"
                                     invisible="kpi_type != 'auto'" />
-                                <field name="violation_count"
-                                    readonly="not is_manager and not is_department_manager" />
-                                <field name="is_severe_violation"
-                                    readonly="not is_manager and not is_department_manager" />
-                                <field name="is_wipeout_triggered" readonly="1" />
                                 <field name="data_source_id" invisible="kpi_type != 'auto'"
                                     readonly="not is_manager and not is_department_manager" />
                                 <field name="scoring_formula_id"
@@ -793,10 +773,8 @@
                                         <field name="unit" optional="show"
                                             invisible="is_section or kpi_type != 'auto'"
                                             width="80px" />
-                                        <!-- <field name="target"
-                                            invisible="is_section or kpi_type != 'auto' or is_special_scoring"
-                                            width="100px" /> -->
                                         <field name="target"
+                                            invisible="is_section or kpi_type != 'auto'"
                                             width="100px" />
                                         <field name="actual"
                                             invisible="is_section or kpi_type != 'auto'"

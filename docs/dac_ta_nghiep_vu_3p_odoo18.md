@@ -24,13 +24,16 @@ Cấu trúc phân rã trọng số 3 cấp: `Section (Nhóm cha lớn) -> Sub-Se
 #### Cơ chế chấm điểm (Scoring Mechanism):
 * Cấu hình tại dòng lá (`KPI Line`): `kpi_type = 'manual'` (Chấm thủ công) và `manual_scoring_type = 'binary'` (Lựa chọn Đạt / Không đạt).
 * **Quy tắc giá trị:**
-    * Nếu chọn **"Đạt" (Passed)** $ightarrow$ Ghi nhận $100$ điểm.
-    * Nếu chọn **"Không đạt" (Failed)** $ightarrow$ Ghi nhận $0$ điểm.
+    * Nếu chọn **"Đạt" (Passed)** $
+ightarrow$ Ghi nhận $100$ điểm.
+    * Nếu chọn **"Không đạt" (Failed)** $
+ightarrow$ Ghi nhận $0$ điểm.
 
 #### Công thức Roll-up tổng hợp điểm từ Dưới lên Trên:
 Điểm số của các nút cha (`Sub-Section` và `Section`) được tính tự động bằng trung bình cộng có trọng số (Weighted Average) của các nút con trực tiếp của nó:
 
-$$	ext{Score}_{	ext{parent}} = rac{\sum \left(	ext{Score}_{	ext{child}} 	imes 	ext{Weight}_{	ext{child}}ight)}{	ext{Weight}_{	ext{parent}}}$$
+$$	ext{Score}_{	ext{parent}} = rac{\sum \left(	ext{Score}_{	ext{child}} 	imes 	ext{Weight}_{	ext{child}}
+ight)}{	ext{Weight}_{	ext{parent}}}$$
 
 *Trong đó:*
 * $	ext{Score}_{	ext{parent}}$: Điểm đạt được của nút cha (thang điểm 100).
@@ -52,7 +55,8 @@ $$	ext{Score}_{	ext{parent}} = rac{\sum \left(	ext{Score}_{	ext{child}} 	imes 	
 * **Công thức tính điểm đạt của từng dòng:**
     $$	ext{Final\_Rating}_{	ext{line}} = 	ext{manager\_rating\_score}$$
 * **Tổng điểm đạt của Pillar P2.2:** Do tổng weight bằng 100, tổng điểm P2.2 bằng tổng điểm trọng số của các dòng:
-    $$	ext{Total\_P2.2} = \sum \left(rac{	ext{Final\_Rating}_{	ext{line}} 	imes 	ext{Weight}_{	ext{line}}}{100}ight)$$
+    $$	ext{Total\_P2.2} = \sum \left(rac{	ext{Final\_Rating}_{	ext{line}} 	imes 	ext{Weight}_{	ext{line}}}{100}
+ight)$$
 
 ---
 
@@ -63,28 +67,41 @@ $$	ext{Score}_{	ext{parent}} = rac{\sum \left(	ext{Score}_{	ext{child}} 	imes 	
 * Tổng `weight` của các nhánh luôn quy đổi về $100\%$ tại nút gốc.
 
 #### Cơ chế chấm điểm thông thường:
-* Các dòng lá (`KPI Line`) nhận diện kết quả dựa trên các trường `target` (mục tiêu) và `actual` (thực tế). Điểm số cơ sở được tính toán thông qua cấu hình `scoring_formula_id` (Tuyến tính hoặc Bậc thang) để quy đổi ra thang điểm $[0 - 100]$.
+* Các dòng lá (`KPI Line`) nhận diện kết quả dựa trên các trường `target` (mục tiêu) và `actual` (thực tế).
+* Điểm số cơ sở được tính toán thông qua cấu hình `scoring_formula_id` (tuyến tính, bậc thang hoặc công thức phù hợp) để quy đổi ra thang điểm $[0 - 100]$.
+* Với KPI `manual`, điểm của dòng lá được lấy theo kiểu chấm thủ công tương ứng.
 
-#### 🚨 Cơ chế "Phạt hủy diệt" (Wipeout Penalty Logic) - Ràng buộc tối hạn nghiêm ngặt:
-Hệ thống cấu hình 2 trường điều kiện phạt tại mỗi dòng lá (`KPI Line`):
-1.  `is_severe_violation` (Boolean): Đánh dấu vi phạm lỗi nghiêm trọng (An toàn lao động, Quy trình bảo mật, lỗi hệ thống nặng...).
-2.  `violation_count` (Integer) và `violation_threshold` (Integer): Số lần vi phạm vượt ngưỡng cho phép.
+#### 🚨 Cơ chế "Wipeout" theo cấu hình trên dòng cha:
+Hệ thống không còn cấu hình wipeout trực tiếp trên từng dòng lá (`KPI Line`). Thay vào đó, rule wipeout được cấu hình tại các dòng cha (`Section` hoặc `Sub-Section`) thông qua field boolean:
+
+* `wipeout_if_child_zero`
+
+#### Ý nghĩa nghiệp vụ của `wipeout_if_child_zero`:
+* Field này chỉ có ý nghĩa trên các dòng `is_section = True`.
+* Khi một dòng cha bật `wipeout_if_child_zero = True`, hệ thống hiểu rằng nhánh KPI đó có tính chất "điểm liệt".
+* Nếu trong toàn bộ cây con của nhánh đó tồn tại **ít nhất một** KPI lá có điểm cuối bằng `0`, thì điểm của dòng cha đang bật cờ sẽ bị ép về `0`.
 
 #### Thuật toán quét và ép điểm (Compute & Cascade Override):
 Khi hàm compute của hệ thống kích hoạt, nó sẽ quét từ các dòng lá (`KPI Line`) lên các dòng cha theo cơ chế đệ quy:
 
 1.  **Tại dòng lá (KPI Line):**
-    * Nếu (`is_severe_violation == True`) HOẶC (`violation_count > violation_threshold`):
-        $$	ext{Final\_Rating}_{	ext{line}} = 0$$
-        Đồng thời, kích hoạt cờ hiệu phá hủy của dòng đó: `is_wipeout_triggered = True`.
+    * Điểm của dòng lá được tính theo logic KPI thông thường:
+        * KPI `auto`: tính từ `target`, `actual` và `scoring_formula_id`.
+        * KPI `manual`: tính theo kiểu chấm thủ công tương ứng.
+    * Nếu sau khi tính toán, một dòng lá có `Final_Rating = 0`, thì dòng lá đó trở thành điều kiện kích hoạt wipeout cho các ancestor đang bật `wipeout_if_child_zero`.
 
 2.  **Tại các dòng cha (Sub-Section và Section):**
-    * Hệ thống kiểm tra tập hợp tất cả các dòng con cháu trực thuộc nhánh của nó.
-    * Nếu **TỒN TẠI ÍT NHẤT MỘT** dòng con/cháu có cờ hiệu `is_wipeout_triggered == True`:
-        $$	ext{Final\_Rating}_{	ext{parent}} = 0$$
-        *Ý nghĩa nghiệp vụ:* Hủy toàn bộ điểm của cả nhóm cha lớn đó về 0 ngay lập tức, bất chấp kết quả hoàn thành của các chỉ tiêu xuất sắc khác trong cùng nhóm.
-    * Nếu **KHÔNG TỒN TẠI** dòng nào bị hủy diệt, điểm của dòng cha được tổng hợp theo công thức trung bình cộng có trọng số thông thường:
-        $$	ext{Final\_Rating}_{	ext{parent}} = rac{\sum \left(	ext{Final\_Rating}_{	ext{child}} 	imes 	ext{Weight}_{	ext{child}}ight)}{	ext{Weight}_{	ext{parent}}}$$
+    * Hệ thống kiểm tra toàn bộ các dòng con cháu trực thuộc nhánh của dòng cha hiện tại.
+    * Nếu dòng cha có `wipeout_if_child_zero = True` và tồn tại ít nhất một dòng lá hậu duệ có `Final_Rating = 0`:
+        $$\text{Final\_Rating}_{\text{parent}} = 0$$
+        *Ý nghĩa nghiệp vụ:* Hủy toàn bộ điểm của nhóm cha đó về 0, bất chấp các KPI khác trong cùng nhánh đang đạt điểm cao.
+    * Nếu dòng cha không bật `wipeout_if_child_zero`, hoặc không có dòng lá hậu duệ nào bằng `0`, thì điểm của dòng cha được tổng hợp theo công thức trung bình cộng có trọng số thông thường:
+        $$\text{Final\_Rating}_{\text{parent}} = \frac{\sum \left(\text{Final\_Rating}_{\text{child}} \times \text{Weight}_{\text{child}}\right)}{\text{Weight}_{\text{parent}}}$$
+
+#### Quy tắc lan truyền (Cascade All):
+* Một KPI lá có điểm `0` có thể làm wipeout nhiều tầng cha khác nhau.
+* Mỗi ancestor nào bật `wipeout_if_child_zero = True` thì ancestor đó sẽ bị ép về `0`.
+* Ancestor nào không bật cờ thì không bị ép `0`, và vẫn tính weighted average thông thường từ các dòng con trực tiếp của nó.
 
 ---
 

@@ -32,8 +32,8 @@
                                 options="{'no_create': True}" />
                             <field name="weight" />
                             <field name="score_scale_base_override" />
-                            <field name="violation_threshold"
-                                invisible="is_section or kpi_type != 'auto'" />
+                            <field name="wipeout_if_child_zero"
+                                invisible="not is_section" />
                         </group>
                         <group string="Auto Compute" invisible="is_section or kpi_type != 'auto'">
                             <field name="is_auto" readonly="1"
@@ -134,8 +134,8 @@
                                     <field name="weight" />
                                     <field name="score_scale_base_override"
                                         optional="show" />
-                                    <field name="violation_threshold"
-                                        invisible="is_section or kpi_type != 'auto'"
+                                    <field name="wipeout_if_child_zero"
+                                        invisible="not is_section"
                                         optional="hide" />
                                     <button name="action_open_popup" type="object"
                                         icon="fa-pencil" title="Open Details"

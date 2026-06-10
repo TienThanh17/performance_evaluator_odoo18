@@ -33,7 +33,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
     )
     description = fields.Html(string="Description", sanitize=True)
     target = fields.Float(string="Target", default=0.0)
-    weight = fields.Float(string="Weight", default=1.0)
+    weight = fields.Float(string="Weight", default=0.0)
     is_auto = fields.Boolean(
         string="Auto Compute",
         compute="_compute_auto",
@@ -66,10 +66,9 @@ class HrDepartmentKpiTemplateLine(models.Model):
         ondelete="restrict",
         help="Scoring formula applied to this department KPI line.",
     )
-    violation_threshold = fields.Integer(
-        string="Violation Threshold",
-        default=0,
-        help="For P3 KPI lines, a violation count above this threshold triggers wipeout for the whole branch.",
+    wipeout_if_child_zero = fields.Boolean(
+        string="Wipeout If Child Zero",
+        help="Enable this on section rows to force the section score to zero when any descendant KPI leaf reaches zero.",
     )
     is_section = fields.Boolean(default=False)
     display_type = fields.Selection(
@@ -497,15 +496,6 @@ class HrDepartmentKpiTemplateLine(models.Model):
                     )
                 )
 
-    # Keep the wipeout threshold non-negative.
-    @api.constrains("violation_threshold")
-    def _check_violation_threshold(self):
-        for rec in self:
-            if rec.violation_threshold < 0:
-                raise ValidationError(
-                    _("Violation Threshold must be greater than or equal to 0.")
-                )
-
     # Keep parent-child relations inside the same department KPI template.
     @api.constrains("parent_line_id", "department_kpi_id")
     def _check_parent_line(self):
@@ -587,6 +577,16 @@ class HrDepartmentKpiTemplateLine(models.Model):
                             }
                         )
 
+    # Chuẩn hóa cờ wipeout để chỉ section row mới giữ được cấu hình này.
+    def _reset_wipeout_flag_on_leaf_rows(self):
+        leaf_rows = self.filtered(
+            lambda line: not line.is_section and line.wipeout_if_child_zero
+        )
+        if leaf_rows:
+            super(HrDepartmentKpiTemplateLine, leaf_rows.with_context(skip_hierarchy_sequence_sync=True)).write(
+                {"wipeout_if_child_zero": False}
+            )
+
     # Keep section rows technically consistent and validate normalized 3P trees after edits.
     def write(self, vals):
         normalized_vals = dict(vals or {})
@@ -597,6 +597,8 @@ class HrDepartmentKpiTemplateLine(models.Model):
             or normalized_vals.get("kpi_type") == "auto"
         ):
             normalized_vals["manual_scoring_type"] = False
+        if normalized_vals.get("is_section") is False:
+            normalized_vals["wipeout_if_child_zero"] = False
 
         # Skip recursive hierarchy syncing for internal normalization writes.
         if self.env.context.get("skip_hierarchy_sequence_sync"):
@@ -619,6 +621,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
             self._normalize_hierarchy_scopes(
                 old_scope_keys + self._get_sequence_scope_keys()
             )
+        self._reset_wipeout_flag_on_leaf_rows()
         self._validate_normalized_3p_weight_structure()
         return res
 
@@ -639,6 +642,8 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 or normalized_vals.get("kpi_type") == "auto"
             ):
                 normalized_vals["manual_scoring_type"] = False
+            if not normalized_vals.get("is_section"):
+                normalized_vals["wipeout_if_child_zero"] = False
             if default_pillar and not normalized_vals.get("pillar_id"):
                 normalized_vals["pillar_id"] = default_pillar.id
             normalized_vals_list.append(normalized_vals)
@@ -650,6 +655,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
 
             # Auto-place new lines at the end of their root or parent subtree block.
             rec._move_subtree_to_parent_end()
+        records._reset_wipeout_flag_on_leaf_rows()
         records._validate_normalized_3p_weight_structure()
         return records
 
