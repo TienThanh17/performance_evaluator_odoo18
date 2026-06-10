@@ -782,17 +782,21 @@
                                         <field name="key_performance_area" string="Title"
                                             width="300px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="parent_dept_evaluation_line_id" optional="show"
+                                        <field name="parent_dept_evaluation_line_id" optional="hide"
                                             invisible="is_section" width="150px" />
                                         <field name="kpi_type" invisible="is_section" width="100px" />
                                         <field name="manual_scoring_type"
                                             invisible="is_section or kpi_type != 'manual'"
+                                            optional="hide"
                                             width="140px" />
+                                        <field name="scoring_formula_id"  width="140px"/>
                                         <field name="unit" optional="show"
                                             invisible="is_section or kpi_type != 'auto'"
                                             width="80px" />
-                                        <field name="target"
+                                        <!-- <field name="target"
                                             invisible="is_section or kpi_type != 'auto' or is_special_scoring"
+                                            width="100px" /> -->
+                                        <field name="target"
                                             width="100px" />
                                         <field name="actual"
                                             invisible="is_section or kpi_type != 'auto'"

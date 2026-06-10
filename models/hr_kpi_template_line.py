@@ -408,10 +408,17 @@ class HrKpiTemplateLine(models.Model):
 
         # Insert children after the last descendant of the parent subtree.
         if self.parent_line_id and self.parent_line_id in scope_lines:
-            parent_subtree = self.parent_line_id._get_subtree_lines(
-                scope_lines=scope_lines
+            remaining_scope_lines = scope_lines.filtered(
+                lambda line: line.id not in subtree_ids
             )
-            anchor_id = parent_subtree.ids[-1] if parent_subtree else False
+            parent_subtree = self.parent_line_id._get_subtree_lines(
+                scope_lines=remaining_scope_lines
+            )
+            # Compute the anchor from the remaining tree so a brand-new first child
+            # lands right after its parent instead of falling to the scope tail.
+            anchor_id = (
+                parent_subtree.ids[-1] if parent_subtree else self.parent_line_id.id
+            )
             anchor_index = (
                 remaining_lines.ids.index(anchor_id) + 1
                 if anchor_id and anchor_id in remaining_lines.ids

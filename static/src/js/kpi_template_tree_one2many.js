@@ -41,6 +41,9 @@ patch(ListArchParser.prototype, {
 });
 
 class KpiTemplateTreeListRenderer extends KPIListRenderer {
+    static recordRowTemplate =
+        "custom_adecsol_hr_performance_evaluator.KpiTemplateTreeListRenderer.RecordRow";
+
     setup() {
         super.setup();
         onWillRender(() => {
@@ -50,6 +53,22 @@ class KpiTemplateTreeListRenderer extends KPIListRenderer {
                 );
             }
         });
+    }
+
+    getSectionItemContext(record) {
+        return {
+            default_parent_line_id: record.resId || false,
+        };
+    }
+
+    getSectionSectionContext(record) {
+        return {
+            default_parent_line_id: record.resId || false,
+            default_is_section: true,
+            default_display_type: "line_section",
+            is_section: true,
+            force_popup_section: true,
+        };
     }
 
     getColumnClass(column) {

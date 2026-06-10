@@ -101,6 +101,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
         string="Parent Line",
         ondelete="set null",
         index=True,
+        domain="[('department_kpi_id', '=', department_kpi_id), ('pillar_id', '=', pillar_id), ('id', '!=', id), ('is_section', '=', True)]",
     )
     child_line_ids = fields.One2many(
         "hr.department.kpi.template.line",
@@ -125,6 +126,30 @@ class HrDepartmentKpiTemplateLine(models.Model):
         string="Child KPI Template Rows JSON",
         compute="_compute_child_template_line_trace",
     )
+
+    # Resolve the pillar configured by the current tab context.
+    def _get_default_pillar_from_context(self):
+        pillar_code = (
+            (self.env.context.get("default_pillar_code") or "").strip().lower()
+        )
+        if not pillar_code:
+            return self.env["hr.evaluation.pillar"]
+        return self.env["hr.evaluation.pillar"].search(
+            [("code", "=", pillar_code)],
+            limit=1,
+        )
+
+    # Prefill pillar_id so popup and inline creation inherit the tab pillar.
+    @api.model
+    def default_get(self, fields_list):
+        defaults = super().default_get(fields_list)
+        if defaults.get("pillar_id"):
+            return defaults
+
+        default_pillar = self._get_default_pillar_from_context()
+        if default_pillar:
+            defaults["pillar_id"] = default_pillar.id
+        return defaults
 
     # Build the trace table used to inspect linked employee template lines.
     @api.depends(
@@ -259,7 +284,9 @@ class HrDepartmentKpiTemplateLine(models.Model):
 
         # Identify visible roots inside the current scope, including orphaned legacy rows.
         scope_ids = set(scope_lines.ids)
-        ordered_scope_lines = scope_lines.sorted(lambda rec: (rec.sequence or 0, rec.id or 0))
+        ordered_scope_lines = scope_lines.sorted(
+            lambda rec: (rec.sequence or 0, rec.id or 0)
+        )
         root_lines = [
             line
             for line in ordered_scope_lines
@@ -280,7 +307,9 @@ class HrDepartmentKpiTemplateLine(models.Model):
 
         # Keep any unexpected dangling rows at the end instead of dropping them.
         seen_ids = set(ordered_ids)
-        ordered_ids.extend(line.id for line in ordered_scope_lines if line.id not in seen_ids)
+        ordered_ids.extend(
+            line.id for line in ordered_scope_lines if line.id not in seen_ids
+        )
         return self.browse(ordered_ids)
 
     # Rewrite the flat preorder sequence for one scope using fixed increments.
@@ -291,7 +320,9 @@ class HrDepartmentKpiTemplateLine(models.Model):
             return
 
         # Default to the computed preorder when callers do not provide one explicitly.
-        ordered_lines = ordered_lines or self._get_hierarchy_ordered_lines(scope_lines=scope_lines)
+        ordered_lines = ordered_lines or self._get_hierarchy_ordered_lines(
+            scope_lines=scope_lines
+        )
         for index, line in enumerate(ordered_lines, start=1):
             new_sequence = index * SEQUENCE_STEP
             if line.sequence == new_sequence:
@@ -335,12 +366,23 @@ class HrDepartmentKpiTemplateLine(models.Model):
             return
 
         subtree_ids = set(subtree_lines.ids)
-        remaining_lines = ordered_lines.filtered(lambda line: line.id not in subtree_ids)
+        remaining_lines = ordered_lines.filtered(
+            lambda line: line.id not in subtree_ids
+        )
 
         # Insert children after the last descendant of the parent subtree.
         if self.parent_line_id and self.parent_line_id in scope_lines:
-            parent_subtree = self.parent_line_id._get_subtree_lines(scope_lines=scope_lines)
-            anchor_id = parent_subtree.ids[-1] if parent_subtree else False
+            remaining_scope_lines = scope_lines.filtered(
+                lambda line: line.id not in subtree_ids
+            )
+            parent_subtree = self.parent_line_id._get_subtree_lines(
+                scope_lines=remaining_scope_lines
+            )
+            # Compute the anchor from the remaining tree so a brand-new first child
+            # lands right after its parent instead of falling to the scope tail.
+            anchor_id = (
+                parent_subtree.ids[-1] if parent_subtree else self.parent_line_id.id
+            )
             anchor_index = (
                 remaining_lines.ids.index(anchor_id) + 1
                 if anchor_id and anchor_id in remaining_lines.ids
@@ -415,10 +457,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
             rec.is_auto = bool(
                 rec.kpi_type == "auto"
                 and rec.dept_source_type in ("child_kpi_average", "data_source")
-                and (
-                    rec.dept_source_type == "child_kpi_average"
-                    or rec.data_source_id
-                )
+                and (rec.dept_source_type == "child_kpi_average" or rec.data_source_id)
             )
 
     # Validate the target only for auto department KPI lines.
@@ -453,7 +492,9 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 continue
             if rec.kpi_type == "auto" and not rec.scoring_formula_id:
                 raise ValidationError(
-                    _("Please select a scoring formula for normalized P3 auto department KPI lines.")
+                    _(
+                        "Please select a scoring formula for normalized P3 auto department KPI lines."
+                    )
                 )
 
     # Keep the wipeout threshold non-negative.
@@ -476,7 +517,9 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 raise ValidationError(_("A KPI line cannot be its own parent."))
             if parent.department_kpi_id != rec.department_kpi_id:
                 raise ValidationError(
-                    _("The parent KPI line must belong to the same department KPI template.")
+                    _(
+                        "The parent KPI line must belong to the same department KPI template."
+                    )
                 )
 
             # Walk the full ancestry chain so deep recursive trees are blocked as well.
@@ -504,7 +547,9 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 if not lines:
                     continue
 
-                negative_weight_line = lines.filtered(lambda line: line.weight < 0.0)[:1]
+                negative_weight_line = lines.filtered(lambda line: line.weight < 0.0)[
+                    :1
+                ]
                 if negative_weight_line:
                     raise ValidationError(
                         _("Weight cannot be negative for normalized 3P KPI lines.")
@@ -547,7 +592,10 @@ class HrDepartmentKpiTemplateLine(models.Model):
         normalized_vals = dict(vals or {})
         if normalized_vals.get("display_type") and "is_section" not in normalized_vals:
             normalized_vals["is_section"] = True
-        if normalized_vals.get("is_section") or normalized_vals.get("kpi_type") == "auto":
+        if (
+            normalized_vals.get("is_section")
+            or normalized_vals.get("kpi_type") == "auto"
+        ):
             normalized_vals["manual_scoring_type"] = False
 
         # Skip recursive hierarchy syncing for internal normalization writes.
@@ -559,26 +607,40 @@ class HrDepartmentKpiTemplateLine(models.Model):
         res = super().write(normalized_vals)
 
         if affected_scope_fields.intersection(normalized_vals):
-            if "parent_line_id" in normalized_vals and "sequence" not in normalized_vals:
+            if (
+                "parent_line_id" in normalized_vals
+                and "sequence" not in normalized_vals
+            ):
                 for rec in self:
                     # Reparenting without an explicit drag sequence should append to the new parent block.
                     rec._move_subtree_to_parent_end()
 
             # Normalize both previous and current scopes so moved subtrees remain contiguous.
-            self._normalize_hierarchy_scopes(old_scope_keys + self._get_sequence_scope_keys())
+            self._normalize_hierarchy_scopes(
+                old_scope_keys + self._get_sequence_scope_keys()
+            )
         self._validate_normalized_3p_weight_structure()
         return res
 
     # Normalize section rows and validate normalized 3P trees after creation.
     @api.model_create_multi
     def create(self, vals_list):
+        default_pillar = self._get_default_pillar_from_context()
         normalized_vals_list = []
         for vals in vals_list:
             normalized_vals = dict(vals)
-            if normalized_vals.get("display_type") and "is_section" not in normalized_vals:
+            if (
+                normalized_vals.get("display_type")
+                and "is_section" not in normalized_vals
+            ):
                 normalized_vals["is_section"] = True
-            if normalized_vals.get("is_section") or normalized_vals.get("kpi_type") == "auto":
+            if (
+                normalized_vals.get("is_section")
+                or normalized_vals.get("kpi_type") == "auto"
+            ):
                 normalized_vals["manual_scoring_type"] = False
+            if default_pillar and not normalized_vals.get("pillar_id"):
+                normalized_vals["pillar_id"] = default_pillar.id
             normalized_vals_list.append(normalized_vals)
 
         records = super().create(normalized_vals_list)
@@ -593,6 +655,11 @@ class HrDepartmentKpiTemplateLine(models.Model):
 
     def action_open_popup(self):
         self.ensure_one()
+        default_pillar = self._get_default_pillar_from_context()
+        if not self.pillar_id and default_pillar:
+            # Backfill legacy or inline-created rows that missed the tab pillar.
+            self.write({"pillar_id": default_pillar.id})
+
         return {
             "name": _("Edit KPI Line"),
             "type": "ir.actions.act_window",
@@ -603,4 +670,10 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 "custom_adecsol_hr_performance_evaluator.view_hr_kpi_department_line_form_popup"
             ).id,
             "target": "new",
+            "context": {
+                **self.env.context,
+                "default_pillar_code": (
+                    default_pillar.code if default_pillar else self.pillar_code
+                ),
+            },
         }

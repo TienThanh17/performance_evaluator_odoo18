@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="custom_adecsol_hr_performance_evaluator.KpiTemplateTreeListRenderer.RecordRow"
+        t-inherit="web.ListRenderer.RecordRow"
+        t-inherit-mode="primary"
+    >
+        <xpath expr="//td[@t-att-name='column.name']/t[@t-if='!isInvisible']" position="inside">
+            <div t-if="isSection(record) and column.name === titleField and record.resId"
+                class="mt-1 d-flex align-items-center gap-2 flex-wrap"
+            >
+                <a href="#"
+                    role="button"
+                    class="btn btn-link btn-sm p-0 text-muted"
+                    t-on-click.stop.prevent="() => this.add({ context: getSectionItemContext(record) })"
+                >
+                    Add KPI
+                </a>
+                <a href="#"
+                    role="button"
+                    class="btn btn-link btn-sm p-0 text-muted"
+                    t-on-click.stop.prevent="() => this.add({ context: getSectionSectionContext(record) })"
+                >
+                    Add Section
+                </a>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

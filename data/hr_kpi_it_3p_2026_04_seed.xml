@@ -691,7 +691,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_p3_tc7_202604" />
-            <field name="name">2 /3 ý kiến đánh giá đạt trong đó có 1 ý kiến khách
+            <field name="name">2/3 ý kiến đánh giá đạt trong đó có 1 ý kiến khách
                 hàng (Cấp giám đốc nhà máy trở lên)</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />

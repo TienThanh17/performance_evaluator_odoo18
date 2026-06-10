@@ -21,7 +21,6 @@
                             <field name="department_kpi_id" invisible="1" />
                             <field name="pillar_id" options="{'no_create': True}" />
                             <field name="parent_line_id"
-                                domain="[('department_kpi_id', '=', department_kpi_id), ('id', '!=', id)]"
                                 options="{'no_create': True}" />
                             <field name="kpi_type" invisible="is_section" />
                             <field name="manual_scoring_type"
@@ -93,7 +92,7 @@
                                 <field name="pillar_p3_dept_name" readonly="1" nolabel="1" />
                             </h2>
                             <field name="kpi_line_ids" widget="kpi_template_tree_one2many"
-                                context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_department_line_form_popup'}">
+                                context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_department_line_form_popup', 'default_pillar_code': 'p3_department'}">
                                 <list editable="bottom" decoration-bf="is_section">
                                     <field name="sequence" widget="kpi_template_tree_handle" />
                                     <field name="is_section" column_invisible="True" />
@@ -143,9 +142,10 @@
                                         width="40px" />
                                     <control>
                                         <create name="add_section" string="Add Section"
-                                            context="{'default_is_section': True}"
+                                            context="{'default_is_section': True, 'default_display_type': 'line_section', 'default_pillar_code': 'p3_department'}"
                                         />
-                                        <create name="add_kpi" string="Add KPI" />
+                                        <create name="add_kpi" string="Add KPI"
+                                            context="{'default_pillar_code': 'p3_department'}" />
                                     </control>
                                 </list>
                             </field>

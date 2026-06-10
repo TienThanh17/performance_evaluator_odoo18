@@ -80,6 +80,27 @@ class TestEmployeeKpiTemplateTreeSequence(TransactionCase):
             ["Root", "Child A", "Sub Parent", "Grandchild", "New Child"],
         )
 
+    # Child đầu tiên của section phải chèn ngay sau parent thay vì rơi xuống cuối scope.
+    def test_employee_first_child_create_stays_inside_empty_parent_block(self):
+        template = self._create_template()
+        root, trailing_root = self.KpiLine.create(
+            [
+                self._employee_line_vals(template, "Root", self.p2_1, 100.0),
+                self._employee_line_vals(template, "Trailing Root", self.p2_1, 0.0),
+            ]
+        )
+
+        self.KpiLine.create(
+            self._employee_line_vals(
+                template, "First Child", self.p2_1, 100.0, parent=root
+            )
+        )
+
+        self.assertEqual(
+            self._ordered_titles(template),
+            ["Root", "First Child", "Trailing Root"],
+        )
+
     # Grandchild mới phải nằm ở cuối subtree của sub-parent thay vì bật ra scope khác.
     def test_employee_grandchild_create_appends_after_sub_parent_descendant_block(self):
         template = self._create_template()
@@ -345,6 +366,25 @@ class TestDepartmentKpiTemplateTreeSequence(TransactionCase):
         self.assertEqual(
             self._ordered_titles(template),
             ["Root", "Child A", "Sub Parent", "Grandchild", "New Child"],
+        )
+
+    # Child đầu tiên của section phải chèn ngay sau parent thay vì rơi xuống cuối scope.
+    def test_department_first_child_create_stays_inside_empty_parent_block(self):
+        template = self._create_template()
+        root, trailing_root = self.DepartmentLine.create(
+            [
+                self._department_line_vals(template, "Root", 100.0),
+                self._department_line_vals(template, "Trailing Root", 0.0),
+            ]
+        )
+
+        self.DepartmentLine.create(
+            self._department_line_vals(template, "First Child", 100.0, parent=root)
+        )
+
+        self.assertEqual(
+            self._ordered_titles(template),
+            ["Root", "First Child", "Trailing Root"],
         )
 
     # Reparent subtree root phải kéo theo toàn bộ descendants của nó như một block.

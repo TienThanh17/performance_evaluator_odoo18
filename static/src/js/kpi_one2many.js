@@ -295,7 +295,10 @@ export class KPIOne2ManyField extends X2ManyField {
      */
     async onAdd({ context = {}, editable } = {}) {
         const evaluatedContext = makeContext([context]);
-        if (evaluatedContext.default_is_section) {
+        if (
+            evaluatedContext.default_is_section &&
+            !evaluatedContext.force_popup_section
+        ) {
             return super.onAdd({ context, editable });
         }
 
@@ -335,7 +338,7 @@ export class KPIOne2ManyField extends X2ManyField {
         const model = additionalContext.resModel || this.props.record.data[this.props.name]?.resModel;
         const action = {
             type: "ir.actions.act_window",
-            name: "Add KPI",
+            name: evaluatedContext.default_is_section ? "Add Section" : "Add KPI",
             res_model: model,
             views: [[formViewId || false, "form"]],
             target: "new",
