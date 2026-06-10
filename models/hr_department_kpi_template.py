@@ -1,5 +1,4 @@
-from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import fields, models
 
 
 class HrDepartmentKpiTemplate(models.Model):
@@ -27,51 +26,29 @@ class HrDepartmentKpiTemplate(models.Model):
         string="Scoring Profile",
         ondelete="set null",
     )
-    dept_weight = fields.Float(
-        string=_("Department Bonus Weight"),
-        default=0.4,
-        required=True,
-    )
-    individual_weight = fields.Float(
-        string=_("Individual Bonus Weight"),
-        default=0.6,
-        required=True,
-    )
     kpi_line_ids = fields.One2many(
         "hr.department.kpi.template.line", "department_kpi_id"
     )
 
-    @api.constrains("dept_weight", "individual_weight")
-    def _check_weights(self):
-        for rec in self:
-            if not (0.0 < rec.dept_weight < 1.0):
-                raise ValidationError(
-                    _(
-                        "Department Bonus Weight must be greater than 0%% and less than 100%%."
-                    )
-                )
-            if not (0.0 < rec.individual_weight < 1.0):
-                raise ValidationError(
-                    _(
-                        "Individual Bonus Weight must be greater than 0%% and less than 100%%."
-                    )
-                )
-            if abs(rec.dept_weight + rec.individual_weight - 1.0) > 0.0001:
-                raise ValidationError(
-                    _(
-                        "The sum of Department Bonus Weight and Individual Bonus Weight must be exactly 100%%."
-                    )
-                )
+    # Khai báo các field chứa tên động của từng Pillar
+    pillar_p3_dept_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P3")
 
-    @api.onchange("dept_weight")
-    def _onchange_dept_weight(self):
-        for rec in self:
-            rec.individual_weight = 1.0 - rec.dept_weight
+    def _compute_dynamic_pillar_names(self):
+        pillars = self.env['hr.evaluation.pillar'].sudo().search([
+            ('code', 'in', ['p3_department'])
+        ])
+        self.pillar_p3_dept_name = pillars.name or "P3.1.2 KPI Phòng Ban"
 
-    @api.onchange("individual_weight")
-    def _onchange_individual_weight(self):
-        for rec in self:
-            rec.dept_weight = 1.0 - rec.individual_weight
+    # Trả về department KPI lines theo flat preorder để các màn generate giữ đúng cây template.
+    def get_hierarchy_ordered_lines(self):
+        self.ensure_one()
+        if not self.kpi_line_ids:
+            return self.env["hr.department.kpi.template.line"]
+
+        # Tái sử dụng helper ở line model để giữ nguyên thứ tự root, child và grandchild.
+        return self.kpi_line_ids[:1]._get_hierarchy_ordered_lines(
+            scope_lines=self.kpi_line_ids
+        )
 
     def copy(self, default=None):
         default = dict(default or {})

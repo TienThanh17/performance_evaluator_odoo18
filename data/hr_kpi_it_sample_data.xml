@@ -23,8 +23,6 @@
             <field name="department_id" ref="custom_adecsol_hr_performance_evaluator.dept_information_technology"/>
             <field name="period_id" ref="custom_adecsol_hr_performance_evaluator.period_it_2026_05"/>
             <field name="scoring_profile_id" ref="custom_adecsol_hr_performance_evaluator.scoring_profile_it_monthly"/>
-            <field name="dept_weight">0.4</field>
-            <field name="individual_weight">0.6</field>
         </record>
 
         <record id="department_kpi_it_delivery_score" model="hr.department.kpi.template.line">

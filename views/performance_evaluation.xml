@@ -20,14 +20,12 @@
                                     placeholder="Key Performance Area" readonly="is_employee" />
                             </h2>
                         </div>
-                        <group string="Structure" invisible="is_section">
+                        <group string="Structure">
                             <group>
                                 <field name="pillar_id" options="{'no_create': True}" />
                             </group>
                             <group>
-                                <field name="parent_line_id"
-                                    domain="[('evaluation_id', '=', evaluation_id), ('id', '!=', id)]"
-                                    options="{'no_create': True}" />
+                                <field name="parent_line_id" options="{'no_create': True}" />
                                 <label for="score_scale_base_override" />
                                 <div class="o_row">
                                     <field name="score_scale_base_override" nolabel="1" />
@@ -120,10 +118,25 @@
                             </group>
                         </group>
 
+                        <group string="P3 Wipeout"
+                            invisible="is_section or kpi_type != 'auto'">
+                            <group>
+                                <field name="violation_threshold"
+                                    readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
+                                <field name="violation_count"
+                                    readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
+                            </group>
+                            <group>
+                                <field name="is_severe_violation"
+                                    readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
+                                <field name="is_wipeout_triggered" readonly="1" />
+                            </group>
+                        </group>
+
                         <!-- ============================
                              SCORING
                              ============================ -->
-                        <group string="Scoring" invisible="is_section">
+                        <group string="Scoring">
                             <field name="final_rating_badge_class" invisible="1" />
                             <field name="final_rating_badge_text" string="Score"
                                 widget="badge" readonly="1"
@@ -135,21 +148,30 @@
                         <!-- ============================
                              KPI INFO
                              ============================ -->
-                        <group string="KPI Info" invisible="is_section">
+                        <group string="KPI Info">
                             <group>
-                                <field name="kpi_type"
+                                <field name="kpi_type" invisible="is_section"
                                     readonly="not is_manager and not is_department_manager" />
                                 <field name="manual_scoring_type"
                                     readonly="not is_manager and not is_department_manager"
-                                    invisible="kpi_type != 'manual'" />
+                                    invisible="kpi_type != 'manual' or is_section" />
                                 <field name="weight"
                                     readonly="not is_manager and not is_department_manager" />
-                                <field name="actual" invisible="not is_special_scoring"
+                                <field name="violation_threshold"
+                                    invisible="kpi_type != 'auto' or is_section"
+                                    readonly="not is_manager and not is_department_manager" />
+                                <field name="actual"
+                                    invisible="not is_special_scoring or is_section"
                                     readonly="not is_manager and not is_department_manager" />
                             </group>
-                            <group invisible="kpi_type != 'auto'">
+                            <group invisible="kpi_type != 'auto' or is_section">
                                 <field name="is_auto" readonly="1"
                                     invisible="kpi_type != 'auto'" />
+                                <field name="violation_count"
+                                    readonly="not is_manager and not is_department_manager" />
+                                <field name="is_severe_violation"
+                                    readonly="not is_manager and not is_department_manager" />
+                                <field name="is_wipeout_triggered" readonly="1" />
                                 <field name="data_source_id" invisible="kpi_type != 'auto'"
                                     readonly="not is_manager and not is_department_manager" />
                                 <field name="scoring_formula_id"
@@ -202,21 +224,12 @@
                     <field name="job_id" />
                     <field name="kpi_id" />
                     <field name="period_id" />
-                    <field name="performance_score" string="KPI Score" />
-
-                    <!-- <field name="final_score"
-                        decoration-success="final_level == 'excellent'"
-                        decoration-warning="final_level == 'pass'"
-                        decoration-danger="final_level == 'fail'" />
-                    <field name="final_level" string="Final Result" widget="badge"
-                        decoration-info="final_level == 'excellent'"
-                        decoration-success="final_level == 'pass'"
-                        decoration-danger="final_level == 'fail'" /> -->
+                    <field name="total_p3_individual" string="KPI Score" />
 
                     <field name="performance_level" widget="badge"
-                        decoration-info="final_level == 'excellent'"
-                        decoration-success="final_level == 'pass'"
-                        decoration-danger="final_level == 'fail'" />
+                        decoration-info="performance_level == 'excellent'"
+                        decoration-success="performance_level == 'pass'"
+                        decoration-danger="performance_level == 'fail'" />
                     <field name="start_date" />
                     <field name="end_date" />
                     <field name="period_status" widget="badge"
@@ -236,11 +249,9 @@
                 <kanban class="custom_eval_kanban">
                     <field name="name" />
                     <field name="employee_id" />
-                    <field name="performance_score" />
+                    <field name="total_p3_individual" />
                     <field name="performance_score_progress_pct" />
                     <field name="score_scale_suffix" />
-                    <field name="final_score" />
-                    <field name="final_level" />
                     <field name="job_id" />
                     <field name="department_id" />
                     <field name="kpi_id" />
@@ -282,7 +293,7 @@
                                                 style="position: absolute; font-size: 50px; color: rgba(255,255,255,0.4); z-index: 1;"></i>
                                             <strong
                                                 t-attf-style="font-size: 32px; font-weight: 800; color: #517ca4; z-index: 2;">
-                                                <field name="performance_score" />
+                                                <field name="total_p3_individual" />
                                             </strong>
                                         </div>
                                     </div>
@@ -347,7 +358,7 @@
         </record>
 
         <!-- Shared list view for HR Performance Evaluation Line -->
-        <record id="view_hr_performance_evaluation_line_shared_list" model="ir.ui.view">
+        <!-- <record id="view_hr_performance_evaluation_line_shared_list" model="ir.ui.view">
             <field name="name">hr.performance.evaluation.line.shared.list</field>
             <field name="model">hr.performance.evaluation.line</field>
             <field name="arch" type="xml">
@@ -358,16 +369,14 @@
                     <field name="final_rating_badge_class" column_invisible="1" />
                     <field name="key_performance_area" string="Title"
                         width="300px"
-                        readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
+                        readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not
+        is_department_manager" />
                     <field name="parent_line_id" optional="show"
-                        invisible="is_section" width="150px" />
+                        width="150px" />
                     <field name="kpi_type" invisible="is_section" width="100px" />
                     <field name="manual_scoring_type"
                         invisible="is_section or kpi_type != 'manual'"
                         width="140px" />
-                    <!-- <field name="actual"
-                        invisible="is_section or kpi_type != 'auto'"
-                        width="80px" /> -->
 
                     <field name="employee_rating_binary"
                         column_invisible="not parent.has_binary_kpi"
@@ -383,15 +392,18 @@
                         width="80px" />
 
                     <field name="manager_rating_binary"
-                        invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or not is_department_manager"
+                        invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or not
+        is_department_manager"
                         column_invisible="not parent.is_department_manager"
                         width="100px" />
                     <field name="manager_rating_selection" widget="priority"
-                        invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or not is_department_manager"
+                        invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or not
+        is_department_manager"
                         column_invisible="not parent.is_department_manager"
                         width="120px" />
                     <field name="manager_rating_score"
-                        invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or not is_department_manager"
+                        invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or not
+        is_department_manager"
                         column_invisible="not parent.is_department_manager"
                         width="80px" />
 
@@ -399,7 +411,7 @@
                         invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
                         column_invisible="not parent.has_score_kpi"
                         readonly="1" width="80px" />
-                    <field name="weight" invisible="is_section" width="80px" />
+                    <field name="weight" width="80px" />
                     <field name="final_rating_badge_text" readonly="1"
                         string="Score" widget="badge"
                         decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
@@ -408,10 +420,10 @@
                         width="80px" />
                     <button name="action_open_popup" type="object"
                         icon="fa-pencil" title="Open Details"
-                        invisible="is_section" width="40px" />
+                        width="40px" />
                 </list>
             </field>
-        </record>
+        </record> -->
 
         <!-- Form View for Performance Evaluation -->
         <record id="view_performance_evaluation_form" model="ir.ui.view">
@@ -467,23 +479,36 @@
                                         class="score_value font-weight-bold d-flex align-items-baseline justify-content-center gap-2 mt-1"
                                         style="font-size: 24px; color: #7c3aed;">
 
-                                        <label for="performance_score" string="Individual KPI Score"
+                                        <label for="total_p2_1" string="P2.1 Total"
                                             class="text-uppercase small fw-bold mb-0 text-nowrap"
                                             style="color: #7c3aed;" />
 
-                                        <field name="performance_score" readonly="1" nolabel="1"
+                                        <field name="total_p2_1" readonly="1" nolabel="1"
                                             class="w-auto mb-0" />
                                     </div>
 
                                     <div
-                                        class="score_value font-weight-bold d-flex align-items-baseline justify-content-center gap-2 mt-4"
+                                        class="score_value font-weight-bold d-flex align-items-baseline justify-content-center gap-2 mt-3"
                                         style="font-size: 24px; color: #7c3aed;">
 
-                                        <label for="final_score"
+                                        <label for="total_p2_2" string="P2.2 Total"
                                             class="text-uppercase small fw-bold mb-0 text-nowrap"
                                             style="color: #7c3aed;" />
 
-                                        <field name="final_score" readonly="1" nolabel="1"
+                                        <field name="total_p2_2" readonly="1" nolabel="1"
+                                            class="w-auto mb-0" />
+                                    </div>
+
+                                    <div
+                                        class="score_value font-weight-bold d-flex align-items-baseline justify-content-center gap-2 mt-3"
+                                        style="font-size: 24px; color: #7c3aed;">
+
+                                        <label for="total_p3_individual"
+                                            string="P3.1.1 Total"
+                                            class="text-uppercase small fw-bold mb-0 text-nowrap"
+                                            style="color: #7c3aed;" />
+
+                                        <field name="total_p3_individual" readonly="1" nolabel="1"
                                             class="w-auto mb-0" />
                                     </div>
                                 </div>
@@ -529,13 +554,25 @@
                                     decoration-success="period_status == 'ongoing'"
                                     decoration-muted="period_status == 'closed'" />
 
-                                <field name="performance_score" invisible="1" />
+                                <field name="total_p2_1" invisible="1" />
+                                <field name="total_p2_2" invisible="1" />
+                                <field name="total_p3_individual" invisible="1" />
                                 <field name="performance_score_progress_pct" invisible="1" />
                                 <field name="score_scale_suffix" invisible="1" />
                                 <field name="performance_badge_class" invisible="1" />
                                 <field name="has_binary_kpi" invisible="1" />
                                 <field name="has_rating_kpi" invisible="1" />
                                 <field name="has_score_kpi" invisible="1" />
+                                <!-- Per-pillar KPI type flags -->
+                                <field name="has_binary_kpi_p2_1" invisible="1" />
+                                <field name="has_rating_kpi_p2_1" invisible="1" />
+                                <field name="has_score_kpi_p2_1" invisible="1" />
+                                <field name="has_binary_kpi_p2_2" invisible="1" />
+                                <field name="has_rating_kpi_p2_2" invisible="1" />
+                                <field name="has_score_kpi_p2_2" invisible="1" />
+                                <field name="has_binary_kpi_p3" invisible="1" />
+                                <field name="has_rating_kpi_p3" invisible="1" />
+                                <field name="has_score_kpi_p3" invisible="1" />
                             </group>
                         </group>
                         <notebook>
@@ -544,14 +581,186 @@
                                     <field name="pillar_p2_1_name" readonly="1" nolabel="1" />
                                 </h2>
                                 <field name="evaluation_line_p2_1_ids" widget="kpi_one2many"
-                                    context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_1', 'list_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_shared_list'}" />
+                                    context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_1'}">
+                                    <list editable="bottom" decoration-warning="manager_edited"
+                                        decoration-bf="is_section" create='0'>
+                                        <field name="pillar_code" column_invisible="1" />
+                                        <field name="is_section" column_invisible="1" />
+                                        <field name="final_rating_badge_class" column_invisible="1" />
+                                        <field name="key_performance_area" string="Title"
+                                            width="300px"
+                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
+                                        <!-- <field name="parent_line_id" optional="show"
+                                        width="150px" /> -->
+                                        <field name="kpi_type" invisible="is_section" width="100px" />
+                                        <field name="manual_scoring_type"
+                                            invisible="is_section or kpi_type != 'manual'"
+                                            width="140px" />
+
+                                        <field name="employee_rating_binary"
+                                            column_invisible="not parent.has_binary_kpi_p2_1"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
+                                            width="100px" />
+                                        <field name="employee_rating_selection" widget="priority"
+                                            column_invisible="not parent.has_rating_kpi_p2_1"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
+                                            width="120px" />
+                                        <field name="employee_rating_score"
+                                            column_invisible="not parent.has_score_kpi_p2_1"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
+                                            width="80px" />
+
+                                        <field name="manager_rating_binary"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or not is_department_manager"
+                                            column_invisible="not parent.is_department_manager or not parent.has_binary_kpi_p2_1"
+                                            width="100px" />
+                                        <field name="manager_rating_selection" widget="priority"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or not is_department_manager"
+                                            column_invisible="not parent.is_department_manager or not parent.has_rating_kpi_p2_1"
+                                            width="120px" />
+                                        <field name="manager_rating_score"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or not is_department_manager"
+                                            column_invisible="not parent.is_department_manager or not parent.has_score_kpi_p2_1"
+                                            width="80px" />
+
+                                        <field name="score_max_display" string="Max"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
+                                            column_invisible="not parent.has_score_kpi_p2_1"
+                                            readonly="1" width="80px" />
+                                        <field name="weight" width="80px" />
+                                        <field name="final_rating_badge_text" readonly="1"
+                                            string="Score" widget="badge"
+                                            decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
+                                            decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
+                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'"
+                                            width="80px" />
+                                        <button name="action_open_popup" type="object"
+                                            icon="fa-pencil" title="Open Details"
+                                            width="40px" />
+                                    </list>
+                                </field>
+                                <div
+                                    class="o_perf_summary mt-3 d-flex justify-content-between align-items-center">
+                                    <div
+                                        class="o_perf_summary_body o_perf_summary_body_left flex-grow-1 pe-3">
+                                        <div class="o_perf_summary_title">Scoring Formula</div>
+                                        <div class="text-muted mt-2" style="font-size: 14px;">
+                                            <strong>P2.1 Total</strong> = ∑ (Top-level P2.1 Final
+                                            Rating × Weight) / ∑ Weight<br />
+                                            <span
+                                                style="font-size: 14px; font-style: italic;">If
+                                                the total top-level P2.1 weight is 0, the system
+                                            falls
+                                                back to the average of top-level P2.1 final
+                                                ratings.</span>
+                                        </div>
+                                    </div>
+                                    <div class="o_perf_summary_body o_perf_summary_body_right">
+                                        <div class="o_perf_summary_title">Evaluation Results</div>
+                                        <div class="o_perf_summary_score">
+                                            <span class="o_perf_label">P2.1 Total</span>
+                                            <span class="o_perf_value">
+                                                <field name="total_p2_1" />
+                                            </span>
+                                            <span class="o_perf_suffix">
+                                                <field name="score_scale_suffix" />
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </page>
                             <page string="P2.2">
                                 <h2 class="text-primary mt-2 mb-3">
                                     <field name="pillar_p2_2_name" readonly="1" nolabel="1" />
                                 </h2>
                                 <field name="evaluation_line_p2_2_ids" widget="kpi_one2many"
-                                    context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_2', 'list_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_shared_list'}" />
+                                    context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_2'}">
+                                    <list editable="bottom" decoration-warning="manager_edited"
+                                        decoration-bf="is_section" create='0'>
+                                        <field name="pillar_code" column_invisible="1" />
+                                        <field name="is_section" column_invisible="1" />
+                                        <field name="final_rating_badge_class" column_invisible="1" />
+                                        <field name="key_performance_area" string="Title"
+                                            width="300px"
+                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
+                                        <!-- <field name="parent_line_id" optional="show"
+                                        width="150px" /> -->
+                                        <field name="kpi_type" invisible="is_section" width="100px" />
+                                        <field name="manual_scoring_type"
+                                            invisible="is_section or kpi_type != 'manual'"
+                                            width="140px" />
+
+                                        <field name="employee_rating_binary"
+                                            column_invisible="not parent.has_binary_kpi_p2_2"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
+                                            width="100px" />
+                                        <field name="employee_rating_selection" widget="priority"
+                                            column_invisible="not parent.has_rating_kpi_p2_2"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
+                                            width="120px" />
+                                        <field name="employee_rating_score"
+                                            column_invisible="not parent.has_score_kpi_p2_2"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
+                                            width="80px" />
+
+                                        <field name="manager_rating_binary"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or not is_department_manager"
+                                            column_invisible="not parent.is_department_manager or not parent.has_binary_kpi_p2_2"
+                                            width="100px" />
+                                        <field name="manager_rating_selection" widget="priority"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or not is_department_manager"
+                                            column_invisible="not parent.is_department_manager or not parent.has_rating_kpi_p2_2"
+                                            width="120px" />
+                                        <field name="manager_rating_score"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or not is_department_manager"
+                                            column_invisible="not parent.is_department_manager or not parent.has_score_kpi_p2_2"
+                                            width="80px" />
+
+                                        <field name="score_max_display" string="Max"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
+                                            column_invisible="not parent.has_score_kpi_p2_2"
+                                            readonly="1" width="80px" />
+                                        <field name="weight" width="80px" />
+                                        <field name="final_rating_badge_text" readonly="1"
+                                            string="Score" widget="badge"
+                                            decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
+                                            decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
+                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'"
+                                            width="80px" />
+                                        <button name="action_open_popup" type="object"
+                                            icon="fa-pencil" title="Open Details"
+                                            width="40px" />
+                                    </list>
+                                </field>
+                                <div
+                                    class="o_perf_summary mt-3 d-flex justify-content-between align-items-center">
+                                    <div
+                                        class="o_perf_summary_body o_perf_summary_body_left flex-grow-1 pe-3">
+                                        <div class="o_perf_summary_title">Scoring Formula</div>
+                                        <div class="text-muted mt-2" style="font-size: 14px;">
+                                            <strong>P2.2 Total</strong> = ∑ (Top-level P2.2 Final
+                                            Rating × Weight) / ∑ Weight<br />
+                                            <span
+                                                style="font-size: 14px; font-style: italic;">If
+                                                the total top-level P2.2 weight is 0, the system
+                                            falls
+                                                back to the average of top-level P2.2 final
+                                                ratings.</span>
+                                        </div>
+                                    </div>
+                                    <div class="o_perf_summary_body o_perf_summary_body_right">
+                                        <div class="o_perf_summary_title">Evaluation Results</div>
+                                        <div class="o_perf_summary_score">
+                                            <span class="o_perf_label">P2.2 Total</span>
+                                            <span class="o_perf_value">
+                                                <field name="total_p2_2" />
+                                            </span>
+                                            <span class="o_perf_suffix">
+                                                <field name="score_scale_suffix" />
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </page>
                             <page string="P3.1.1">
                                 <h2 class="text-primary mt-2 mb-3">
@@ -565,7 +774,7 @@
                                     widget="kpi_one2many"
                                     context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p3_individual'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
-                                        decoration-bf="is_section">
+                                        decoration-bf="is_section" create='0'>
                                         <field name="pillar_code" column_invisible="1" />
                                         <field name="is_section" column_invisible="1" />
                                         <field name="is_auto" column_invisible="1" />
@@ -590,35 +799,35 @@
                                             width="100px" />
 
                                         <field name="employee_rating_binary"
-                                            column_invisible="not parent.has_binary_kpi"
+                                            column_invisible="not parent.has_binary_kpi_p3"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
                                             width="100px" />
                                         <field name="employee_rating_selection" widget="priority"
-                                            column_invisible="not parent.has_rating_kpi"
+                                            column_invisible="not parent.has_rating_kpi_p3"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
                                             width="120px" />
                                         <field name="employee_rating_score"
-                                            column_invisible="not parent.has_score_kpi"
+                                            column_invisible="not parent.has_score_kpi_p3"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
                                             width="80px" />
 
                                         <field name="manager_rating_binary"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or not is_department_manager"
-                                            column_invisible="not parent.is_department_manager"
+                                            column_invisible="not parent.is_department_manager or not parent.has_binary_kpi_p3"
                                             width="100px" />
                                         <field name="manager_rating_selection" widget="priority"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or not is_department_manager"
-                                            column_invisible="not parent.is_department_manager"
+                                            column_invisible="not parent.is_department_manager or not parent.has_rating_kpi_p3"
                                             width="120px" />
                                         <field name="manager_rating_score"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or not is_department_manager"
-                                            column_invisible="not parent.is_department_manager"
+                                            column_invisible="not parent.is_department_manager or not parent.has_score_kpi_p3"
                                             width="80px" />
                                         <field name="score_max_display" string="Max"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
-                                            column_invisible="not parent.has_score_kpi"
+                                            column_invisible="not parent.has_score_kpi_p3"
                                             readonly="1" width="80px" />
-                                        <field name="weight" invisible="is_section" width="80px" />
+                                        <field name="weight" width="80px" />
                                         <field name="final_rating_badge_text" readonly="1"
                                             string="Score" widget="badge"
                                             decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
@@ -627,204 +836,32 @@
                                             width="80px" />
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
-                                            invisible="is_section" width="40px" />
+                                            width="40px" />
                                     </list>
                                 </field>
-                            </page>
-                            <page string="All Lines">
-                                <button name="action_compute_auto_kpi"
-                                    type="object"
-                                    string="Compute KPI"
-                                    class="oe_highlight" />
-                                <field name="evaluation_line_ids" widget="kpi_one2many"
-                                    context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area'}">
-                                    <list editable="bottom" decoration-warning="manager_edited"
-                                        decoration-bf="is_section" create='0' readonly='1'>
-                                        <!-- Hidden control fields -->
-                                        <field name="is_section" column_invisible="1" />
-                                        <field name="is_auto" column_invisible="1" />
-                                        <field name="manager_edited" column_invisible="1" />
-                                        <field name="final_rating_badge_class" column_invisible="1" />
-
-                                        <!-- Main text fields -->
-                                        <field name="key_performance_area" string="Title"
-                                            width="300px"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="pillar_id"
-                                            options="{'no_create': True}"
-                                            invisible="is_section"
-                                            optional="show" />
-                                        <field name="parent_line_id"
-                                            domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
-                                            options="{'no_create': True}"
-                                            invisible="is_section"
-                                            optional="show" />
-
-                                        <field name="description" string="Info"
-                                            widget="kpi_description_icon"
-                                            width="100px"
-                                            invisible="is_section"
-                                            optional="show" />
-
-                                        <field name="parent_dept_evaluation_line_id"
-                                            width="150px"
-                                            invisible="is_section"
-                                            optional="show" />
-
-                                        <!-- Configurations -->
-                                        <field name="kpi_type"
-                                            width="100px"
-                                            invisible="is_section"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="manual_scoring_type"
-                                            width="140px"
-                                            invisible="is_section or kpi_type != 'manual'"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-
-                                        <field name="unit"
-                                            width="80px"
-                                            optional="show"
-                                            invisible="is_section or kpi_type != 'auto'"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-
-                                        <field name="data_source_id"
-                                            width="120px"
-                                            optional="hide"
-                                            invisible="is_section or not is_auto"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-
-                                        <field name="scoring_formula_id"
-                                            width="120px"
-                                            optional="hide"
-                                            invisible="is_section or not is_auto"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-
-                                        <!-- Comments -->
-                                        <field name="employee_comment"
-                                            width="150px"
-                                            optional="hide"
-                                            invisible="is_section"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
-
-                                        <field name="manager_comment"
-                                            width="150px"
-                                            optional="hide"
-                                            invisible="is_section"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-
-                                        <!-- Targets & Actuals -->
-                                        <field name="target"
-                                            width="80px"
-                                            invisible="is_section or kpi_type != 'auto' or is_special_scoring"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-
-                                        <field name="actual"
-                                            width="80px"
-                                            invisible="is_section or kpi_type != 'auto'"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager and is_special_scoring" />
-
-                                        <!-- Self Ratings -->
-                                        <field name="employee_rating_binary"
-                                            width="100px"
-                                            column_invisible="not parent.has_binary_kpi"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
-
-                                        <field name="employee_rating_selection"
-                                            widget="priority"
-                                            width="120px"
-                                            column_invisible="not parent.has_rating_kpi"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
-
-                                        <field name="employee_rating_score"
-                                            width="80px"
-                                            column_invisible="not parent.has_score_kpi"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
-
-                                        <!-- Manager Ratings -->
-                                        <field name="manager_rating_binary"
-                                            width="120px"
-                                            column_invisible="not parent.is_department_manager or not parent.has_binary_kpi"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or not is_department_manager"
-                                            readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager" />
-
-                                        <field name="manager_rating_selection"
-                                            widget="priority"
-                                            width="200px"
-                                            column_invisible="not parent.is_department_manager or not parent.has_rating_kpi"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or not is_department_manager"
-                                            readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager" />
-
-                                        <field name="manager_rating_score"
-                                            width="100px"
-                                            column_invisible="not parent.is_department_manager or not parent.has_score_kpi"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or not is_department_manager"
-                                            readonly="evaluation_state != 'manager_evaluating' or not is_manager and not is_department_manager" />
-
-                                        <field name="score_max_display"
-                                            string="Max"
-                                            width="90px"
-                                            column_invisible="not parent.has_score_kpi"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
-                                            readonly="1" />
-
-                                        <!-- Metrics & Badges -->
-                                        <field name="weight"
-                                            width="60px"
-                                            invisible="is_section"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-                                        <field name="score_scale_base_override"
-                                            width="80px"
-                                            invisible="is_section"
-                                            optional="show"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
-
-                                        <field name="final_rating_badge_text" readonly="1"
-                                            string="Score" widget="badge"
-                                            width="80px"
-                                            decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
-                                            decoration-success="final_rating_badge_class == 'o_kpi_badge_pass'"
-                                            decoration-danger="final_rating_badge_class == 'o_kpi_badge_fail'" />
-
-                                        <!-- Actions -->
-                                        <button name="action_open_popup" type="object"
-                                            icon="fa-pencil" title="Open Details"
-                                            width="40px"
-                                            invisible="is_section" />
-
-                                        <!-- <control>
-                                            <create name="add_section" string="Add Section"
-                                                context="{'default_is_section': True, 'default_display_type': 'line_section'}" />
-                                            <create name="add_kpi" string="Add KPI" />
-                                        </control> -->
-                                    </list>
-                                </field>
-
                                 <div
                                     class="o_perf_summary mt-3 d-flex justify-content-between align-items-center"
-                                    t-attf-class="o_perf_summary #{performance_badge_class}">
+                                    t-attf-class="o_perf_summary mt-3 d-flex justify-content-between align-items-center #{performance_badge_class}">
                                     <div
                                         class="o_perf_summary_body o_perf_summary_body_left flex-grow-1 pe-3">
-                                        <div class="o_perf_summary_title">Công thức tính điểm</div>
+                                        <div class="o_perf_summary_title">Scoring Formula</div>
                                         <div class="text-muted mt-2" style="font-size: 14px;">
-                                            <strong>Individual KPI Score</strong> = ∑ (KPI Score ×
-                                            Weight) / ∑ Weight<br />
+                                            <strong>Individual KPI Score</strong> = ∑ (Top-level
+                                            P3.1.1 Final Rating × Weight) / ∑ Weight<br />
                                             <span
-                                                style="font-size: 14px; font-style: italic;">(Trung
-                                            bình cộng có trọng số của các tiêu chí đánh giá)</span>
+                                                style="font-size: 14px; font-style: italic;">If
+                                                the total top-level P3.1.1 weight is 0, the system
+                                            falls back to the average of top-level P3.1.1 final
+                                            ratings.</span>
                                         </div>
                                     </div>
                                     <div class="o_perf_summary_body o_perf_summary_body_right">
-
-                                        <div class="o_perf_summary_title">Evaluation results</div>
-
+                                        <div class="o_perf_summary_title">Evaluation Results</div>
                                         <div>
                                             <div class="o_perf_summary_score">
-                                                <span class="o_perf_label">Individual KPI Score</span>
+                                                <span class="o_perf_label">P3.1.1 Total</span>
                                                 <span class="o_perf_value">
-                                                    <field name="performance_score" />
+                                                    <field name="total_p3_individual" />
                                                 </span>
                                                 <span class="o_perf_suffix">
                                                     <field name="score_scale_suffix" />
@@ -837,7 +874,6 @@
                                                 </span>
                                             </div>
                                         </div>
-
                                     </div>
                                 </div>
                             </page>
@@ -861,7 +897,7 @@
                     <field name="job_id" />
                     <field name="kpi_id" />
                     <field name="period_id" />
-                    <field name="performance_score" />
+                    <field name="total_p3_individual" />
                     <field name="performance_level" />
                     <field name="start_date" />
                     <field name="end_date" />

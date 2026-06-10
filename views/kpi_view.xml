@@ -18,32 +18,33 @@
                         <field name="is_section" invisible="1" />
                         <field name="parent_dept_kpi_id" invisible="1" />
 
-                        <group invisible="is_section">
+                        <group>
                             <group string="KPI Info">
                                 <field name="kpi_id" invisible="1" />
                                 <field name="pillar_id" options="{'no_create': True}" />
-                                <field name="parent_line_id"
-                                    domain="[('kpi_id', '=', kpi_id), ('id', '!=', id)]"
-                                    options="{'no_create': True}" />
+                                <field name="parent_line_id" options="{'no_create': True}" />
                                 <field name="parent_dept_line_id"
-                                    domain="[('department_kpi_id', '=', parent_dept_kpi_id), ('is_section', '=', False)]"
+                                    domain="[('department_kpi_id', '=', parent_dept_kpi_id)]"
                                     options="{'no_create': True}"
                                     invisible="not parent_dept_kpi_id" />
-                                <field name="kpi_type" />
+                                <field name="kpi_type" invisible="is_section" />
                                 <field name="manual_scoring_type"
-                                    invisible="kpi_type != 'manual'" />
+                                    invisible="is_section or kpi_type != 'manual'" />
                                 <field name="unit"
-                                    invisible="kpi_type != 'auto'" />
+                                    invisible="is_section or kpi_type != 'auto'" />
                                 <field name="scoring_formula_id"
-                                    invisible="kpi_type != 'auto'"
+                                    invisible="is_section or kpi_type != 'auto'"
                                     options="{'no_create': True}" />
                                 <field name="weight" />
+                                <field name="violation_threshold"
+                                    invisible="is_section or kpi_type != 'auto'" />
                                 <label for="score_scale_base_override" />
                                 <div class="o_row">
                                     <field name="score_scale_base_override" nolabel="1" />
                                 </div>
                             </group>
-                            <group string="Auto Compute" invisible="kpi_type != 'auto'">
+                            <group string="Auto Compute"
+                                invisible="is_section or kpi_type != 'auto'">
                                 <field name="is_auto" readonly="1"
                                     invisible="kpi_type != 'auto'" />
                                 <field name="data_source_id" invisible="kpi_type != 'auto'" />
@@ -94,7 +95,14 @@
             <field name="model">hr.kpi.template.line</field>
             <field name="arch" type="xml">
                 <list editable="bottom" decoration-bf="is_section">
-                    <field name="sequence" widget="handle" />
+                    <control>
+                        <!-- Odoo sẽ tự lấy default_pillar_code từ field cha gộp vào đây -->
+                        <create name="add_section" string="Add Section"
+                            context="{'default_is_section': True, 'default_display_type': 'line_section'}" />
+                        <create name="add_kpi" string="Add KPI" />
+                    </control>
+                    <!-- <field name="sequence" /> -->
+                    <field name="sequence" widget="kpi_template_tree_handle" invisible="is_section"/>
                     <field name="is_section" column_invisible="True" />
                     <field name="pillar_code" column_invisible="True" />
                     <field name="parent_dept_kpi_id" column_invisible="True" />
@@ -106,18 +114,18 @@
                         widget="kpi_description_icon"
                         invisible="is_section"
                         optional="show" width="60px" />
-                    <field name="pillar_id" options="{'no_create': True}"
-                        width="150px" />
-                    <field name="parent_line_id"
+                    <!-- <field name="pillar_id" options="{'no_create': True}"
+                        width="150px" /> -->
+                    <!-- <field name="parent_line_id"
                         domain="[('kpi_id', '=', parent.id), ('id', '!=', id)]"
                         options="{'no_create': True}"
                         invisible="is_section"
-                        optional="show" width="150px" />
-                    <field name="parent_dept_line_id"
-                        domain="[('department_kpi_id', '=', parent_dept_kpi_id), ('is_section', '=', False)]"
+                        optional="show" width="150px" /> -->
+                    <!-- <field name="parent_dept_line_id"
+                        domain="[('department_kpi_id', '=', parent_dept_kpi_id)]"
                         options="{'no_create': True}"
                         invisible="is_section or not parent_dept_kpi_id"
-                        optional="show" width="150px" />
+                        optional="show" width="150px" /> -->
 
                     <field name="kpi_type" invisible="is_section" width="100px" />
                     <field name="manual_scoring_type"
@@ -138,13 +146,15 @@
                     <field name="data_source_id"
                         invisible="is_section or not is_auto" width="150px" />
 
-                    <field name="weight" invisible="is_section" width="80px" />
+                    <field name="weight" width="80px" />
                     <field name="score_scale_base_override"
-                        invisible="is_section"
                         optional="show" width="100px" />
+                    <field name="violation_threshold"
+                        invisible="is_section or kpi_type != 'auto'"
+                        optional="hide" width="100px" />
                     <button name="action_open_popup" type="object"
                         icon="fa-pencil" title="Open Details"
-                        invisible="is_section" width="40px" />
+                        width="40px" />
                 </list>
             </field>
         </record>
@@ -183,24 +193,24 @@
                                 <h2 class="text-primary mt-2 mb-3">
                                     <field name="pillar_p2_1_name" readonly="1" nolabel="1" />
                                 </h2>
-                                <field name="kpi_line_p2_1_ids" widget="kpi_one2many"
+                                <field name="kpi_line_p2_1_ids" widget="kpi_template_tree_one2many"
                                     context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_1', 'list_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_template_line_shared_list'}" />
                             </page>
                             <page string="P2.2">
                                 <h2 class="text-primary mt-2 mb-3">
                                     <field name="pillar_p2_2_name" readonly="1" nolabel="1" />
                                 </h2>
-                                <field name="kpi_line_p2_2_ids" widget="kpi_one2many"
+                                <field name="kpi_line_p2_2_ids" widget="kpi_template_tree_one2many"
                                     context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_2', 'list_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_template_line_shared_list'}" />
                             </page>
                             <page string="P3.1.1">
                                 <h2 class="text-primary mt-2 mb-3">
                                     <field name="pillar_p3_ind_name" readonly="1" nolabel="1" />
                                 </h2>
-                                <field name="kpi_line_p3_individual_ids" widget="kpi_one2many"
+                                <field name="kpi_line_p3_individual_ids" widget="kpi_template_tree_one2many"
                                     context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p3_individual'}">
                                     <list editable="bottom" decoration-bf="is_section">
-                                        <field name="sequence" widget="handle" />
+                                        <field name="sequence" widget="kpi_template_tree_handle" />
                                         <field name="is_section" column_invisible="True" />
                                         <field name="pillar_code" column_invisible="True" />
 
@@ -213,18 +223,18 @@
                                             widget="kpi_description_icon"
                                             invisible="is_section"
                                             optional="show" width="60px" />
-                                        <field name="pillar_id" options="{'no_create': True}"
-                                            width="150px" />
-                                        <field name="parent_line_id"
+                                        <!-- <field name="pillar_id" options="{'no_create': True}"
+                                            width="150px" /> -->
+                                        <!-- <field name="parent_line_id"
                                             domain="[('kpi_id', '=', parent.id), ('id', '!=', id)]"
                                             options="{'no_create': True}"
                                             invisible="is_section"
                                             optional="show" width="150px" />
                                         <field name="parent_dept_line_id"
-                                            domain="[('department_kpi_id', '=', parent_dept_kpi_id), ('is_section', '=', False)]"
+                                            domain="[('department_kpi_id', '=', parent_dept_kpi_id)]"
                                             options="{'no_create': True}"
                                             invisible="is_section or not parent_dept_kpi_id"
-                                            optional="show" width="150px" />
+                                            optional="show" width="150px" /> -->
 
 
                                         <field name="kpi_type" invisible="is_section" width="100px" />
@@ -246,86 +256,21 @@
                                         <field name="data_source_id"
                                             invisible="is_section or not is_auto" width="150px" />
 
-                                        <field name="weight" invisible="is_section" width="80px" />
+                                        <field name="weight" width="80px" />
                                         <field name="score_scale_base_override"
-                                            invisible="is_section"
                                             optional="show" width="100px" />
+                                        <field name="violation_threshold"
+                                            invisible="is_section or kpi_type != 'auto'"
+                                            optional="hide" width="100px" />
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
-                                            invisible="is_section" width="40px" />
+                                            width="40px" />
                                         <control>
                                             <create name="add_section" string="Add Section"
                                                 context="{'default_is_section': True, 'default_display_type': 'line_section', 'default_pillar_code': 'p3_individual'}"
                                             />
                                             <create name="add_kpi" string="Add KPI"
                                                 context="{'default_pillar_code': 'p3_individual'}" />
-                                        </control>
-                                    </list>
-                                </field>
-                            </page>
-                            <page string="All Lines">
-                                <field name="kpi_line_ids" widget="kpi_one2many"
-                                    context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup', 'title_field': 'key_performance_area'}">
-                                    <list editable="bottom" decoration-bf="is_section">
-                                        <field name="sequence" widget="handle" />
-                                        <field name="is_section" column_invisible="True" />
-                                        <field name="pillar_code" column_invisible="True" />
-
-                                        <field name="parent_dept_kpi_id" column_invisible="True" />
-
-                                        <field name="key_performance_area" string="Title"
-                                            width="300px" />
-                                        <field name="description"
-                                            string="Info"
-                                            widget="kpi_description_icon"
-                                            invisible="is_section"
-                                            optional="show" width="60px" />
-                                        <field name="pillar_id" options="{'no_create': True}"
-                                            width="150px" />
-                                        <field name="parent_line_id"
-                                            domain="[('kpi_id', '=', parent.id), ('id', '!=', id)]"
-                                            options="{'no_create': True}"
-                                            invisible="is_section"
-                                            optional="show" width="150px" />
-                                        <field name="parent_dept_line_id"
-                                            domain="[('department_kpi_id', '=', parent_dept_kpi_id), ('is_section', '=', False)]"
-                                            options="{'no_create': True}"
-                                            invisible="is_section or not parent_dept_kpi_id"
-                                            optional="show" width="150px" />
-
-
-                                        <field name="kpi_type" invisible="is_section" width="100px" />
-                                        <field name="manual_scoring_type"
-                                            invisible="is_section or kpi_type != 'manual'"
-                                            width="140px" />
-                                        <field name="unit"
-                                            string="Unit"
-                                            invisible="is_section or kpi_type != 'auto'"
-                                            optional="show" width="80px" />
-                                        <field name="target" string="Target"
-                                            invisible="is_section or kpi_type != 'auto'"
-                                            width="100px" />
-                                        <field name="scoring_formula_id"
-                                            invisible="is_section or kpi_type != 'auto'"
-                                            options="{'no_create': True}" width="150px" />
-
-                                        <field name="is_auto" column_invisible="1" />
-                                        <field name="data_source_id"
-                                            invisible="is_section or not is_auto" width="150px" />
-
-                                        <field name="weight" invisible="is_section" width="80px" />
-                                        <field name="score_scale_base_override"
-                                            invisible="is_section"
-                                            optional="show" width="100px" />
-                                        <button name="action_open_popup" type="object"
-                                            icon="fa-pencil" title="Open Details"
-                                            invisible="is_section" width="40px" />
-                                        <control>
-                                            <create name="add_section" string="Add Section"
-                                                context="{'default_is_section': True, 'default_display_type': 'line_section'}"
-                                            />
-                                            <create name="add_kpi" string="Add KPI"
-                                            />
                                         </control>
                                     </list>
                                 </field>

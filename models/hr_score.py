@@ -1,13 +1,11 @@
-from odoo import models, fields, api, _
-from datetime import datetime
+from odoo import _, api, fields, models
 
 class HREmployee(models.Model):
     _inherit = 'hr.employee'
 
-    performance_score = fields.Float(
-        string="Performance Score",
-        compute='_compute_performance_score',
-        # store=True
+    total_p3_individual_score = fields.Float(
+        string="Individual KPI Score",
+        compute="_compute_total_p3_individual_score",
     )
 
     # 1. Thêm trường One2many để Odoo có thể theo dõi dữ liệu thay đổi
@@ -18,8 +16,12 @@ class HREmployee(models.Model):
     )
 
     # 2. Khai báo @api.depends dựa trên trường One2many
-    @api.depends('evaluation_ids.performance_score', 'evaluation_ids.deadline', 'evaluation_ids.start_date')
-    def _compute_performance_score(self):
+    @api.depends(
+        "evaluation_ids.total_p3_individual",
+        "evaluation_ids.deadline",
+        "evaluation_ids.start_date",
+    )
+    def _compute_total_p3_individual_score(self):
         for employee in self:
             # Fetch the most recent performance evaluation for this employee
             evaluation = self.env['hr.performance.evaluation'].search([
@@ -30,13 +32,13 @@ class HREmployee(models.Model):
                 # Check if the evaluation deadline has passed
                 if evaluation.deadline and evaluation.deadline >= fields.Date.today():
                     # Only update score if deadline is in the future
-                    employee.performance_score = evaluation.performance_score
+                    employee.total_p3_individual_score = evaluation.total_p3_individual
                 else:
                     # If the deadline has passed, do not show the score
-                    employee.performance_score = 0.0
+                    employee.total_p3_individual_score = 0.0
             else:
                 # If no evaluation found, set score to 0.0
-                employee.performance_score = 0.0
+                employee.total_p3_individual_score = 0.0
 
     def action_score_view(self):
         """Opens a view to list all documents related to the current employee."""

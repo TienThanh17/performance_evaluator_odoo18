@@ -356,7 +356,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
                 [
                     "employee_id",
                     "job_id",
-                    "performance_score",
+                    "total_p3_individual",
                     "performance_level",
                     "state",
                 ],
@@ -364,7 +364,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
             const total = evaluations.length;
             const scoreSum = evaluations.reduce(
-                (s, e) => s + (e.performance_score || 0),
+                (s, e) => s + (e.total_p3_individual || 0),
                 0,
             );
             const passCount = evaluations.filter(

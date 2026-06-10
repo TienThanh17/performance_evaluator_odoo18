@@ -109,6 +109,39 @@ class HrKpiTemplate(models.Model):
                 parent_kpi=kpi.department_kpi_id
             )
 
+    # Trả về KPI lines theo thứ tự preorder của từng pillar để các màn generate giữ đúng cây template.
+    def get_hierarchy_ordered_lines(self):
+        self.ensure_one()
+        ordered_ids = []
+
+        # Nhóm theo pillar hiện có và ưu tiên theo sequence của master pillar.
+        pillar_groups = {}
+        for line in self.kpi_line_ids:
+            pillar_groups.setdefault(line.pillar_id.id or False, []).append(line)
+
+        for pillar_id in sorted(
+            pillar_groups,
+            key=lambda current_id: (
+                self.env["hr.evaluation.pillar"].browse(current_id).sequence
+                if current_id
+                else -1,
+                current_id or 0,
+            ),
+        ):
+            scope_lines = self.env["hr.kpi.template.line"].browse(
+                [line.id for line in pillar_groups[pillar_id]]
+            )
+            if not scope_lines:
+                continue
+
+            # Dùng helper của line model để lấy đúng flat preorder trong từng tab pillar.
+            ordered_ids.extend(
+                scope_lines[:1]
+                ._get_hierarchy_ordered_lines(scope_lines=scope_lines)
+                .ids
+            )
+        return self.env["hr.kpi.template.line"].browse(ordered_ids)
+
     def copy(self, default=None):
         default = dict(default or {})
         default.setdefault("name", self.name + " (Copy)")

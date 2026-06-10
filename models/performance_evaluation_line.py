@@ -8,6 +8,8 @@ from odoo.tools import html2plaintext
 from .kpi_type_utils import (
     KPI_TYPE_SELECTION,
     MANUAL_SCORING_TYPE_SELECTION,
+    NORMALIZED_3P_PILLAR_CODES,
+    P3_PILLAR_CODES,
     get_manual_scoring_type_required_message,
 )
 
@@ -75,6 +77,7 @@ class PerformanceEvaluationLine(models.Model):
         string="Parent Line",
         ondelete="set null",
         index=True,
+        domain="[('evaluation_id', '=', evaluation_id), ('pillar_id', '=', pillar_id), ('id', '!=', id), ('is_section', '=', True)]",
     )
     child_line_ids = fields.One2many(
         "hr.performance.evaluation.line",
@@ -148,6 +151,11 @@ class PerformanceEvaluationLine(models.Model):
     score_scale_base_override = fields.Float(
         string="Score Scale Base Override",
         help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
+    )
+    violation_threshold = fields.Integer(
+        string="Violation Threshold",
+        default=0,
+        help="For P3 KPI lines, a violation count above this threshold triggers wipeout for the whole branch.",
     )
     score_max_display = fields.Char(
         string="Max Score",
@@ -225,6 +233,23 @@ class PerformanceEvaluationLine(models.Model):
         store=False,
         help="Formatted Actual value for display (shows % when Target Type is Percentage).",
     )
+    is_severe_violation = fields.Boolean(
+        string="Severe Violation",
+        default=False,
+        help="For P3 KPI lines, enable this when the KPI line has a severe violation that wipes out the whole branch.",
+    )
+    violation_count = fields.Integer(
+        string="Violation Count",
+        default=0,
+        help="For P3 KPI lines, this stores the counted number of violations for wipeout checks.",
+    )
+    is_wipeout_triggered = fields.Boolean(
+        string="Wipeout Triggered",
+        compute="_compute_is_wipeout_triggered",
+        store=True,
+        recursive=True,
+        help="Technical flag: True when this KPI branch is wiped out because a severe violation exists in the branch.",
+    )
 
     system_score = fields.Float(
         string="System Score",
@@ -285,13 +310,13 @@ class PerformanceEvaluationLine(models.Model):
     # Score manual KPI: employee self score and manager final score on the configured score scale.
     employee_rating_score = fields.Float(
         string="Self Rating (Score)",
-        default=0,
+        default=100,
         digits=(16, 2),
         help="Employee self-assessment score for Score KPIs, based on the configured KPI score scale.",
     )
     manager_rating_score = fields.Float(
         string="Manager Rating (Score)",
-        default=0,
+        default=100,
         digits=(16, 2),
         help="Manager score for Score KPIs, based on the configured KPI score scale.",
     )
@@ -546,6 +571,80 @@ class PerformanceEvaluationLine(models.Model):
             return self.score_scale_base_override
         return self.env["res.config.settings"].get_score_scale_base()
 
+    # Convert the global pass/excellent thresholds to the line score base.
+    def _get_score_thresholds(self):
+        self.ensure_one()
+        settings = self.env["res.config.settings"]
+        excellent, passed = settings.get_thresholds()
+        configured_base = settings.get_score_scale_base() or 10.0
+        target_base = self._get_score_base()
+        if configured_base and target_base and configured_base != target_base:
+            excellent = settings.convert_score(excellent, configured_base, target_base)
+            passed = settings.convert_score(passed, configured_base, target_base)
+        return excellent, passed
+
+    # Detect whether the line belongs to the normalized 3P tree.
+    def _is_normalized_3p_line(self):
+        self.ensure_one()
+        return self.pillar_code in NORMALIZED_3P_PILLAR_CODES
+
+    # Detect whether the line belongs to a P3 pillar that supports wipeout rules.
+    def _is_p3_line(self):
+        self.ensure_one()
+        return self.pillar_code in P3_PILLAR_CODES
+
+    # Return the direct children that participate in score roll-up.
+    def _get_direct_scoring_children(self):
+        self.ensure_one()
+        return self.child_line_ids.sorted(lambda line: (line.sequence or 0, line.id or 0))
+
+    # Collect the edited lines and every ancestor whose score depends on them.
+    def _get_score_recompute_lines(self):
+        lines_to_recompute = self.env["hr.performance.evaluation.line"]
+        frontier = self
+        while frontier:
+            frontier = frontier - lines_to_recompute
+            if not frontier:
+                break
+            lines_to_recompute |= frontier
+            frontier = frontier.mapped("parent_line_id")
+        return lines_to_recompute
+
+    # Recompute the affected score branch bottom-up so parent lines refresh immediately.
+    def _recompute_score_tree(self):
+        if self.env.context.get("skip_score_tree_recompute"):
+            return
+
+        lines_to_recompute = self._get_score_recompute_lines()
+        if not lines_to_recompute:
+            return
+
+        # Guard stored computed-field writes from re-entering this recompute flow.
+        guarded_lines = lines_to_recompute.with_context(
+            skip_score_tree_recompute=True
+        )
+
+        def _depth(line):
+            depth = 0
+            current = line.parent_line_id
+            while current:
+                depth += 1
+                current = current.parent_line_id
+            return depth
+
+        # Recompute deepest lines first so each parent reads the newest child score.
+        ordered_lines = guarded_lines.sorted(
+            lambda line: (-_depth(line), line.sequence or 0, line.id or 0)
+        )
+        for line in ordered_lines:
+            line._compute_is_wipeout_triggered()
+            line._compute_system_score()
+            line._compute_final_rating()
+
+        for evaluation in ordered_lines.mapped("evaluation_id"):
+            evaluation._compute_pillar_totals()
+            evaluation._compute_performance_level()
+
     # Sum non-section child ratings so parent lines can enforce a score cap.
     def _get_child_score_total(self):
         self.ensure_one()
@@ -555,6 +654,8 @@ class PerformanceEvaluationLine(models.Model):
     # Enforce that child ratings do not exceed the parent score override.
     def _check_child_score_total_limit(self):
         for line in self:
+            if line._is_normalized_3p_line():
+                continue
             score_limit = line.score_scale_base_override or 0.0
             if score_limit <= 0:
                 continue
@@ -579,7 +680,7 @@ class PerformanceEvaluationLine(models.Model):
 
     def _get_child_score_aggregate(self):
         self.ensure_one()
-        child_lines = self.child_line_ids.filtered(lambda line: not line.is_section)
+        child_lines = self._get_direct_scoring_children()
         if not child_lines:
             return False
         total_weight = sum(child_lines.mapped("weight"))
@@ -589,6 +690,35 @@ class PerformanceEvaluationLine(models.Model):
                 / total_weight
             )
         return sum(child_lines.mapped("final_rating")) / len(child_lines)
+
+    # Compute the branch wipeout flag used by normalized P3 scoring.
+    @api.depends(
+        "pillar_code",
+        "is_section",
+        "is_severe_violation",
+        "violation_count",
+        "violation_threshold",
+        "child_line_ids",
+        "child_line_ids.parent_line_id",
+        "child_line_ids.is_wipeout_triggered",
+    )
+    def _compute_is_wipeout_triggered(self):
+        for line in self:
+            if not line._is_p3_line():
+                line.is_wipeout_triggered = False
+                continue
+
+            child_lines = line._get_direct_scoring_children()
+            if child_lines:
+                line.is_wipeout_triggered = any(
+                    child.is_wipeout_triggered for child in child_lines
+                )
+                continue
+
+            line.is_wipeout_triggered = bool(
+                line.is_severe_violation
+                or (line.violation_count or 0) > (line.violation_threshold or 0)
+            )
 
     # Format the target and actual previews only for auto KPI lines.
     @api.depends("target", "actual", "kpi_type", "unit", "unit.code", "unit.name")
@@ -651,8 +781,12 @@ class PerformanceEvaluationLine(models.Model):
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
+        "child_line_ids",
+        "child_line_ids.parent_line_id",
         "child_line_ids.final_rating",
         "child_line_ids.weight",
+        "child_line_ids.is_wipeout_triggered",
+        "is_wipeout_triggered",
         "scoring_formula_id",
         "scoring_formula_id.formula_type",
         "scoring_formula_id.linear_direction",
@@ -684,12 +818,22 @@ class PerformanceEvaluationLine(models.Model):
             actual = line.actual or 0.0
             target = line.target or 0.0
 
+            # Wipeout always overrides every score branch in normalized P3.
+            if line.is_wipeout_triggered:
+                line.system_score = 0.0
+                continue
+
             child_score = line._get_child_score_aggregate()
             if child_score is not False:
                 line.system_score = round(
                     max(0.0, min(child_score, score_base)),
                     2,
                 )
+                continue
+
+            # Section rows without children remain non-scorable placeholders.
+            if line.is_section:
+                line.system_score = 0.0
                 continue
 
             if line.kpi_type == "auto":
@@ -743,10 +887,10 @@ class PerformanceEvaluationLine(models.Model):
                 min(max(line.system_score or 0.0, 0.0), score_base), 2
             )
 
-    @api.depends("final_rating")
+    @api.depends("final_rating", "score_scale_base_override")
     def _compute_final_rating_badge_class(self):
-        excellent, passed = self.env["res.config.settings"].get_thresholds()
         for line in self:
+            excellent, passed = line._get_score_thresholds()
             score = line.final_rating or 0.0
             if score >= excellent:
                 line.final_rating_badge_class = "o_kpi_badge_excellent"
@@ -755,7 +899,7 @@ class PerformanceEvaluationLine(models.Model):
             else:
                 line.final_rating_badge_class = "o_kpi_badge_fail"
 
-    @api.depends("final_rating")
+    @api.depends("final_rating", "score_scale_base_override")
     def _compute_final_rating_badge_text(self):
         for line in self:
             score_base = line._get_score_base()
@@ -802,6 +946,7 @@ class PerformanceEvaluationLine(models.Model):
         """
         # New (unsaved) one2many lines might not have evaluation_id yet in some cases.
         if self.evaluation_id and self.evaluation_id.state != "self_evaluation":
+            self._recompute_score_tree()
             return
 
         for line in self:
@@ -823,6 +968,26 @@ class PerformanceEvaluationLine(models.Model):
                 and line.employee_rating_score is not None
             ):
                 line.manager_rating_score = line.employee_rating_score
+        self._recompute_score_tree()
+
+    @api.onchange(
+        "actual",
+        "target",
+        "weight",
+        "parent_line_id",
+        "kpi_type",
+        "manual_scoring_type",
+        "score_scale_base_override",
+        "manager_rating_binary",
+        "manager_rating_selection",
+        "manager_rating_score",
+        "is_severe_violation",
+        "violation_count",
+        "violation_threshold",
+    )
+    # Recompute the score tree in-memory so parent rows update on the first edit.
+    def _onchange_recompute_score_tree(self):
+        self._recompute_score_tree()
 
     # ------------------------------------------------------------------
     # Constraints
@@ -876,6 +1041,15 @@ class PerformanceEvaluationLine(models.Model):
                     _("Manager score must be between 0 and %(max_score)s.")
                     % {"max_score": f"{score_base:g}"}
                 )
+
+    # Keep P3 wipeout inputs non-negative.
+    @api.constrains("violation_threshold", "violation_count")
+    def _check_violation_values(self):
+        for rec in self:
+            if (rec.violation_threshold or 0) < 0:
+                raise ValidationError(_("Violation threshold cannot be negative."))
+            if (rec.violation_count or 0) < 0:
+                raise ValidationError(_("Violation count cannot be negative."))
 
     @api.constrains("parent_line_id", "evaluation_id")
     def _check_parent_line(self):
@@ -1009,15 +1183,22 @@ class PerformanceEvaluationLine(models.Model):
                 )
 
         records = super().create(vals_list)
-        (records | records.mapped("parent_line_id"))._check_child_score_total_limit()
+        affected_lines = records | records.mapped("parent_line_id")
+        affected_lines._recompute_score_tree()
+        affected_lines._check_child_score_total_limit()
         return records
 
     # Normalize KPI type values, keep section consistency, and protect writes by role/state.
     def write(self, vals):
+        # Internal stored computed-field writes must not restart the score tree.
+        if self.env.context.get("skip_score_tree_recompute"):
+            return super().write(vals)
+
         # Keep section rows technically consistent even when only display_type is changed.
         if vals.get("display_type") and "is_section" not in vals:
             vals = dict(vals, is_section=True)
 
+        evaluations_before = self.mapped("evaluation_id")
         parent_lines_before = self.mapped("parent_line_id")
 
         # Capture the original values before any self-rating mirror logic modifies them.
@@ -1112,9 +1293,15 @@ class PerformanceEvaluationLine(models.Model):
             #         )
 
         res = super().write(vals)
-        (
-            self | parent_lines_before | self.mapped("parent_line_id")
-        )._check_child_score_total_limit()
+        affected_lines = self | parent_lines_before | self.mapped("parent_line_id")
+        affected_lines._recompute_score_tree()
+        affected_lines._check_child_score_total_limit()
+
+        # Refresh an old evaluation when a line is moved to another evaluation.
+        old_evaluations = evaluations_before - self.mapped("evaluation_id")
+        for evaluation in old_evaluations:
+            evaluation._compute_pillar_totals()
+            evaluation._compute_performance_level()
         if snapshot_by_line:
             self._post_parent_chatter_audit(tracked_fields, snapshot_by_line)
         return res

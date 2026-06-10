@@ -297,10 +297,8 @@ export class KpiDashboard extends Component {
                 "period_id",
                 "start_date",
                 "end_date",
-                "performance_score",
+                "total_p3_individual",
                 "performance_level",
-                "final_score",
-                "final_level",
                 "state",
                 "employee_id",
             ];
@@ -472,12 +470,12 @@ export class KpiDashboard extends Component {
 
     get scoreText() {
         return this.formatScore(
-            this.state.data ? this.state.data.performance_score : 0,
+            this.state.data ? this.state.data.total_p3_individual : 0,
         );
     }
 
     get scoreRingStyle() {
-        const score = this.state.data ? this.state.data.performance_score : 0;
+        const score = this.state.data ? this.state.data.total_p3_individual : 0;
         const pct = this.scorePct(score);
         const level = this.state.data ? this.state.data.performance_level : "fail";
         const color =
@@ -506,16 +504,6 @@ export class KpiDashboard extends Component {
         return this.formatScore(this.state.data.dept_kpi_score || 0);
     }
 
-    get individualWeightText() {
-        const weight = this.state.data ? this.state.data.individual_weight : 1;
-        return Math.round((weight || 0) * 100) + "%";
-    }
-
-    get deptWeightText() {
-        const weight = this.state.data ? this.state.data.dept_weight : 0;
-        return Math.round((weight || 0) * 100) + "%";
-    }
-
     get deptStatusClass() {
         const level = this._levelFromScore(
             this.state.data ? this.state.data.dept_kpi_score : 0,
@@ -532,15 +520,11 @@ export class KpiDashboard extends Component {
 
     get deptTooltip() {
         if (this.state.data?.has_dept_evaluation) {
-            return _t("Department score participates in the final KPI formula.");
+            return _t("Department KPI for the same evaluation period.");
         }
         return _t(
-            "No department evaluation is linked. The individual KPI receives 100% weight.",
+            "No department evaluation is linked to this employee evaluation.",
         );
-    }
-
-    get formulaText() {
-        return `${this.individualWeightText} Cá nhân + ${this.deptWeightText} Phòng ban`;
     }
 
     _levelFromScore(score) {
@@ -548,29 +532,6 @@ export class KpiDashboard extends Component {
         if (score >= thresholds.excellent) return "excellent";
         if (score >= thresholds.pass) return "pass";
         return "fail";
-    }
-
-    // ── Final Score helpers (dùng cho breakdown section trong template) ────────
-    get finalScoreText() {
-        // Trả về final_score đã được làm tròn 2 chữ số thập phân
-        return this.formatScore(
-            this.state.data ? this.state.data.final_score : 0,
-            2,
-        );
-    }
-
-    get finalLevelClass() {
-        // Class CSS tương ứng với final_level (excellent / pass / fail)
-        const level = this.state.data ? this.state.data.final_level : "fail";
-        return "o_kpi_level_badge o_kpi_level_" + level;
-    }
-
-    get finalLevelLabel() {
-        if (this.state.data?.final_level_label)
-            return this.state.data.final_level_label;
-        const level = this.state.data ? this.state.data.final_level : "fail";
-        const labels = { excellent: "Excellent", pass: "Pass", fail: "Fail" };
-        return labels[level] || level;
     }
 
     // ── Quantitative table helpers ────────────────────────────────────────────

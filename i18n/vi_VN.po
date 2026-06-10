@@ -1751,13 +1751,6 @@ msgstr "Nếu được chọn, một số tin nhắn có lỗi gửi."
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_department_kpi.py:0
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__individual_weight
-msgid "Individual Bonus Weight"
-msgstr "Trọng số thưởng cá nhân"
-
-#. module: custom_adecsol_hr_performance_evaluator
-#. odoo-python
-#: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_department_kpi.py:0
 msgid "Individual Bonus Weight must be greater than 0% and less than 100%."
 msgstr "Trọng số Thưởng Cá nhân phải lớn hơn 0% và nhỏ hơn 100%."
 
@@ -3498,17 +3491,6 @@ msgid ""
 "be in the range (0%, 100%)."
 msgstr ""
 "Tỷ lệ đóng góp của KPI phòng ban vào điểm thưởng của nhân viên.Ví dụ: 40% "
-"nghĩa là điểm thưởng = phòng ban × 40% + cá nhân × 60%. Phải nằm trong "
-"khoảng (0%, 100%)."
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi__individual_weight
-msgid ""
-"The contribution rate of the individual's KPI to the bonus score. Example: "
-"60% means bonus score = department × 40% + individual × 60%. Must be in the "
-"range (0%, 100%)."
-msgstr ""
-"Tỷ lệ đóng góp của KPI cá nhân vào điểm thưởng của nhân viên.Ví dụ: 60% "
 "nghĩa là điểm thưởng = phòng ban × 40% + cá nhân × 60%. Phải nằm trong "
 "khoảng (0%, 100%)."
 

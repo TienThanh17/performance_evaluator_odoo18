@@ -30,7 +30,7 @@
                             <list>
                                 <field name="employee_id" />
                                 <field name="job_id" />
-                                <field name="performance_score" />
+                                <field name="total_p3_individual" />
                                 <field name="performance_level" />
                                 <field name="state" />
                             </list>
@@ -81,7 +81,7 @@
                                     <list>
                                         <field name="employee_id" />
                                         <field name="period_id" />
-                                        <field name="performance_score" />
+                                        <field name="total_p3_individual" />
                                         <field name="performance_level" widget="badge"
                                             decoration-success="performance_level == 'pass'"
                                             decoration-info="performance_level == 'excellent'"

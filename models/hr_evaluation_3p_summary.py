@@ -132,37 +132,7 @@ class HrEvaluation3PSummary(models.Model):
             linked_dept_eval.dept_kpi_score if linked_dept_eval else 0.0
         )
 
-        score_base = self.env["res.config.settings"].get_score_scale_base() or 10.0
-        p2_scores = []
-        if evaluation.evaluation_line_ids.filtered(
-            lambda line: not line.is_section and line.pillar_code == "p2_1"
-        ):
-            p2_scores.append(p2_1_score)
-        if evaluation.evaluation_line_ids.filtered(
-            lambda line: not line.is_section and line.pillar_code == "p2_2"
-        ):
-            p2_scores.append(p2_2_score)
-        p2_combined = sum(p2_scores) / len(p2_scores) if p2_scores else 0.0
-        p2_coefficient = round(p2_combined / score_base, 4) if score_base else 0.0
-
-        individual_weight = (
-            linked_dept_eval.department_kpi_id.individual_weight
-            if linked_dept_eval and linked_dept_eval.department_kpi_id
-            else 100.0
-        )
-        department_weight = (
-            linked_dept_eval.department_kpi_id.dept_weight
-            if linked_dept_eval and linked_dept_eval.department_kpi_id
-            else 0.0
-        )
-        total_weight = individual_weight + department_weight
-        if total_weight:
-            p3_final_score = (
-                (p3_individual_score * individual_weight)
-                + (p3_department_score * department_weight)
-            ) / total_weight
-        else:
-            p3_final_score = p3_individual_score
+        p3_final_score = p3_individual_score
 
         return {
             "employee_id": evaluation.employee_id.id,
@@ -173,14 +143,10 @@ class HrEvaluation3PSummary(models.Model):
             "p1_allowance": 0.0,
             "p2_1_score_raw": p2_1_score,
             "p2_2_score_raw": p2_2_score,
-            "p2_coefficient": p2_coefficient,
             "p3_individual_score": p3_individual_score,
             "p3_department_score": p3_department_score,
             "p3_final_score": p3_final_score,
             "p3_final_level": evaluation._get_level_from_score(p3_final_score),
-            "p3_weight_source": (
-                "evaluation_link" if evaluation.dept_evaluation_id else "summary_lookup"
-            ),
         }
 
     def action_aggregate(self):
@@ -191,7 +157,7 @@ class HrEvaluation3PSummary(models.Model):
                 [
                     ("department_id", "=", summary.department_id.id),
                     ("period_id", "=", summary.period_id.id),
-                    # ("state", "=", "completed"),
+                    ("state", "!=", "cancel"),
                 ],
                 order="employee_id, id",
             )
@@ -255,19 +221,9 @@ class HrEvaluation3PSummaryLine(models.Model):
     )
     p2_1_score_raw = fields.Float()
     p2_2_score_raw = fields.Float()
-    p2_coefficient = fields.Float(
-        string="P2 Coefficient",
-        digits=(6, 4),
-        default=0.0,
-        help="Average P2 score divided by the configured score base. Example: 83 points becomes 0.83.",
-    )
     p3_individual_score = fields.Float()
     p3_department_score = fields.Float()
     p3_final_score = fields.Float()
-    p3_weight_source = fields.Char(
-        string="P3 Weight Source",
-        help="Indicates whether P3 weights came from the evaluation's own department link or the summary-level lookup.",
-    )
     p3_final_level = fields.Selection(
         selection=[
             ("excellent", "Excellent"),

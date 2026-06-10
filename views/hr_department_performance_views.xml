@@ -6,99 +6,119 @@
         <field name="arch" type="xml">
             <form string="Department Evaluation Line">
                 <sheet>
-                    <field name="is_section" invisible="1"/>
-                    <field name="is_auto" invisible="1"/>
+                    <field name="is_section" invisible="1" />
+                    <field name="is_auto" invisible="1" />
 
                     <div class="oe_title">
                         <h2 class="mb-1">
-                            <field name="name" placeholder="Key Performance Area"/>
+                            <field name="name" placeholder="Key Performance Area" />
                         </h2>
                     </div>
 
                     <group string="Structure" invisible="is_section">
                         <group>
-                            <field name="pillar_id" options="{'no_create': True}"/>
+                            <field name="pillar_id" options="{'no_create': True}" />
                         </group>
                         <group>
                             <field name="parent_line_id"
-                                   domain="[('evaluation_id', '=', evaluation_id), ('id', '!=', id)]"
-                                   options="{'no_create': True}"/>
-                            <field name="score_scale_base_override"/>
+                                domain="[('evaluation_id', '=', evaluation_id), ('id', '!=', id)]"
+                                options="{'no_create': True}" />
+                            <field name="score_scale_base_override" />
                         </group>
                     </group>
 
                     <group string="Target / Actual"
-                           invisible="is_section or kpi_type != 'auto'">
+                        invisible="is_section or kpi_type != 'auto'">
                         <group>
-                            <field name="target"/>
-                            <field name="unit" invisible="kpi_type != 'auto'"/>
+                            <field name="target" />
+                            <field name="unit" invisible="kpi_type != 'auto'" />
                         </group>
                         <group>
-                            <field name="actual" placeholder="Actual value"/>
+                            <field name="actual" placeholder="Actual value"
+                                readonly="is_auto and dept_source_type in ['data_source', 'child_kpi_average']" />
+                        </group>
+                    </group>
+
+                    <group string="P3 Wipeout"
+                        invisible="is_section or kpi_type != 'auto'">
+                        <group>
+                            <field name="violation_threshold" />
+                            <field name="violation_count" />
+                        </group>
+                        <group>
+                            <field name="is_severe_violation" />
+                            <field name="is_wipeout_triggered" readonly="1" />
                         </group>
                     </group>
 
                     <group string="Assessment" invisible="is_section or kpi_type == 'auto'">
                         <group>
                             <field name="manual_scoring_type"
-                                   invisible="kpi_type != 'manual'"/>
+                                invisible="kpi_type != 'manual'" />
                             <label for="manager_rating_binary" string="Manager Rating"
-                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'"/>
+                                invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'" />
                             <field name="manager_rating_binary" nolabel="1" widget="radio"
-                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'"/>
+                                invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'" />
 
                             <label for="manager_rating_selection" string="Manager Rating"
-                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'"/>
+                                invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'" />
                             <field name="manager_rating_selection" nolabel="1"
-                                   widget="priority_onchange"
-                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'"/>
+                                widget="priority_onchange"
+                                invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'" />
 
                             <label for="manager_rating_score" string="Manager Score"
-                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'score'"/>
+                                invisible="kpi_type != 'manual' or manual_scoring_type != 'score'" />
                             <field name="manager_rating_score" nolabel="1"
-                                   invisible="kpi_type != 'manual' or manual_scoring_type != 'score'"/>
+                                invisible="kpi_type != 'manual' or manual_scoring_type != 'score'" />
                         </group>
                     </group>
 
                     <group string="Scoring" invisible="is_section">
                         <group>
-                            <field name="final_score" string="Score" readonly="1"/>
+                            <field name="final_score" string="Score" readonly="1" />
                         </group>
                     </group>
 
                     <group string="Child KPI Lines" invisible="child_evaluation_line_count == 0">
                         <field name="child_line_rows_json" widget="kpi_child_matrix"
-                               readonly="1" nolabel="1" colspan="2"/>
+                            readonly="1" nolabel="1" colspan="2" />
                     </group>
 
                     <group string="KPI Info" invisible="is_section">
                         <group>
-                            <field name="kpi_type"/>
+                            <field name="kpi_type" />
                             <field name="manual_scoring_type"
-                                   invisible="kpi_type != 'manual'"/>
-                            <field name="weight"/>
-                            <field name="score_scale_base_override"/>
+                                invisible="kpi_type != 'manual'" />
+                            <field name="weight" />
+                            <field name="score_scale_base_override" />
+                            <field name="violation_threshold"
+                                invisible="kpi_type != 'auto'" />
                         </group>
                         <group invisible="kpi_type != 'auto'">
-                            <field name="dept_source_type" invisible="kpi_type != 'auto'"/>
-                            <field name="data_source_id" invisible="kpi_type != 'auto' or dept_source_type != 'data_source'"/>
-                            <field name="scoring_formula_id" invisible="kpi_type != 'auto' or dept_source_type != 'data_source'"/>
+                            <field name="dept_source_type" invisible="kpi_type != 'auto'" />
+                            <field name="violation_count" />
+                            <field name="is_severe_violation" />
+                            <field name="is_wipeout_triggered" readonly="1" />
+                            <field name="data_source_id"
+                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
+                            <field name="scoring_formula_id"
+                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
                         </group>
                     </group>
 
                     <group string="Comments" invisible="is_section">
                         <field name="manager_comment" widget="html"
-                               options="{'resizable': false}"
-                               style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                            options="{'resizable': false}"
+                            style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                     </group>
 
                     <group string="KPI Description" invisible="is_section">
                         <field name="description" widget="html" placeholder="KPI Description"
-                               options="{'resizable': false}"
-                               style="min-height: 100px; max-height: 100px; overflow-y: auto;"/>
+                            options="{'resizable': false}"
+                            style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                     </group>
                 </sheet>
-                <chatter/>
+                <chatter />
             </form>
         </field>
     </record>
@@ -115,22 +135,22 @@
                             class="oe_highlight"
                             invisible="active"/> -->
                     <button name="action_submit" string="Submit" type="object" class="oe_highlight"
-                            invisible="state != 'draft'"/>
+                        invisible="state != 'draft'" />
                     <button name="action_approve" string="Approve" type="object"
-                            class="oe_highlight"
-                            invisible="state != 'submitted'"/>
+                        class="oe_highlight"
+                        invisible="state != 'submitted'" />
                     <button name="action_cancel" string="Cancel" type="object"
-                            invisible="state in ('approved', 'cancel')"/>
+                        invisible="state in ('approved', 'cancel')" />
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,submitted,approved"/>
+                        statusbar_visible="draft,submitted,approved" />
                 </header>
                 <sheet>
-                    <field name="active" invisible="1"/>
+                    <field name="active" invisible="1" />
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" type="object"
-                                name="action_open_department_dashboard"
-                                icon="fa-bar-chart"
-                                invisible="not id">
+                            name="action_open_department_dashboard"
+                            icon="fa-bar-chart"
+                            invisible="not id">
                             <div class="o_field_widget o_stat_info">
                                 <span class="o_stat_text">Dashboard</span>
                             </div>
@@ -138,137 +158,185 @@
                     </div>
                     <div class="oe_title">
                         <h1>
-                            <field name="name" readonly="1"/>
+                            <field name="name" readonly="1" />
                         </h1>
                     </div>
                     <group>
                         <group>
-                            <field name="department_id" readonly="state != 'draft'"/>
-                            <field name="department_kpi_id" readonly="state != 'draft'"/>
-                            <field name="period_id" readonly="state != 'draft'"/>
+                            <field name="department_id" readonly="state != 'draft'" />
+                            <field name="department_kpi_id" readonly="state != 'draft'" />
+                            <field name="period_id" readonly="state != 'draft'" />
                         </group>
                         <group>
-                            <field name="start_date" readonly="state != 'draft'"/>
-                            <field name="end_date" readonly="state != 'draft'"/>
+                            <field name="start_date" readonly="state != 'draft'" />
+                            <field name="end_date" readonly="state != 'draft'" />
                             <field name="period_status" widget="badge" readonly="1"
-                                   decoration-info="period_status == 'upcoming'"
-                                   decoration-success="period_status == 'ongoing'"
-                                   decoration-muted="period_status == 'closed'"/>
+                                decoration-info="period_status == 'upcoming'"
+                                decoration-success="period_status == 'ongoing'"
+                                decoration-muted="period_status == 'closed'" />
                             <!-- <field name="deadline" readonly="state != 'draft'"/> -->
                         </group>
                     </group>
                     <group>
                         <group string="Scores">
                             <group>
-                                <field name="dept_kpi_score" string="Department KPI Score" widget="badge"
-                                       readonly="1"/>
-                                <!--                                <field name="avg_individual_score" string="Average Individual Score"-->
+                                <field name="dept_kpi_score" string="Department KPI Score"
+                                    widget="badge"
+                                    readonly="1" />
+                                <!--                                <field name="avg_individual_score" string="Average Individual
+                                Score"-->
                                 <!--                                    readonly="1" />-->
-                                <!--                                <field name="department_score" string="Overall Score" readonly="1" />-->
+                                <!--                                <field name="department_score" string="Overall Score"
+                                readonly="1" />-->
                                 <!--                                <field name="department_level" widget="badge"-->
                                 <!--                                    string="Performance Level"-->
                                 <!--                                    decoration-success="department_level == 'pass'"-->
                                 <!--                                    decoration-info="department_level == 'excellent'"-->
-                                <!--                                    decoration-danger="department_level == 'fail'" readonly="1" />-->
+                                <!--                                    decoration-danger="department_level == 'fail'" readonly="1"
+                                />-->
                             </group>
                         </group>
                     </group>
                     <notebook>
-                        <page string="Evaluation Lines">
+                        <page string="P3.1.2">
+                            <h2 class="text-primary mt-2 mb-3">
+                                <field name="pillar_p3_dept_name" readonly="1" nolabel="1" />
+                            </h2>
                             <button name="action_compute_auto_kpi" string="Compute KPI"
-                                    type="object"
-                                    class="oe_highlight"
-                                    invisible="state != 'draft'"/>
+                                type="object"
+                                class="oe_highlight"
+                                invisible="state != 'draft'" />
                             <field name="evaluation_line_ids" widget="kpi_one2many"
-                                   readonly="state in ('approved', 'cancel')"
-                                   context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_department_evaluation_line_form_popup', 'title_field': 'name'}">
+                                readonly="state in ('approved', 'cancel')"
+                                context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_department_evaluation_line_form_popup', 'title_field': 'name'}">
                                 <list editable="bottom"
-                                      decoration-bf="is_section">
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="is_section" column_invisible="1"/>
-                                    <field name="is_auto" column_invisible="1"/>
-                                    <field name="dept_source_type" column_invisible="1"/>
-                                    <field name="child_line_rows_json" column_invisible="1"/>
+                                    decoration-bf="is_section"
+                                    create='0'
+                                >
+                                    <field name="sequence" widget="handle" />
+                                    <field name="is_section" column_invisible="1" />
+                                    <field name="is_auto" column_invisible="1" />
+                                    <field name="dept_source_type" column_invisible="1" />
+                                    <field name="child_line_rows_json" column_invisible="1" />
 
-                                    <field name="name" string="Title" readonly="1" force_save="1"/>
-                                    <field name="pillar_id"
-                                           options="{'no_create': True}"
-                                           invisible="is_section"
-                                           optional="show"/>
-                                    <field name="parent_line_id"
-                                           domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
-                                           options="{'no_create': True}"
-                                           invisible="is_section"
-                                           optional="show"/>
+                                    <field name="name" string="Title" readonly="1" force_save="1" />
+                                    <!-- <field name="pillar_id"
+                                        options="{'no_create': True}"
+                                        invisible="is_section"
+                                        optional="show" /> -->
+                                    <!-- <field name="parent_line_id"
+                                        domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
+                                        options="{'no_create': True}"
+                                        invisible="is_section"
+                                        optional="show" /> -->
                                     <field name="description"
-                                           string="Info"
-                                           widget="kpi_description_icon"
-                                           invisible="is_section"
-                                           optional="show"/>
+                                        string="Info"
+                                        widget="kpi_description_icon"
+                                        invisible="is_section"
+                                        optional="show" />
 
                                     <field name="kpi_type" readonly="1" invisible="is_section"
-                                           force_save="1"/>
+                                        force_save="1" />
                                     <field name="manual_scoring_type"
-                                           readonly="1"
-                                           invisible="is_section or kpi_type != 'manual'"
-                                           force_save="1"/>
+                                        readonly="1"
+                                        invisible="is_section or kpi_type != 'manual'"
+                                        force_save="1" />
 
                                     <field name="dept_source_type" optional="show" readonly="1"
-                                           invisible="is_section or not is_auto"/>
+                                        invisible="is_section or not is_auto" />
                                     <field name="data_source_id" optional="show" readonly="1"
-                                           invisible="is_section or not is_auto or dept_source_type != 'data_source'"/>
+                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'" />
                                     <field name="scoring_formula_id" optional="hide" readonly="1"
-                                           invisible="is_section or not is_auto or dept_source_type != 'data_source'"/>
+                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'" />
                                     <field name="manager_comment" optional="hide"
-                                           invisible="is_section"/>
+                                        invisible="is_section" />
 
                                     <field name="unit" optional="show" readonly="1"
-                                           invisible="is_section or kpi_type != 'auto'"/>
-                                    <field name="target" readonly="1" invisible="is_section or kpi_type != 'auto'"/>
-                                    <field name="actual" readonly="is_auto" invisible="is_section or kpi_type != 'auto'"/>
-                                    <!-- <field name="target_display" string="Target"
                                         invisible="is_section or kpi_type != 'auto'" />
-                                    <field name="actual_display" string="Actual"
-                                        invisible="is_section or kpi_type != 'auto'" /> -->
+                                    <field name="target" readonly="1"
+                                        invisible="is_section or kpi_type != 'auto'" />
+                                    <field name="actual"
+                                        readonly="is_auto and dept_source_type in ['data_source', 'child_kpi_average']"
+                                        invisible="is_section or kpi_type != 'auto'" />
+                                    <field name="violation_threshold"
+                                        invisible="is_section or kpi_type != 'auto'"
+                                        optional="hide" />
+                                    <field name="violation_count"
+                                        invisible="is_section or kpi_type != 'auto'"
+                                        optional="hide" />
+                                    <field name="is_severe_violation"
+                                        invisible="is_section or kpi_type != 'auto'"
+                                        optional="hide" />
+                                    <field name="is_wipeout_triggered"
+                                        invisible="is_section or kpi_type != 'auto'"
+                                        optional="hide"
+                                        readonly="1" />
+                                    <!-- <field name="target_display" string="Target"
+                                         invisible="is_section or kpi_type != 'auto'" />
+                                     <field name="actual_display" string="Actual"
+                                         invisible="is_section or kpi_type != 'auto'" /> -->
 
                                     <field name="manager_rating_binary"
-                                           string="Manager Rating (Y/N)"
-                                           invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
-                                           column_invisible="not parent.has_binary_kpi"
+                                        string="Manager Rating (Y/N)"
+                                        invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
+                                        column_invisible="not parent.has_binary_kpi"
                                     />
                                     <field name="manager_rating_selection"
-                                           string="Manager Rating" widget="priority_onchange"
-                                           invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
-                                           column_invisible="not parent.has_rating_kpi"
+                                        string="Manager Rating" widget="priority_onchange"
+                                        invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
+                                        column_invisible="not parent.has_rating_kpi"
                                     />
                                     <field name="manager_rating_score" string="Manager Score"
-                                           invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
-                                           column_invisible="not parent.has_score_kpi"
+                                        invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
+                                        column_invisible="not parent.has_score_kpi"
                                     />
-                                    <field name="weight" invisible="is_section" readonly="1"/>
+                                    <field name="weight" readonly="1" />
                                     <field name="score_scale_base_override"
-                                           invisible="is_section"
-                                           optional="show"
-                                           readonly="1"/>
+                                        optional="show"
+                                        readonly="1" />
 
-                                    <field name="final_score_badge_class" column_invisible="1"/>
+                                    <field name="final_score_badge_class" column_invisible="1" />
                                     <field name="final_score_badge_text" string="Score" readonly="1"
-                                           widget="badge"
-                                           decoration-info="final_score_badge_class == 'o_kpi_badge_excellent'"
-                                           decoration-success="final_score_badge_class == 'o_kpi_badge_pass'"
-                                           decoration-danger="final_score_badge_class == 'o_kpi_badge_fail'"/>
+                                        widget="badge"
+                                        decoration-info="final_score_badge_class == 'o_kpi_badge_excellent'"
+                                        decoration-success="final_score_badge_class == 'o_kpi_badge_pass'"
+                                        decoration-danger="final_score_badge_class == 'o_kpi_badge_fail'" />
 
                                     <button name="action_open_popup" type="object"
-                                            icon="fa-pencil" title="Open Details"
-                                            invisible="is_section"/>
+                                        icon="fa-pencil" title="Open Details"
+                                    />
 
                                     <control>
                                         <create name="add_section" string="Add Section"
-                                                context="{'default_is_section': True, 'default_display_type': 'line_section'}"/>
-                                        <create name="add_kpi" string="Add KPI"/>
+                                            context="{'default_is_section': True, 'default_display_type': 'line_section'}" />
+                                        <create name="add_kpi" string="Add KPI" />
                                     </control>
                                 </list>
                             </field>
+                            <div
+                                class="o_perf_summary mt-3 d-flex justify-content-between align-items-center">
+                                <div
+                                    class="o_perf_summary_body o_perf_summary_body_left flex-grow-1 pe-3">
+                                    <div class="o_perf_summary_title">Scoring Formula</div>
+                                    <div class="text-muted mt-2" style="font-size: 14px;">
+                                        <strong>Department KPI Score</strong> = ∑ (Top-level
+                                        P3.1.2 Line Score × Weight) / ∑ Weight<br />
+                                        <span style="font-size: 14px; font-style: italic;">If
+                                        the total top-level P3.1.2 weight is 0, the system falls
+                                        back to the average of top-level P3.1.2 line
+                                        scores.</span>
+                                    </div>
+                                </div>
+                                <div class="o_perf_summary_body o_perf_summary_body_right">
+                                    <div class="o_perf_summary_title">Evaluation Results</div>
+                                    <div class="o_perf_summary_score">
+                                        <span class="o_perf_label">Department KPI Score</span>
+                                        <span class="o_perf_value">
+                                            <field name="dept_kpi_score" />
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </page>
                     </notebook>
                 </sheet>
@@ -281,19 +349,19 @@
         <field name="model">hr.department.performance.evaluation</field>
         <field name="arch" type="xml">
             <list string="Department Performance Evaluations">
-                <field name="name"/>
-                <field name="department_id"/>
-                <field name="department_kpi_id"/>
-                <field name="start_date"/>
-                <field name="end_date"/>
+                <field name="name" />
+                <field name="department_id" />
+                <field name="department_kpi_id" />
+                <field name="start_date" />
+                <field name="end_date" />
                 <field name="period_status" widget="badge"
-                       decoration-info="period_status == 'upcoming'"
-                       decoration-success="period_status == 'ongoing'"
-                       decoration-muted="period_status == 'closed'"/>
+                    decoration-info="period_status == 'upcoming'"
+                    decoration-success="period_status == 'ongoing'"
+                    decoration-muted="period_status == 'closed'" />
                 <!--                <field name="department_score" />-->
                 <!--                <field name="department_level" />-->
-                <field name="state"/>
-                <field name="active" widget="boolean_toggle" optional="hide"/>
+                <field name="state" />
+                <field name="active" widget="boolean_toggle" optional="hide" />
             </list>
         </field>
     </record>
@@ -304,34 +372,34 @@
         <field name="model">hr.department.performance.evaluation</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name"/>
+                <field name="name" />
 
-                <field name="department_id"/>
-                <field name="department_kpi_id"/>
-                <field name="performance_report_id"/>
-                <field name="start_date"/>
-                <field name="end_date"/>
-                <field name="period_status"/>
-                <field name="state"/>
+                <field name="department_id" />
+                <field name="department_kpi_id" />
+                <field name="performance_report_id" />
+                <field name="start_date" />
+                <field name="end_date" />
+                <field name="period_status" />
+                <field name="state" />
 
                 <filter string="Current Period" name="current_period"
                     domain="[
                     ('start_date', '&lt;=', context_today().strftime('%Y-%m-%d')),
                     ('end_date', '&gt;=', context_today().strftime('%Y-%m-%d'))
-                ]"/>
+                ]" />
 
-                <separator/>
+                <separator />
 
                 <filter string="Draft" name="draft"
-                    domain="[('state', '=', 'draft')]"/>
+                    domain="[('state', '=', 'draft')]" />
                 <filter string="Submitted" name="submitted"
-                    domain="[('state', '=', 'submitted')]"/>
+                    domain="[('state', '=', 'submitted')]" />
                 <filter string="Approved" name="approved"
-                    domain="[('state', '=', 'approved')]"/>
+                    domain="[('state', '=', 'approved')]" />
                 <filter string="Cancelled" name="cancelled"
-                    domain="[('state', '=', 'cancel')]"/>
+                    domain="[('state', '=', 'cancel')]" />
 
-                <separator/>
+                <separator />
 
                 <!-- <filter string="Upcoming" name="upcoming"
                     domain="[('period_status', '=', 'upcoming')]"/>
@@ -343,13 +411,13 @@
                 <separator/> -->
 
                 <filter string="Archived" name="archived"
-                    domain="[('active', '=', False)]"/>
+                    domain="[('active', '=', False)]" />
 
                 <group expand="1" string="Group By">
                     <filter string="Department" name="group_by_department"
-                        context="{'group_by': 'department_id'}"/>
+                        context="{'group_by': 'department_id'}" />
                     <filter string="Status" name="group_by_state"
-                        context="{'group_by': 'state'}"/>
+                        context="{'group_by': 'state'}" />
                     <!-- <filter string="Period Status" name="group_by_period_status"
                         context="{'group_by': 'period_status'}"/> -->
                 </group>
@@ -371,12 +439,12 @@
     </record>
 
     <menuitem id="kpi_department_menu" name="KPI Department" sequence="10"
-              parent="performance_evaluator"/>
+        parent="performance_evaluator" />
     <menuitem id="department_performance_evaluation" name="KPI Department" sequence="10"
-              parent="kpi_department_menu" action="action_hr_department_performance_evaluation"/>
+        parent="kpi_department_menu" action="action_hr_department_performance_evaluation" />
     <menuitem id="menu_kpi_department_dashboard" name="Dashboard"
-              sequence="20" parent="kpi_department_menu"
-              action="action_kpi_department_dashboard"
-              groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_hr"
+        sequence="20" parent="kpi_department_menu"
+        action="action_kpi_department_dashboard"
+        groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_hr"
     />
 </odoo>

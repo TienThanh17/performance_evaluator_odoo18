@@ -67,7 +67,7 @@ Mối quan hệ giữa các thực thể cốt lõi trong hệ thống được 
 1. **Template KPI phòng ban (`hr.department.kpi`)**
    - Quản lý các nhóm mục tiêu lớn của phòng ban.
    - Mỗi dòng KPI phòng ban là một KPI cha (`hr.department.kpi.line`).
-   - Cấu hình `dept_weight` và `individual_weight` để pha trộn điểm phòng ban vào điểm cuối cùng của cá nhân.
+
 
 2. **Template KPI nhân viên (`hr.kpi`)**
    - Quản lý KPI chi tiết cho nhân viên theo phòng ban, vị trí công việc và chu kỳ.
@@ -227,8 +227,6 @@ Quản lý KPI mẫu cấp phòng ban.
 * **`hr.department.kpi`**
   - `department_id`: Phòng ban áp dụng.
   - `period`: Chu kỳ KPI.
-  - `dept_weight`: Tỷ trọng điểm phòng ban trong `final_score` cá nhân.
-  - `individual_weight`: Tỷ trọng điểm cá nhân, thường bằng `1 - dept_weight`.
   - `kpi_line_ids`: Danh sách KPI phòng ban.
 
 * **`hr.department.kpi.line`**
@@ -379,22 +377,6 @@ Hệ thống quy đổi các kiểu KPI về thang điểm 10.
 
 * **KPI Nhập điểm (`score`)**
   - Nhận trực tiếp điểm 0-10.
-
-### 2. Công thức Pha trộn Điểm phòng ban (Blending Score Formula)
-
-Điểm cuối cùng của nhân viên:
-
-```text
-final_score =
-    dept_kpi_score * dept_weight
-    + performance_score * individual_weight
-```
-
-Quy tắc fallback:
-
-- Không có phiếu phòng ban: `final_score = performance_score`.
-- Phiếu phòng ban bị `cancel`: `final_score = performance_score`.
-- Nếu phiếu phòng ban chưa hoàn tất nhưng có điểm tạm, hệ thống vẫn có thể dùng `get_dept_kpi_score()`.
 
 ### 3. Tối ưu hóa hiệu năng & Chống Race Condition
 

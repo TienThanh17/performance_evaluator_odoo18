@@ -5,6 +5,8 @@ from markupsafe import Markup
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+from .kpi_type_utils import NORMALIZED_3P_PILLAR_CODES
+
 _logger = logging.getLogger(__name__)
 
 
@@ -121,13 +123,27 @@ class PerformanceEvaluation(models.Model):
         help="Evaluation lines that belong to the P3 individual pillar.",
     )
     name = fields.Char(string="Reference", readonly=True)
-    performance_score = fields.Float(
+    total_p2_1 = fields.Float(
+        string="P2.1 Total",
+        compute="_compute_pillar_totals",
+        store=True,
+        digits=(16, 1),
+        help="Stored total score of the P2.1 pillar.",
+    )
+    total_p2_2 = fields.Float(
+        string="P2.2 Total",
+        compute="_compute_pillar_totals",
+        store=True,
+        digits=(16, 1),
+        help="Stored total score of the P2.2 pillar.",
+    )
+    total_p3_individual = fields.Float(
         string="Individual KPI Score",
-        compute="_compute_performance_score",
+        compute="_compute_pillar_totals",
         store=True,
         aggregator="avg",
         digits=(16, 1),
-        help="Overall score of the evaluation (weighted average of all KPI line final ratings).",
+        help="Stored total score of the P3 individual pillar.",
     )
 
     performance_level = fields.Selection(
@@ -140,30 +156,6 @@ class PerformanceEvaluation(models.Model):
         compute="_compute_performance_level",
         store=True,
         help="Result level derived from the Average Score and the KPI thresholds configured in Settings.",
-    )
-
-    # Điểm cuối cùng: pha trộn performance_score cá nhân và dept_kpi_score phòng ban
-    final_score = fields.Float(
-        string=_("Final Bonus Score"),
-        compute="_compute_final_score",
-        store=True,
-        digits=(6, 2),
-        help=_(
-            "The final score used for bonus calculation, blended from: "
-            "(Department Score × Weight) + (Individual Score × Weight). "
-        ),
-        # "If Department data is missing, only the Individual Score is used to ensure fairness.",
-    )
-    final_level = fields.Selection(
-        selection=[
-            ("excellent", "Excellent"),
-            ("pass", "Pass"),
-            ("fail", "Fail"),
-        ],
-        string="Final Result",
-        compute="_compute_final_level",
-        store=True,
-        help="Performance level derived from final_score using the same thresholds as performance_level.",
     )
 
     performance_badge_class = fields.Char(
@@ -188,8 +180,7 @@ class PerformanceEvaluation(models.Model):
         required=False,
         ondelete="set null",
         tracking=True,
-        help="Link to the department KPI evaluation for the same period. "
-        "Used to blend dept_kpi_score into the individual final_score.",
+        help="Link to the department KPI evaluation for the same period.",
     )
     department_id = fields.Many2one(
         "hr.department",
@@ -219,6 +210,16 @@ class PerformanceEvaluation(models.Model):
     has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_rating_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_score_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+    # Per-pillar KPI type flags (used by individual pillar tabs)
+    has_binary_kpi_p2_1 = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_rating_kpi_p2_1 = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_score_kpi_p2_1 = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_binary_kpi_p2_2 = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_rating_kpi_p2_2 = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_score_kpi_p2_2 = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_binary_kpi_p3 = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_rating_kpi_p3 = fields.Boolean(compute="_compute_kpi_types", store=False)
+    has_score_kpi_p3 = fields.Boolean(compute="_compute_kpi_types", store=False)
 
     performance_visual = fields.Html(compute="_compute_performance_visual")
     performance_score_progress_pct = fields.Float(
@@ -250,25 +251,33 @@ class PerformanceEvaluation(models.Model):
     )
 
     # Khai báo các field chứa tên động của từng Pillar
-    pillar_p2_1_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.1")
-    pillar_p2_2_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.2")
-    pillar_p3_ind_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P3")
+    pillar_p2_1_name = fields.Char(
+        compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.1"
+    )
+    pillar_p2_2_name = fields.Char(
+        compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.2"
+    )
+    pillar_p3_ind_name = fields.Char(
+        compute="_compute_dynamic_pillar_names", string="Tên Pillar P3.1.1"
+    )
 
     def _compute_dynamic_pillar_names(self):
         # Truy vấn database một lần để lấy tất cả các pillar cần thiết (Tối ưu hiệu suất)
         # Giả định model hr.evaluation.pillar của bạn có trường 'code' để nhận diện
-        pillars = self.env['hr.evaluation.pillar'].sudo().search([
-            ('code', 'in', ['p2_1', 'p2_2', 'p3_individual'])
-        ])
-        
+        pillars = (
+            self.env["hr.evaluation.pillar"]
+            .sudo()
+            .search([("code", "in", ["p2_1", "p2_2", "p3_individual"])])
+        )
+
         # Tạo một dictionary { 'p2_1': 'Kiến Thức', 'p2_2': 'Kỹ năng chuyên môn', ... }
         pillar_dict = {p.code: p.name for p in pillars}
 
         for rec in self:
             # Gán tên từ database, nếu không tìm thấy thì dùng tên mặc định
-            rec.pillar_p2_1_name = pillar_dict.get('p2_1', 'P2.1')
-            rec.pillar_p2_2_name = pillar_dict.get('p2_2', 'P2.2')
-            rec.pillar_p3_ind_name = pillar_dict.get('p3_individual', 'P3 Individual')
+            rec.pillar_p2_1_name = pillar_dict.get("p2_1", "P2.1")
+            rec.pillar_p2_2_name = pillar_dict.get("p2_2", "P2.2")
+            rec.pillar_p3_ind_name = pillar_dict.get("p3_individual", "P3 Individual")
 
     @api.depends("performance_report_id.period_id")
     def _compute_period_id(self):
@@ -330,42 +339,97 @@ class PerformanceEvaluation(models.Model):
     @api.depends(
         "evaluation_line_ids.kpi_type",
         "evaluation_line_ids.manual_scoring_type",
+        "evaluation_line_ids.pillar_code",
     )
     def _compute_kpi_types(self):
-        for rec in self:
-            manual_lines = rec.evaluation_line_ids.filtered(
-                lambda line: line.kpi_type == "manual"
-            )
-            manual_types = manual_lines.mapped("manual_scoring_type")
-            rec.has_binary_kpi = "binary" in manual_types
-            rec.has_rating_kpi = "rating" in manual_types
-            rec.has_score_kpi = "score" in manual_types
+        def _types_for(lines):
+            manual = lines.filtered(lambda l: l.kpi_type == "manual")
+            types = manual.mapped("manual_scoring_type")
+            return "binary" in types, "rating" in types, "score" in types
 
-    @api.depends("performance_score")
-    def _compute_score_scale_display(self):
-        scale = self.env["res.config.settings"].get_score_scale_info()
-        base = scale.get("base") or 10.0
         for rec in self:
+            # Generic — used by the "All Lines" tab (all pillars combined)
+            (
+                rec.has_binary_kpi,
+                rec.has_rating_kpi,
+                rec.has_score_kpi,
+            ) = _types_for(rec.evaluation_line_ids)
+
+            # Per-pillar — used by individual pillar tabs
+            (
+                rec.has_binary_kpi_p2_1,
+                rec.has_rating_kpi_p2_1,
+                rec.has_score_kpi_p2_1,
+            ) = _types_for(
+                rec.evaluation_line_ids.filtered(lambda l: l.pillar_code == "p2_1")
+            )
+            (
+                rec.has_binary_kpi_p2_2,
+                rec.has_rating_kpi_p2_2,
+                rec.has_score_kpi_p2_2,
+            ) = _types_for(
+                rec.evaluation_line_ids.filtered(lambda l: l.pillar_code == "p2_2")
+            )
+            (
+                rec.has_binary_kpi_p3,
+                rec.has_rating_kpi_p3,
+                rec.has_score_kpi_p3,
+            ) = _types_for(
+                rec.evaluation_line_ids.filtered(
+                    lambda l: l.pillar_code == "p3_individual"
+                )
+            )
+
+    @api.depends("total_p3_individual")
+    def _compute_score_scale_display(self):
+        for rec in self:
+            base = rec._get_evaluation_score_base()
             rec.performance_score_progress_pct = max(
                 0.0,
-                min(100.0, ((rec.performance_score or 0.0) / base) * 100.0),
+                min(100.0, ((rec.total_p3_individual or 0.0) / base) * 100.0),
             )
-            rec.score_scale_suffix = scale.get("suffix") or " / 10"
+            rec.score_scale_suffix = f" / {int(base)}"
 
+    # Resolve the effective score base of the evaluation from its root KPI lines.
+    def _get_evaluation_score_base(self):
+        self.ensure_one()
+        root_lines = self.evaluation_line_ids.filtered(
+            lambda line: not line.parent_line_id
+        )
+        score_bases = {
+            float(line.score_scale_base_override)
+            for line in root_lines
+            if (line.score_scale_base_override or 0.0) > 0
+        }
+        if len(score_bases) == 1:
+            return score_bases.pop()
+        return self.env["res.config.settings"].get_score_scale_base()
+
+    # Scale configured thresholds to the effective score base of this evaluation.
     def _get_thresholds_for_record(self):
         self.ensure_one()
         profile = self.kpi_id.scoring_profile_id
+        settings = self.env["res.config.settings"]
         if profile:
-            return profile.get_thresholds()
-        return self.env["res.config.settings"].get_thresholds()
+            excellent, passed = profile.get_thresholds()
+        else:
+            excellent, passed = settings.get_thresholds()
 
-    @api.depends("performance_score", "employee_id")
+        configured_base = settings.get_score_scale_base() or 100.0
+        target_base = self._get_evaluation_score_base()
+        if configured_base and target_base and configured_base != target_base:
+            excellent = settings.convert_score(excellent, configured_base, target_base)
+            passed = settings.convert_score(passed, configured_base, target_base)
+        return excellent, passed
+
+    @api.depends("total_p3_individual", "employee_id")
     def _compute_performance_visual(self):
-        score_base = self.env["res.config.settings"].get_score_scale_base()
         for rec in self:
+            score_base = rec._get_evaluation_score_base()
             # Quy đổi điểm theo score_base hiện tại sang phần trăm để vẽ vòng tròn.
             score_pct = max(
-                0.0, min(100.0, ((rec.performance_score or 0) / score_base) * 100.0)
+                0.0,
+                min(100.0, ((rec.total_p3_individual or 0) / score_base) * 100.0),
             )
 
             # Lấy URL ảnh nhân viên
@@ -450,8 +514,7 @@ class PerformanceEvaluation(models.Model):
 
             missing_score = lines.filtered(
                 lambda l: (
-                    l.manual_scoring_type == "score"
-                    and l.employee_rating_score is None
+                    l.manual_scoring_type == "score" and l.employee_rating_score is None
                 )
             )
             if missing_score:
@@ -533,20 +596,31 @@ class PerformanceEvaluation(models.Model):
             record.state = "cancel"
 
     @api.depends(
+        "evaluation_line_ids",
         "evaluation_line_ids.final_rating",
         "evaluation_line_ids.weight",
         "evaluation_line_ids.parent_line_id",
+        "evaluation_line_ids.pillar_code",
     )
-    def _compute_performance_score(self):
+    def _compute_pillar_totals(self):
         for record in self:
-            record.performance_score = record._compute_weighted_score_from_lines(
-                record._get_top_level_scorable_lines()
+            record.total_p2_1 = record.get_weighted_score_by_pillar_code("p2_1")
+            record.total_p2_2 = record.get_weighted_score_by_pillar_code("p2_2")
+            record.total_p3_individual = record.get_weighted_score_by_pillar_code(
+                "p3_individual"
             )
 
+    # Return the root scoring nodes used by normalized 3P and legacy KPI trees.
     def _get_top_level_scorable_lines(self, pillar_code=None):
         self.ensure_one()
         lines = self.evaluation_line_ids.filtered(
-            lambda line: not line.is_section and not line.parent_line_id
+            lambda line: (
+                not line.parent_line_id
+                and (
+                    line.pillar_code in NORMALIZED_3P_PILLAR_CODES
+                    or not line.is_section
+                )
+            )
         )
         if pillar_code:
             lines = lines.filtered(lambda line: line.pillar_code == pillar_code)
@@ -558,7 +632,10 @@ class PerformanceEvaluation(models.Model):
             return 0.0
         total_weight_sum = sum(lines.mapped("weight"))
         if total_weight_sum > 0:
-            return sum(line.final_rating * line.weight for line in lines) / total_weight_sum
+            return (
+                sum(line.final_rating * line.weight for line in lines)
+                / total_weight_sum
+            )
         return sum(lines.mapped("final_rating")) / len(lines)
 
     def get_weighted_score_by_pillar_code(self, pillar_code):
@@ -566,6 +643,57 @@ class PerformanceEvaluation(models.Model):
         return self._compute_weighted_score_from_lines(
             self._get_top_level_scorable_lines(pillar_code)
         )
+
+    # Validate that normalized 3P roots and children preserve the expected weight tree.
+    @api.constrains(
+        "evaluation_line_ids",
+        "evaluation_line_ids.weight",
+        "evaluation_line_ids.parent_line_id",
+        "evaluation_line_ids.pillar_id",
+    )
+    def _check_normalized_3p_weight_structure(self):
+        if self.env.context.get("skip_normalized_3p_weight_validation"):
+            return
+        for record in self:
+            for pillar_code in NORMALIZED_3P_PILLAR_CODES:
+                pillar_lines = record.evaluation_line_ids.filtered(
+                    lambda line: line.pillar_code == pillar_code
+                )
+                if not pillar_lines:
+                    continue
+
+                root_lines = pillar_lines.filtered(lambda line: not line.parent_line_id)
+                root_weight = sum(root_lines.mapped("weight"))
+                if abs(root_weight - 100.0) > 0.01:
+                    raise ValidationError(
+                        _(
+                            "The total root weight of pillar %(pillar)s must be 100, but got %(weight)s."
+                        )
+                        % {
+                            "pillar": pillar_code,
+                            "weight": f"{root_weight:.2f}",
+                        }
+                    )
+
+                for parent_line in pillar_lines.filtered("child_line_ids"):
+                    direct_children = parent_line.child_line_ids.filtered(
+                        lambda line: line.pillar_code == pillar_code
+                    )
+                    if not direct_children:
+                        continue
+                    child_weight = sum(direct_children.mapped("weight"))
+                    if abs(child_weight - (parent_line.weight or 0.0)) > 0.01:
+                        raise ValidationError(
+                            _(
+                                "The child weight total of '%(line)s' must equal %(expected)s, but got %(actual)s."
+                            )
+                            % {
+                                "line": parent_line.key_performance_area
+                                or parent_line.display_name,
+                                "expected": f"{(parent_line.weight or 0.0):.2f}",
+                                "actual": f"{child_weight:.2f}",
+                            }
+                        )
 
     def _get_level_from_score(self, score):
         self.ensure_one()
@@ -577,21 +705,18 @@ class PerformanceEvaluation(models.Model):
             return "pass"
         return "fail"
 
-    def action_recompute_performance_score(self):
-        """Manual refresh for performance_score to reflect current evaluation lines.
-
-        Useful after adding/removing lines so users can refresh the summary on demand.
-        """
-        # Recompute from python side and write stored value.
+    def action_recompute_pillar_totals(self):
+        """Manual refresh for stored pillar totals and derived performance level."""
         for rec in self:
-            rec._compute_performance_score()
+            rec._compute_pillar_totals()
+            rec._compute_performance_level()
         return True
 
-    @api.depends("performance_score")
+    @api.depends("total_p3_individual")
     def _compute_performance_badge_class(self):
         for rec in self:
             excellent, passed = rec._get_thresholds_for_record()
-            score = rec.performance_score or 0.0
+            score = rec.total_p3_individual or 0.0
             if score >= excellent:
                 rec.performance_badge_class = "o_kpi_badge_excellent"
             elif score >= passed:
@@ -599,82 +724,17 @@ class PerformanceEvaluation(models.Model):
             else:
                 rec.performance_badge_class = "o_kpi_badge_fail"
 
-    @api.depends("performance_score")
+    @api.depends("total_p3_individual")
     def _compute_performance_level(self):
         for rec in self:
             excellent, passed = rec._get_thresholds_for_record()
-            score = rec.performance_score or 0.0
+            score = rec.total_p3_individual or 0.0
             if score >= excellent:
                 rec.performance_level = "excellent"
             elif score >= passed:
                 rec.performance_level = "pass"
             else:
                 rec.performance_level = "fail"
-
-    @api.depends(
-        "performance_score",
-        "dept_evaluation_id",
-        "dept_evaluation_id.dept_kpi_score",
-        "dept_evaluation_id.state",
-        "dept_evaluation_id.department_kpi_id.dept_weight",
-    )
-    def _compute_final_score(self):
-        """Tính điểm cuối cùng của cá nhân theo công thức:
-        final_score = dept_kpi_score × dept_weight + performance_score × (1 - dept_weight)
-
-        Quy tắc nghiệp vụ:
-        - Chưa liên kết dept evaluation   → final_score = performance_score
-        - dept evaluation bị hủy (cancel) → final_score = performance_score
-        - draft / submitted / approved      → dùng dept_kpi_score tạm thời hoặc chính thức
-        """
-        for rec in self:
-            dept_eval = rec.dept_evaluation_id
-
-            # Fallback: không có dept evaluation → giữ nguyên performance_score
-            if not dept_eval:
-                rec.final_score = rec.performance_score
-                continue
-
-            # Lấy điểm KPI phòng ban qua method (trả 0.0 nếu state=cancel)
-            dept_score = dept_eval.get_dept_kpi_score()
-
-            # Fallback: dept bị hủy → không đưa vào công thức
-            if dept_eval.state == "cancel":
-                rec.final_score = rec.performance_score
-                continue
-
-            # Lấy trọng số từ template KPI phòng ban; mặc định 0.4 nếu chưa cấu hình
-            dept_weight = (
-                dept_eval.department_kpi_id.dept_weight
-                if dept_eval.department_kpi_id
-                else 0.4
-            )
-            individual_weight = (
-                dept_eval.department_kpi_id.individual_weight
-                if dept_eval.department_kpi_id
-                else 0.6
-            )
-
-            # Công thức pha trộn
-            rec.final_score = (dept_score * dept_weight) + (
-                rec.performance_score * individual_weight
-            )
-
-    @api.depends("final_score")
-    def _compute_final_level(self):
-        """Xếp loại dựa trên final_score và ngưỡng cấu hình.
-
-        Dùng cùng key param với _compute_performance_level để đảm bảo nhất quán.
-        """
-        for rec in self:
-            threshold_excellent, threshold_pass = rec._get_thresholds_for_record()
-            score = rec.final_score or 0.0
-            if score >= threshold_excellent:
-                rec.final_level = "excellent"
-            elif score >= threshold_pass:
-                rec.final_level = "pass"
-            else:
-                rec.final_level = "fail"
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -694,9 +754,28 @@ class PerformanceEvaluation(models.Model):
             )
             vals["name"] = f"KPI/{sequence}/{year}"
 
-        records = super().create(vals_list)
+        records = super(
+            PerformanceEvaluation,
+            self.with_context(skip_normalized_3p_weight_validation=True),
+        ).create(vals_list)
         records._rebuild_line_hierarchy_from_template()
+        records._recompute_line_scores_after_hierarchy_rebuild()
+        records._check_normalized_3p_weight_structure()
         return records
+
+    def write(self, vals):
+        if "evaluation_line_ids" in vals and not self.env.context.get(
+            "skip_normalized_3p_weight_validation"
+        ):
+            res = super(
+                PerformanceEvaluation,
+                self.with_context(skip_normalized_3p_weight_validation=True),
+            ).write(vals)
+            self._rebuild_line_hierarchy_from_template()
+            self._recompute_line_scores_after_hierarchy_rebuild()
+            self._check_normalized_3p_weight_structure()
+            return res
+        return super().write(vals)
 
     @api.depends("employee_id")
     def _compute_employee_info(self):
@@ -729,7 +808,7 @@ class PerformanceEvaluation(models.Model):
     ):
         """Build one2many commands for evaluation_line_ids from KPI template lines.
 
-        - Preserves ordering via sequence.
+        - Preserves hierarchy preorder from the template tree.
         - Preserves section/note lines.
         """
         self.ensure_one()
@@ -737,9 +816,8 @@ class PerformanceEvaluation(models.Model):
             return []
         dept_eval_line_by_template_line = dept_eval_line_by_template_line or {}
 
-        template_lines = kpi.kpi_line_ids.sorted(
-            lambda l: (l.sequence or 0, l._origin.id or 0, l.id or 0)
-        )
+        # Lấy template lines theo preorder đã chuẩn hoá để evaluation tree giữ nguyên hình dạng.
+        template_lines = kpi.get_hierarchy_ordered_lines()
 
         # Sử dụng : list[tuple] để Type Checker không hiểu lầm là danh sách chỉ chứa tuple 3 số nguyên.
         # fields.Command.clear() tương đương với lệnh (5, 0, 0) để xóa sạch các dòng cũ trước khi thêm mới.
@@ -768,8 +846,9 @@ class PerformanceEvaluation(models.Model):
                             "manual_scoring_type": False,
                             "target": 0.0,
                             "unit": False,
-                            "weight": 0.0,
+                            "weight": line.weight,
                             "score_scale_base_override": line.score_scale_base_override,
+                            "violation_threshold": line.violation_threshold,
                             "is_auto": False,
                         }
                     )
@@ -796,6 +875,7 @@ class PerformanceEvaluation(models.Model):
                         "unit": line.unit.id or False,
                         "weight": line.weight,
                         "score_scale_base_override": line.score_scale_base_override,
+                        "violation_threshold": line.violation_threshold,
                         "is_auto": bool(line.is_auto),
                     }
                 )
@@ -819,7 +899,16 @@ class PerformanceEvaluation(models.Model):
                     line.with_context(skip_line_chatter_audit=True).write(
                         {"parent_line_id": parent_line.id if parent_line else False}
                     )
-        
+
+    # Recompute the KPI tree bottom-up so section lines receive scores immediately after generation.
+    def _recompute_line_scores_after_hierarchy_rebuild(self):
+        for evaluation in self:
+            if evaluation.evaluation_line_ids:
+                evaluation.evaluation_line_ids._recompute_score_tree()
+                continue
+            evaluation._compute_pillar_totals()
+            evaluation._compute_performance_level()
+
     @api.onchange("kpi_id")
     def _onchange_kpi_id(self):
         # if not self.kpi_id:
@@ -878,8 +967,11 @@ class PerformanceEvaluation(models.Model):
             # Process record-by-record so one failure doesn't block the rest.
             for ev in evaluations:
                 try:
-                    ev.with_context(skip_line_chatter_audit=True).action_compute_auto_kpi()
-                    ev._compute_performance_score()
+                    ev.with_context(
+                        skip_line_chatter_audit=True
+                    ).action_compute_auto_kpi()
+                    ev._compute_pillar_totals()
+                    ev._compute_performance_level()
                 except Exception as e:
                     _logger.exception(
                         "Auto KPI cron failed for evaluation id=%s (employee=%s): %s",
@@ -933,17 +1025,13 @@ class PerformanceEvaluation(models.Model):
         # 3. Lấy ra nhãn (label) đã dịch tương ứng với key
         perf_label = selection_dict.get(perf_key, perf_key)
 
-        final_key = evaluation.final_level or "fail"
         # Employees can open their own individual dashboard, but they do not
         # have read access to department evaluations. Read only the linked
-        # department score/weight with sudo so the dashboard can show the
-        # already-computed final KPI breakdown without exposing the model.
+        # department score with sudo so the dashboard can show the related
+        # department KPI without exposing the model.
         dept_eval = evaluation.sudo().dept_evaluation_id.sudo()
         dept_score = dept_eval.get_dept_kpi_score() if dept_eval else 0.0
         has_dept_evaluation = bool(dept_eval and dept_eval.state != "cancel")
-        dept_kpi = dept_eval.department_kpi_id.sudo() if has_dept_evaluation else False
-        dept_weight = dept_kpi.dept_weight if has_dept_evaluation and dept_kpi else 0.0
-        individual_weight = 1.0 - dept_weight
         settings = self.env["res.config.settings"]
         score_scale = settings.get_score_scale_info()
         threshold_excellent, threshold_pass = evaluation._get_thresholds_for_record()
@@ -951,7 +1039,11 @@ class PerformanceEvaluation(models.Model):
 
         result = {
             "evaluation_id": evaluation.id,
-            "score_scale": score_scale,
+            "score_scale": {
+                **score_scale,
+                "base": evaluation._get_evaluation_score_base(),
+                "suffix": f" / {int(evaluation._get_evaluation_score_base())}",
+            },
             "thresholds": {
                 "excellent": threshold_excellent,
                 "pass": threshold_pass,
@@ -962,21 +1054,22 @@ class PerformanceEvaluation(models.Model):
             "period_type": evaluation.period_type or "",
             "start_date": str(evaluation.start_date) if evaluation.start_date else "",
             "end_date": str(evaluation.end_date) if evaluation.end_date else "",
-            "performance_score": round(float(evaluation.performance_score or 0.0), 2),
+            "total_p2_1": round(float(evaluation.total_p2_1 or 0.0), 2),
+            "total_p2_2": round(float(evaluation.total_p2_2 or 0.0), 2),
+            "total_p3_individual": round(
+                float(evaluation.total_p3_individual or 0.0), 2
+            ),
             "dept_kpi_score": round(float(dept_score), 2),
-            "dept_weight": round(float(dept_weight), 4),
-            "individual_weight": round(float(individual_weight), 4),
             "has_dept_evaluation": has_dept_evaluation,
-            "final_score": round(float(evaluation.final_score or 0.0), 2),
-            "final_level": final_key,
-            "final_level_label": selection_dict.get(final_key, final_key),
             # Keep raw key for CSS class logic (levelClass)
             "performance_level": perf_key,
             # Translated label for display
             "performance_level_label": perf_label,
             "quantitative_table": self._get_quantitative_table_data(evaluation),
             # Keep every dashboard chart payload, including radar and detail charts, in one list.
-            "charts": chart_service.build_dynamic_charts(evaluation, dashboard_kind="individual"),
+            "charts": chart_service.build_dynamic_charts(
+                evaluation, dashboard_kind="individual"
+            ),
         }
         return result
 
@@ -1006,11 +1099,7 @@ class PerformanceEvaluation(models.Model):
     # ------------------------------------------------------------------
     def _get_quantitative_table_data(self, evaluation):
         lines = evaluation.evaluation_line_ids.filtered(
-            lambda l: (
-                not l.is_section
-                and not l.parent_line_id
-                and l.kpi_type == "auto"
-            )
+            lambda l: not l.is_section and not l.parent_line_id and l.kpi_type == "auto"
         )
         rows = []
         for line in lines:
@@ -1030,7 +1119,9 @@ class PerformanceEvaluation(models.Model):
                 unit_name = line.unit.name if line.unit else ""
                 target_text = f"{target:g} {unit_name}" if unit_name else f"{target:g}"
                 actual_text = f"{actual:g} {unit_name}" if unit_name else f"{actual:g}"
-            formula = line.kpi_line_id.get_effective_formula() if line.kpi_line_id else False
+            formula = (
+                line.kpi_line_id.get_effective_formula() if line.kpi_line_id else False
+            )
             rows.append(
                 {
                     "name": line.key_performance_area or "",

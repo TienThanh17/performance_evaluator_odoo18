@@ -192,33 +192,27 @@
               <span class="pm-label">Nhân viên:</span>
               <span class="pm-value" t-esc="state.selectedNode.data.employee_count"/>
             </div>
-            <!-- <div class="panel-metric">
+            <div class="panel-metric">
               <span class="pm-label">KPI cá nhân trung bình:</span>
-              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_performance_score)"/>
-            </div> -->
-            <!-- <div class="panel-metric">
-              <span class="pm-label">Điểm cuối TB:</span>
-              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_final_score)"/>
-            </div> -->
+              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_total_p3_individual)"/>
+            </div>
             <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div>
           </t>
 
               <!-- ── Employee detail ── -->
           <t t-elif="state.selectedNode.type === 'emp'">
             <div class="panel-metric">
-              <span class="pm-label">Điểm thưởng:</span>
-              <span class="pm-value highlight" t-esc="formatScore(state.selectedNode.data.final_score)"/>
-            </div>
-            <div class="panel-metric">
               <span class="pm-label">KPI cá nhân:</span>
-              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.performance_score)"/>
+              <span class="pm-value highlight" t-esc="formatScore(state.selectedNode.data.total_p3_individual)"/>
             </div>
             <div class="panel-metric">
               <span class="pm-label">KPI phòng ban:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
-            <div class="panel-formula">
-              Điểm thưởng được tính từ KPI cá nhân và KPI phòng ban theo trọng số.
+            <div class="panel-metric">
+              <span class="pm-label">Kết quả:</span>
+              <span t-att-class="levelBadgeClass(state.selectedNode.data.performance_level)"
+                    t-esc="state.selectedNode.data.performance_level || 'fail'"/>
             </div>
             <div class="panel-metric">
               <span class="pm-label">Trạng thái:</span>

@@ -1,7 +1,11 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 import logging
 
+from .kpi_type_utils import NORMALIZED_3P_PILLAR_CODES
+
 _logger = logging.getLogger(__name__)
+
 
 class HrDepartmentPerformanceEvaluation(models.Model):
     """Department Performance Evaluation.
@@ -9,20 +13,21 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     This model handles the assessment of department KPIs during a specific evaluation period,
     linking individual employees' performance to the department's overall achievements.
     """
+
     _name = "hr.department.performance.evaluation"
     _description = "Department Performance Evaluation"
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
     name = fields.Char(compute="_compute_name", store=True)
-    department_id = fields.Many2one(
-        "hr.department", required=True, tracking=True
-    )
+    department_id = fields.Many2one("hr.department", required=True, tracking=True)
     department_kpi_id = fields.Many2one(
         "hr.department.kpi.template",
         required=True,
         string="Department KPI Template",
         tracking=True,
     )
+    pillar_p3_dept_name = fields.Char(related="department_kpi_id.pillar_p3_dept_name")
+
     performance_report_id = fields.Many2one(
         "hr.performance.report",
         ondelete="cascade",
@@ -138,10 +143,17 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 rec._get_top_level_scorable_lines()
             )
 
+    # Return the root scoring nodes used by normalized 3P and legacy KPI trees.
     def _get_top_level_scorable_lines(self, pillar_code=None):
         self.ensure_one()
         lines = self.evaluation_line_ids.filtered(
-            lambda line: not line.is_section and not line.parent_line_id
+            lambda line: (
+                not line.parent_line_id
+                and (
+                    line.pillar_code in NORMALIZED_3P_PILLAR_CODES
+                    or not line.is_section
+                )
+            )
         )
         if pillar_code:
             lines = lines.filtered(lambda line: line.pillar_code == pillar_code)
@@ -155,6 +167,71 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         if total_weight > 0:
             return sum(line.final_score * line.weight for line in lines) / total_weight
         return sum(lines.mapped("final_score")) / len(lines)
+
+    # Resolve the effective score base of the department evaluation from its root KPI lines.
+    def _get_evaluation_score_base(self):
+        self.ensure_one()
+        root_lines = self.evaluation_line_ids.filtered(
+            lambda line: not line.parent_line_id
+        )
+        score_bases = {
+            float(line.score_scale_base_override)
+            for line in root_lines
+            if (line.score_scale_base_override or 0.0) > 0
+        }
+        if len(score_bases) == 1:
+            return score_bases.pop()
+        return self.env["res.config.settings"].get_score_scale_base()
+
+    # Validate that normalized 3P roots and children preserve the expected weight tree.
+    @api.constrains(
+        "evaluation_line_ids",
+        "evaluation_line_ids.weight",
+        "evaluation_line_ids.parent_line_id",
+        "evaluation_line_ids.pillar_id",
+    )
+    def _check_normalized_3p_weight_structure(self):
+        if self.env.context.get("skip_normalized_3p_weight_validation"):
+            return
+        for record in self:
+            for pillar_code in NORMALIZED_3P_PILLAR_CODES:
+                pillar_lines = record.evaluation_line_ids.filtered(
+                    lambda line: line.pillar_code == pillar_code
+                )
+                if not pillar_lines:
+                    continue
+
+                root_lines = pillar_lines.filtered(lambda line: not line.parent_line_id)
+                root_weight = sum(root_lines.mapped("weight"))
+                if abs(root_weight - 100.0) > 0.01:
+                    raise ValidationError(
+                        _(
+                            "The total root weight of pillar %(pillar)s must be 100, but got %(weight)s."
+                        )
+                        % {
+                            "pillar": pillar_code,
+                            "weight": f"{root_weight:.2f}",
+                        }
+                    )
+
+                for parent_line in pillar_lines.filtered("child_line_ids"):
+                    direct_children = parent_line.child_line_ids.filtered(
+                        lambda line: line.pillar_code == pillar_code
+                    )
+                    if not direct_children:
+                        continue
+                    child_weight = sum(direct_children.mapped("weight"))
+                    if abs(child_weight - (parent_line.weight or 0.0)) > 0.01:
+                        raise ValidationError(
+                            _(
+                                "The child weight total of '%(line)s' must equal %(expected)s, but got %(actual)s."
+                            )
+                            % {
+                                "line": parent_line.name or parent_line.display_name,
+                                "expected": f"{(parent_line.weight or 0.0):.2f}",
+                                "actual": f"{child_weight:.2f}",
+                            }
+                        )
 
     def action_compute_auto_kpi(self):
         engine = self.env["hr.kpi.engine"]
@@ -180,13 +257,17 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         Chạy mỗi tối qua ir.cron.
         """
         today = fields.Date.context_today(self)
-        evaluations = self.search([
-            ("state", "not in", ["approved", "cancel"]),
-            ("start_date", "<=", today),
-            ("end_date", ">=", today),
-        ])
+        evaluations = self.search(
+            [
+                ("state", "not in", ["approved", "cancel"]),
+                ("start_date", "<=", today),
+                ("end_date", ">=", today),
+            ]
+        )
         if evaluations:
-            evaluations.with_context(skip_line_chatter_audit=True).action_compute_auto_kpi()
+            evaluations.with_context(
+                skip_line_chatter_audit=True
+            ).action_compute_auto_kpi()
 
     def action_submit(self):
         self.write({"state": "submitted"})
@@ -224,7 +305,18 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             )
 
     def write(self, vals):
-        res = super().write(vals)
+        if "evaluation_line_ids" in vals and not self.env.context.get(
+            "skip_normalized_3p_weight_validation"
+        ):
+            res = super(
+                HrDepartmentPerformanceEvaluation,
+                self.with_context(skip_normalized_3p_weight_validation=True),
+            ).write(vals)
+            self._rebuild_line_hierarchy_from_template()
+            self._recompute_line_scores_after_hierarchy_rebuild()
+            self._check_normalized_3p_weight_structure()
+        else:
+            res = super().write(vals)
         if "active" in vals and not self.env.context.get("skip_report_active_sync"):
             # boolean_toggle trên list view chỉ gọi write(active), nên sync phải nằm ở đây.
             self._sync_active_to_report_batch(vals["active"])
@@ -258,7 +350,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     def get_dept_kpi_score(self):
         """
         Return the current dept_kpi_score regardless of approval state.
-        Called by hr.performance.evaluation when computing final_score.
+        Called by hr.performance.evaluation when reading linked department KPI data.
 
         Business rules:
         - draft / submitted : return current dept_kpi_score (provisional value).
@@ -296,16 +388,15 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     def _prepare_evaluation_line_commands_from_template(self, kpi):
         """Build one2many commands for evaluation_line_ids from KPI template lines.
 
-        - Preserves ordering via sequence.
+        - Preserves hierarchy preorder from the template tree.
         - Preserves section/note lines.
         """
         self.ensure_one()
         if not kpi:
             return []
 
-        template_lines = kpi.kpi_line_ids.sorted(
-            lambda l: (l.sequence or 0, l._origin.id or 0, l.id or 0)
-        )
+        # Lấy template lines theo preorder đã chuẩn hoá để evaluation tree giữ nguyên hình dạng.
+        template_lines = kpi.get_hierarchy_ordered_lines()
 
         # Sử dụng : list[tuple] để Type Checker không hiểu lầm là danh sách chỉ chứa tuple 3 số nguyên.
         # fields.Command.clear() tương đương với lệnh (5, 0, 0) để xóa sạch các dòng cũ trước khi thêm mới.
@@ -326,7 +417,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         {
                             "department_kpi_line_id": line.id,
                             "parent_template_line_id": line.parent_line_id.id,
-                            # "sequence": line.sequence,
+                            "sequence": line.sequence,
                             "is_section": True,
                             "name": line.name,
                             "pillar_id": line.pillar_id.id,
@@ -336,8 +427,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "manual_scoring_type": False,
                             "target": 0.0,
                             "unit": False,
-                            "weight": 0.0,
+                            "weight": line.weight,
                             "score_scale_base_override": line.score_scale_base_override,
+                            "violation_threshold": line.violation_threshold,
                             "is_auto": False,
                         }
                     )
@@ -349,7 +441,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     {
                         "department_kpi_line_id": line.id,
                         "parent_template_line_id": line.parent_line_id.id,
-                        # "sequence": line.sequence,
+                        "sequence": line.sequence,
                         "name": line.name,
                         "pillar_id": line.pillar_id.id,
                         "description": getattr(line, "description", False),
@@ -361,11 +453,13 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "unit": line.unit.id
                         or (
                             score_unit.id
-                            if line.dept_source_type == "child_kpi_average" and score_unit
+                            if line.dept_source_type == "child_kpi_average"
+                            and score_unit
                             else False
                         ),
                         "weight": line.weight,
                         "score_scale_base_override": line.score_scale_base_override,
+                        "violation_threshold": line.violation_threshold,
                         "is_auto": bool(line.is_auto),
                     }
                 )
@@ -390,10 +484,37 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         {"parent_line_id": parent_line.id if parent_line else False}
                     )
 
+    # Recompute the KPI tree bottom-up so section lines receive scores immediately after generation.
+    def _recompute_line_scores_after_hierarchy_rebuild(self):
+        for evaluation in self:
+
+            def _depth(line):
+                depth = 0
+                current = line.parent_line_id
+                while current:
+                    depth += 1
+                    current = current.parent_line_id
+                return depth
+
+            ordered_lines = evaluation.evaluation_line_ids.sorted(
+                lambda line: (-_depth(line), line.sequence or 0, line.id or 0)
+            )
+            for line in ordered_lines:
+                line._compute_is_wipeout_triggered()
+                line._compute_system_score()
+                line._compute_final_score()
+
+            evaluation._compute_dept_kpi_score()
+
     @api.model_create_multi
     def create(self, vals_list):
-        records = super().create(vals_list)
+        records = super(
+            HrDepartmentPerformanceEvaluation,
+            self.with_context(skip_normalized_3p_weight_validation=True),
+        ).create(vals_list)
         records._rebuild_line_hierarchy_from_template()
+        records._recompute_line_scores_after_hierarchy_rebuild()
+        records._check_normalized_3p_weight_structure()
         return records
 
     def get_dashboard_data(self):
@@ -431,13 +552,14 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         project_ids = period_tasks.mapped("project_id").ids
         report_dashboard = {}
         if self.performance_report_id:
-            report_dashboard = (
-                self.performance_report_id.with_context(active_test=False)
-                .get_report_dashboard_data()
-            )
+            report_dashboard = self.performance_report_id.with_context(
+                active_test=False
+            ).get_report_dashboard_data()
 
-        period_label = self.period_id.name if self.period_id else (
-            str(self.start_date) if self.start_date else ""
+        period_label = (
+            self.period_id.name
+            if self.period_id
+            else (str(self.start_date) if self.start_date else "")
         )
         quantitative_table = self._get_quantitative_table_data()
         macro_sections = []
@@ -447,7 +569,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             "period_id": self.period_id.id if self.period_id else False,
             "period_name": self.period_id.name if self.period_id else "",
             "period_type": self.period_type or "",
-            "score_scale": self.env["res.config.settings"].get_score_scale_info(),
+            "score_scale": {
+                **self.env["res.config.settings"].get_score_scale_info(),
+                "base": self._get_evaluation_score_base(),
+                "suffix": f" / {int(self._get_evaluation_score_base())}",
+            },
             "dynamic_charts": chart_service.build_dynamic_charts(
                 self, dashboard_kind="department"
             ),
@@ -476,11 +602,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     def _get_quantitative_table_data(self):
         self.ensure_one()
         lines = self.evaluation_line_ids.filtered(
-            lambda l: (
-                not l.is_section
-                and not l.parent_line_id
-                and l.kpi_type == "auto"
-            )
+            lambda l: not l.is_section and not l.parent_line_id and l.kpi_type == "auto"
         )
         rows = []
         for line in lines:
@@ -906,8 +1028,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     "score_scale": score_scale,
                     "company": {
                         "dept_kpi_score": 0.0,
-                        "avg_performance_score": 0.0,
-                        "avg_final_score": 0.0,
+                        "avg_total_p3_individual": 0.0,
                         "total_employees": 0,
                         "total_depts": 0,
                         "pass_employee_count": 0,
@@ -1024,8 +1145,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             # ── Build departments list ────────────────────────────────────────
             departments = []
             total_dept_kpi_scores = []
-            total_performance_scores = []
-            total_final_scores = []
+            total_p3_individual_scores = []
             total_pass_count = 0
             total_emp_count = 0
 
@@ -1036,7 +1156,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 dept_kpi = dept_eval.get_dept_kpi_score() if dept_eval else 0.0
 
                 pass_count = sum(
-                    1 for ev in employee_evals if (ev.final_level or "fail") != "fail"
+                    1
+                    for ev in employee_evals
+                    if (ev.performance_level or "fail") != "fail"
                 )
                 total_pass_count += pass_count
                 total_emp_count += len(employee_evals)
@@ -1049,10 +1171,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     emp_dept_kpi = (
                         emp_dept_eval.get_dept_kpi_score() if emp_dept_eval else 0.0
                     )
-                    performance_score = float(ev.performance_score or 0.0)
-                    final_score = float(ev.final_score or 0.0)
-                    total_performance_scores.append(performance_score)
-                    total_final_scores.append(final_score)
+                    total_p3_individual = float(ev.total_p3_individual or 0.0)
+                    total_p3_individual_scores.append(total_p3_individual)
                     employees.append(
                         {
                             "id": ev.id,
@@ -1062,23 +1182,16 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "avatar_url": f"/web/image/hr.employee/{emp.id}/image_128"
                             if emp.id
                             else "",
-                            "final_score": round(final_score, 2),
-                            "performance_score": round(performance_score, 2),
+                            "total_p3_individual": round(total_p3_individual, 2),
                             "dept_kpi_score": round(float(emp_dept_kpi), 2),
-                            "final_level": ev.final_level or "fail",
+                            "performance_level": ev.performance_level or "fail",
                             "state": ev.state or "",
                         }
                     )
 
                 # Điểm trung bình cấp phòng ban dùng cho detail panel, cùng thang điểm cấu hình.
-                avg_performance_score = (
-                    sum(ev.performance_score or 0.0 for ev in employee_evals)
-                    / len(employee_evals)
-                    if employee_evals
-                    else 0.0
-                )
-                avg_final_score = (
-                    sum(ev.final_score or 0.0 for ev in employee_evals)
+                avg_total_p3_individual = (
+                    sum(ev.total_p3_individual or 0.0 for ev in employee_evals)
                     / len(employee_evals)
                     if employee_evals
                     else 0.0
@@ -1090,8 +1203,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "name": dept.name or "",
                         "manager_name": dept.manager_id.name if dept.manager_id else "",
                         "dept_kpi_score": round(float(dept_kpi), 2),
-                        "avg_performance_score": round(float(avg_performance_score), 2),
-                        "avg_final_score": round(float(avg_final_score), 2),
+                        "avg_total_p3_individual": round(
+                            float(avg_total_p3_individual), 2
+                        ),
                         "employee_count": len(employee_evals),
                         "employees": employees,
                     }
@@ -1106,24 +1220,20 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 if total_dept_kpi_scores
                 else 0.0
             )
-            company_avg_performance = (
-                sum(total_performance_scores) / len(total_performance_scores)
-                if total_performance_scores
-                else 0.0
-            )
-            company_avg_final = (
-                sum(total_final_scores) / len(total_final_scores)
-                if total_final_scores
+            company_avg_total_p3_individual = (
+                sum(total_p3_individual_scores) / len(total_p3_individual_scores)
+                if total_p3_individual_scores
                 else 0.0
             )
 
             # ── Failed evaluations: phiếu cá nhân/phòng ban không đạt theo threshold pass
-            # Nhân viên dùng performance_score theo yêu cầu nghiệp vụ, không dùng final_score.
+            # Nhân viên dùng total_p3_individual như điểm KPI cá nhân chuẩn.
             failed_evaluation_lines = []
             for ev in evals.filtered(
-                lambda record: float(record.performance_score or 0.0) < threshold_pass
+                lambda record: float(record.total_p3_individual or 0.0)
+                < threshold_pass
             ):
-                score = float(ev.performance_score or 0.0)
+                score = float(ev.total_p3_individual or 0.0)
                 failed_evaluation_lines.append(
                     {
                         "source_type": "employee",
@@ -1140,7 +1250,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     }
                 )
             for ev in dept_evals.filtered(
-                lambda record: float(record.get_dept_kpi_score() or 0.0) < threshold_pass
+                lambda record: (
+                    float(record.get_dept_kpi_score() or 0.0) < threshold_pass
+                )
             ):
                 score = float(ev.get_dept_kpi_score() or 0.0)
                 failed_evaluation_lines.append(
@@ -1317,8 +1429,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 "score_scale": score_scale,
                 "company": {
                     "dept_kpi_score": round(company_dept_kpi, 2),
-                    "avg_performance_score": round(company_avg_performance, 2),
-                    "avg_final_score": round(company_avg_final, 2),
+                    "avg_total_p3_individual": round(
+                        company_avg_total_p3_individual, 2
+                    ),
                     "total_employees": total_emp_count,
                     "total_depts": len(departments),
                     "pass_employee_count": total_pass_count,
@@ -1347,11 +1460,14 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 "available_periods": [],
                 "widgets": [],
                 "widget_map": {},
-                "score_scale": {"base": 10.0, "display_multiplier": 1, "suffix": " / 10"},
+                "score_scale": {
+                    "base": 10.0,
+                    "display_multiplier": 1,
+                    "suffix": " / 10",
+                },
                 "company": {
                     "dept_kpi_score": 0.0,
-                    "avg_performance_score": 0.0,
-                    "avg_final_score": 0.0,
+                    "avg_total_p3_individual": 0.0,
                     "total_employees": 0,
                     "total_depts": 0,
                     "pass_employee_count": 0,

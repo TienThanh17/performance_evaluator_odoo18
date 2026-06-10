@@ -233,7 +233,8 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                 count += 1
 
         if individual_evals:
-            individual_evals._compute_final_score()
+            individual_evals._compute_pillar_totals()
+            individual_evals._compute_performance_level()
 
         self._ensure_3p_summary()
 

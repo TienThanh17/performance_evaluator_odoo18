@@ -629,7 +629,7 @@ class HrPerformanceReport(models.Model):
                 {
                     "id": ev.employee_id.id if ev.employee_id else 0,
                     "name": ev.employee_id.name if ev.employee_id else "?",
-                    "score": round(float(ev.performance_score or 0.0), 2),
+                    "score": round(float(ev.total_p3_individual or 0.0), 2),
                     "level": ev.performance_level or "fail",
                     "eval_id": ev.id,
                 }
@@ -643,7 +643,9 @@ class HrPerformanceReport(models.Model):
                         else False
                     ),
                     "job_id": [ev.job_id.id, ev.job_id.name] if ev.job_id else False,
-                    "performance_score": round(float(ev.performance_score or 0.0), 2),
+                    "total_p3_individual": round(
+                        float(ev.total_p3_individual or 0.0), 2
+                    ),
                     "performance_level": ev.performance_level or False,
                     "state": ev.state or False,
                 }
@@ -653,7 +655,7 @@ class HrPerformanceReport(models.Model):
         total_employees = len(evaluations)
         avg_score = (
             round(
-                sum(float(ev.performance_score or 0.0) for ev in evaluations)
+                sum(float(ev.total_p3_individual or 0.0) for ev in evaluations)
                 / total_employees,
                 2,
             )

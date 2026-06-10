@@ -81,36 +81,18 @@
 
           </div>
 
-          <div class="o_kpi_formula_operator"> </div>
-
           <div class="o_kpi_summary_card o_kpi_summary_card_input">
             <div class="o_kpi_summary_label">Individual KPI</div>
             <div class="o_kpi_summary_score">
               <span t-esc="scoreText"/>
             </div>
-            <div class="o_kpi_summary_weight" t-esc="'Trọng số: ' + individualWeightText"/>
           </div>
-
-          <div class="o_kpi_formula_operator">+</div>
 
           <div class="o_kpi_summary_card o_kpi_summary_card_input" t-att-title="deptTooltip">
             <div class="o_kpi_summary_label">Department KPI</div>
             <div t-att-class="'o_kpi_summary_score ' + (state.data.has_dept_evaluation ? '' : 'o_kpi_summary_score_na')">
               <span t-esc="deptScoreText"/>
             </div>
-            <!-- <span t-att-class="deptStatusClass" t-esc="deptStatusLabel"/> -->
-            <div class="o_kpi_summary_weight" t-esc="'Trọng số: ' + deptWeightText"/>
-          </div>
-
-          <div class="o_kpi_formula_operator o_kpi_formula_operator_result">=</div>
-
-          <div class="o_kpi_summary_card o_kpi_summary_card_final">
-            <div class="o_kpi_summary_label">Final Bonus Score</div>
-            <div class="o_kpi_summary_score">
-              <span t-esc="finalScoreText"/>
-            </div>
-            <!-- <span t-att-class="finalLevelClass" t-esc="finalLevelLabel"/> -->
-            <div class="o_kpi_summary_formula" t-esc="formulaText"/>
           </div>
 
         </div>

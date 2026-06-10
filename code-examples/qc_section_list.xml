@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Chuyển pagination từ control panel xuống dưới list. -->
+    <t t-name="qc.QcSectionListField" t-inherit="web.X2ManyField" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_cp_pager')]" position="replace"/>
+        <xpath expr="//KanbanRenderer" position="after">
+            <div t-if="props.viewMode === 'list' and pagerProps.total > pagerProps.limit"
+                class="o_cp_pager mt-2" role="search">
+                <Pager t-props="pagerProps"/>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="qc.QcSectionListRenderer.RecordRow"
+        t-inherit="web.ListRenderer.RecordRow"
+        t-inherit-mode="primary"
+    >
+        <xpath expr="//td[@t-att-name='column.name']/t[@t-if='!isInvisible']" position="inside">
+            <div t-if="isSection(record)
+                and (column.name === titleField or (column.name === 'name' and titleField !== 'name'))
+                and record.resId and !hideAddItem"
+                class="mt-1"
+            >
+                <a href="#" role="button"
+                    class="btn btn-link btn-sm p-0 text-muted"
+                    t-on-click.stop.prevent="() => this.add({ context: getSectionItemContext(record) })"
+                >
+                    Add
+                </a>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

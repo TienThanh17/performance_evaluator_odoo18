@@ -17,7 +17,7 @@ import {
  * - Section rows (is_section=true) are inline editable and look like headers
  * - Rows keep the default editable flow; Add KPI still opens popup on creation
  */
-class KPIListRenderer extends ListRenderer {
+export class KPIListRenderer extends ListRenderer {
     setup() {
         super.setup();
 
@@ -249,18 +249,11 @@ class KPIListRenderer extends ListRenderer {
     }
 
     getColumns(record) {
-        const columns = super.getColumns(record);
-        if (!this.isSection(record)) {
-            return columns;
-        }
-        // For section rows, keep only handle + title (colspan)
-        const sectionColumns = columns.filter((col) => col.widget === "handle");
-        const colspan = columns.length - sectionColumns.length;
-        const titleCol = columns.find((col) => col.type === "field" && col.name === this.titleField);
-        if (titleCol) {
-            sectionColumns.push({ ...titleCol, colspan });
-        }
-        return sectionColumns;
+        // Always return the full column list so every row has the same number of <td>
+        // as the header <th>, keeping table alignment intact.
+        // For section rows, cells of irrelevant fields will render empty naturally;
+        // the title (name), weight, and parent_line_id columns will show their values.
+        return super.getColumns(record);
     }
 
     onCellKeydownEditMode(hotkey) {
@@ -277,7 +270,7 @@ class KPIListRenderer extends ListRenderer {
     }
 }
 
-class KPIOne2ManyField extends X2ManyField {
+export class KPIOne2ManyField extends X2ManyField {
     static components = {
         ...X2ManyField.components,
         ListRenderer: KPIListRenderer,

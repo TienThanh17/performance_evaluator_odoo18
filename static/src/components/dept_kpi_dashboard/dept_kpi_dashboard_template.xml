@@ -218,10 +218,10 @@
                     <td>
                       <div class="pd-score-cell">
                         <span class="pd-score-num">
-                          <t t-esc="formatReportScore(ev.performance_score || 0, 1)"/>
+                          <t t-esc="formatReportScore(ev.total_p3_individual || 0, 1)"/>
                         </span>
                         <div class="pd-progress-bar-wrap">
-                          <div class="pd-progress-bar-fill" t-att-style="'width:' + reportScorePct(ev.performance_score || 0) + '%'"/>
+                          <div class="pd-progress-bar-fill" t-att-style="'width:' + reportScorePct(ev.total_p3_individual || 0) + '%'"/>
                         </div>
                       </div>
                     </td>

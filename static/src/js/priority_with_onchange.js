@@ -7,7 +7,7 @@ export class PriorityFieldWithOnchange extends PriorityField {
         await this.props.record.update({ [this.props.name]: value });
 //        await this.props.record.save({ urgent: false });
 //
-//         // Reload parent record để performance_score trên evaluation được cập nhật
+//         // Reload parent record để total_p3_individual trên evaluation được cập nhật
 //        const parentRecord = this.props.record.model?.root;
 //        if (parentRecord && parentRecord !== this.props.record) {
 //            await parentRecord.load();

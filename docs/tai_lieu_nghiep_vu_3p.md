@@ -75,19 +75,3 @@ ightarrow$ **Dòng Chỉ tiêu con (KPI Line)**.
 * Nếu nhân viên vi phạm lỗi "Không đội mũ bảo hộ trên công trường" $
 ightarrow$ Lỗi này kích hoạt cờ vi phạm nghiêm trọng.
 * **Kết quả:** Toàn bộ điểm của Section An Toàn Lao Động lập tức bị hủy về 0 điểm (Mất trắng điểm trọng số của phần này).
-
----
-
-<!-- ## 3. Kiến trúc giải pháp chuẩn hóa cấu hình trên Odoo 18
-
-Để tránh việc hardcode cứng nhắc theo tên từng chữ cái P, hệ thống đã chuẩn hóa luật tính toán này thông qua việc phân loại trường `scoring_formula_type` (Loại công thức tính điểm) động:
-
-| Loại công thức (`scoring_formula_type`) | Mô tả toán học | Ánh xạ nghiệp vụ thực tế |
-| :--- | :--- | :--- |
-| `deduction` | Lấy điểm gốc của cha cộng dồn (số âm) các dòng con. | Áp dụng cho **P2.1 (Kiến thức)** |
-| `direct_score` | Lấy trực tiếp giá trị số từ trường đánh giá của Manager. | Áp dụng cho **P2.2 (Kỹ năng)** |
-| `wipeout_penalty` | Nếu có dòng con vi phạm, xóa sạch điểm của cụm dòng cha. | Áp dụng cho **P3.1.1 & P3.1.2 (KPI)** |
-| `linear` / `step_table` | Tính điểm dựa trên tỷ lệ % Đạt/Mục tiêu hoặc bảng bậc thang. | Áp dụng cho KPI định lượng thông thường. |
-
-### 💡 Lợi ích kiến trúc:
-Nhờ việc chia tách giao diện thành các Page riêng biệt (`kpi_line_p2_1_ids`, `kpi_line_p2_2_ids`...) nhưng đồng bộ chung một bảng dữ liệu con và quản trị bằng loại công thức động, hệ thống ADecSol HR đảm bảo tính linh hoạt tối đa. Khi doanh nghiệp thay đổi quy chế đánh giá, HR chỉ cần cấu hình lại loại công thức tính điểm trên màn hình mà không cần can thiệp vào mã nguồn hệ thống. -->
