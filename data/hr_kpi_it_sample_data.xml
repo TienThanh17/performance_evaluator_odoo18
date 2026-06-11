@@ -14,8 +14,8 @@
 
         <record id="scoring_profile_it_monthly" model="hr.kpi.scoring.profile">
             <field name="name">IT Monthly Profile</field>
-            <field name="threshold_excellent">8.5</field>
-            <field name="threshold_pass">6.0</field>
+            <field name="threshold_excellent">85.0</field>
+            <field name="threshold_pass">60.0</field>
         </record>
 
         <record id="department_kpi_it_2026_05" model="hr.department.kpi.template">
@@ -31,7 +31,7 @@
             <field name="kpi_type">auto</field>
             <field name="dept_source_type">child_kpi_average</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_score"/>
-            <field name="target">10</field>
+            <field name="target">100</field>
             <field name="scoring_formula_id" ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher"/>
             <field name="weight">45</field>
             <field name="sequence">20</field>
@@ -43,7 +43,7 @@
             <field name="kpi_type">auto</field>
             <field name="dept_source_type">child_kpi_average</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_score"/>
-            <field name="target">10</field>
+            <field name="target">100</field>
             <field name="scoring_formula_id" ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher"/>
             <field name="weight">35</field>
             <field name="sequence">40</field>
@@ -55,7 +55,7 @@
             <field name="kpi_type">auto</field>
             <field name="dept_source_type">child_kpi_average</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_score"/>
-            <field name="target">10</field>
+            <field name="target">100</field>
             <field name="scoring_formula_id" ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher"/>
             <field name="weight">20</field>
             <field name="sequence">60</field>

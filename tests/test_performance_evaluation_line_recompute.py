@@ -47,9 +47,8 @@ class TestPerformanceEvaluationLineRecompute(TransactionCase):
                 "manual_scoring_type": "score",
                 "pillar_id": self.p3_individual_pillar.id,
                 "weight": 50.0,
-                "score_scale_base_override": 10.0,
-                "employee_rating_score": 6.0,
-                "manager_rating_score": 6.0,
+                "employee_rating_score": 60.0,
+                "manager_rating_score": 60.0,
             }
         )
         self.child_line_2 = self.Line.create(
@@ -61,9 +60,8 @@ class TestPerformanceEvaluationLineRecompute(TransactionCase):
                 "manual_scoring_type": "score",
                 "pillar_id": self.p3_individual_pillar.id,
                 "weight": 50.0,
-                "score_scale_base_override": 10.0,
-                "employee_rating_score": 8.0,
-                "manager_rating_score": 8.0,
+                "employee_rating_score": 80.0,
+                "manager_rating_score": 80.0,
             }
         )
 
@@ -71,18 +69,18 @@ class TestPerformanceEvaluationLineRecompute(TransactionCase):
         parent = self.Line.browse(self.parent_line.id)
         evaluation = self.Evaluation.browse(self.evaluation.id)
 
-        self.assertAlmostEqual(parent.final_rating, 7.0, places=2)
-        self.assertAlmostEqual(evaluation.total_p3_individual, 7.0, places=2)
+        self.assertAlmostEqual(parent.final_rating, 70.0, places=2)
+        self.assertAlmostEqual(evaluation.total_p3_individual, 70.0, places=2)
 
-        self.child_line_1.write({"employee_rating_score": 9.0})
+        self.child_line_1.write({"employee_rating_score": 90.0})
 
         parent = self.Line.browse(self.parent_line.id)
         child_line_1 = self.Line.browse(self.child_line_1.id)
         evaluation = self.Evaluation.browse(self.evaluation.id)
 
-        self.assertAlmostEqual(child_line_1.manager_rating_score, 9.0, places=2)
-        self.assertAlmostEqual(parent.final_rating, 8.5, places=2)
-        self.assertAlmostEqual(evaluation.total_p3_individual, 8.5, places=2)
+        self.assertAlmostEqual(child_line_1.manager_rating_score, 90.0, places=2)
+        self.assertAlmostEqual(parent.final_rating, 85.0, places=2)
+        self.assertAlmostEqual(evaluation.total_p3_individual, 85.0, places=2)
         self.assertEqual(
             evaluation.performance_level,
             evaluation._get_level_from_score(evaluation.total_p3_individual),

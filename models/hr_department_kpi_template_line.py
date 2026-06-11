@@ -47,7 +47,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
     )
     dept_source_type = fields.Selection(
         [
-            ("manual", "Manual"),
+            ("manual", "Manual Actual Input"),
             ("child_kpi_average", "Average From Child KPIs"),
             ("data_source", "Automatic Data Source"),
         ],
@@ -106,10 +106,6 @@ class HrDepartmentKpiTemplateLine(models.Model):
         "hr.department.kpi.template.line",
         "parent_line_id",
         string="Child Lines",
-    )
-    score_scale_base_override = fields.Float(
-        string="Score Scale Base Override",
-        help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
     )
     child_template_line_ids = fields.One2many(
         "hr.kpi.template.line",

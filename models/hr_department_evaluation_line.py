@@ -12,7 +12,7 @@ from .kpi_type_utils import (
 )
 
 DEPARTMENT_SOURCE_TYPE_SELECTION = [
-    ("manual", "Manual"),
+    ("manual", "Manual Actual Input"),
     ("child_kpi_average", "Average From Child KPIs"),
     ("data_source", "Automatic Data Source"),
 ]
@@ -692,6 +692,12 @@ class HrDepartmentEvaluationLine(models.Model):
     # Tính lại cây điểm ngay trên form để section parent phản ánh thay đổi từ lần sửa đầu tiên.
     def _onchange_recompute_score_tree(self):
         self._recompute_score_tree()
+
+    @api.onchange('kpi_type')
+    def _onchange_kpi_type(self):
+        """Khi loại KPI thay đổi, xóa giá trị của loại chấm điểm thủ công"""
+        for record in self:
+            record.manual_scoring_type = False
 
     # Keep manual subtype required for manual lines and empty for auto lines.
     @api.constrains("kpi_type", "manual_scoring_type")

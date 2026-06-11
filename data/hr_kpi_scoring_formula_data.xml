@@ -36,7 +36,7 @@
             <field name="sequence">10</field>
             <field name="formula_type">penalty</field>
             <field name="penalty_base_score">0.0</field>
-            <field name="penalty_deduct_per_unit">1.0</field>
+            <field name="penalty_deduct_per_unit">10.0</field>
             <field name="penalty_floor">0.0</field>
             
             <field name="description">Bắt đầu từ max_score runtime, trừ 1 điểm mỗi đơn vị vi phạm.</field>
@@ -47,7 +47,7 @@
             <field name="sequence">11</field>
             <field name="formula_type">penalty</field>
             <field name="penalty_base_score">0.0</field>
-            <field name="penalty_deduct_per_unit">2.0</field>
+            <field name="penalty_deduct_per_unit">20.0</field>
             <field name="penalty_floor">0.0</field>
             
             <field name="description">Bắt đầu từ max_score runtime, trừ 2 điểm mỗi đơn vị vi phạm.</field>
@@ -61,9 +61,9 @@
             <field name="step_table_json"><![CDATA[
 [
   {"from": 0, "to": 50, "score": 0},
-  {"from": 51, "to": 70, "score": 6},
-  {"from": 71, "to": 90, "score": 8},
-  {"from": 91, "to": 100, "score": 10}
+  {"from": 51, "to": 70, "score": 60},
+  {"from": 71, "to": 90, "score": 80},
+  {"from": 91, "to": 100, "score": 100}
 ]
             ]]></field>
             

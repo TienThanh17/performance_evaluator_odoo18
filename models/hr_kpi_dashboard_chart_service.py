@@ -335,7 +335,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 "labels": labels,
                 "datasets": [
                     {
-                        "label": _("Điểm đánh giá"),
+                        "label": _("Score"),
                         "data": scores,
                         "backgroundColor": "rgba(59, 130, 246, 0.2)",
                         "borderColor": "#3b82f6",

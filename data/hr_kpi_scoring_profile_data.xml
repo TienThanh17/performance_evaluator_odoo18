@@ -3,8 +3,8 @@
     <data noupdate="1">
         <record id="hr_kpi_scoring_profile_default" model="hr.kpi.scoring.profile">
             <field name="name">Default</field>
-            <field name="threshold_excellent">8.5</field>
-            <field name="threshold_pass">6.0</field>
+            <field name="threshold_excellent">85.0</field>
+            <field name="threshold_pass">60.0</field>
         </record>
     </data>
 </odoo>

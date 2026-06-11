@@ -22,7 +22,7 @@ class HrKpiScoringFormula(models.Model):
             ("linear", "Tuyến tính"),
             ("step_table", "Bảng bậc thang"),
             ("penalty", "Trừ điểm"),
-            ("expression", "Biểu thức tùy chỉnh"),
+            # ("expression", "Biểu thức tùy chỉnh"),
         ],
         required=True,
         default="linear",

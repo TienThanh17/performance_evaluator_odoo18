@@ -1460,9 +1460,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 "widgets": [],
                 "widget_map": {},
                 "score_scale": {
-                    "base": 10.0,
+                    "base": 100.0,
                     "display_multiplier": 1,
-                    "suffix": " / 10",
+                    "storage_base": 100.0,
+                    "suffix": " / 100",
                 },
                 "company": {
                     "dept_kpi_score": 0.0,
@@ -1482,5 +1483,5 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 "financial_kpis": [],
                 "ai_insights": [],
                 "trends": [],
-                "thresholds": {"excellent": 9.0, "pass": 5.0},
+                "thresholds": {"excellent": 90.0, "pass": 50.0},
             }
