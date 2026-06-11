@@ -470,7 +470,7 @@ export class KpiTreeDashboard extends Component {
     }
 
     scoreBarWidth(val) {
-        const base = this.state.data?.score_scale?.base || 10;
+        const base = this.state.data?.score_scale?.base || 100;
         return Math.max(0, Math.min(100, ((Number(val) || 0) / base) * 100));
     }
 

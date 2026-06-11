@@ -81,10 +81,6 @@ class HrKpiTemplateLine(models.Model):
         "parent_line_id",
         string="Child Lines",
     )
-    score_scale_base_override = fields.Float(
-        string="Score Scale Base Override",
-        help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
-    )
     score_max_display = fields.Char(
         string="Max Score",
         compute="_compute_score_max_display",
@@ -165,18 +161,16 @@ class HrKpiTemplateLine(models.Model):
         for rec in self:
             rec.is_auto = bool(rec.kpi_type == "auto" and rec.data_source_id)
 
-    # Compute the score scale hint shown next to manual score inputs.
-    @api.depends("kpi_type", "manual_scoring_type", "score_scale_base_override")
+    # Hiển thị nhãn thang điểm cố định cho manual score KPI.
+    @api.depends("kpi_type", "manual_scoring_type")
     def _compute_score_max_display(self):
         for rec in self:
-            if (
-                rec.kpi_type == "manual"
+            rec.score_max_display = (
+                "/ 100 pts"
+                if rec.kpi_type == "manual"
                 and rec.manual_scoring_type == "score"
-                and rec.score_scale_base_override > 0
-            ):
-                rec.score_max_display = f"/ {rec.score_scale_base_override:g} pts"
-            else:
-                rec.score_max_display = ""
+                else ""
+            )
 
     # Flag template lines that use non-linear auto scoring formulas.
     @api.depends("kpi_type", "scoring_formula_id", "scoring_formula_id.formula_type")

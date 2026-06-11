@@ -168,7 +168,7 @@ function baseLineOpts(yLabel = "", xLabel = "") {
     };
 }
 
-function buildThresholdLinePlugin(thresholdValue = 10) {
+function buildThresholdLinePlugin(thresholdValue = 100) {
     return {
         id: `deptThresholdLine_${thresholdValue}`,
         beforeDraw: (chart) => {
@@ -332,7 +332,7 @@ export class DeptKpiDashboard extends Component {
     // ── Getters ───────────────────────────────────────────────────────────────
 
     get scoreScale() {
-        return this.state.data?.score_scale || { suffix: " / 10" };
+        return this.state.data?.score_scale || { base: 100, suffix: " / 100" };
     }
 
     get reportDashboard() {
@@ -348,7 +348,7 @@ export class DeptKpiDashboard extends Component {
     }
 
     get reportThresholds() {
-        return this.reportDashboard?.thresholds || { excellent: 9, pass: 5 };
+        return this.reportDashboard?.thresholds || { excellent: 90, pass: 50 };
     }
 
     get approvableCount() {
@@ -387,7 +387,7 @@ export class DeptKpiDashboard extends Component {
     }
 
     reportScorePct(value) {
-        const base = Number(this.reportScoreScale.base || 10);
+        const base = Number(this.reportScoreScale.base || 100);
         return Math.max(0, Math.min(100, ((Number(value) || 0) / base) * 100));
     }
 
@@ -1028,7 +1028,7 @@ export class DeptKpiDashboard extends Component {
                         beginAtZero: true,
                         title: { display: true, text: _t("Số lần chấm công"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
-                        ticks: { stepSize: (this.state.data?.score_scale?.base || 10) / 10, font: { size: 10 } },
+                        ticks: { stepSize: (this.state.data?.score_scale?.base || 100) / 10, font: { size: 10 } },
                     },
                 },
                 plugins: {
@@ -1103,7 +1103,7 @@ export class DeptKpiDashboard extends Component {
                         ticks: { font: { size: 11 } },
                     },
                     y: {
-                        min: 0, max: this.state.data?.score_scale?.base || 10,
+                        min: 0, max: this.state.data?.score_scale?.base || 100,
                         title: { display: true, text: _t("Score"), font: { size: 11 } },
                         grid: { color: "rgba(0,0,0,0.05)" },
                         ticks: { stepSize: 1, font: { size: 10 } },
@@ -1168,9 +1168,9 @@ export class DeptKpiDashboard extends Component {
     _chartReportScoreConfig(employees) {
         const names = employees.map((employee) => employee.name);
         const scores = employees.map((employee) => employee.score);
-        const scoreBase = this.reportScoreScale.base || 10;
-        const excellent = this.reportThresholds.excellent || 9;
-        const passed = this.reportThresholds.pass || 5;
+        const scoreBase = this.reportScoreScale.base || 100;
+        const excellent = this.reportThresholds.excellent || 90;
+        const passed = this.reportThresholds.pass || 50;
 
         return {
             type: "bar",
@@ -1439,7 +1439,7 @@ export class DeptKpiDashboard extends Component {
     }
 
     _chartReportQualitativeConfig(qualitativeChart) {
-        const scoreBase = this.reportScoreScale.base || 10;
+        const scoreBase = this.reportScoreScale.base || 100;
         return {
             type: "bar",
             data: {

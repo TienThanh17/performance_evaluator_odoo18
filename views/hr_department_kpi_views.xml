@@ -31,7 +31,6 @@
                                 invisible="is_section or kpi_type != 'auto'"
                                 options="{'no_create': True}" />
                             <field name="weight" />
-                            <field name="score_scale_base_override" />
                             <field name="wipeout_if_child_zero"
                                 invisible="not is_section" />
                         </group>
@@ -132,8 +131,6 @@
                                         invisible="is_section or not is_auto or dept_source_type != 'data_source'" />
 
                                     <field name="weight" />
-                                    <field name="score_scale_base_override"
-                                        optional="show" />
                                     <field name="wipeout_if_child_zero"
                                         invisible="not is_section"
                                         optional="hide" />

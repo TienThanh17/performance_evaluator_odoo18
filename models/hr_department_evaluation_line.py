@@ -93,10 +93,6 @@ class HrDepartmentEvaluationLine(models.Model):
         help="Display unit for Target/Actual, e.g. %, tasks, days, score.",
     )
     weight = fields.Float()
-    score_scale_base_override = fields.Float(
-        string="Score Scale Base Override",
-        help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
-    )
     wipeout_if_child_zero = fields.Boolean(
         string="Wipeout If Child Zero",
         default=False,
@@ -341,23 +337,15 @@ class HrDepartmentEvaluationLine(models.Model):
                 )
             line.child_line_rows_json = json.dumps(child_rows, ensure_ascii=False)
 
+    # Trả về thang điểm chuẩn duy nhất của dòng KPI phòng ban.
     def _get_score_base(self):
         self.ensure_one()
-        if self.score_scale_base_override and self.score_scale_base_override > 0:
-            return self.score_scale_base_override
         return self.env["res.config.settings"].get_score_scale_base()
 
-    # Convert the global pass/excellent thresholds to the line score base.
+    # Lấy ngưỡng pass/excellent theo thang điểm chuẩn 100.
     def _get_score_thresholds(self):
         self.ensure_one()
-        settings = self.env["res.config.settings"]
-        excellent, passed = settings.get_thresholds()
-        configured_base = settings.get_score_scale_base() or 10.0
-        target_base = self._get_score_base()
-        if configured_base and target_base and configured_base != target_base:
-            excellent = settings.convert_score(excellent, configured_base, target_base)
-            passed = settings.convert_score(passed, configured_base, target_base)
-        return excellent, passed
+        return self.env["res.config.settings"].get_thresholds()
 
     # Return the direct children that participate in score roll-up.
     def _get_direct_scoring_children(self):
@@ -371,7 +359,6 @@ class HrDepartmentEvaluationLine(models.Model):
             raise_if_not_found=False,
         )
         score_base = self.env["res.config.settings"].get_score_scale_base()
-        line_score_base = template_line.score_scale_base_override or score_base
 
         # Với section row, chỉ snapshot dữ liệu hiển thị và rule tổng hợp, không giữ config auto kỹ thuật.
         if template_line.is_section:
@@ -384,7 +371,6 @@ class HrDepartmentEvaluationLine(models.Model):
                 "target": 0.0,
                 "unit": False,
                 "weight": template_line.weight,
-                "score_scale_base_override": template_line.score_scale_base_override,
                 "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
                 "is_auto": False,
                 "dept_source_type": "manual",
@@ -400,7 +386,7 @@ class HrDepartmentEvaluationLine(models.Model):
             "description": getattr(template_line, "description", False),
             "kpi_type": template_line.kpi_type,
             "manual_scoring_type": template_line.manual_scoring_type,
-            "target": line_score_base
+            "target": score_base
             if template_line.dept_source_type == "child_kpi_average"
             else template_line.target,
             "unit": template_line.unit.id
@@ -410,7 +396,6 @@ class HrDepartmentEvaluationLine(models.Model):
                 else False
             ),
             "weight": template_line.weight,
-            "score_scale_base_override": template_line.score_scale_base_override,
             "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
             "is_auto": bool(template_line.is_auto),
             "dept_source_type": template_line.dept_source_type or "manual",
@@ -544,7 +529,6 @@ class HrDepartmentEvaluationLine(models.Model):
         "target",
         "kpi_type",
         "manual_scoring_type",
-        "score_scale_base_override",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
@@ -648,7 +632,7 @@ class HrDepartmentEvaluationLine(models.Model):
                     f"{actual_str} {unit_name}" if unit_name else actual_str
                 )
 
-    @api.depends("final_score", "score_scale_base_override")
+    @api.depends("final_score")
     def _compute_final_score_badge_class(self):
         for line in self:
             excellent, passed = line._get_score_thresholds()
@@ -684,7 +668,6 @@ class HrDepartmentEvaluationLine(models.Model):
         "parent_line_id",
         "kpi_type",
         "manual_scoring_type",
-        "score_scale_base_override",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",

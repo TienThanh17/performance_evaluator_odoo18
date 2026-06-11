@@ -48,7 +48,6 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "views/hr_kpi_scoring_formula_test_wizard_views.xml",
         "views/hr_department_kpi_generate_wizard_views.xml",
         "views/kpi_generate_wizard_views.xml",
-        "views/hr_kpi_score_scale_convert_wizard_views.xml",
         "views/kpi_view.xml",
         "views/res_config_settings_views.xml",
         "views/kpi_unit_views.xml",

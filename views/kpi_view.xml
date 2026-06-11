@@ -38,10 +38,6 @@
                                 <field name="weight" />
                                 <field name="wipeout_if_child_zero"
                                     invisible="not is_section" />
-                                <label for="score_scale_base_override" />
-                                <div class="o_row">
-                                    <field name="score_scale_base_override" nolabel="1" />
-                                </div>
                             </group>
                             <group string="Auto Compute"
                                 invisible="is_section or kpi_type != 'auto'">
@@ -147,8 +143,6 @@
                         invisible="is_section or not is_auto" width="150px" />
 
                     <field name="weight" width="80px" />
-                    <field name="score_scale_base_override"
-                        optional="show" width="100px" />
                     <field name="wipeout_if_child_zero"
                         invisible="not is_section"
                         optional="hide" width="100px" />
@@ -257,8 +251,6 @@
                                             invisible="is_section or not is_auto" width="150px" />
 
                                         <field name="weight" width="80px" />
-                                        <field name="score_scale_base_override"
-                                            optional="show" width="100px" />
                                         <field name="wipeout_if_child_zero"
                                             invisible="not is_section"
                                             optional="hide" width="100px" />

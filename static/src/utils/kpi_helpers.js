@@ -27,17 +27,17 @@ import { _t } from "@web/core/l10n/translation";
  *
  * @example
  * // dept_kpi_dashboard: toFixed(2), không multiplier
- * formatScore(8.5, scale, { decimals: 2 })              // "8.50 / 10"
+ * formatScore(85, scale, { decimals: 2 })               // "85.00 / 100"
  *
  * // kpi_dashboard_page: toFixed linh hoạt, không multiplier
- * formatScore(8.5, scale, { decimals: 1 })              // "8.5 / 10"
+ * formatScore(85, scale, { decimals: 1 })               // "85.0 / 100"
  *
  * // kpi_tree_dashboard: có multiplier, không toFixed
- * formatScore(8.5, scale, { decimals: null, useMultiplier: true })  // "8.5 / 10"
+ * formatScore(85, scale, { decimals: null, useMultiplier: true })   // "85 / 100"
  */
 export function formatScore(val, scale, { decimals = 2, useMultiplier = false } = {}) {
     if (val == null) return "—";
-    const safeScale = scale || { suffix: " / 10" };
+    const safeScale = scale || { base: 100, suffix: " / 100" };
     let score = Number(val) || 0;
     if (useMultiplier) {
         score = score * (safeScale.display_multiplier || 1);

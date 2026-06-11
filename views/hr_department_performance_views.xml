@@ -23,7 +23,6 @@
                             <field name="parent_line_id"
                                 domain="[('evaluation_id', '=', evaluation_id), ('id', '!=', id)]"
                                 options="{'no_create': True}" />
-                            <field name="score_scale_base_override" />
                         </group>
                     </group>
 
@@ -270,9 +269,6 @@
                                         column_invisible="not parent.has_score_kpi"
                                     />
                                     <field name="weight" readonly="1" />
-                                    <field name="score_scale_base_override"
-                                        optional="show"
-                                        readonly="1" />
 
                                     <field name="final_score_badge_class" column_invisible="1" />
                                     <field name="final_score_badge_text" string="Score" readonly="1"

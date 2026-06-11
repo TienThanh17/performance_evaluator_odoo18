@@ -213,7 +213,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">10</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">10</field>
             <field name="description">Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất
                 công việc thực hiện</field>
@@ -232,7 +232,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">11</field>
             <field name="description">Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất
                 công việc thực hiện</field>
@@ -252,7 +252,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">12</field>
             <field name="description">Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</field>
         </record>
@@ -272,7 +272,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">13</field>
             <field name="description">Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</field>
         </record>
@@ -291,7 +291,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">14</field>
             <field name="description">Phân tích, đánh giá rủi ro, phương pháp làm việc an toàn khi
                 thực hiện</field>
@@ -313,7 +313,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">15</field>
             <field name="description">Đào tạo, huấn luyện an toàn CBNV</field>
         </record>
@@ -329,7 +329,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">20</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">20</field>
             <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
         </record>
@@ -347,7 +347,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">6.666667</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">21</field>
             <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
         </record>
@@ -365,7 +365,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">6.666667</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">22</field>
             <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
         </record>
@@ -383,7 +383,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">6.666667</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">23</field>
             <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
         </record>
@@ -399,7 +399,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">15</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">30</field>
             <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
         </record>
@@ -418,7 +418,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">31</field>
             <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
         </record>
@@ -436,7 +436,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">32</field>
             <field name="description">Hiệu suất</field>
         </record>
@@ -454,7 +454,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">33</field>
             <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
         </record>
@@ -472,7 +472,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">34</field>
             <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
         </record>
@@ -488,7 +488,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">20</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">40</field>
             <field name="description">Tiến độ thực hiện công việc</field>
         </record>
@@ -506,7 +506,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">10</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">41</field>
             <field name="description">Tiến độ thực hiện công việc</field>
         </record>
@@ -524,7 +524,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">10</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">42</field>
             <field name="description">Tiến độ thực hiện công việc</field>
         </record>
@@ -540,7 +540,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">15</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">50</field>
             <field name="description">Giảm chi phí tối thiểu</field>
         </record>
@@ -558,7 +558,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">7.5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">51</field>
             <field name="description">Giảm chi phí tối thiểu</field>
         </record>
@@ -576,7 +576,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">7.5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">52</field>
             <field name="description">Giảm chi phí tối thiểu</field>
         </record>
@@ -592,7 +592,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">15</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">60</field>
             <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
         </record>
@@ -610,7 +610,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">61</field>
             <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
         </record>
@@ -628,7 +628,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">62</field>
             <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
         </record>
@@ -646,7 +646,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">63</field>
             <field name="description">Nội quy công ty</field>
         </record>
@@ -662,7 +662,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">70</field>
             <field name="description">Tiêu chí đạt thẩm mỹ</field>
         </record>
@@ -682,7 +682,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">71</field>
             <field name="description">Tiêu chí đạt thẩm mỹ</field>
         </record>
@@ -710,7 +710,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">35</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">100</field>
         </record>
         <record id="line_emp_p21_tc1_grp1_202604" model="hr.kpi.template.line">
@@ -725,7 +725,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">15</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">101</field>
         </record>
         <record id="line_emp_p21_tc1_grp1_item1_202604" model="hr.kpi.template.line">
@@ -739,7 +739,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">102</field>
             <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng lập kế hoạch hàng
                 ngày (Kế hoạch 5 phút).</field>
@@ -755,7 +755,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">103</field>
             <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng lập kế hoạch, báo
                 cáo tuần/ tháng/ quí/ năm.</field>
@@ -772,7 +772,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">4</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">104</field>
             <field name="description">Thang điểm tham khảo: -4. Diễn giải: Kỹ năng làm việc theo qui
                 trình, không có qui trình thì thực hiện theo hướng dẫn của người quản lý trực tiếp.</field>
@@ -788,7 +788,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">105</field>
             <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng sử dụng phần mềm
                 vào công việc được giao.</field>
@@ -804,7 +804,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">106</field>
             <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng làm việc nhóm
                 hoặc độc lập.</field>
@@ -820,7 +820,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">107</field>
             <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng nhận dạng và giải
                 quyết vấn đề. Sheet tháng 04/2026 có ghi nhận trừ điểm ở Huỳnh Trọng Đại, Võ Châu
@@ -838,7 +838,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">108</field>
             <field name="description">Thang điểm tham khảo: -1. Diễn giải: Tiếng anh/ đọc hiểu bản
                 vẽ, tài liệu tiếng anh.</field>
@@ -855,7 +855,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">109</field>
             <field name="description">Thang điểm tham khảo: -2. Diễn giải: Quản lý thời gian.</field>
         </record>
@@ -872,7 +872,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">10</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">110</field>
         </record>
         <record id="line_emp_p21_tc1_grp2_item1_202604" model="hr.kpi.template.line">
@@ -886,7 +886,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">111</field>
             <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng phân tích rủi ro
                 thi công.</field>
@@ -902,7 +902,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">2</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">112</field>
             <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng xây dựng qui
                 trình. Sheet tháng 04/2026 có ghi nhận trừ điểm ở Huỳnh Trọng Đại, Đỗ Minh Đường,
@@ -919,7 +919,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">113</field>
             <field name="description">Thang điểm tham khảo: -1. Diễn giải: Xây dựng KPI, chính sách
                 phúc lợi cho phòng.</field>
@@ -936,7 +936,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">114</field>
             <field name="description">Thang điểm tham khảo: -1. Diễn giải: Quản lý đội nhóm &amp;
                 tạo động lực cho nhân viên.</field>
@@ -952,7 +952,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">115</field>
             <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng đào tạo nhân
                 viên.</field>
@@ -968,7 +968,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">116</field>
             <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng điều phối cuộc
                 họp. Sheet tháng 04/2026 có ghi nhận trừ điểm ở Đỗ Minh Đường.</field>
@@ -984,7 +984,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">117</field>
             <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng giám sát đội
                 nhóm.</field>
@@ -1001,7 +1001,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">118</field>
             <field name="description">Thang điểm tham khảo: -1. Diễn giải: Tiếng anh/ đọc hiểu và
                 trả lời mail, tài liệu, giao tiếp được.</field>
@@ -1019,7 +1019,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">10</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">119</field>
         </record>
         <record id="line_emp_p21_tc1_grp3_item1_202604" model="hr.kpi.template.line">
@@ -1033,7 +1033,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">120</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1048,7 +1048,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.428571</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">121</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -1064,7 +1064,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">122</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến, Đinh Đại
@@ -1081,7 +1081,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.428571</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">123</field>
             <field name="description">Thang điểm tham khảo: -2. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến, Đinh Đại
@@ -1098,7 +1098,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">124</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến, Đinh Đại
@@ -1115,7 +1115,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">125</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến, Đinh Đại
@@ -1133,7 +1133,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">126</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến.</field>
@@ -1149,7 +1149,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">127</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1164,7 +1164,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">128</field>
             <field name="description">Thang điểm tham khảo: +1.</field>
         </record>
@@ -1179,7 +1179,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">129</field>
             <field name="description">Thang điểm tham khảo: +1.</field>
         </record>
@@ -1194,7 +1194,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">130</field>
             <field name="description">Thang điểm tham khảo: +1.</field>
         </record>
@@ -1209,7 +1209,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.714286</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">131</field>
             <field name="description">Thang điểm tham khảo: +1.</field>
         </record>
@@ -1224,7 +1224,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">40</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">200</field>
         </record>
         <record id="line_emp_p21_tc2_grp1_202604" model="hr.kpi.template.line">
@@ -1239,7 +1239,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">35</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">201</field>
         </record>
         <record id="line_emp_p21_tc2_grp1_item0_202604" model="hr.kpi.template.line">
@@ -1253,7 +1253,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">202</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1269,7 +1269,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">14</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">203</field>
         </record>
         <record id="line_emp_p21_tc2_grp1_web_item1_202604" model="hr.kpi.template.line">
@@ -1283,7 +1283,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">204</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1299,7 +1299,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">205</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1315,7 +1315,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">206</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1330,7 +1330,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">207</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1345,7 +1345,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">208</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường.</field>
@@ -1361,7 +1361,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">209</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại.</field>
@@ -1378,7 +1378,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">210</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Huỳnh Trọng Đại.</field>
@@ -1395,7 +1395,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">211</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
@@ -1413,7 +1413,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">8.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">212</field>
         </record>
         <record id="line_emp_p21_tc2_grp1_mobile_item1_202604" model="hr.kpi.template.line">
@@ -1428,7 +1428,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">213</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Huỳnh Trọng Đại, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến.</field>
@@ -1444,7 +1444,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">214</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
@@ -1462,7 +1462,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">215</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến.</field>
@@ -1479,7 +1479,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">216</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến.</field>
@@ -1495,7 +1495,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">217</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy.</field>
@@ -1512,7 +1512,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">5.25</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">218</field>
         </record>
         <record id="line_emp_p21_tc2_grp1_emb_item1_202604" model="hr.kpi.template.line">
@@ -1527,7 +1527,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">219</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
@@ -1544,7 +1544,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">220</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
@@ -1561,7 +1561,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">221</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
@@ -1579,7 +1579,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">5.25</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">222</field>
         </record>
         <record id="line_emp_p21_tc2_grp1_sec_item1_202604" model="hr.kpi.template.line">
@@ -1593,7 +1593,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">223</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
@@ -1610,7 +1610,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">224</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
@@ -1627,7 +1627,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">225</field>
             <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
@@ -1647,7 +1647,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">0</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">226</field>
         </record>
         <record id="line_emp_p21_tc2_grp2_item1_202604" model="hr.kpi.template.line">
@@ -1661,7 +1661,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">227</field>
         </record>
         <record id="line_emp_p21_tc2_grp2_item2_202604" model="hr.kpi.template.line">
@@ -1675,7 +1675,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">228</field>
         </record>
 
@@ -1692,7 +1692,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">0</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">229</field>
         </record>
         <record id="line_emp_p21_tc2_grp3_item1_202604" model="hr.kpi.template.line">
@@ -1706,7 +1706,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">230</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1721,7 +1721,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">231</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1736,7 +1736,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">232</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1751,7 +1751,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">233</field>
         </record>
 
@@ -1767,7 +1767,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">234</field>
         </record>
         <record id="line_emp_p21_tc2_grp4_item1_202604" model="hr.kpi.template.line">
@@ -1781,7 +1781,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">235</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1796,7 +1796,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">236</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1811,7 +1811,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">237</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1827,7 +1827,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">238</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1843,7 +1843,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">239</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1858,7 +1858,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">240</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1873,7 +1873,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">241</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1888,7 +1888,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">242</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1903,7 +1903,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">243</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1918,7 +1918,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">244</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1933,7 +1933,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">245</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1948,7 +1948,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">246</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1963,7 +1963,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.384615</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">247</field>
             <field name="description">Thang điểm tham khảo: -1.</field>
         </record>
@@ -1978,7 +1978,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">15</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">300</field>
         </record>
         <record id="line_emp_p21_tc3_grp1_202604" model="hr.kpi.template.line">
@@ -1992,7 +1992,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">3</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">301</field>
             <field name="description">Điểm cộng tham khảo: +1.</field>
         </record>
@@ -2008,7 +2008,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">12</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">302</field>
             <field name="description">Điểm cộng tham khảo: +3.</field>
         </record>
@@ -2023,7 +2023,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">3</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">303</field>
         </record>
         <record id="line_emp_p21_tc3_grp2_item2_202604" model="hr.kpi.template.line">
@@ -2037,7 +2037,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">3</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">304</field>
         </record>
         <record id="line_emp_p21_tc3_grp2_item3_202604" model="hr.kpi.template.line">
@@ -2051,7 +2051,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">3</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">305</field>
         </record>
         <record id="line_emp_p21_tc3_grp2_item4_202604" model="hr.kpi.template.line">
@@ -2065,7 +2065,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">3</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">306</field>
         </record>
 
@@ -2079,7 +2079,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">400</field>
         </record>
         <record id="line_emp_p21_tc4_item1_202604" model="hr.kpi.template.line">
@@ -2093,7 +2093,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">401</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -2108,7 +2108,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">402</field>
             <field name="description">Thang điểm tham khảo: -2. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Huỳnh Trọng Đại và Đinh Đại Dương.</field>
@@ -2124,7 +2124,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">403</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -2139,7 +2139,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">404</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -2154,7 +2154,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">1</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">405</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -2169,7 +2169,7 @@
             <field name="is_section">True</field>
             <field name="display_type">line_section</field>
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">500</field>
         </record>
         <record id="line_emp_p21_tc5_item1_202604" model="hr.kpi.template.line">
@@ -2183,7 +2183,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.833333</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">501</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -2198,7 +2198,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.833333</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">502</field>
             <field name="description">Thang điểm tham khảo: -2. Sheet tháng 04/2026 có ghi nhận trừ
                 điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Đinh Đại Dương.</field>
@@ -2214,7 +2214,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.833333</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">503</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -2229,7 +2229,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.833333</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">504</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -2244,7 +2244,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.833333</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">505</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -2259,7 +2259,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">binary</field>
             <field name="weight">0.833333</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">506</field>
             <field name="description">Thang điểm tham khảo: -2.</field>
         </record>
@@ -2272,7 +2272,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">8</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">600</field>
             <field name="description">Điểm tối đa: 8.</field>
         </record>
@@ -2284,7 +2284,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">8</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">601</field>
             <field name="description">Điểm tối đa: 8.</field>
         </record>
@@ -2296,7 +2296,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">8</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">602</field>
             <field name="description">Điểm tối đa: 8.</field>
         </record>
@@ -2308,7 +2308,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">8</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">603</field>
             <field name="description">Điểm tối đa: 8.</field>
         </record>
@@ -2320,7 +2320,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">8</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">604</field>
             <field name="description">Điểm tối đa: 8.</field>
         </record>
@@ -2332,7 +2332,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">6</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">605</field>
             <field name="description">Điểm tối đa: 6.</field>
         </record>
@@ -2344,7 +2344,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">6</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">606</field>
             <field name="description">Điểm tối đa: 6.</field>
         </record>
@@ -2356,7 +2356,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">6</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">607</field>
             <field name="description">Điểm tối đa: 6.</field>
         </record>
@@ -2368,7 +2368,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">6</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">608</field>
             <field name="description">Điểm tối đa: 6.</field>
         </record>
@@ -2380,7 +2380,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">6</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">609</field>
             <field name="description">Điểm tối đa: 6.</field>
         </record>
@@ -2392,7 +2392,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">6</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">610</field>
             <field name="description">Điểm tối đa: 6.</field>
         </record>
@@ -2404,7 +2404,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">6</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">611</field>
             <field name="description">Điểm tối đa: 6.</field>
         </record>
@@ -2416,7 +2416,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">6</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">612</field>
             <field name="description">Điểm tối đa: 6.</field>
         </record>
@@ -2428,7 +2428,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">4</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">613</field>
             <field name="description">Điểm tối đa: 4.</field>
         </record>
@@ -2440,7 +2440,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">4</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">614</field>
             <field name="description">Điểm tối đa: 4.</field>
         </record>
@@ -2452,7 +2452,7 @@
             <field name="kpi_type">manual</field>
             <field name="manual_scoring_type">score</field>
             <field name="weight">4</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">615</field>
             <field name="description">Điểm tối đa: 4.</field>
         </record>
@@ -2469,7 +2469,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">10</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">700</field>
             <field name="description">Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất
                 công việc thực hiện</field>
@@ -2489,7 +2489,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.333333</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">701</field>
             <field name="description">Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất
                 công việc thực hiện</field>
@@ -2509,7 +2509,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.333333</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">702</field>
             <field name="description">Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</field>
         </record>
@@ -2529,7 +2529,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.333333</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">703</field>
             <field name="description">Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</field>
         </record>
@@ -2549,7 +2549,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">0.0</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">704</field>
             <field name="description">Phân tích, đánh giá rủi ro, phương pháp làm việc an toàn khi
                 thực hiện</field>
@@ -2566,7 +2566,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">20</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">710</field>
             <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
         </record>
@@ -2584,7 +2584,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">6.666667</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">711</field>
             <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
         </record>
@@ -2603,7 +2603,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">6.666667</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">712</field>
             <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
         </record>
@@ -2621,7 +2621,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">6.666667</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">713</field>
             <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
         </record>
@@ -2637,7 +2637,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">15</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">720</field>
             <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
         </record>
@@ -2656,7 +2656,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">721</field>
             <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
         </record>
@@ -2674,7 +2674,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">722</field>
             <field name="description">Hiệu suất</field>
         </record>
@@ -2692,7 +2692,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">723</field>
             <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
         </record>
@@ -2710,7 +2710,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">3.75</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">724</field>
             <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
         </record>
@@ -2726,7 +2726,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">20</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">730</field>
             <field name="description">Tiến độ thực hiện công việc</field>
         </record>
@@ -2744,7 +2744,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">10</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">731</field>
             <field name="description">Tiến độ thực hiện công việc</field>
         </record>
@@ -2762,7 +2762,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">10</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">732</field>
             <field name="description">Tiến độ thực hiện công việc</field>
         </record>
@@ -2778,7 +2778,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">15</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">740</field>
             <field name="description">Giảm chi phí tối thiểu</field>
         </record>
@@ -2796,7 +2796,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">7.5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">741</field>
             <field name="description">Giảm chi phí tối thiểu</field>
         </record>
@@ -2815,7 +2815,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">7.5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">742</field>
             <field name="description">Giảm chi phí tối thiểu</field>
         </record>
@@ -2831,7 +2831,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">15</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">750</field>
             <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
         </record>
@@ -2849,7 +2849,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">7.5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">751</field>
             <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
         </record>
@@ -2867,7 +2867,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">7.5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">752</field>
             <field name="description">Nội quy công ty</field>
         </record>
@@ -2883,7 +2883,7 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">760</field>
             <field name="description">Tiêu chí đạt thẩm mỹ</field>
         </record>
@@ -2903,7 +2903,7 @@
             <field name="scoring_formula_id"
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">5</field>
-            <field name="score_scale_base_override">100</field>
+            
             <field name="sequence">761</field>
             <field name="description">Tiêu chí đạt thẩm mỹ</field>
         </record>

@@ -168,19 +168,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             return sum(line.final_score * line.weight for line in lines) / total_weight
         return sum(lines.mapped("final_score")) / len(lines)
 
-    # Resolve the effective score base of the department evaluation from its root KPI lines.
+    # Trả về thang điểm chuẩn duy nhất của phiếu KPI phòng ban.
     def _get_evaluation_score_base(self):
         self.ensure_one()
-        root_lines = self.evaluation_line_ids.filtered(
-            lambda line: not line.parent_line_id
-        )
-        score_bases = {
-            float(line.score_scale_base_override)
-            for line in root_lines
-            if (line.score_scale_base_override or 0.0) > 0
-        }
-        if len(score_bases) == 1:
-            return score_bases.pop()
         return self.env["res.config.settings"].get_score_scale_base()
 
     # Validate that normalized 3P roots and children preserve the expected weight tree.
@@ -409,7 +399,6 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         )
         score_base = self.env["res.config.settings"].get_score_scale_base()
         for line in template_lines:
-            line_score_base = line.score_scale_base_override or score_base
             # Kiểm tra nếu dòng hiện tại là một Section (tiêu đề nhóm) dựa trên thuộc tính.
             is_section = bool(getattr(line, "is_section", False))
             if is_section:
@@ -430,7 +419,6 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "target": 0.0,
                             "unit": False,
                             "weight": line.weight,
-                            "score_scale_base_override": line.score_scale_base_override,
                             "wipeout_if_child_zero": bool(
                                 line.wipeout_if_child_zero
                             ),
@@ -454,7 +442,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
                         "manual_scoring_type": line.manual_scoring_type,
-                        "target": line_score_base
+                        "target": score_base
                         if line.dept_source_type == "child_kpi_average"
                         else line.target,
                         "unit": line.unit.id
@@ -465,7 +453,6 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             else False
                         ),
                         "weight": line.weight,
-                        "score_scale_base_override": line.score_scale_base_override,
                         "wipeout_if_child_zero": bool(line.wipeout_if_child_zero),
                         "dept_source_type": line.dept_source_type or "manual",
                         "data_source_id": line.data_source_id.id or False,

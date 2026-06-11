@@ -147,10 +147,6 @@ class PerformanceEvaluationLine(models.Model):
         default=0.0,
         help="Weight of this KPI in the overall evaluation (higher weight has more impact).",
     )
-    score_scale_base_override = fields.Float(
-        string="Score Scale Base Override",
-        help="Optional native score scale for this line, for example 100, 10, or 5. Leave empty to use the global KPI score scale.",
-    )
     wipeout_if_child_zero = fields.Boolean(
         string="Wipeout If Child Zero",
         default=False,
@@ -236,7 +232,7 @@ class PerformanceEvaluationLine(models.Model):
         compute="_compute_system_score",
         store=True,
         digits=(16, 1),
-        help="System-calculated score based on rules for the selected KPI type and configured score scale.",
+        help="System-calculated score based on rules for the selected KPI type and the 100-point KPI scale.",
     )
     # Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).
     is_special_scoring = fields.Boolean(
@@ -287,18 +283,18 @@ class PerformanceEvaluationLine(models.Model):
         default="5",
     )
 
-    # Score manual KPI: employee self score and manager final score on the configured score scale.
+    # Score manual KPI: employee self score and manager final score on the fixed 100-point scale.
     employee_rating_score = fields.Float(
         string="Self Rating (Score)",
         default=100,
         digits=(16, 2),
-        help="Employee self-assessment score for Score KPIs, based on the configured KPI score scale.",
+        help="Employee self-assessment score for Score KPIs, based on the 100-point KPI scale.",
     )
     manager_rating_score = fields.Float(
         string="Manager Rating (Score)",
         default=100,
         digits=(16, 2),
-        help="Manager score for Score KPIs, based on the configured KPI score scale.",
+        help="Manager score for Score KPIs, based on the 100-point KPI scale.",
     )
 
     employee_comment = fields.Html(
@@ -317,7 +313,7 @@ class PerformanceEvaluationLine(models.Model):
         compute="_compute_final_rating",
         store=True,
         digits=(16, 1),
-        help="Final rating used in the evaluation summary, based on the configured KPI score scale.",
+        help="Final rating used in the evaluation summary, based on the 100-point KPI scale.",
     )
 
     # Always-formatted text for UI badge rendering (keeps 0.0 visible).
@@ -473,18 +469,16 @@ class PerformanceEvaluationLine(models.Model):
         for rec in self:
             rec.is_auto = bool(rec.kpi_type == "auto" and rec.data_source_id)
 
-    # Compute the score scale hint shown next to manual score inputs.
-    @api.depends("kpi_type", "manual_scoring_type", "score_scale_base_override")
+    # Hiển thị nhãn thang điểm cố định cho manual score KPI.
+    @api.depends("kpi_type", "manual_scoring_type")
     def _compute_score_max_display(self):
         for rec in self:
-            if (
-                rec.kpi_type == "manual"
+            rec.score_max_display = (
+                "/ 100 pts"
+                if rec.kpi_type == "manual"
                 and rec.manual_scoring_type == "score"
-                and (rec.score_scale_base_override or 0) > 0
-            ):
-                rec.score_max_display = f"/ {rec.score_scale_base_override:g} pts"
-            else:
-                rec.score_max_display = ""
+                else ""
+            )
 
     @api.depends(
         "kpi_type",
@@ -544,24 +538,15 @@ class PerformanceEvaluationLine(models.Model):
         self.ensure_one()
         return (self.unit.code or "") == "percent" if self.unit else False
 
+    # Trả về thang điểm chuẩn duy nhất của dòng KPI.
     def _get_score_base(self):
-        """Thang điểm KPI được cấu hình theo từng khách hàng/database."""
         self.ensure_one()
-        if self.score_scale_base_override and self.score_scale_base_override > 0:
-            return self.score_scale_base_override
         return self.env["res.config.settings"].get_score_scale_base()
 
-    # Convert the global pass/excellent thresholds to the line score base.
+    # Lấy ngưỡng pass/excellent theo thang điểm chuẩn 100.
     def _get_score_thresholds(self):
         self.ensure_one()
-        settings = self.env["res.config.settings"]
-        excellent, passed = settings.get_thresholds()
-        configured_base = settings.get_score_scale_base() or 10.0
-        target_base = self._get_score_base()
-        if configured_base and target_base and configured_base != target_base:
-            excellent = settings.convert_score(excellent, configured_base, target_base)
-            passed = settings.convert_score(passed, configured_base, target_base)
-        return excellent, passed
+        return self.env["res.config.settings"].get_thresholds()
 
     # Detect whether the line belongs to the normalized 3P tree.
     def _is_normalized_3p_line(self):
@@ -586,7 +571,6 @@ class PerformanceEvaluationLine(models.Model):
                 "target": 0.0,
                 "unit": False,
                 "weight": template_line.weight,
-                "score_scale_base_override": template_line.score_scale_base_override,
                 "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
                 "data_source_id": False,
                 "scoring_formula_id": False,
@@ -604,7 +588,6 @@ class PerformanceEvaluationLine(models.Model):
             "target": template_line.target,
             "unit": template_line.unit.id or False,
             "weight": template_line.weight,
-            "score_scale_base_override": template_line.score_scale_base_override,
             "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
             "data_source_id": template_line.data_source_id.id or False,
             "scoring_formula_id": template_line.scoring_formula_id.id or False,
@@ -701,39 +684,6 @@ class PerformanceEvaluationLine(models.Model):
             evaluation._compute_pillar_totals()
             evaluation._compute_performance_level()
 
-    # Sum non-section child ratings so parent lines can enforce a score cap.
-    def _get_child_score_total(self):
-        self.ensure_one()
-        child_lines = self.child_line_ids.filtered(lambda line: not line.is_section)
-        return sum(child_lines.mapped("final_rating"))
-
-    # Enforce that child ratings do not exceed the parent score override.
-    def _check_child_score_total_limit(self):
-        for line in self:
-            if line._is_normalized_3p_line():
-                continue
-            score_limit = line.score_scale_base_override or 0.0
-            if score_limit <= 0:
-                continue
-
-            child_lines = line.child_line_ids.filtered(
-                lambda child: not child.is_section
-            )
-            if not child_lines:
-                continue
-
-            child_total = line._get_child_score_total()
-            if child_total > score_limit:
-                raise ValidationError(
-                    _(
-                        "The total score of child KPI lines (%(child_total)s) cannot exceed the parent maximum score (%(score_limit)s)."
-                    )
-                    % {
-                        "child_total": f"{child_total:g}",
-                        "score_limit": f"{score_limit:g}",
-                    }
-                )
-
     def _get_child_score_aggregate(self):
         self.ensure_one()
         child_lines = self._get_direct_scoring_children()
@@ -799,7 +749,6 @@ class PerformanceEvaluationLine(models.Model):
         "target",
         "kpi_type",
         "manual_scoring_type",
-        "score_scale_base_override",
         "employee_rating_binary",
         "employee_rating_selection",
         "employee_rating_score",
@@ -825,7 +774,7 @@ class PerformanceEvaluationLine(models.Model):
     # Tính điểm dòng KPI theo leaf/manual/auto và áp rule wipeout mới ở section parent khi cần.
     def _compute_system_score(self):
         """
-        Compute system_score on the configured score scale (10 or 100):
+        Compute system_score on the fixed 100-point score scale:
 
         auto:
           score = scoring_formula.compute_score(actual, target, score_base)
@@ -900,7 +849,6 @@ class PerformanceEvaluationLine(models.Model):
         "kpi_type",
         "manual_scoring_type",
         "system_score",
-        "score_scale_base_override",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
@@ -915,7 +863,7 @@ class PerformanceEvaluationLine(models.Model):
                 min(max(line.system_score or 0.0, 0.0), score_base), 2
             )
 
-    @api.depends("final_rating", "score_scale_base_override")
+    @api.depends("final_rating")
     def _compute_final_rating_badge_class(self):
         for line in self:
             excellent, passed = line._get_score_thresholds()
@@ -927,7 +875,7 @@ class PerformanceEvaluationLine(models.Model):
             else:
                 line.final_rating_badge_class = "o_kpi_badge_fail"
 
-    @api.depends("final_rating", "score_scale_base_override")
+    @api.depends("final_rating")
     def _compute_final_rating_badge_text(self):
         for line in self:
             score_base = line._get_score_base()
@@ -1005,7 +953,6 @@ class PerformanceEvaluationLine(models.Model):
         "parent_line_id",
         "kpi_type",
         "manual_scoring_type",
-        "score_scale_base_override",
         "manager_rating_binary",
         "manager_rating_selection",
         "manager_rating_score",
@@ -1082,10 +1029,6 @@ class PerformanceEvaluationLine(models.Model):
             # Allow section parents because aggregate section rows own the child KPI tree.
             if parent.parent_line_id == rec:
                 raise ValidationError(_("Recursive KPI line hierarchy is not allowed."))
-
-    @api.constrains("score_scale_base_override", "child_line_ids", "final_rating")
-    def _check_child_score_total_limit_constraint(self):
-        self._check_child_score_total_limit()
 
     # Mirror employee manual ratings into manager fields during self evaluation saves.
     def _mirror_employee_to_manager_vals(self, vals, vals_before=None):
@@ -1206,7 +1149,6 @@ class PerformanceEvaluationLine(models.Model):
         records = super().create(vals_list)
         affected_lines = records | records.mapped("parent_line_id")
         affected_lines._recompute_score_tree()
-        affected_lines._check_child_score_total_limit()
         return records
 
     # Normalize KPI type values, keep section consistency, and protect writes by role/state.
@@ -1316,7 +1258,6 @@ class PerformanceEvaluationLine(models.Model):
         res = super().write(vals)
         affected_lines = self | parent_lines_before | self.mapped("parent_line_id")
         affected_lines._recompute_score_tree()
-        affected_lines._check_child_score_total_limit()
 
         # Refresh an old evaluation when a line is moved to another evaluation.
         old_evaluations = evaluations_before - self.mapped("evaluation_id")

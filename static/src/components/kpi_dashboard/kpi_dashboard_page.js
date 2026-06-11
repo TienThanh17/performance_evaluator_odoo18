@@ -426,7 +426,7 @@ export class KpiDashboard extends Component {
 
     // ── Computed helpers (called from template) ──────────────────────────────
     get scoreScale() {
-        return this.state.data?.score_scale || { base: 10, suffix: " / 10" };
+        return this.state.data?.score_scale || { base: 100, suffix: " / 100" };
     }
 
     get orderedCharts() {
@@ -464,7 +464,7 @@ export class KpiDashboard extends Component {
     }
 
     scorePct(value) {
-        const base = Number(this.scoreScale.base || 10);
+        const base = Number(this.scoreScale.base || 100);
         return Math.max(0, Math.min(100, ((Number(value) || 0) / base) * 100));
     }
 
@@ -528,7 +528,7 @@ export class KpiDashboard extends Component {
     }
 
     _levelFromScore(score) {
-        const thresholds = this.state.data?.thresholds || { excellent: 9, pass: 5 };
+        const thresholds = this.state.data?.thresholds || { excellent: 90, pass: 50 };
         if (score >= thresholds.excellent) return "excellent";
         if (score >= thresholds.pass) return "pass";
         return "fail";
@@ -791,7 +791,7 @@ export class KpiDashboard extends Component {
                 scales: {
                     r: {
                         beginAtZero: true,
-                        suggestedMax: Number(this.scoreScale.base || 10),
+                        suggestedMax: Number(this.scoreScale.base || 100),
                         ticks: {
                             stepSize: 1,
                             showLabelBackdrop: false,

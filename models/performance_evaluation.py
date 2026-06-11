@@ -390,37 +390,19 @@ class PerformanceEvaluation(models.Model):
             )
             rec.score_scale_suffix = f" / {int(base)}"
 
-    # Resolve the effective score base of the evaluation from its root KPI lines.
+    # Trả về thang điểm chuẩn duy nhất của phiếu đánh giá.
     def _get_evaluation_score_base(self):
         self.ensure_one()
-        root_lines = self.evaluation_line_ids.filtered(
-            lambda line: not line.parent_line_id
-        )
-        score_bases = {
-            float(line.score_scale_base_override)
-            for line in root_lines
-            if (line.score_scale_base_override or 0.0) > 0
-        }
-        if len(score_bases) == 1:
-            return score_bases.pop()
         return self.env["res.config.settings"].get_score_scale_base()
 
-    # Scale configured thresholds to the effective score base of this evaluation.
+    # Lấy threshold hiệu lực của phiếu đánh giá theo thang điểm chuẩn 100.
     def _get_thresholds_for_record(self):
         self.ensure_one()
         profile = self.kpi_id.scoring_profile_id
         settings = self.env["res.config.settings"]
         if profile:
-            excellent, passed = profile.get_thresholds()
-        else:
-            excellent, passed = settings.get_thresholds()
-
-        configured_base = settings.get_score_scale_base() or 100.0
-        target_base = self._get_evaluation_score_base()
-        if configured_base and target_base and configured_base != target_base:
-            excellent = settings.convert_score(excellent, configured_base, target_base)
-            passed = settings.convert_score(passed, configured_base, target_base)
-        return excellent, passed
+            return profile.get_thresholds()
+        return settings.get_thresholds()
 
     @api.depends("total_p3_individual", "employee_id")
     def _compute_performance_visual(self):
@@ -847,7 +829,6 @@ class PerformanceEvaluation(models.Model):
                             "target": 0.0,
                             "unit": False,
                             "weight": line.weight,
-                            "score_scale_base_override": line.score_scale_base_override,
                             "wipeout_if_child_zero": bool(
                                 line.wipeout_if_child_zero
                             ),
@@ -878,7 +859,6 @@ class PerformanceEvaluation(models.Model):
                         "target": line.target,
                         "unit": line.unit.id or False,
                         "weight": line.weight,
-                        "score_scale_base_override": line.score_scale_base_override,
                         "wipeout_if_child_zero": bool(line.wipeout_if_child_zero),
                         "data_source_id": line.data_source_id.id or False,
                         "scoring_formula_id": line.scoring_formula_id.id or False,

@@ -59,7 +59,7 @@ export class KpiStepTableEditor extends Component {
     }
 
     get scoreBase() {
-        return this.props.record.data.score_scale_base || 10;
+        return this.props.record.data.score_scale_base || 100;
     }
 
     get readonlyRows() {

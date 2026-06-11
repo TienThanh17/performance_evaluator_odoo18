@@ -7,8 +7,8 @@ class HrKpiScoringProfile(models.Model):
     _order = "name"
 
     name = fields.Char(required=True, translate=True)
-    threshold_excellent = fields.Float(default=8.5, digits=(5, 2))
-    threshold_pass = fields.Float(default=6.0, digits=(5, 2))
+    threshold_excellent = fields.Float(default=85.0, digits=(5, 2))
+    threshold_pass = fields.Float(default=60.0, digits=(5, 2))
     active = fields.Boolean(default=True)
     template_count = fields.Integer(compute="_compute_template_count")
 

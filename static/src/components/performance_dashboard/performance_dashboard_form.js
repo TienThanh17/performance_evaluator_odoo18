@@ -202,7 +202,7 @@ function baseDoughnutPlugin() {
     ];
 }
 
-function baseBarPlugin(thresholdValue = 10) {
+function baseBarPlugin(thresholdValue = 100) {
     return {
         fullWidthLinePlugin: {
             id: "fullWidthMaxLine",
@@ -270,8 +270,8 @@ export class PerformanceDashboardRenderer extends FormRenderer {
             active: true,
             approvingAll: false,
             chartData: null, // data từ get_report_dashboard_data
-            scoreScale: { base: 10, suffix: " / 10" },
-            thresholds: { excellent: 9, pass: 5 },
+            scoreScale: { base: 100, suffix: " / 100" },
+            thresholds: { excellent: 90, pass: 50 },
         });
 
         onWillStart(async () => {
@@ -478,9 +478,9 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     _chartScoreConfig(employees) {
         const names = employees.map((e) => e.name);
         const scores = employees.map((e) => e.score);
-        const scoreBase = this.state.scoreScale.base || 10;
-        const excellent = this.state.thresholds.excellent || 9;
-        const passed = this.state.thresholds.pass || 5;
+        const scoreBase = this.state.scoreScale.base || 100;
+        const excellent = this.state.thresholds.excellent || 90;
+        const passed = this.state.thresholds.pass || 50;
 
         const barPlugin = baseBarPlugin(scoreBase);
 
@@ -736,7 +736,7 @@ export class PerformanceDashboardRenderer extends FormRenderer {
 
     // ── Qualitative charts — bar per KPI ────────────────────────────────
     _qualChartConfig(qc) {
-        const scoreBase = this.state.scoreScale.base || 10;
+        const scoreBase = this.state.scoreScale.base || 100;
         const barPlugin = baseBarPlugin(scoreBase);
 
         return {
@@ -821,11 +821,11 @@ export class PerformanceDashboardRenderer extends FormRenderer {
     // ── Helpers ───────────────────────────────────────────────────────────────
     formatScore(value, decimals = 2) {
         const number = Number(value) || 0;
-        return `${number.toFixed(decimals)}${this.state.scoreScale.suffix || " / 10"}`;
+        return `${number.toFixed(decimals)}${this.state.scoreScale.suffix || " / 100"}`;
     }
 
     scorePct(value) {
-        const base = Number(this.state.scoreScale.base || 10);
+        const base = Number(this.state.scoreScale.base || 100);
         return Math.max(0, Math.min(100, ((Number(value) || 0) / base) * 100));
     }
 
