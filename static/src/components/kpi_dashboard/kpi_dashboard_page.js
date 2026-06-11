@@ -474,6 +474,34 @@ export class KpiDashboard extends Component {
         );
     }
 
+    get p21ScoreText() {
+        return this.formatScore(
+            this.state.data ? this.state.data.total_p2_1 : 0,
+        );
+    }
+
+    get p21Label() {
+        return this.state.data?.pillar_p2_1_name || "P2.1";
+    }
+
+    get p22ScoreText() {
+        return this.formatScore(
+            this.state.data ? this.state.data.total_p2_2 : 0,
+        );
+    }
+
+    get p22Label() {
+        return this.state.data?.pillar_p2_2_name || "P2.2";
+    }
+
+    get p3IndividualLabel() {
+        return this.state.data?.pillar_p3_ind_name || "P3 Individual";
+    }
+
+    get p3DepartmentLabel() {
+        return this.state.data?.pillar_p3_dept_name || "P3 Department";
+    }
+
     get scoreRingStyle() {
         const score = this.state.data ? this.state.data.total_p3_individual : 0;
         const pct = this.scorePct(score);

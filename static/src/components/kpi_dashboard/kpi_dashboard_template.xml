@@ -82,14 +82,28 @@
           </div>
 
           <div class="o_kpi_summary_card o_kpi_summary_card_input">
-            <div class="o_kpi_summary_label">Individual KPI</div>
+            <div class="o_kpi_summary_label" t-esc="p21Label"/>
+            <div class="o_kpi_summary_score">
+              <span t-esc="p21ScoreText"/>
+            </div>
+          </div>
+
+          <div class="o_kpi_summary_card o_kpi_summary_card_input">
+            <div class="o_kpi_summary_label" t-esc="p22Label"/>
+            <div class="o_kpi_summary_score">
+              <span t-esc="p22ScoreText"/>
+            </div>
+          </div>
+
+          <div class="o_kpi_summary_card o_kpi_summary_card_input">
+            <div class="o_kpi_summary_label" t-esc="p3IndividualLabel"/>
             <div class="o_kpi_summary_score">
               <span t-esc="scoreText"/>
             </div>
           </div>
 
           <div class="o_kpi_summary_card o_kpi_summary_card_input" t-att-title="deptTooltip">
-            <div class="o_kpi_summary_label">Department KPI</div>
+            <div class="o_kpi_summary_label" t-esc="p3DepartmentLabel"/>
             <div t-att-class="'o_kpi_summary_score ' + (state.data.has_dept_evaluation ? '' : 'o_kpi_summary_score_na')">
               <span t-esc="deptScoreText"/>
             </div>

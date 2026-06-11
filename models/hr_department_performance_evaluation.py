@@ -26,7 +26,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         string="Department KPI Template",
         tracking=True,
     )
-    pillar_p3_dept_name = fields.Char(related="department_kpi_id.pillar_p3_dept_name")
+    pillar_p3_dept_name = fields.Char(compute="_compute_dynamic_pillar_names")
 
     performance_report_id = fields.Many2one(
         "hr.performance.report",
@@ -87,6 +87,12 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_rating_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_score_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+
+    def _compute_dynamic_pillar_names(self):
+        pillars = self.env['hr.evaluation.pillar'].sudo().search([
+            ('code', 'in', ['p3_department'])
+        ])
+        self.pillar_p3_dept_name = pillars.name or ""
 
     @api.depends("performance_report_id.period_id")
     def _compute_period_id(self):

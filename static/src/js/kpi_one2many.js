@@ -288,13 +288,34 @@ export class KPIOne2ManyField extends X2ManyField {
         this.orm = useService("orm");
     }
 
+    // async syncParentRecordBeforePopupCreate() {
+    //     const editedRecord = this.list?.editedRecord;
+    //     if (editedRecord) {
+    //         const proms = [];
+    //         this.list.model.bus.trigger("NEED_LOCAL_CHANGES", { proms });
+    //         await Promise.all([...proms, editedRecord._updatePromise]);
+    //         const canProceed = await this.list.leaveEditMode({ canAbandon: false });
+    //         if (!canProceed) {
+    //             return false;
+    //         }
+    //     }
+
+    //     // Popup creates write directly on the child model, so we must persist the
+    //     // parent form first or server-side weight validation will still see stale rows.
+    //     if (this.props.record?.save) {
+    //         return this.props.record.save();
+    //     }
+    //     return true;
+    // }
+
     /**
      * Intercept creation:
      * - Add Section (context default_is_section): inline (super)
      * - Add KPI: open popup form to create
      */
     async onAdd({ context = {}, editable } = {}) {
-        const evaluatedContext = makeContext([context]);
+        context = makeContext([this.props.context, context]);
+        const evaluatedContext = context;
         if (
             evaluatedContext.default_is_section &&
             !evaluatedContext.force_popup_section
@@ -302,13 +323,18 @@ export class KPIOne2ManyField extends X2ManyField {
             return super.onAdd({ context, editable });
         }
 
-        const parentId = this.props.record.resId;
+        const synced = await this.syncParentRecordBeforePopupCreate();
+        if (synced === false) {
+            return;
+        }
+
         const parentField = this.props.context.parent_field || this.props.record.data[this.props.name]?.config?.relationField;
         const additionalContext = {
-            ...(this.props.context || {}),
             ...context,
-            [`default_${parentField}`]: parentId,
         };
+
+        const parentId = this.props.record.resId;
+        additionalContext[`default_${parentField}`] = parentId;
 
         // If the XML context provides a form view xmlid, use it.
         // (We don't hardcode it here to keep the widget reusable.)

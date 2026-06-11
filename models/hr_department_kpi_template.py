@@ -31,13 +31,13 @@ class HrDepartmentKpiTemplate(models.Model):
     )
 
     # Khai báo các field chứa tên động của từng Pillar
-    pillar_p3_dept_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P3")
+    pillar_p3_dept_name = fields.Char(compute="_compute_dynamic_pillar_names")
 
     def _compute_dynamic_pillar_names(self):
         pillars = self.env['hr.evaluation.pillar'].sudo().search([
             ('code', 'in', ['p3_department'])
         ])
-        self.pillar_p3_dept_name = pillars.name or "P3.1.2 KPI Phòng Ban"
+        self.pillar_p3_dept_name = pillars.name or ""
 
     # Trả về department KPI lines theo flat preorder để các màn generate giữ đúng cây template.
     def get_hierarchy_ordered_lines(self):

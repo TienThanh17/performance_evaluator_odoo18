@@ -1040,6 +1040,14 @@ class PerformanceEvaluation(models.Model):
                 "pass": threshold_pass,
             },
             "employee_name": evaluation.employee_id.name or "",
+            "pillar_p2_1_name": evaluation.pillar_p2_1_name or "P2.1",
+            "pillar_p2_2_name": evaluation.pillar_p2_2_name or "P2.2",
+            "pillar_p3_ind_name": evaluation.pillar_p3_ind_name or "P3 Individual",
+            "pillar_p3_dept_name": (
+                dept_eval.pillar_p3_dept_name or "P3 Department"
+            )
+            if dept_eval
+            else "P3 Department",
             "period_id": evaluation.period_id.id if evaluation.period_id else False,
             "period_name": evaluation.period_id.name if evaluation.period_id else "",
             "period_type": evaluation.period_type or "",

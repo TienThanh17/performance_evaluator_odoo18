@@ -5,19 +5,19 @@
         <field name="model">hr.kpi.dashboard.widget</field>
         <field name="arch" type="xml">
             <list>
-                <field name="name"/>
-                <field name="dashboard_kind"/>
-                <field name="widget_class"/>
+                <field name="name" />
+                <field name="dashboard_kind" />
+                <field name="widget_class" />
                 <!-- <field name="department_micro_mode"/> -->
-                <field name="data_source_id"/>
+                <field name="data_source_id" />
                 <!-- <field name="provider_key"/> -->
-                <field name="micro_chart_type"/>
-                <field name="macro_widget_type"/>
+                <field name="micro_chart_type" />
+                <field name="macro_widget_type" />
                 <!-- <field name="target_model"/>
                 <field name="measure_field_id"/>
                 <field name="group_by_field_id"/> -->
-                <field name="sequence"/>
-                <field name="active"/>
+                <field name="sequence" />
+                <field name="active" />
             </list>
         </field>
     </record>
@@ -30,29 +30,30 @@
                 <sheet>
                     <group>
                         <group string="Thông tin chung">
-                            <field name="name"/>
-                            <field name="dashboard_kind"/>
-                            <field name="widget_class" widget="radio" options="{'horizontal': true}"/>
-                            <field name="sequence"/>
-                            <field name="active"/>
+                            <field name="name" />
+                            <field name="dashboard_kind" />
+                            <field name="widget_class" widget="radio" options="{'horizontal': true}" />
+                            <field name="sequence" />
+                            <field name="active" />
                         </group>
                         <group string="Micro Config" invisible="widget_class != 'micro'">
-                            <field name="data_source_id" required="widget_class == 'micro'"/>
-                            <field name="provider_key" required="widget_class == 'micro'"/>
-                            <field name="micro_chart_type" required="widget_class == 'micro'"/>
+                            <field name="data_source_id" required="widget_class == 'micro'" />
+                            <field name="provider_key" required="widget_class == 'micro'" />
+                            <field name="kpi_behavior"
+                                invisible="provider_key != 'generic_domain_daily_series'"
+                                required="widget_class == 'micro' and provider_key == 'generic_domain_daily_series'" />
+                            <field name="micro_chart_type" required="widget_class == 'micro'" />
                             <field
                                 name="department_micro_mode"
                                 invisible="widget_class != 'micro' or dashboard_kind != 'department'"
                                 required="widget_class == 'micro' and dashboard_kind == 'department'"
                             />
-                            <field name="kpi_behavior"
-                                invisible="provider_key != 'generic_domain_daily_series'"
-                                required="widget_class == 'micro' and provider_key == 'generic_domain_daily_series'"/>
                         </group>
                         <group string="Macro Config" invisible="widget_class != 'macro'">
-                            <field name="macro_widget_type" required="widget_class == 'macro'"/>
-                            <field name="target_model"/>
-                            <field name="group_by_ttype" invisible="1"/>
+                            <field name="macro_widget_type" required="widget_class == 'macro'" />
+                            <field name="target_model" />
+                            <field name="target_model_real_name" invisible="1" />
+                            <field name="group_by_ttype" invisible="1" />
                             <field
                                 name="measure_field_id"
                                 options="{'no_create': True}"
@@ -72,7 +73,7 @@
                                 invisible="macro_widget_type == 'radar_chart' or group_by_ttype not in ('date', 'datetime')"
                                 required="widget_class == 'macro' and macro_widget_type in ('trend_line', 'distribution') and group_by_ttype in ('date', 'datetime')"
                             />
-                            <field name="filter_domain"/>
+                            <field name="filter_domain" widget="domain" options="{'model': 'target_model_real_name'}"/>
                         </group>
                     </group>
                 </sheet>
@@ -83,26 +84,30 @@
     <!-- SEARCH VIEW (Mới thêm) -->
     <record id="view_hr_kpi_dashboard_widget_search" model="ir.ui.view">
         <field name="name">hr.kpi.dashboard.widget.search</field>
-                <field name="model">hr.kpi.dashboard.widget</field>
+        <field name="model">hr.kpi.dashboard.widget</field>
         <field name="arch" type="xml">
             <search string="Search Dashboard Widgets">
                 <!-- Các trường tìm kiếm nhanh -->
-                <field name="name" string="Widget Name"/>
-                <field name="dashboard_kind"/>
-                <field name="target_model"/>
-                <field name="data_source_id"/>
-                <field name="department_micro_mode"/>
+                <field name="name" string="Widget Name" />
+                <field name="dashboard_kind" />
+                <field name="target_model" />
+                <field name="data_source_id" />
+                <field name="department_micro_mode" />
 
                 <!-- Bộ lọc nhanh (Filters) -->
-                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
-                <separator/>
-                <filter string="Micro Widgets" name="class_micro" domain="[('widget_class', '=', 'micro')]"/>
-                <filter string="Macro Widgets" name="class_macro" domain="[('widget_class', '=', 'macro')]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]" />
+                <separator />
+                <filter string="Micro Widgets" name="class_micro"
+                    domain="[('widget_class', '=', 'micro')]" />
+                <filter string="Macro Widgets" name="class_macro"
+                    domain="[('widget_class', '=', 'macro')]" />
 
                 <!-- Nhóm theo (Group By) -->
                 <group expand="0" string="Group By">
-                    <filter string="Dashboard Kind" name="group_by_dashboard_kind" context="{'group_by': 'dashboard_kind'}"/>
-                    <filter string="Widget Class" name="group_by_widget_class" context="{'group_by': 'widget_class'}"/>
+                    <filter string="Dashboard Kind" name="group_by_dashboard_kind"
+                        context="{'group_by': 'dashboard_kind'}" />
+                    <filter string="Widget Class" name="group_by_widget_class"
+                        context="{'group_by': 'widget_class'}" />
                 </group>
             </search>
         </field>
@@ -113,10 +118,12 @@
         <field name="name">Dashboard Widgets</field>
         <field name="res_model">hr.kpi.dashboard.widget</field>
         <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="view_hr_kpi_dashboard_widget_search"/>
-        <!-- Kích hoạt group_by mặc định thông qua context sử dụng tên filter tương ứng trong search view -->
+        <field name="search_view_id" ref="view_hr_kpi_dashboard_widget_search" />
+        <!-- Kích hoạt group_by mặc định thông qua context sử dụng tên filter tương ứng trong search
+        view -->
         <field name="context">{'search_default_group_by_dashboard_kind': 1}</field>
     </record>
 
-    <menuitem id="menu_kpi_dashboard_widget" name="Dashboard Widgets" parent="menu_kpi_configuration" action="action_hr_kpi_dashboard_widget" sequence="40"/>
+    <menuitem id="menu_kpi_dashboard_widget" name="Dashboard Widgets"
+        parent="menu_kpi_configuration" action="action_hr_kpi_dashboard_widget" sequence="40" />
 </odoo>

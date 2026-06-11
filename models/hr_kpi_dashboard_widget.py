@@ -88,6 +88,21 @@ class HrKpiDashboardWidget(models.Model):
         required=True,
         default="evaluation",
     )
+    target_model_real_name = fields.Char(
+        compute="_compute_target_model_real_name",
+        string="Target Model Real Name",
+    )
+
+    @api.depends("target_model")
+    def _compute_target_model_real_name(self):
+        for record in self:
+            if record.target_model == "evaluation":
+                record.target_model_real_name = "hr.performance.evaluation"
+            elif record.target_model == "evaluation_line":
+                record.target_model_real_name = "hr.performance.evaluation.line"
+            else:
+                record.target_model_real_name = False
+
     measure_field_id = fields.Many2one(
         "ir.model.fields",
         string="Measure Field",

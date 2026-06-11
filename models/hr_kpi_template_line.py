@@ -167,8 +167,7 @@ class HrKpiTemplateLine(models.Model):
         for rec in self:
             rec.score_max_display = (
                 "/ 100 pts"
-                if rec.kpi_type == "manual"
-                and rec.manual_scoring_type == "score"
+                if rec.kpi_type == "manual" and rec.manual_scoring_type == "score"
                 else ""
             )
 
@@ -348,7 +347,9 @@ class HrKpiTemplateLine(models.Model):
         if not scope_lines:
             return
 
-        # Default to the computed preorder when callers do not provide one explicitly.
+        # Nếu caller chưa truyền thứ tự cây đã tính sẵn, ta tự dựng lại preorder
+        # chuẩn từ root -> child -> grandchild... để toàn bộ scope có cùng một
+        # "flattened order" ổn định trong tree view và trong các màn generate.
         ordered_lines = ordered_lines or self._get_hierarchy_ordered_lines(
             scope_lines=scope_lines
         )
@@ -357,7 +358,10 @@ class HrKpiTemplateLine(models.Model):
             if line.sequence == new_sequence:
                 continue
 
-            # Bypass recursive resequencing because this write is the canonical normalization pass.
+            # Đây là lượt write nội bộ để "chốt" lại sequence chuẩn, nên phải tắt:
+            # - sync hierarchy lặp lại, nếu không write này sẽ tự gọi lại chính nó
+            # - validate weight, vì trong lúc đang chuẩn hóa sequence ta không muốn
+            #   kích hoạt validate trung gian ở trạng thái chưa hoàn tất.
             line.with_context(
                 skip_hierarchy_sequence_sync=True,
                 skip_normalized_3p_weight_validation=True,
@@ -531,13 +535,22 @@ class HrKpiTemplateLine(models.Model):
 
     # Validate normalized 3P weights after user-driven create/write operations.
     def _validate_normalized_3p_weight_structure(self):
+        # Bỏ qua validate trong 2 tình huống nội bộ:
+        # - install_mode: dữ liệu seed/demo có thể đang được nạp theo nhiều bước
+        #   nên chưa đảm bảo cấu trúc hoàn chỉnh ở từng record create riêng lẻ.
+        # - skip_normalized_3p_weight_validation: các write kỹ thuật như normalize
+        #   sequence chỉ muốn sửa thứ tự hiển thị, không muốn bắn validate lặp lại.
         if self.env.context.get("install_mode") or self.env.context.get(
             "skip_normalized_3p_weight_validation"
         ):
             return
 
+        # Một batch create/write có thể chạm nhiều dòng thuộc cùng template, vì vậy
+        # ta gom theo template trước để kiểm tra toàn bộ cây trọng số trong template đó.
         templates = self.mapped("kpi_id")
         for template in templates:
+            # Chỉ áp quy tắc "normalized 3P" cho các pillar đã định nghĩa chuẩn hóa.
+            # Mỗi pillar được kiểm tra độc lập vì mỗi tab là một cây trọng số riêng.
             for pillar_code in NORMALIZED_3P_PILLAR_CODES:
                 lines = template.kpi_line_ids.filtered(
                     lambda line: line.pillar_code == pillar_code
@@ -545,6 +558,8 @@ class HrKpiTemplateLine(models.Model):
                 if not lines:
                     continue
 
+                # Chặn dữ liệu âm càng sớm càng tốt vì chỉ cần một line âm là toàn bộ
+                # công thức phân bổ weight của pillar bị sai nghĩa.
                 negative_weight_line = lines.filtered(lambda line: line.weight < 0.0)[
                     :1
                 ]
@@ -553,6 +568,9 @@ class HrKpiTemplateLine(models.Model):
                         _("Weight cannot be negative for normalized 3P KPI lines.")
                     )
 
+                # Tầng root của một pillar là tổng phân bổ ngân sách trọng số của cả
+                # pillar đó, nên tổng weight của tất cả root line phải luôn bằng 100.
+                # Dùng tolerance nhỏ để tránh lỗi do sai số float.
                 root_lines = lines.filtered(lambda line: not line.parent_line_id)
                 root_total = sum(root_lines.mapped("weight"))
                 if root_lines and abs(root_total - 100.0) > WEIGHT_TOLERANCE:
@@ -566,13 +584,27 @@ class HrKpiTemplateLine(models.Model):
                         }
                     )
 
+                # Với mỗi parent có con, tổng weight các line con phải "ăn khớp" đúng
+                # với weight của parent đó. Nghĩa là parent chỉ đóng vai trò bao chứa
+                # và phân bổ lại weight xuống các child, không được tự sinh thêm hoặc
+                # làm mất bớt trọng số.
                 for parent in lines.filtered(lambda line: line.child_line_ids):
+                    # Chỉ cộng những child cùng pillar với parent hiện tại. Điều này
+                    # tránh việc dữ liệu lệch tab/cross-pillar làm bẩn phép tính.
+                    # child_lines = parent.child_line_ids.filtered(
+                    #     lambda line: line.pillar_code == parent.pillar_code
+                    # )
                     child_lines = parent.child_line_ids.filtered(
-                        lambda line: line.pillar_code == parent.pillar_code
+                        lambda line: line.id and line.pillar_code == parent.pillar_code
                     )
                     if not child_lines:
                         continue
+
+                    # Sau khi lọc đúng child hợp lệ, tổng trọng số con phải đúng bằng
+                    # trọng số parent. Nếu lệch, UI/tree hiện tại đang ở trạng thái
+                    # nghiệp vụ không hợp lệ và phải chặn lưu.
                     child_total = sum(child_lines.mapped("weight"))
+
                     if abs(child_total - parent.weight) > WEIGHT_TOLERANCE:
                         raise ValidationError(
                             _(
@@ -591,9 +623,10 @@ class HrKpiTemplateLine(models.Model):
             lambda line: not line.is_section and line.wipeout_if_child_zero
         )
         if leaf_rows:
-            super(HrKpiTemplateLine, leaf_rows.with_context(skip_hierarchy_sequence_sync=True)).write(
-                {"wipeout_if_child_zero": False}
-            )
+            super(
+                HrKpiTemplateLine,
+                leaf_rows.with_context(skip_hierarchy_sequence_sync=True),
+            ).write({"wipeout_if_child_zero": False})
 
     # Keep section rows technically consistent and validate normalized 3P trees after edits.
     def write(self, vals):
@@ -605,7 +638,8 @@ class HrKpiTemplateLine(models.Model):
         if vals.get("is_section") is False:
             vals["wipeout_if_child_zero"] = False
 
-        # Skip recursive hierarchy syncing for internal normalization writes.
+        # Một số write nội bộ chỉ dùng để chỉnh sequence/kỹ thuật. Khi đó phải bỏ qua
+        # toàn bộ luồng sync cây bên dưới để tránh recursion không cần thiết.
         if self.env.context.get("skip_hierarchy_sequence_sync"):
             return super().write(vals)
 
@@ -616,15 +650,17 @@ class HrKpiTemplateLine(models.Model):
         if affected_scope_fields.intersection(vals):
             if "parent_line_id" in vals and "sequence" not in vals:
                 for rec in self:
-                    # Reparenting without an explicit drag sequence should append to the new parent block.
+                    # Nếu người dùng đổi parent mà không kéo thả explicit sequence,
+                    # line/subtree sẽ được dời về cuối block của parent mới để giữ
+                    # tree order tự nhiên và không chen vào giữa sibling cũ.
                     rec._move_subtree_to_parent_end()
 
-            # Normalize both previous and current scopes so moved subtrees remain contiguous.
+            # Sau các thay đổi ảnh hưởng tới scope/thứ tự, phải chuẩn hóa lại cả scope
+            # cũ lẫn scope mới để subtree không bị đứt khúc trong flattened sequence.
             self._normalize_hierarchy_scopes(
                 old_scope_keys + self._get_sequence_scope_keys()
             )
         self._reset_wipeout_flag_on_leaf_rows()
-        self._validate_normalized_3p_weight_structure()
         return res
 
     # Enforce the tab pillar and normalized 3P validation as a backend fallback.
@@ -655,10 +691,10 @@ class HrKpiTemplateLine(models.Model):
             if "sequence" in normalized_vals:
                 continue
 
-            # Auto-place new lines at the end of their root or parent subtree block.
+            # Nếu create không truyền sequence explicit, backend sẽ tự đặt line mới
+            # vào cuối root block hoặc cuối subtree của parent để tree luôn liền mạch.
             rec._move_subtree_to_parent_end()
         records._reset_wipeout_flag_on_leaf_rows()
-        records._validate_normalized_3p_weight_structure()
         return records
 
     # Open the popup form used by the custom one2many widget.

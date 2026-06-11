@@ -120,7 +120,7 @@ class HrEvaluation3PSummary(models.Model):
         )
         return dept_eval
 
-    # Build one summary line payload from the employee evaluation and department KPI context.
+    # Chuẩn bị dữ liệu một dòng tổng hợp 3P từ đánh giá nhân viên và KPI phòng ban liên quan.
     def _prepare_summary_line_vals(self, evaluation, dept_evaluation):
         linked_dept_eval = evaluation.dept_evaluation_id or dept_evaluation
         p2_1_score = evaluation.get_weighted_score_by_pillar_code("p2_1")
@@ -131,8 +131,6 @@ class HrEvaluation3PSummary(models.Model):
         p3_department_score = (
             linked_dept_eval.dept_kpi_score if linked_dept_eval else 0.0
         )
-
-        p3_final_score = p3_individual_score
 
         return {
             "employee_id": evaluation.employee_id.id,
@@ -145,8 +143,6 @@ class HrEvaluation3PSummary(models.Model):
             "p2_2_score_raw": p2_2_score,
             "p3_individual_score": p3_individual_score,
             "p3_department_score": p3_department_score,
-            "p3_final_score": p3_final_score,
-            "p3_final_level": evaluation._get_level_from_score(p3_final_score),
         }
 
     def action_aggregate(self):
@@ -219,15 +215,7 @@ class HrEvaluation3PSummaryLine(models.Model):
         default=0.0,
         help="Responsibility or professional allowance. Filled by accounting.",
     )
-    p2_1_score_raw = fields.Float()
-    p2_2_score_raw = fields.Float()
-    p3_individual_score = fields.Float()
-    p3_department_score = fields.Float()
-    p3_final_score = fields.Float()
-    p3_final_level = fields.Selection(
-        selection=[
-            ("excellent", "Excellent"),
-            ("pass", "Pass"),
-            ("fail", "Fail"),
-        ]
-    )
+    p2_1_score_raw = fields.Float(string="P2.1")
+    p2_2_score_raw = fields.Float(string="P2.2")
+    p3_individual_score = fields.Float(string="P3.1.1")
+    p3_department_score = fields.Float(string="P3.1.2")

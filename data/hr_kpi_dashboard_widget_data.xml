@@ -3,7 +3,7 @@
     <data>
 
         <record id="widget_department_task_distribution" model="hr.kpi.dashboard.widget">
-            <field name="name">Xếp hạng điểm cuối cùng của nhân viên</field>
+            <field name="name">Xếp hạng điểm KPI cá nhân</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">macro</field>
             <field name="macro_widget_type">distribution</field>
@@ -169,7 +169,7 @@
         </record>
 
         <record id="widget_individual_radar_profile" model="hr.kpi.dashboard.widget">
-            <field name="name">Radar KPI định tính</field>
+            <field name="name">Biểu đồ năng lực</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">macro</field>
             <field name="macro_widget_type">radar_chart</field>
@@ -178,7 +178,7 @@
         </record>
 
         <record id="widget_individual_score_trend" model="hr.kpi.dashboard.widget">
-            <field name="name">Xu hướng điểm cuối cùng</field>
+            <field name="name">Xu hướng điểm</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">macro</field>
             <field name="macro_widget_type">trend_line</field>

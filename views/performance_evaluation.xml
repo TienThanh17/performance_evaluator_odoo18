@@ -135,7 +135,7 @@
                                     readonly="not is_manager and not is_department_manager" />
                                 <field name="wipeout_if_child_zero"
                                     invisible="not is_section"
-                                    readonly="1" />
+                                     />
                                 <field name="actual"
                                     invisible="not is_special_scoring or is_section"
                                     readonly="not is_manager and not is_department_manager" />
@@ -554,7 +554,7 @@
                                 <field name="evaluation_line_p2_1_ids" widget="kpi_one2many"
                                     context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_1'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
-                                        decoration-bf="is_section" create='0'>
+                                        decoration-bf="is_section" create='0' delete="0">
                                         <field name="pillar_code" column_invisible="1" />
                                         <field name="is_section" column_invisible="1" />
                                         <field name="final_rating_badge_class" column_invisible="1" />
@@ -647,7 +647,7 @@
                                 <field name="evaluation_line_p2_2_ids" widget="kpi_one2many"
                                     context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_2'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
-                                        decoration-bf="is_section" create='0'>
+                                        decoration-bf="is_section" create='0'  delete="0">
                                         <field name="pillar_code" column_invisible="1" />
                                         <field name="is_section" column_invisible="1" />
                                         <field name="final_rating_badge_class" column_invisible="1" />
@@ -745,7 +745,7 @@
                                     widget="kpi_one2many"
                                     context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p3_individual'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
-                                        decoration-bf="is_section" create='0'>
+                                        decoration-bf="is_section" create='0'  delete="0">
                                         <field name="pillar_code" column_invisible="1" />
                                         <field name="is_section" column_invisible="1" />
                                         <field name="is_auto" column_invisible="1" />

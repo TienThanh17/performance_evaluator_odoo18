@@ -52,7 +52,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "views/res_config_settings_views.xml",
         "views/kpi_unit_views.xml",
         "views/hr_department_kpi_views.xml",
-        "views/hr_department_performance_views.xml",
+        "views/hr_department_evaluation_views.xml",
         "views/hr_evaluation_3p_summary_views.xml",
         "views/performance_evaluation.xml",
         # "views/performance_report_views.xml",
@@ -87,6 +87,9 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
             "custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.scss",
             "custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.js",
             "custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml",
+        ],
+        "web.assets_tests": [
+            "custom_adecsol_hr_performance_evaluator/static/tests/tours/**/*",
         ],
     },
     "installable": True,

@@ -12,6 +12,7 @@ class HrKpiTemplate(models.Model):
         "hr.kpi.template.line",
         "kpi_id",
         help="The KPI lines included in this KPI template.",
+        ondelete='cascade',
     )
     kpi_line_p2_1_ids = fields.One2many(
         "hr.kpi.template.line",
@@ -19,6 +20,7 @@ class HrKpiTemplate(models.Model):
         domain=[("pillar_code", "=", "p2_1")],
         string="P2.1 KPI Lines",
         help="KPI lines that belong to the P2.1 pillar.",
+        ondelete='cascade',
     )
     kpi_line_p2_2_ids = fields.One2many(
         "hr.kpi.template.line",
@@ -26,6 +28,7 @@ class HrKpiTemplate(models.Model):
         domain=[("pillar_code", "=", "p2_2")],
         string="P2.2 KPI Lines",
         help="KPI lines that belong to the P2.2 pillar.",
+        ondelete='cascade',
     )
     kpi_line_p3_individual_ids = fields.One2many(
         "hr.kpi.template.line",
@@ -33,6 +36,7 @@ class HrKpiTemplate(models.Model):
         domain=[("pillar_code", "=", "p3_individual")],
         string="P3 Individual KPI Lines",
         help="KPI lines that belong to the P3 individual pillar.",
+        ondelete='cascade',
     )
     job_id = fields.Many2one(
         "hr.job",
@@ -55,7 +59,7 @@ class HrKpiTemplate(models.Model):
         required=True,
         default="monthly",
         tracking=True,
-        help="Quy định tần suất sử dụng bản mẫu này."
+        help="Quy định tần suất sử dụng bản mẫu này.",
     )
     scoring_profile_id = fields.Many2one(
         "hr.kpi.scoring.profile",
@@ -69,25 +73,35 @@ class HrKpiTemplate(models.Model):
         ondelete="set null",
     )
     # Khai báo các field chứa tên động của từng Pillar
-    pillar_p2_1_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.1")
-    pillar_p2_2_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.2")
-    pillar_p3_ind_name = fields.Char(compute="_compute_dynamic_pillar_names", string="Tên Pillar P3")
+    pillar_p2_1_name = fields.Char(
+        compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.1"
+    )
+    pillar_p2_2_name = fields.Char(
+        compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.2"
+    )
+    pillar_p3_ind_name = fields.Char(
+        compute="_compute_dynamic_pillar_names", string="Tên Pillar P3"
+    )
 
     def _compute_dynamic_pillar_names(self):
         # Truy vấn database một lần để lấy tất cả các pillar cần thiết (Tối ưu hiệu suất)
         # Giả định model hr.evaluation.pillar của bạn có trường 'code' để nhận diện
-        pillars = self.env['hr.evaluation.pillar'].sudo().search([
-            ('code', 'in', ['p2_1', 'p2_2', 'p3_individual'])
-        ])
-        
+        pillars = (
+            self.env["hr.evaluation.pillar"]
+            .sudo()
+            .search([("code", "in", ["p2_1", "p2_2", "p3_individual"])])
+        )
+
         # Tạo một dictionary { 'p2_1': 'Kiến Thức', 'p2_2': 'Kỹ năng chuyên môn', ... }
         pillar_dict = {p.code: p.name for p in pillars}
 
         for rec in self:
             # Gán tên từ database, nếu không tìm thấy thì dùng tên mặc định
-            rec.pillar_p2_1_name = pillar_dict.get('p2_1', 'P2.1')
-            rec.pillar_p2_2_name = pillar_dict.get('p2_2', 'P2.2')
-            rec.pillar_p3_ind_name = pillar_dict.get('p3_individual', 'P3.1.1 KPI Cá Nhân')
+            rec.pillar_p2_1_name = pillar_dict.get("p2_1", "P2.1")
+            rec.pillar_p2_2_name = pillar_dict.get("p2_2", "P2.2")
+            rec.pillar_p3_ind_name = pillar_dict.get(
+                "p3_individual", "P3.1.1 KPI Cá Nhân"
+            )
 
     # @api.constrains("kpi_line_ids")
     # def _check_total_weight(self):
@@ -108,6 +122,23 @@ class HrKpiTemplate(models.Model):
             kpi.kpi_line_ids._validate_parent_dept_line_consistency(
                 parent_kpi=kpi.department_kpi_id
             )
+
+    # Dời normalized 3P validation về parent write để Odoo xử lý xong toàn bộ
+    # command list của one2many rồi mới kiểm tra trên trạng thái cuối cùng.
+    def write(self, vals):
+        res = super().write(vals)
+
+        kpi_line_fields = (
+            "kpi_line_p2_1_ids",
+            "kpi_line_p2_2_ids",
+            "kpi_line_p3_individual_ids",
+        )
+
+        if set(kpi_line_fields) & vals.keys():
+            for field in kpi_line_fields:
+                self.mapped(field)._validate_normalized_3p_weight_structure()
+
+        return res
 
     # Trả về KPI lines theo thứ tự preorder của từng pillar để các màn generate giữ đúng cây template.
     def get_hierarchy_ordered_lines(self):

@@ -67,8 +67,6 @@
                                     <field name="p2_2_score_raw"/>
                                     <field name="p3_individual_score"/>
                                     <field name="p3_department_score"/>
-                                    <field name="p3_final_score"/>
-                                    <field name="p3_final_level"/>
                                 </list>
                             </field>
                         </page>
@@ -79,7 +77,7 @@
         </field>
     </record>
 
-    <record id="view_hr_evaluation_3p_summary_line_pivot" model="ir.ui.view">
+    <!-- <record id="view_hr_evaluation_3p_summary_line_pivot" model="ir.ui.view">
         <field name="name">hr.evaluation.3p.summary.line.pivot</field>
         <field name="model">hr.evaluation.3p.summary.line</field>
         <field name="arch" type="xml">
@@ -91,10 +89,9 @@
                 <field name="p2_2_score_raw" type="measure"/>
                 <field name="p3_individual_score" type="measure"/>
                 <field name="p3_department_score" type="measure"/>
-                <field name="p3_final_score" type="measure"/>
             </pivot>
         </field>
-    </record>
+    </record> -->
 
     <record id="action_hr_evaluation_3p_summary" model="ir.actions.act_window">
         <field name="name">3P Summary</field>
@@ -103,12 +100,12 @@
         <field name="search_view_id" ref="view_hr_evaluation_3p_summary_search"/>
     </record>
 
-    <record id="action_hr_evaluation_3p_summary_pivot" model="ir.actions.act_window">
+    <!-- <record id="action_hr_evaluation_3p_summary_pivot" model="ir.actions.act_window">
         <field name="name">3P Summary Analysis</field>
         <field name="res_model">hr.evaluation.3p.summary.line</field>
         <field name="view_mode">pivot,list</field>
         <field name="view_id" ref="view_hr_evaluation_3p_summary_line_pivot"/>
-    </record>
+    </record> -->
 
     <menuitem id="menu_hr_evaluation_3p_summary"
               name="3P Summary"
@@ -116,9 +113,9 @@
               action="action_hr_evaluation_3p_summary"
               sequence="30"/>
 
-    <menuitem id="menu_hr_evaluation_3p_summary_analysis"
+    <!-- <menuitem id="menu_hr_evaluation_3p_summary_analysis"
               name="3P Summary Analysis"
               parent="kpi_department_menu"
               action="action_hr_evaluation_3p_summary_pivot"
-              sequence="31"/>
+              sequence="31"/> -->
 </odoo>
