@@ -902,36 +902,11 @@ export class DeptKpiDashboard extends Component {
         if (!ctx) return null;
         const chartData = chartInfo.chart_data || {};
         const labels = chartData.labels || [];
-        const centerTextPlugin = {
-            id: "centerText",
-            afterDraw: (chart) => {
-                const { ctx: chartCtx, chartArea } = chart;
-                if (!chartArea) return;
-                const targetText = chart.config.data.target_center_text;
-                if (!targetText) return;
-
-                const centerX = (chartArea.left + chartArea.right) / 2;
-                const centerY = (chartArea.top + chartArea.bottom) / 2;
-
-                chartCtx.save();
-                chartCtx.font = "12px sans-serif";
-                chartCtx.fillStyle = "#6b7280";
-                chartCtx.textAlign = "center";
-                chartCtx.textBaseline = "middle";
-                chartCtx.fillText("Target", centerX, centerY - 10);
-                chartCtx.font = "bold 16px sans-serif";
-                chartCtx.fillStyle = "#1f2937";
-                chartCtx.fillText(targetText, centerX, centerY + 10);
-                chartCtx.restore();
-            },
-        };
         return new Chart(ctx, {
             type: "doughnut",
-            plugins: [centerTextPlugin],
             data: {
                 labels,
                 datasets: chartData.datasets || [],
-                target_center_text: chartData.target_center_text,
             },
             options: {
                 responsive: true,

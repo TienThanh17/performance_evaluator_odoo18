@@ -115,7 +115,10 @@
         <div class="o_kpi_row o_kpi_dynamic_grid">
           <t t-foreach="orderedCharts" t-as="chart" t-key="chart.key || chart.widget_id || chart_index">
             
-            <div t-attf-class="o_kpi_card o_kpi_chart_card {{ chart.chart_type === 'radar' ? 'o_kpi_card_full' : '' }}">
+            <div
+              class="o_kpi_card o_kpi_chart_card"
+              t-att-data-chart-type="chart.chart_type || 'bar'"
+            >
               <div class="o_kpi_card_header">
                 <span class="o_kpi_card_title">
                   <i class="fa fa-bar-chart text-primary me-2"/>
@@ -124,7 +127,7 @@
                 </span>
               </div>
               
-              <div t-attf-class="o_kpi_chart_container {{ chart.chart_type === 'radar' ? 'o_kpi_chart_container_large' : '' }}" >
+              <div class="o_kpi_chart_container">
                 <canvas t-att-data-chart-key="chart.key || (chart.widget_id ? 'chart_widget_' + chart.widget_id : 'chart_' + chart_index)" height="250"></canvas>
               </div>
               

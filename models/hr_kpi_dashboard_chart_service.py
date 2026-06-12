@@ -298,7 +298,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                     "datasets": datasets,
                 },
                 "chart_meta": {
-                    "note": _("Comparing employee target and actual values."),
+                    # "note": _("Comparing employee target and actual values."),
                 },
             }
 
@@ -841,7 +841,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 "datasets": datasets,
             },
             "chart_meta": {
-                "note": _("Comparing Target and Actual values."),
+                # "note": _("Comparing Target and Actual values."),
             },
         }
 

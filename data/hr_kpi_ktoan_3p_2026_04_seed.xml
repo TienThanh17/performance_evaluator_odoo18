@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <odoo>
-    <data noupdate="0">
+    <data noupdate="1">
         <!-- ============================================================
              MASTER DATA - PHÒNG BAN / NHÂN SỰ KẾ TOÁN
         ============================================================= -->
-        <record id="dept_ktoan_3p_202604" model="hr.department">
+        <!-- <record id="dept_ktoan_3p_202604" model="hr.department">
             <field name="name">Kế toán</field>
         </record>
 
@@ -12,7 +12,7 @@
             <field name="name">Nguyễn Ngọc Diệp</field>
             <field name="department_id" ref="custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604" />
             <field name="work_email">nguyen.ngoc.diep@example.com</field>
-        </record>
+        </record> -->
 
         <!-- CUSTOM UNITS FOR ACCOUNTING -->
         <record id="kpi_unit_vi_pham_bao_cao" model="hr.kpi.unit">
@@ -27,7 +27,7 @@
         <!-- ============================================================
              TEMPLATES - PHÒNG BAN & NHÂN VIÊN KẾ TOÁN
         ============================================================= -->
-        <record id="tpl_dept_kpi_ktoan_3p_202604" model="hr.department.kpi.template">
+        <!-- <record id="tpl_dept_kpi_ktoan_3p_202604" model="hr.department.kpi.template">
             <field name="name">P3.1.2 KPI Phòng Ban - Kế toán</field>
             <field name="department_id" ref="custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604" />
             <field name="period_type">monthly</field>
@@ -38,7 +38,7 @@
             <field name="department_id" ref="custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604" />
             <field name="period_type">monthly</field>
             <field name="department_kpi_id" ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_ktoan_3p_202604" />
-        </record>
+        </record> -->
 
         <!-- ============================================================
              DUPLICATED P2.1 & P2.2 LINES FROM IT TEMPLATE

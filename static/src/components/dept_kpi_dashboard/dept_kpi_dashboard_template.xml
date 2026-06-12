@@ -123,7 +123,7 @@
       <p t-if="state.chartErrorMsg" class="o_kpi_chart_note o_kpi_chart_runtime_error" t-esc="state.chartErrorMsg"/>
       <div class="o_dept_kpi_dynamic_grid">
         <t t-foreach="state.data.dynamic_charts" t-as="chart" t-key="chart.key">
-          <div class="o_dept_kpi_chart_card">
+          <div class="o_dept_kpi_chart_card" t-att-data-chart-type="chart.chart_type || 'bar'">
             <div class="o_dept_kpi_chart_header o_dept_kpi_dynamic_card_header">
               <div class="o_dept_kpi_dynamic_header_main">
                 <span class="o_dept_kpi_dynamic_title">

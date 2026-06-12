@@ -290,10 +290,47 @@ $dept-shadow-hover:  0 6px 24px rgba(3, 103, 176, 0.18);
 }
 
 .o_dept_kpi_dynamic_grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: 20px;
   margin-bottom: 20px;
+
+  > .o_dept_kpi_chart_card {
+    display: flex;
+    flex: 2 1 340px;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  > .o_dept_kpi_chart_card[data-chart-type="doughnut"] {
+    flex-grow: 1;
+  }
+
+  > .o_dept_kpi_chart_card[data-chart-type="bar"],
+  > .o_dept_kpi_chart_card[data-chart-type="line"],
+  > .o_dept_kpi_chart_card[data-chart-type="stacked_bar"] {
+    flex-grow: 2;
+  }
+
+  > .o_dept_kpi_chart_card[data-chart-type="radar"] {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  > .o_dept_kpi_chart_card[data-chart-type="doughnut"]:only-child {
+    max-width: 420px;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .o_dept_kpi_dynamic_grid {
+    > .o_dept_kpi_chart_card {
+      flex: 1 1 100%;
+      max-width: none;
+    }
+  }
 }
 
 .o_dept_kpi_dynamic_card_header {

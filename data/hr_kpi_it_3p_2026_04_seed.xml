@@ -4,7 +4,7 @@
         <!-- ============================================================
              MASTER DATA - PHÒNG BAN / CHỨC VỤ / NHÂN SỰ / KỲ ĐÁNH GIÁ
         ============================================================= -->
-        <record id="dept_it_3p_202604" model="hr.department">
+        <!-- <record id="dept_it_3p_202604" model="hr.department">
             <field name="name">Công nghệ thông tin (IT)</field>
         </record>
 
@@ -32,8 +32,8 @@
         </record>
 
         <record id="dept_it_3p_202604" model="hr.department">
-            <!-- <field name="manager_id"
-            ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604"/> -->
+            <field name="manager_id"
+            ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604"/>
             <field name="manager_id" search="[('user_id', '=', ref('base.user_admin'))]" />
         </record>
 
@@ -109,7 +109,7 @@
             <field name="period_type">monthly</field>
             <field name="date_start">2026-04-01</field>
             <field name="date_end">2026-04-30</field>
-        </record>
+        </record> -->
 
         <record id="kpi_unit_vi_pham_thang" model="hr.kpi.unit">
             <field name="name">Số lần vi phạm / tháng</field>
@@ -197,8 +197,8 @@
         ============================================================= -->
         <record id="tpl_dept_kpi_it_3p_202604" model="hr.department.kpi.template">
             <field name="name">P3.1.1 KPI Phòng Ban - Công nghệ thông tin (IT)</field>
-            <field name="department_id"
-                ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
+            <!-- <field name="department_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" /> -->
             <field name="period_type">monthly</field>
         </record>
 
@@ -692,8 +692,8 @@
         ============================================================= -->
         <record id="tpl_emp_kpi_it_3p_202604" model="hr.kpi.template">
             <field name="name">Bộ tiêu chí 3P IT - Hàng tháng 2026 (P2.1 + P2.2 + P3.1.1)</field>
-            <field name="department_id"
-                ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
+            <!-- <field name="department_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" /> -->
             <field name="period_type">monthly</field>
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />

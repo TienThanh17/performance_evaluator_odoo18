@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
+    <data noupdate="1">
 
         <record id="widget_department_task_distribution" model="hr.kpi.dashboard.widget">
             <field name="name">Xếp hạng điểm KPI cá nhân</field>
