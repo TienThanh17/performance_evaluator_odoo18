@@ -31,6 +31,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "data/kpi_sequence.xml",
         "data/hr_evaluation_master_data.xml",
         "data/hr_kpi_it_3p_2026_04_seed.xml",
+        "data/hr_kpi_ktoan_3p_2026_04_seed.xml",
         "data/hr_kpi_scoring_formula_data.xml",
         "data/hr_kpi_scoring_profile_data.xml",
         "data/hr_kpi_data_source_data.xml",

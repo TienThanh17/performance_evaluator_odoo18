@@ -21,6 +21,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
         return evaluation.department_id
 
     @api.model
+    # Dựng toàn bộ chart cho dashboard hiện tại và để từng widget tự quyết định có render được hay không.
     def build_dynamic_charts(self, evaluation, dashboard_kind="individual"):
         evaluation = evaluation.sudo()
         if not evaluation:
@@ -34,7 +35,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
         )
         for widget in widgets:
             chart = False
-            if widget.widget_class == "micro" and widget.data_source_id:
+            if widget.widget_class == "micro":
                 if dashboard_kind == "department":
                     chart = self._build_department_micro_chart(evaluation, widget)
                 else:
@@ -86,22 +87,102 @@ class HrKpiDashboardChartService(models.AbstractModel):
             },
         }
 
+    # Resolve employee KPI line từ selector template line của micro widget trên dashboard cá nhân.
+    def _resolve_individual_micro_line(self, evaluation, widget):
+        template_line = widget.employee_template_line_id
+        if not evaluation or not template_line:
+            return False
+
+        # Match theo backlink kpi_line_id để luôn đọc đúng snapshot line của phiếu đánh giá hiện tại.
+        matched_lines = evaluation.evaluation_line_ids.filtered(
+            lambda line: (
+                not line.is_section and line.kpi_line_id.id == template_line.id
+            )
+        ).sorted(key=lambda line: (line.sequence or 0, line.id or 0))
+        return matched_lines[:1].sudo() if matched_lines else False
+
+    # Gom line KPI của nhiều nhân viên trong cùng phòng/kỳ theo employee template line được chọn.
+    def _resolve_department_employee_compare_lines(self, evaluation, widget):
+        template_line = widget.employee_template_line_id
+        if not evaluation.department_id or not evaluation.period_id or not template_line:
+            return []
+
+        # Search theo kpi_line_id để bỏ hoàn toàn phụ thuộc vào widget.data_source_id.
+        line_model = self.env["hr.performance.evaluation.line"].sudo()
+        lines = line_model.search(
+            [
+                ("is_section", "=", False),
+                ("kpi_line_id", "=", template_line.id),
+                ("evaluation_id.department_id", "=", evaluation.department_id.id),
+                ("evaluation_id.period_id", "=", evaluation.period_id.id),
+                ("evaluation_id.state", "!=", "cancel"),
+            ],
+            order="evaluation_id desc, id desc",
+        )
+        if not lines:
+            return []
+
+        # Mỗi nhân viên chỉ lấy snapshot line mới nhất trong cùng kỳ/phòng ban.
+        latest_line_by_employee = {}
+        for line in lines:
+            employee = line.evaluation_id.employee_id
+            if not employee or employee.id in latest_line_by_employee:
+                continue
+            latest_line_by_employee[employee.id] = line
+
+        return sorted(
+            latest_line_by_employee.values(),
+            key=lambda line: (
+                line.evaluation_id.employee_id.name or "",
+                line.evaluation_id.id or 0,
+                line.id or 0,
+            ),
+        )
+
+    # Resolve nhiều department evaluation line theo selector template line trên widget.
+    def _resolve_department_progress_lines(self, evaluation, widget):
+        selected_template_lines = widget.department_template_line_ids.sorted(
+            key=lambda line: (line.sequence or 0, line.id or 0)
+        )
+        if not evaluation or not selected_template_lines:
+            return self.env["hr.department.evaluation.line"]
+
+        # Giữ đúng thứ tự line theo sequence của template line đã chọn thay vì phụ thuộc data source.
+        template_order = {
+            template_line.id: index
+            for index, template_line in enumerate(selected_template_lines)
+        }
+        matched_lines = evaluation.evaluation_line_ids.filtered(
+            lambda line: (
+                not line.is_section
+                and line.department_kpi_line_id.id in template_order
+            )
+        ).sorted(
+            key=lambda line: (
+                template_order.get(line.department_kpi_line_id.id, 999999),
+                line.sequence or 0,
+                line.id or 0,
+            )
+        )
+        return matched_lines.sudo()
+
+    # Trả data source snapshot gắn trên evaluation line nếu line đó có source; nếu không thì chart vẫn được phép chạy.
+    def _get_chart_line_source(self, line):
+        if not line or not getattr(line, "data_source_id", False):
+            return False
+        return line.data_source_id.sudo()
+
     # ---------------------------------------------------------
     # MICRO WIDGETS
     # ---------------------------------------------------------
+    # Dựng micro chart cá nhân từ employee template line đã chọn thay vì match bằng widget data source.
     def _build_individual_micro_chart(self, evaluation, widget):
-        matched_line = evaluation.evaluation_line_ids.filtered(
-            lambda line: (
-                not line.is_section
-                and line.kpi_type == "auto"
-                and line.data_source_id.id == widget.data_source_id.id
-            )
-        )
+        matched_line = self._resolve_individual_micro_line(evaluation, widget)
         if not matched_line:
             return False
 
         line = matched_line[0].sudo()
-        source = widget.data_source_id.sudo()
+        source = self._get_chart_line_source(line)
         provider_key = widget.provider_key
         provider = self._provider_registry().get(provider_key)
         if not provider:
@@ -129,7 +210,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             return False
 
         title = self._line_title(line, source)
-        subtitle = source.name if source.name and source.name != title else ""
+        subtitle = source.name if source and source.name and source.name != title else ""
         return {
             "key": "chart_widget_%s_line_%s" % (widget.id, line.id),
             "widget_id": widget.id,
@@ -154,39 +235,10 @@ class HrKpiDashboardChartService(models.AbstractModel):
             return self._build_department_progress_chart(evaluation, widget)
         return False
 
+    # Dựng chart so sánh nhiều nhân viên theo employee template line đã chọn trên widget phòng ban.
     def _build_department_employee_compare_chart(self, evaluation, widget):
-        if not evaluation.department_id or not evaluation.period_id or not widget.data_source_id:
-            return False
-
-        line_model = self.env["hr.performance.evaluation.line"].sudo()
-        lines = line_model.search(
-            [
-                ("is_section", "=", False),
-                ("kpi_type", "=", "auto"),
-                ("data_source_id", "=", widget.data_source_id.id),
-                ("evaluation_id.department_id", "=", evaluation.department_id.id),
-                ("evaluation_id.period_id", "=", evaluation.period_id.id),
-                ("evaluation_id.state", "!=", "cancel"),
-            ],
-            order="evaluation_id desc, id desc",
-        )
-        if not lines:
-            return False
-
-        latest_line_by_employee = {}
-        for line in lines:
-            employee = line.evaluation_id.employee_id
-            if not employee or employee.id in latest_line_by_employee:
-                continue
-            latest_line_by_employee[employee.id] = line
-
-        compare_lines = sorted(
-            latest_line_by_employee.values(),
-            key=lambda line: (
-                line.evaluation_id.employee_id.name or "",
-                line.evaluation_id.id or 0,
-                line.id or 0,
-            ),
+        compare_lines = self._resolve_department_employee_compare_lines(
+            evaluation, widget
         )
         if not compare_lines:
             return False
@@ -195,10 +247,17 @@ class HrKpiDashboardChartService(models.AbstractModel):
         if chart_type == "doughnut":
             chart_type = "bar"
 
-        labels = [line.evaluation_id.employee_id.name or _("Employee") for line in compare_lines]
+        labels = [
+            line.evaluation_id.employee_id.name or _("Employee")
+            for line in compare_lines
+        ]
         actual_values = [round(float(line.actual or 0.0), 2) for line in compare_lines]
         target_values = [round(float(line.target or 0.0), 2) for line in compare_lines]
-        source = widget.data_source_id.sudo()
+        selected_title = (
+            widget.employee_template_line_id.key_performance_area
+            or widget.employee_template_line_id.display_name
+            or _("Employee Comparison")
+        )
 
         datasets = [
             {
@@ -221,11 +280,16 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 )
 
         return {
-            "key": "chart_widget_%s_compare_%s" % (widget.id, widget.data_source_id.id),
+            "key": "chart_widget_%s_compare_template_%s"
+            % (widget.id, widget.employee_template_line_id.id),
             "widget_id": widget.id,
             "sequence": widget.sequence or 0,
-            "title": widget.name or source.name or _("Employee Comparison"),
-            # "subtitle": _("Across employees in the selected department and period"),
+            "title": widget.name or selected_title or _("Employee Comparison"),
+            "subtitle": (
+                selected_title
+                if widget.name and selected_title and selected_title != widget.name
+                else ""
+            ),
             "chart_type": chart_type,
             "chart_data": {
                 "labels": labels,
@@ -240,18 +304,12 @@ class HrKpiDashboardChartService(models.AbstractModel):
             "special_case_source": False,
         }
 
+    # Dựng chart tiến độ phòng ban từ danh sách department template line được chọn trên widget.
     def _build_department_progress_chart(self, evaluation, widget):
-        matched_lines = evaluation.evaluation_line_ids.filtered(
-            lambda line: (
-                not line.is_section
-                and line.kpi_type == "auto"
-                and line.data_source_id.id == widget.data_source_id.id
-            )
-        )
+        matched_lines = self._resolve_department_progress_lines(evaluation, widget)
         if not matched_lines:
             return False
 
-        source = widget.data_source_id.sudo()
         chart_type = widget.micro_chart_type or "bar"
         if len(matched_lines) > 1 and chart_type == "doughnut":
             chart_type = "bar"
@@ -260,13 +318,26 @@ class HrKpiDashboardChartService(models.AbstractModel):
             line = matched_lines[0].sudo()
             payload = self._build_single_line_target_actual_payload(
                 line,
-                source,
+                False,
                 chart_type,
             )
             if not payload:
                 return False
-            title = line.name or source.name or widget.name or _("Department KPI")
-            subtitle = source.name if source.name and source.name != title else ""
+            selected_title = (
+                line.name
+                or (
+                    line.department_kpi_line_id.name
+                    if line.department_kpi_line_id
+                    else False
+                )
+                or _("Department KPI")
+            )
+            title = widget.name or selected_title
+            subtitle = (
+                selected_title
+                if widget.name and selected_title and selected_title != widget.name
+                else ""
+            )
             return {
                 "key": "chart_widget_%s_dept_line_%s" % (widget.id, line.id),
                 "widget_id": widget.id,
@@ -285,17 +356,24 @@ class HrKpiDashboardChartService(models.AbstractModel):
         payload = self._build_multi_line_target_actual_payload(
             matched_lines.sudo(),
             chart_type,
-            label_getter=lambda line: line.name or source.name or _("Department KPI"),
+            label_getter=lambda line: (
+                line.name
+                or (
+                    line.department_kpi_line_id.name
+                    if line.department_kpi_line_id
+                    else False
+                )
+                or _("Department KPI")
+            ),
         )
         if not payload:
             return False
         return {
-            "key": "chart_widget_%s_dept_progress_%s"
-            % (widget.id, widget.data_source_id.id),
+            "key": "chart_widget_%s_dept_progress" % widget.id,
             "widget_id": widget.id,
             "sequence": widget.sequence or 0,
-            "title": widget.name or source.name or _("Department KPI Progress"),
-            "subtitle": _("Current department KPI lines"),
+            "title": widget.name or _("Department KPI Progress"),
+            "subtitle": _("Selected department KPI lines"),
             "chart_type": chart_type,
             "chart_data": payload.get("chart_data") or {"labels": [], "datasets": []},
             "chart_meta": payload.get("chart_meta") or {},
@@ -701,11 +779,12 @@ class HrKpiDashboardChartService(models.AbstractModel):
     # ---------------------------------------------------------
     # INDIVIDUAL MICRO PROVIDERS
     # ---------------------------------------------------------
+    # Ưu tiên nhãn snapshot trên line; chỉ fallback về source name khi line không có title phù hợp.
     def _line_title(self, line, source):
         return (
             getattr(line, "key_performance_area", False)
             or getattr(line, "name", False)
-            or source.name
+            or (source.name if source else False)
             or _("KPI Chart")
         )
 
@@ -719,6 +798,9 @@ class HrKpiDashboardChartService(models.AbstractModel):
     def _build_generic_domain_daily_series(
         self, evaluation, line, source, widget, chart_type, dashboard_kind
     ):
+        # Daily series chỉ chạy được khi line snapshot còn giữ domain source hợp lệ.
+        if not source:
+            return False
         if (
             source.source_type != "domain"
             or source.aggregation not in ("count", "sum", "avg")
@@ -893,7 +975,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 "labels": [_("Days Present"), _("Days Absent")],
                 "datasets": [
                     {
-                        "label": source.name or _("Attendance"),
+                        "label": (source.name if source else False) or _("Attendance"),
                         "data": [round(worked, 2), round(absent, 2)],
                         "backgroundColor": ["#3b82f6", "#e2e8f0"],
                         "borderWidth": 0,

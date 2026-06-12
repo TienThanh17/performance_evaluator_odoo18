@@ -82,6 +82,20 @@ class HrKpiDashboardWidget(models.Model):
         KPI_BEHAVIOR_SELECTION,
         string="KPI Behavior",
     )
+    employee_template_line_id = fields.Many2one(
+        "hr.kpi.template.line",
+        string="Employee Template Line",
+        ondelete="set null",
+        help="Select the employee KPI template line that this micro widget should read from.",
+    )
+    department_template_line_ids = fields.Many2many(
+        "hr.department.kpi.template.line",
+        "hr_kpi_dashboard_widget_department_template_line_rel",
+        "widget_id",
+        "template_line_id",
+        string="Department Template Lines",
+        help="Select the department KPI template lines that this micro widget should read from.",
+    )
     target_model = fields.Selection(
         TARGET_MODEL_SELECTION,
         string="Target Model",
@@ -169,6 +183,37 @@ class HrKpiDashboardWidget(models.Model):
         help="Select the KPI template lines that should appear in this radar chart. Leave empty to keep the radar widget inactive until it is configured.",
     )
 
+    # Đồng bộ KPI Behavior khi provider đổi để tránh giữ lại giá trị cũ không còn hợp lệ.
+    @api.onchange("provider_key")
+    def _onchange_provider_key(self):
+        for widget in self:
+            if widget.provider_key != "generic_domain_daily_series":
+                widget.kpi_behavior = False
+
+    # Chuẩn hóa vals trước khi lưu để KPI Behavior chỉ tồn tại với daily series provider.
+    @api.model
+    def _normalize_widget_vals(self, vals):
+        normalized_vals = dict(vals or {})
+        if (
+            normalized_vals.get("provider_key")
+            and normalized_vals["provider_key"] != "generic_domain_daily_series"
+        ):
+            normalized_vals["kpi_behavior"] = False
+        return normalized_vals
+
+    # Làm sạch dữ liệu đầu vào ngay từ create để constraint không bị vướng bởi giá trị cũ.
+    @api.model_create_multi
+    def create(self, vals_list):
+        normalized_vals_list = [
+            self._normalize_widget_vals(vals) for vals in (vals_list or [])
+        ]
+        return super().create(normalized_vals_list)
+
+    # Khi đổi provider qua ORM, tự clear KPI Behavior cũ nếu provider mới không còn dùng field này.
+    def write(self, vals):
+        normalized_vals = self._normalize_widget_vals(vals)
+        return super().write(normalized_vals)
+
     @api.constrains(
         "widget_class",
         "data_source_id",
@@ -183,6 +228,8 @@ class HrKpiDashboardWidget(models.Model):
         "group_by_ttype",
         "date_granularity",
         "department_micro_mode",
+        "employee_template_line_id",
+        "department_template_line_ids",
         "radar_template_line_ids",
     )
     # Kiểm tra cấu hình widget theo đúng rule nghiệp vụ của từng loại dashboard chart.
@@ -194,16 +241,12 @@ class HrKpiDashboardWidget(models.Model):
             "special_engine_attendance_overview": {"doughnut"},
         }
         for widget in self:
-            # Micro widget luôn cần đủ bộ source, provider và chart type để builder hoạt động đúng.
+            # Micro widget chỉ bắt buộc provider và chart type; selector line mới sẽ quyết định KPI cần chart.
             if widget.widget_class == "micro":
-                if (
-                    not widget.data_source_id
-                    or not widget.provider_key
-                    or not widget.micro_chart_type
-                ):
+                if not widget.provider_key or not widget.micro_chart_type:
                     raise ValidationError(
                         _(
-                            "Micro widget '%s' must define a Data Source, Provider, and Micro Chart Type."
+                            "Micro widget '%s' must define a Provider and Micro Chart Type."
                         )
                         % widget.name
                     )
@@ -242,6 +285,10 @@ class HrKpiDashboardWidget(models.Model):
                         )
                         % widget.name
                     )
+                # Dashboard cá nhân sẽ validate line selector và provider compatibility theo employee template line.
+                if widget.dashboard_kind == "individual":
+                    widget._validate_individual_micro_selector()
+
                 # Dashboard phòng ban cần thêm mode để service biết cách dựng chart micro.
                 if (
                     widget.dashboard_kind == "department"
@@ -253,6 +300,10 @@ class HrKpiDashboardWidget(models.Model):
                         )
                         % widget.name
                     )
+
+                # Dashboard phòng ban dùng selector khác nhau theo từng department micro mode.
+                if widget.dashboard_kind == "department":
+                    widget._validate_department_micro_selector()
                 continue
 
             # Macro widget phải khai báo rõ chart type trước khi kiểm tra từng biến thể.
@@ -297,12 +348,113 @@ class HrKpiDashboardWidget(models.Model):
                         % widget.name
                     )
 
+    # Kiểm tra selector line và provider compatibility cho micro widget trên dashboard cá nhân.
+    def _validate_individual_micro_selector(self):
+        self.ensure_one()
+
+        # Rollout mềm: widget cũ chưa chọn selector mới vẫn được lưu, runtime sẽ tự bỏ qua.
+        template_line = self.employee_template_line_id
+        if not template_line:
+            return
+
+        # Section row không có dữ liệu target/actual phù hợp cho micro chart.
+        if template_line.is_section:
+            raise ValidationError(
+                _(
+                    "Micro widget '%(widget)s' cannot use section row '%(line)s' as the employee template line."
+                )
+                % {
+                    "widget": self.name,
+                    "line": template_line.key_performance_area or template_line.display_name,
+                }
+            )
+
+        # Generic target/actual chỉ cần line hợp lệ; không phụ thuộc source trên widget.
+        if self.provider_key == "generic_target_actual_bar":
+            return
+
+        source = template_line.data_source_id
+        if self.provider_key == "generic_domain_daily_series":
+            # Daily series cần domain source, aggregation phù hợp và date field để bucket theo ngày.
+            if (
+                not source
+                or source.source_type != "domain"
+                or source.aggregation not in ("count", "sum", "avg")
+                or not source.date_field_id
+            ):
+                raise ValidationError(
+                    _(
+                        "Employee template line '%(line)s' on widget '%(widget)s' must use a domain data source with count, sum, or average aggregation and a date field for the daily series provider."
+                    )
+                    % {
+                        "line": template_line.key_performance_area
+                        or template_line.display_name,
+                        "widget": self.name,
+                    }
+                )
+            return
+
+        # Các provider attendance đặc thù cần line mang đúng source code để engine và chart semantics nhất quán.
+        required_source_code = {
+            "special_engine_punctuality": "attendance_late_days",
+            "special_engine_attendance_overview": "attendance_present_days",
+        }.get(self.provider_key)
+        if required_source_code and (not source or source.code != required_source_code):
+            raise ValidationError(
+                _(
+                    "Employee template line '%(line)s' on widget '%(widget)s' must use data source '%(source)s' for provider '%(provider)s'."
+                )
+                % {
+                    "line": template_line.key_performance_area or template_line.display_name,
+                    "widget": self.name,
+                    "source": required_source_code,
+                    "provider": self.provider_key,
+                }
+            )
+
+    # Kiểm tra selector line của micro widget trên dashboard phòng ban theo mode đang cấu hình.
+    def _validate_department_micro_selector(self):
+        self.ensure_one()
+
+        # Employee compare tái sử dụng employee KPI template line để map line của từng nhân viên trong cùng kỳ.
+        if self.department_micro_mode == "employee_compare":
+            if self.employee_template_line_id and self.employee_template_line_id.is_section:
+                raise ValidationError(
+                    _(
+                        "Department micro widget '%(widget)s' cannot use section row '%(line)s' as the employee template line."
+                    )
+                    % {
+                        "widget": self.name,
+                        "line": self.employee_template_line_id.key_performance_area
+                        or self.employee_template_line_id.display_name,
+                    }
+                )
+            return
+
+        # Department progress có thể chart nhiều line, nhưng tất cả đều phải là line thực chứ không phải section.
+        if self.department_micro_mode == "department_progress":
+            section_lines = self.department_template_line_ids.filtered("is_section")
+            if section_lines:
+                raise ValidationError(
+                    _(
+                        "Department micro widget '%(widget)s' cannot use section rows in Department Template Lines: %(lines)s."
+                    )
+                    % {
+                        "widget": self.name,
+                        "lines": ", ".join(section_lines.mapped("name")),
+                    }
+                )
+
     # Trả payload widget cho frontend/admin với đầy đủ metadata scope phòng ban.
     def _serialize_widget(self):
         self.ensure_one()
         data_source = self.data_source_id
         measure_field = self.measure_field_id
         group_by_field = self.group_by_field_id
+        employee_template_line = self.employee_template_line_id
+        department_template_lines = self.department_template_line_ids.sorted(
+            key=lambda line: (line.sequence or 0, line.id or 0)
+        )
         radar_template_lines = self.radar_template_line_ids.sorted(
             key=lambda line: (line.sequence or 0, line.id or 0)
         )
@@ -328,6 +480,14 @@ class HrKpiDashboardWidget(models.Model):
             "data_source_name": data_source.name if data_source else "",
             "department_ids": self.department_ids.ids,
             "department_names": self.department_ids.mapped("name"),
+            "employee_template_line_id": employee_template_line.id
+            if employee_template_line
+            else False,
+            "employee_template_line_name": employee_template_line.key_performance_area
+            if employee_template_line
+            else "",
+            "department_template_line_ids": department_template_lines.ids,
+            "department_template_line_names": department_template_lines.mapped("name"),
             "radar_template_line_ids": radar_template_lines.ids,
             "radar_template_line_names": radar_template_lines.mapped(
                 "key_performance_area"

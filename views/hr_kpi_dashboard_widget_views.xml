@@ -38,7 +38,22 @@
                             <field name="sequence" />
                         </group>
                         <group string="Micro Config" invisible="widget_class != 'micro'">
-                            <field name="data_source_id" required="widget_class == 'micro'" />
+                            <field
+                                name="employee_template_line_id"
+                                options="{'no_create': True}"
+                                domain="[('is_section', '=', False)]"
+                                invisible="dashboard_kind == 'department' and department_micro_mode == 'department_progress'"
+                                required="widget_class == 'micro' and (dashboard_kind == 'individual' or (dashboard_kind == 'department' and department_micro_mode == 'employee_compare'))"
+                            />
+                            <field
+                                name="department_template_line_ids"
+                                widget="many2many_tags"
+                                options="{'no_create': True}"
+                                domain="[('is_section', '=', False)]"
+                                invisible="dashboard_kind != 'department' or department_micro_mode != 'department_progress'"
+                                required="widget_class == 'micro' and dashboard_kind == 'department' and department_micro_mode == 'department_progress'"
+                            />
+                            <field name="data_source_id" />
                             <field name="provider_key" required="widget_class == 'micro'" />
                             <field name="kpi_behavior"
                                 invisible="provider_key != 'generic_domain_daily_series'"
