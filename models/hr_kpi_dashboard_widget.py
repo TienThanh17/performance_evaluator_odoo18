@@ -55,7 +55,7 @@ class HrKpiDashboardWidget(models.Model):
     widget_class = fields.Selection(
         [
             ("macro", "Biểu đồ Tổng hợp"),
-            ("micro", "Biểu đồ Chi tiết"),
+            ("micro", "Biểu đồ Chi tiết KPI"),
         ],
         required=True,
         default="micro",

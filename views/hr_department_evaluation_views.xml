@@ -86,7 +86,7 @@
                             <field name="data_source_id"
                                 invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
                             <field name="scoring_formula_id"
-                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
+                                invisible="kpi_type != 'auto' or dept_source_type in ['data_source', 'child_kpi_average']" />
                         </group>
                     </group>
 

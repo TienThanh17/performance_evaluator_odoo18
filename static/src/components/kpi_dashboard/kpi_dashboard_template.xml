@@ -117,10 +117,14 @@
             
             <div t-attf-class="o_kpi_card o_kpi_chart_card {{ chart.chart_type === 'radar' ? 'o_kpi_card_full' : '' }}">
               <div class="o_kpi_card_header">
-                <span class="o_kpi_card_title" t-esc="chart.title or chart.chart_meta?.title or 'Biểu đồ'"/>
+                <span class="o_kpi_card_title">
+                  <i class="fa fa-bar-chart text-primary me-2"/>
+                  
+                  <t t-esc="chart.title or chart.chart_meta?.title or 'Biểu đồ'"/>
+                </span>
               </div>
               
-              <div class="o_kpi_chart_container">
+              <div t-attf-class="o_kpi_chart_container {{ chart.chart_type === 'radar' ? 'o_kpi_chart_container_large' : '' }}" >
                 <canvas t-att-data-chart-key="chart.key || (chart.widget_id ? 'chart_widget_' + chart.widget_id : 'chart_' + chart_index)" height="250"></canvas>
               </div>
               

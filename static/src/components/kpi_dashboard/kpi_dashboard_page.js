@@ -819,14 +819,18 @@ export class KpiDashboard extends Component {
                 scales: {
                     r: {
                         beginAtZero: true,
-                        suggestedMax: Number(this.scoreScale.base || 100),
+                        suggestedMax: Number(this.scoreScale?.base || 100),
                         ticks: {
-                            stepSize: 1,
+                            stepSize: 20, // <--- THAY ĐỔI: Nhảy bước 20 (0, 20, 40, 60...)
                             showLabelBackdrop: false,
+                            font: { size: 11, weight: 'bold' } // Làm đậm số điểm trục
                         },
                         grid: { color: "rgba(0,0,0,0.08)" },
                         angleLines: { color: "rgba(0,0,0,0.08)" },
-                        pointLabels: { font: { size: 11 } },
+                        pointLabels: { 
+                            font: { size: 12 }, // <--- Tăng nhẹ size chữ của các góc (labels)
+                            padding: 15
+                        },
                     },
                 },
                 plugins: {

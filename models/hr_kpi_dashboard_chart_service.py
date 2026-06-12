@@ -225,14 +225,14 @@ class HrKpiDashboardChartService(models.AbstractModel):
             "widget_id": widget.id,
             "sequence": widget.sequence or 0,
             "title": widget.name or source.name or _("Employee Comparison"),
-            "subtitle": _("Across employees in the selected department and period"),
+            # "subtitle": _("Across employees in the selected department and period"),
             "chart_type": chart_type,
             "chart_data": {
                 "labels": labels,
                 "datasets": datasets,
             },
             "chart_meta": {
-                "note": _("Comparing Actual and Target values across employees."),
+                # "note": _("Comparing Actual and Target values across employees."),
             },
             "provider_key": widget.provider_key or "",
             "widget_class": widget.widget_class,
@@ -258,7 +258,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
 
         if len(matched_lines) == 1:
             line = matched_lines[0].sudo()
-            payload = self._build_target_actual_payload_for_line(
+            payload = self._build_single_line_target_actual_payload(
                 line,
                 source,
                 chart_type,
@@ -282,7 +282,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 "special_case_source": False,
             }
 
-        payload = self._build_target_actual_payload_for_lines(
+        payload = self._build_multi_line_target_actual_payload(
             matched_lines.sudo(),
             chart_type,
             label_getter=lambda line: line.name or source.name or _("Department KPI"),
@@ -357,10 +357,18 @@ class HrKpiDashboardChartService(models.AbstractModel):
         ]
 
         # Điểm radar đọc trực tiếp từ final_rating của từng evaluation line đã được map theo template.
+        # ... (các phần trên giữ nguyên)
         scores = [
             round(float(getattr(evaluation_line, "final_rating", 0.0) or 0.0), 2)
             for _, evaluation_line in matched_lines
         ]
+
+        # CODE THÊM MỚI: Đóng gói detail để render bảng điểm bên phải
+        radar_details = [
+            {"label": label, "score": score}
+            for label, score in zip(labels, scores)
+        ]
+
         return {
             "widget_id": widget.id,
             "sequence": widget.sequence or 0,
@@ -375,10 +383,15 @@ class HrKpiDashboardChartService(models.AbstractModel):
                         "backgroundColor": "rgba(59, 130, 246, 0.2)",
                         "borderColor": "#3b82f6",
                         "pointBackgroundColor": "#3b82f6",
+                        "pointRadius": 6,       # Kích thước dấu chấm to ra
+                        "pointHoverRadius": 8,  # Kích thước khi hover chuột
+                        "pointBorderWidth": 2,  # Độ dày viền chấm tròn
                     }
                 ],
             },
-            "chart_meta": {},
+            "chart_meta": {
+                "radar_details": radar_details # <--- Đẩy data sang XML
+            },
         }
 
     def _build_macro_trend(self, evaluation, widget):
@@ -590,7 +603,8 @@ class HrKpiDashboardChartService(models.AbstractModel):
     # ---------------------------------------------------------
     # GENERIC TARGET/ACTUAL PAYLOAD HELPERS
     # ---------------------------------------------------------
-    def _build_target_actual_payload_for_line(self, line, source, chart_type):
+    # Dựng payload Target/Actual cho đúng một KPI line.
+    def _build_single_line_target_actual_payload(self, line, source, chart_type):
         target_val = float(line.target or 0.0)
         actual_val = float(line.actual or 0.0)
         target_center_text = False
@@ -648,7 +662,8 @@ class HrKpiDashboardChartService(models.AbstractModel):
             "chart_meta": chart_meta,
         }
 
-    def _build_target_actual_payload_for_lines(self, lines, chart_type, label_getter):
+    # Dựng payload Target/Actual cho nhiều KPI line trong cùng một chart tổng hợp.
+    def _build_multi_line_target_actual_payload(self, lines, chart_type, label_getter):
         if not lines:
             return False
         labels = [label_getter(line) for line in lines]
@@ -697,7 +712,9 @@ class HrKpiDashboardChartService(models.AbstractModel):
     def _build_generic_target_actual_bar(
         self, evaluation, line, source, widget, chart_type, dashboard_kind
     ):
-        return self._build_target_actual_payload_for_line(line, source, chart_type)
+        return self._build_single_line_target_actual_payload(
+            line, source, chart_type
+        )
 
     def _build_generic_domain_daily_series(
         self, evaluation, line, source, widget, chart_type, dashboard_kind

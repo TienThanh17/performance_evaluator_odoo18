@@ -13,7 +13,7 @@
             <field name="sequence">60</field>
         </record>
 
-        <record id="widget_department_project_progress" model="hr.kpi.dashboard.widget">
+        <!-- <record id="widget_department_project_progress" model="hr.kpi.dashboard.widget">
             <field name="name">Phân bổ chi tiết KPI phòng ban</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">macro</field>
@@ -22,7 +22,7 @@
             <field name="measure_field_id" search="[('model', '=', 'hr.performance.evaluation.line'), ('name', '=', 'final_rating')]"/>
             <field name="group_by_field_id" search="[('model', '=', 'hr.performance.evaluation.line'), ('name', '=', 'key_performance_area')]"/>
             <field name="sequence">70</field>
-        </record>
+        </record> -->
 
         <record id="widget_department_attendance" model="hr.kpi.dashboard.widget">
             <field name="name">Số ngày chuyên cần</field>
@@ -124,7 +124,7 @@
         </record>
 
         <record id="widget_individual_micro_task_done_count" model="hr.kpi.dashboard.widget">
-            <field name="name">Xu hướng hoàn thành công việc </field>
+            <field name="name">Xu hướng hoàn thành Task</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
@@ -136,7 +136,7 @@
         </record>
 
         <record id="widget_individual_micro_task_on_time_rate" model="hr.kpi.dashboard.widget">
-            <field name="name">Tỷ lệ công việc đúng hạn </field>
+            <field name="name">Tỷ lệ Task đúng hạn</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
@@ -201,7 +201,7 @@
         </record>
 
         <record id="widget_department_micro_task_done_count" model="hr.kpi.dashboard.widget">
-            <field name="name">So sánh công việc hoàn thành của nhân viên</field>
+            <field name="name">So sánh Task hoàn thành của nhân viên</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
@@ -214,7 +214,7 @@
         </record>
 
         <record id="widget_department_micro_task_on_time_rate" model="hr.kpi.dashboard.widget">
-            <field name="name">So sánh tỷ lệ đúng hạn của nhân viên</field>
+            <field name="name">So sánh tỷ lệ Task đúng hạn của nhân viên</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>

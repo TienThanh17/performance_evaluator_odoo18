@@ -68,7 +68,6 @@ result = max(present_days - late_days, 0.0)
             <field name="name">Số ngày đi muộn</field>
             <field name="code">attendance_late_days</field>
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
-
             <field name="source_type">system</field>
             <field name="description">Đếm số ngày nhân viên đi muộn trong kỳ theo lịch làm việc và
                 grace minutes (Hệ thống tự động tính).</field>
