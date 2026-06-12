@@ -98,7 +98,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
     parent_line_id = fields.Many2one(
         "hr.department.kpi.template.line",
         string="Parent Line",
-        ondelete="set null",
+        ondelete="cascade",
         index=True,
         domain="[('department_kpi_id', '=', department_kpi_id), ('pillar_id', '=', pillar_id), ('id', '!=', id), ('is_section', '=', True)]",
     )
@@ -106,6 +106,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
         "hr.department.kpi.template.line",
         "parent_line_id",
         string="Child Lines",
+        ondelete='cascade',
     )
     child_template_line_ids = fields.One2many(
         "hr.kpi.template.line",
@@ -654,6 +655,15 @@ class HrDepartmentKpiTemplateLine(models.Model):
         records._reset_wipeout_flag_on_leaf_rows()
         records._validate_normalized_3p_weight_structure()
         return records
+
+    def unlink(self):
+        # Lưu lại template cha trước khi xóa,
+        # vì sau super().unlink() self đã không còn tồn tại.
+        templates = self.mapped("department_kpi_id")
+        res = super().unlink()
+        # Validate trên state hoàn chỉnh sau khi các line đã bị xóa thật sự.
+        templates.kpi_line_ids._validate_normalized_3p_weight_structure()
+        return res
 
     def action_open_popup(self):
         self.ensure_one()

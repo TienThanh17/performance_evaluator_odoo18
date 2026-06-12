@@ -1,5 +1,4 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
 
 
 class HrKpiTemplate(models.Model):
@@ -123,21 +122,69 @@ class HrKpiTemplate(models.Model):
                 parent_kpi=kpi.department_kpi_id
             )
 
-    # Dời normalized 3P validation về parent write để Odoo xử lý xong toàn bộ
-    # command list của one2many rồi mới kiểm tra trên trạng thái cuối cùng.
-    def write(self, vals):
-        res = super().write(vals)
-
-        kpi_line_fields = (
+    # Trả về danh sách field one2many có thể gửi command làm thay đổi KPI lines.
+    def _get_weight_validation_line_fields(self):
+        # Gom cả field tổng và các field theo từng tab pillar để parent write/create
+        # có thể nhận diện đầy đủ mọi save path từ form.
+        return (
+            "kpi_line_ids",
             "kpi_line_p2_1_ids",
             "kpi_line_p2_2_ids",
             "kpi_line_p3_individual_ids",
         )
 
-        if set(kpi_line_fields) & vals.keys():
-            for field in kpi_line_fields:
-                self.mapped(field)._validate_normalized_3p_weight_structure()
+    # Validate normalized 3P weights một lần trên trạng thái cuối cùng của template.
+    def _validate_kpi_line_weight_batch(self):
+        # Luôn gom từ kpi_line_ids để validator nhìn thấy toàn bộ cây line còn lại
+        # sau khi Odoo xử lý xong batch command của các tab.
+        line_records = self.mapped("kpi_line_ids")
+        if line_records:
+            line_records._validate_normalized_3p_weight_structure()
 
+    # Dời normalized 3P validation lên parent create để child line không validate
+    # giữa chừng khi form tạo mới gửi nhiều one2many commands cùng lúc.
+    @api.model_create_multi
+    def create(self, vals_list):
+        line_fields = self._get_weight_validation_line_fields()
+
+        # Nếu caller đã chủ động skip validate hoặc create không đụng các field
+        # one2many KPI line thì giữ nguyên flow mặc định.
+        if self.env.context.get("skip_normalized_3p_weight_validation") or not any(
+            any(field in vals for field in line_fields) for vals in vals_list
+        ):
+            return super().create(vals_list)
+
+        # Tạm bỏ qua validate ở child line để Odoo xử lý trọn bộ command list trước.
+        records = super(
+            HrKpiTemplate,
+            self.with_context(skip_normalized_3p_weight_validation=True),
+        ).create(vals_list)
+
+        # Chỉ validate một lần trên trạng thái cuối cùng của template vừa tạo.
+        records._validate_kpi_line_weight_batch()
+        return records
+
+    # Dời normalized 3P validation lên parent write để child write/unlink không
+    # validate giữa chừng khi một lần save vừa update vừa delete line.
+    def write(self, vals):
+        line_fields = self._get_weight_validation_line_fields()
+
+        # Các write không chạm KPI line hoặc đã được caller bọc context skip
+        # thì tiếp tục dùng flow mặc định.
+        if self.env.context.get("skip_normalized_3p_weight_validation") or not any(
+            field in vals for field in line_fields
+        ):
+            return super().write(vals)
+
+        # Tạm bỏ qua validate ở child line để Odoo hoàn tất toàn bộ one2many
+        # commands, bao gồm cả write/unlink chạy nối tiếp trong cùng transaction.
+        res = super(
+            HrKpiTemplate,
+            self.with_context(skip_normalized_3p_weight_validation=True),
+        ).write(vals)
+
+        # Sau khi command list hoàn tất, validate đúng trên trạng thái cuối.
+        self._validate_kpi_line_weight_batch()
         return res
 
     # Trả về KPI lines theo thứ tự preorder của từng pillar để các màn generate giữ đúng cây template.

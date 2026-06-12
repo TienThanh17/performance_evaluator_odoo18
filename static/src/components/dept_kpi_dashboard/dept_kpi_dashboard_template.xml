@@ -188,7 +188,11 @@
                 <tr>
                   <th>EMPLOYEE</th>
                   <th>ROLE</th>
-                  <th>INDIVIDUAL KPI SCORE</th>
+                  <th>P2.1</th>
+                  <th>P2.2</th>
+                  <th>P3.1.1</th>
+                  <th>P3.1.2</th>
+                  <th>P3.1</th>
                   <th>RESULT</th>
                   <th>STATUS</th>
                   <th>ACTION</th>
@@ -217,12 +221,27 @@
                     </td>
                     <td>
                       <div class="pd-score-cell">
-                        <span class="pd-score-num">
-                          <t t-esc="formatReportScore(ev.total_p3_individual || 0, 1)"/>
-                        </span>
-                        <div class="pd-progress-bar-wrap">
-                          <div class="pd-progress-bar-fill" t-att-style="'width:' + reportScorePct(ev.total_p3_individual || 0) + '%'"/>
-                        </div>
+                        <span class="pd-score-num" t-esc="formatReportSnapshotScore(ev.p2_1_score_raw)"/>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="pd-score-cell">
+                        <span class="pd-score-num" t-esc="formatReportSnapshotScore(ev.p2_2_score_raw)"/>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="pd-score-cell">
+                        <span class="pd-score-num" t-esc="formatReportSnapshotScore(ev.p3_individual_score)"/>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="pd-score-cell">
+                        <span class="pd-score-num" t-esc="formatReportSnapshotScore(ev.p3_department_score)"/>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="pd-score-cell">
+                        <span class="pd-score-num" t-esc="formatReportSnapshotScore(ev.p3_1_score)"/>
                       </div>
                     </td>
                     <td>

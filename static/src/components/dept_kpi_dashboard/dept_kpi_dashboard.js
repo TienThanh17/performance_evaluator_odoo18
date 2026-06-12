@@ -386,6 +386,13 @@ export class DeptKpiDashboard extends Component {
         return _formatScore(val, this.reportScoreScale, { decimals });
     }
 
+    formatReportSnapshotScore(val) {
+        if (val === false || val === null || val === undefined) {
+            return "—";
+        }
+        return (Number(val || 0) / 100).toFixed(2);
+    }
+
     reportScorePct(value) {
         const base = Number(this.reportScoreScale.base || 100);
         return Math.max(0, Math.min(100, ((Number(value) || 0) / base) * 100));

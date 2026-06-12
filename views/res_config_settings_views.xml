@@ -5,44 +5,72 @@
         <record id="res_config_settings_view_form_inherit_kpi_thresholds" model="ir.ui.view">
             <field name="name">res.config.settings.view.form.inherit.kpi.thresholds</field>
             <field name="model">res.config.settings</field>
-            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form" />
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
-                    <app string="Performance Evaluation" name="custom_adecsol_hr_performance_evaluator"
-                         logo="/custom_adecsol_hr_performance_evaluator/static/description/icon.png">
-                        <block title="KPI Performance Settings">
+                    <app string="Performance Evaluation"
+                        name="custom_adecsol_hr_performance_evaluator"
+                        logo="/custom_adecsol_hr_performance_evaluator/static/description/icon.png">
+
+                        <block title="Scoring &amp; Evaluation Rules">
                             <setting string="KPI thresholds "
-                                     help="Define score thresholds to classify evaluation results.">
+                                help="Define score thresholds to classify evaluation results.">
                                 <div class="row mt16 o_settings_container">
                                     <div>
-                                        <label for="kpi_threshold_excellent"/>
-                                        <div class="text-muted">Score ≥ this value is considered <b>Excellent</b>.
-                                        </div>
-                                        <field name="kpi_threshold_excellent" class="w-100"/>
+                                        <label for="kpi_threshold_excellent" />
+                                        <div class="text-muted">Score ≥ this value is considered <b>
+                                            Excellent</b>. </div>
+                                        <field name="kpi_threshold_excellent" class="w-100" />
                                     </div>
                                     <div class="mt-3">
-                                        <label for="kpi_threshold_pass"/>
-                                        <div class="text-muted">Score ≥ this value (and &lt; Excellent) is
-                                            considered <b>Pass</b>.
-                                        </div>
-                                        <field name="kpi_threshold_pass" class="w-100"/>
+                                        <label for="kpi_threshold_pass" />
+                                        <div class="text-muted">Score ≥ this value (and &lt;
+                                            Excellent) is considered <b>Pass</b>. </div>
+                                        <field name="kpi_threshold_pass" class="w-100" />
                                     </div>
                                 </div>
                                 <div class="text-muted">
-                                    Example: Excellent ≥ 90 and Pass ≥ 50 on the fixed 100-point KPI scale.
+                                    Example: Excellent ≥ 90 and Pass ≥ 50 on the fixed 100-point KPI
+                                    scale.
                                 </div>
                             </setting>
 
-                            <setting string="Attendance Grace Period"
-                                     help="Configure the tolerance for late arrivals.">
-                                <field name="late_grace_minutes"/>
+                            <setting string="P3.1 Weight"
+                                help="Define how P3.1.1 and P3.1.2 contribute to the 3P summary total.">
+                                <div class="row mt16 o_settings_container">
+                                    <div>
+                                        <label for="p3_individual_weight_percent" />
+                                        <div class="text-muted">Weight used for the <b>P3.1.1</b>
+                                            individual KPI score.</div>
+                                        <field name="p3_individual_weight_percent"
+                                            class="w-100" />
+                                    </div>
+                                    <div class="mt-3">
+                                        <label for="p3_department_weight_percent" />
+                                        <div class="text-muted">Weight used for the <b>P3.1.2</b>
+                                            department KPI score.</div>
+                                        <field name="p3_department_weight_percent"
+                                             class="w-100" />
+                                    </div>
+                                </div>
+                                <div class="text-muted">
+                                    P3.1.1 and P3.1.2 weights must total exactly 100%.
+                                </div>
                             </setting>
 
                             <setting string="Evaluation Report Deadline Reminder"
-                                     help="Set the number of days before the deadline to notify employees.">
-                                <field name="deadline_reminder_days"/>
+                                help="Set the number of days before the deadline to notify employees.">
+                                <field name="deadline_reminder_days" />
                             </setting>
                         </block>
+
+                        <block title="KPI Settings">
+                            <setting string="Attendance Grace Period"
+                                help="Configure the tolerance for late arrivals.">
+                                <field name="late_grace_minutes" />
+                            </setting>
+                        </block>
+
                     </app>
                 </xpath>
             </field>
@@ -55,21 +83,22 @@
             <field name="res_model">res.config.settings</field>
             <field name="view_mode">form</field>
             <field name="target">inline</field>
-            <!-- Context giúp Odoo tự động tìm đến tab 'Performance Evaluation' đã định nghĩa ở source -->
+            <!-- Context giúp Odoo tự động tìm đến tab 'Performance Evaluation' đã định nghĩa ở
+            source -->
             <field name="context">{'module': 'custom_adecsol_hr_performance_evaluator'}</field>
         </record>
 
         <!-- Menu Configuration (Con của Performance Evaluation) -->
         <menuitem id="menu_performance_evaluator_config"
-                  name="Configuration"
-                  parent="performance_evaluator"
-                  sequence="100"/>
+            name="Configuration"
+            parent="performance_evaluator"
+            sequence="100" />
 
         <!-- Menu Item Settings (Dẫn đến Action cấu hình) -->
         <menuitem id="menu_performance_evaluator_settings"
-                  name="Settings"
-                  parent="menu_performance_evaluator_config"
-                  action="action_performance_evaluator_config"
-                  sequence="1"/>
+            name="Settings"
+            parent="menu_performance_evaluator_config"
+            action="action_performance_evaluator_config"
+            sequence="1" />
     </data>
 </odoo>

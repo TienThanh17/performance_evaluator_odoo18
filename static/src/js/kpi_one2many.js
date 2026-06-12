@@ -288,26 +288,6 @@ export class KPIOne2ManyField extends X2ManyField {
         this.orm = useService("orm");
     }
 
-    // async syncParentRecordBeforePopupCreate() {
-    //     const editedRecord = this.list?.editedRecord;
-    //     if (editedRecord) {
-    //         const proms = [];
-    //         this.list.model.bus.trigger("NEED_LOCAL_CHANGES", { proms });
-    //         await Promise.all([...proms, editedRecord._updatePromise]);
-    //         const canProceed = await this.list.leaveEditMode({ canAbandon: false });
-    //         if (!canProceed) {
-    //             return false;
-    //         }
-    //     }
-
-    //     // Popup creates write directly on the child model, so we must persist the
-    //     // parent form first or server-side weight validation will still see stale rows.
-    //     if (this.props.record?.save) {
-    //         return this.props.record.save();
-    //     }
-    //     return true;
-    // }
-
     /**
      * Intercept creation:
      * - Add Section (context default_is_section): inline (super)
@@ -321,11 +301,6 @@ export class KPIOne2ManyField extends X2ManyField {
             !evaluatedContext.force_popup_section
         ) {
             return super.onAdd({ context, editable });
-        }
-
-        const synced = await this.syncParentRecordBeforePopupCreate();
-        if (synced === false) {
-            return;
         }
 
         const parentField = this.props.context.parent_field || this.props.record.data[this.props.name]?.config?.relationField;

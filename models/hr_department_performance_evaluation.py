@@ -547,6 +547,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             report_dashboard = self.performance_report_id.with_context(
                 active_test=False
             ).get_report_dashboard_data()
+            report_dashboard = self._enrich_report_dashboard_with_3p_summary_snapshot(
+                report_dashboard
+            )
 
         period_label = (
             self.period_id.name
@@ -590,6 +593,80 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             "quantitative_table": quantitative_table,
         }
         return result
+
+    # Bơm thêm các cột snapshot 3P vào Team Roster payload của dashboard phòng ban.
+    def _enrich_report_dashboard_with_3p_summary_snapshot(self, report_dashboard):
+        self.ensure_one()
+
+        # Nếu chưa có report payload hoặc chưa có roster evaluations thì không cần
+        # làm gì thêm.
+        if not report_dashboard or not report_dashboard.get("evaluations"):
+            return report_dashboard
+
+        Summary = self.env["hr.evaluation.3p.summary"].sudo()
+        summary_line_map = {}
+
+        # Tìm bản summary mới nhất cùng phòng ban và kỳ để roster hiển thị đúng
+        # snapshot aggregate, không bị trộn với live score hiện tại.
+        if self.department_id and self.period_id:
+            latest_summary = Summary.search(
+                [
+                    ("department_id", "=", self.department_id.id),
+                    ("period_id", "=", self.period_id.id),
+                ],
+                order="id desc",
+                limit=1,
+            )
+            if latest_summary:
+                # Dùng evaluation_id làm khóa để map từng dòng roster với snapshot
+                # line tương ứng. Chỉ lấy các line thật sự gắn với evaluation.
+                summary_line_map = {
+                    line.evaluation_id.id: line
+                    for line in latest_summary.line_ids.filtered("evaluation_id")
+                }
+
+        normalized_dashboard = dict(report_dashboard)
+        normalized_rows = []
+
+        for row in report_dashboard.get("evaluations", []):
+            normalized_row = dict(row)
+            summary_line = summary_line_map.get(normalized_row.get("id"))
+
+            # Nếu thiếu snapshot line thì để False để frontend render dấu "—"
+            # thay vì âm thầm rơi về live score.
+            normalized_row.update(
+                {
+                    "p2_1_score_raw": (
+                        round(float(summary_line.p2_1_score_raw or 0.0), 2)
+                        if summary_line
+                        else False
+                    ),
+                    "p2_2_score_raw": (
+                        round(float(summary_line.p2_2_score_raw or 0.0), 2)
+                        if summary_line
+                        else False
+                    ),
+                    "p3_individual_score": (
+                        round(float(summary_line.p3_individual_score or 0.0), 2)
+                        if summary_line
+                        else False
+                    ),
+                    "p3_department_score": (
+                        round(float(summary_line.p3_department_score or 0.0), 2)
+                        if summary_line
+                        else False
+                    ),
+                    "p3_1_score": (
+                        round(float(summary_line.p3_1_score or 0.0), 2)
+                        if summary_line
+                        else False
+                    ),
+                }
+            )
+            normalized_rows.append(normalized_row)
+
+        normalized_dashboard["evaluations"] = normalized_rows
+        return normalized_dashboard
 
     def _get_quantitative_table_data(self):
         self.ensure_one()

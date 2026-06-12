@@ -12,5 +12,15 @@
             <field name="key">custom_adecsol_hr_performance_evaluator.kpi_threshold_pass</field>
             <field name="value">50.0</field>
         </record>
+
+        <record id="res_config_setting_p3_individual_weight_percent" model="ir.config_parameter">
+            <field name="key">custom_adecsol_hr_performance_evaluator.p3_individual_weight_percent</field>
+            <field name="value">60</field>
+        </record>
+
+        <record id="res_config_setting_p3_department_weight_percent" model="ir.config_parameter">
+            <field name="key">custom_adecsol_hr_performance_evaluator.p3_department_weight_percent</field>
+            <field name="value">40</field>
+        </record>
     </data>
 </odoo>

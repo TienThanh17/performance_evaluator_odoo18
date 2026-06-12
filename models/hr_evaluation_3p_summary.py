@@ -120,18 +120,33 @@ class HrEvaluation3PSummary(models.Model):
         )
         return dept_eval
 
-    # Chuẩn bị dữ liệu một dòng tổng hợp 3P từ đánh giá nhân viên và KPI phòng ban liên quan.
-    def _prepare_summary_line_vals(self, evaluation, dept_evaluation):
+    # Chuẩn bị dữ liệu một dòng tổng hợp 3P và chốt snapshot điểm P3 theo cấu hình hiện tại.
+    def _prepare_summary_line_vals(
+        self,
+        evaluation,
+        dept_evaluation,
+        p3_individual_weight,
+        p3_department_weight,
+    ):
         linked_dept_eval = evaluation.dept_evaluation_id or dept_evaluation
+
+        # Lấy điểm thành phần của từng pillar trực tiếp từ phiếu KPI cá nhân hiện tại.
         p2_1_score = evaluation.get_weighted_score_by_pillar_code("p2_1")
         p2_2_score = evaluation.get_weighted_score_by_pillar_code("p2_2")
         p3_individual_score = evaluation.get_weighted_score_by_pillar_code(
             "p3_individual"
         )
+
+        # Điểm KPI phòng ban dùng từ phiếu liên kết nếu có, ngược lại rơi về 0.
         p3_department_score = (
             linked_dept_eval.dept_kpi_score if linked_dept_eval else 0.0
         )
+        p3_1_score = (
+            (p3_individual_score * p3_individual_weight)
+            + (p3_department_score * p3_department_weight)
+        ) / 100
 
+        # Trả về snapshot hoàn chỉnh để summary line không bị đổi khi Settings đổi sau đó.
         return {
             "employee_id": evaluation.employee_id.id,
             "job_id": evaluation.job_id.id,
@@ -143,11 +158,18 @@ class HrEvaluation3PSummary(models.Model):
             "p2_2_score_raw": p2_2_score,
             "p3_individual_score": p3_individual_score,
             "p3_department_score": p3_department_score,
+            "p3_1_score": p3_1_score,
         }
 
+    # Tổng hợp lại summary lines và chốt snapshot điểm P3 theo bộ trọng số Settings hiện tại.
     def action_aggregate(self):
-        SummaryLine = self.env["hr.evaluation.3p.summary.line"]
+        settings = self.env["res.config.settings"]
+        p3_individual_weight, p3_department_weight = (
+            settings.get_p3_summary_weights()
+        )
+
         for summary in self:
+            # Lấy phiếu KPI phòng ban của kỳ hiện tại để làm nguồn fallback chung.
             dept_evaluation = summary._get_department_evaluation()
             evaluations = self.env["hr.performance.evaluation"].search(
                 [
@@ -157,16 +179,23 @@ class HrEvaluation3PSummary(models.Model):
                 ],
                 order="employee_id, id",
             )
+
+            # Rebuild toàn bộ line để giữ dữ liệu summary đồng bộ với snapshot mới nhất.
             commands = [fields.Command.clear()]
             for evaluation in evaluations:
                 linked_dept_evaluation = evaluation.dept_evaluation_id or dept_evaluation
                 commands.append(
                     fields.Command.create(
                         summary._prepare_summary_line_vals(
-                            evaluation, linked_dept_evaluation
+                            evaluation,
+                            linked_dept_evaluation,
+                            p3_individual_weight,
+                            p3_department_weight,
                         )
                     )
                 )
+
+            # Ghi trạng thái done cùng batch line mới để summary phản ánh đúng lần aggregate này.
             summary.write(
                 {
                     "line_ids": commands,
@@ -219,3 +248,4 @@ class HrEvaluation3PSummaryLine(models.Model):
     p2_2_score_raw = fields.Float(string="P2.2")
     p3_individual_score = fields.Float(string="P3.1.1")
     p3_department_score = fields.Float(string="P3.1.2")
+    p3_1_score = fields.Float(string="P3.1", default=0.0)

@@ -67,6 +67,7 @@
                                     <field name="p2_2_score_raw"/>
                                     <field name="p3_individual_score"/>
                                     <field name="p3_department_score"/>
+                                    <field name="p3_1_score"/>
                                 </list>
                             </field>
                         </page>

@@ -125,5 +125,5 @@
     </record>
 
     <menuitem id="menu_kpi_dashboard_widget" name="Dashboard Widgets"
-        parent="menu_kpi_configuration" action="action_hr_kpi_dashboard_widget" sequence="40" />
+        parent="menu_kpi_configuration" action="action_hr_kpi_dashboard_widget" sequence="999" />
 </odoo>

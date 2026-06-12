@@ -72,7 +72,7 @@ class HrKpiTemplateLine(models.Model):
     parent_line_id = fields.Many2one(
         "hr.kpi.template.line",
         string="Parent Line",
-        ondelete="set null",
+        ondelete="cascade",
         index=True,
         domain="[('kpi_id', '=', kpi_id), ('pillar_id', '=', pillar_id), ('id', '!=', id), ('is_section', '=', True)]",
     )
@@ -661,6 +661,7 @@ class HrKpiTemplateLine(models.Model):
                 old_scope_keys + self._get_sequence_scope_keys()
             )
         self._reset_wipeout_flag_on_leaf_rows()
+        self._validate_normalized_3p_weight_structure()
         return res
 
     # Enforce the tab pillar and normalized 3P validation as a backend fallback.
@@ -695,7 +696,17 @@ class HrKpiTemplateLine(models.Model):
             # vào cuối root block hoặc cuối subtree của parent để tree luôn liền mạch.
             rec._move_subtree_to_parent_end()
         records._reset_wipeout_flag_on_leaf_rows()
+        records._validate_normalized_3p_weight_structure()
         return records
+
+    def unlink(self):
+        # Lưu lại template cha trước khi xóa,
+        # vì sau super().unlink() self đã không còn tồn tại.
+        templates = self.mapped("kpi_id")
+        res = super().unlink()
+        # Validate trên state hoàn chỉnh sau khi các line đã bị xóa thật sự.
+        templates.kpi_line_ids._validate_normalized_3p_weight_structure()
+        return res
 
     # Open the popup form used by the custom one2many widget.
     def action_open_popup(self):
