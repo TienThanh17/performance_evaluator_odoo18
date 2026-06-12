@@ -1,0 +1,2665 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+    <data noupdate="0">
+        <!-- ============================================================
+             MASTER DATA - PHÒNG BAN / NHÂN SỰ TỰ ĐỘNG HÓA
+        ============================================================= -->
+        <record id="dept_auto_3p_202604" model="hr.department">
+            <field name="name">Tự động hóa</field>
+        </record>
+
+        <record id="employee_auto_nguyen_phuoc_tan_3p_202604" model="hr.employee">
+            <field name="name">Nguyễn Phước Tân</field>
+            <field name="department_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604" />
+            <field name="work_email">nguyen.phuoc.tan@example.com</field>
+        </record>
+
+        <!-- ============================================================
+             TEMPLATES - PHÒNG BAN & NHÂN VIÊN TỰ ĐỘNG HÓA
+        ============================================================= -->
+        <record id="tpl_dept_kpi_auto_3p_202604" model="hr.department.kpi.template">
+            <field name="name">P3.1.2 KPI Phòng Ban - Tự động hóa</field>
+            <field name="department_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604" />
+            <field name="period_type">monthly</field>
+        </record>
+
+        <record id="tpl_emp_kpi_auto_3p_202604" model="hr.kpi.template">
+            <field name="name">Bộ tiêu chí 3P Tự động hóa - Hàng tháng 2026 (P2.1 + P2.2 + P3.1.1)</field>
+            <field name="department_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604" />
+            <field name="period_type">monthly</field>
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+        </record>
+
+        <!-- ============================================================
+             DUPLICATED P2.1 & P2.2 LINES FROM IT TEMPLATE
+        ============================================================= -->
+        <record id="line_emp_auto_p21_tc1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">A (TC1) - KỸ NĂNG</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">35</field>
+            <field name="sequence">100</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_202604" />
+            <field name="key_performance_area">I - Group 1. Kỹ năng cơ bản</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">15</field>
+            <field name="sequence">101</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp1_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_202604" />
+            <field name="key_performance_area">Không có kế hoạch hàng ngày (Kế hoạch 5 phút)</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">102</field>
+            <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng lập kế hoạch hàng
+                ngày (Kế hoạch 5 phút).</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp1_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_202604" />
+            <field name="key_performance_area">Không có kế hoạch, báo cáo tuần/ tháng/ quí/ năm</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">103</field>
+            <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng lập kế hoạch, báo
+                cáo tuần/ tháng/ quí/ năm.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp1_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_202604" />
+            <field name="key_performance_area">Không làm việc theo qui trình, không thực hiện theo
+                hướng dẫn của người quản lý trực tiếp</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">4</field>
+            <field name="sequence">104</field>
+            <field name="description">Thang điểm tham khảo: -4. Diễn giải: Kỹ năng làm việc theo qui
+                trình, không có qui trình thì thực hiện theo hướng dẫn của người quản lý trực tiếp.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp1_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_202604" />
+            <field name="key_performance_area">Không sử dụng phần mềm vào công việc được giao</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">105</field>
+            <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng sử dụng phần mềm
+                vào công việc được giao.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp1_item5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_202604" />
+            <field name="key_performance_area">Không hợp tác Làm việc nhóm</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">106</field>
+            <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng làm việc nhóm
+                hoặc độc lập.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp1_item6_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_202604" />
+            <field name="key_performance_area">Không chủ động nhận dạng và giải quyết vấn đề</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">107</field>
+            <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng nhận dạng và giải
+                quyết vấn đề. Sheet tháng 04/2026 có ghi nhận trừ điểm ở Huỳnh Trọng Đại, Võ Châu
+                Đăng Khoa, Huỳnh Thanh Tiến, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp1_item7_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_202604" />
+            <field name="key_performance_area">Không đọc được tiếng anh/ đọc hiểu bản vẽ, tài liệu
+                tiếng anh</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">108</field>
+            <field name="description">Thang điểm tham khảo: -1. Diễn giải: Tiếng anh/ đọc hiểu bản
+                vẽ, tài liệu tiếng anh.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp1_item8_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_202604" />
+            <field name="key_performance_area">Không biết Quản lý thời gian &amp; sắp xếp công việc
+                phù hợp</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">109</field>
+            <field name="description">Thang điểm tham khảo: -2. Diễn giải: Quản lý thời gian.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_202604" />
+            <field name="key_performance_area">II - Group 2. Kỹ năng nâng cao</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">10</field>
+            <field name="sequence">110</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp2_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp2_202604" />
+            <field name="key_performance_area">Không thực hiện phân tích rủi ro</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">111</field>
+            <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng phân tích rủi ro
+                thi công.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp2_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp2_202604" />
+            <field name="key_performance_area">Không biết viết qui trình/ hướng dẫn/ bảng cài đặt...</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">112</field>
+            <field name="description">Thang điểm tham khảo: -2. Diễn giải: Kỹ năng xây dựng qui
+                trình. Sheet tháng 04/2026 có ghi nhận trừ điểm ở Huỳnh Trọng Đại, Đỗ Minh Đường,
+                Huỳnh Thanh Tiến.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp2_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp2_202604" />
+            <field name="key_performance_area">Không Xây dựng KPI, chính sách phúc lợi cho phòng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">113</field>
+            <field name="description">Thang điểm tham khảo: -1. Diễn giải: Xây dựng KPI, chính sách
+                phúc lợi cho phòng.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp2_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp2_202604" />
+            <field name="key_performance_area">Không Quản lý đội nhóm &amp; tạo động lực cho nhân
+                viên</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">114</field>
+            <field name="description">Thang điểm tham khảo: -1. Diễn giải: Quản lý đội nhóm &amp;
+                tạo động lực cho nhân viên.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp2_item5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp2_202604" />
+            <field name="key_performance_area">Không Kỹ năng Đào tạo nhân viên</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">115</field>
+            <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng đào tạo nhân
+                viên.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp2_item6_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp2_202604" />
+            <field name="key_performance_area">Kỹ năng Điều phối cuộc họp</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">116</field>
+            <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng điều phối cuộc
+                họp. Sheet tháng 04/2026 có ghi nhận trừ điểm ở Đỗ Minh Đường.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp2_item7_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp2_202604" />
+            <field name="key_performance_area">Kỹ năng giám sát đội nhóm không tốt</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">117</field>
+            <field name="description">Thang điểm tham khảo: -1. Diễn giải: Kỹ năng giám sát đội
+                nhóm.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp2_item8_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp2_202604" />
+            <field name="key_performance_area">Không có kiến thức về Tiếng anh/ đọc hiểu và trả lời
+                mail, tài liệu, giao tiếp được</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">118</field>
+            <field name="description">Thang điểm tham khảo: -1. Diễn giải: Tiếng anh/ đọc hiểu và
+                trả lời mail, tài liệu, giao tiếp được.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_202604" />
+            <field name="key_performance_area">III - Group 3. Kỹ năng chuyên nghiệp</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">10</field>
+            <field name="sequence">119</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Kỹ năng giao tiếp &amp; xây dựng mối quan hệ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">120</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Quản lý thời gian</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">121</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Tiếng anh/ đọc hiểu và trả lời mail, tài liệu, giao
+                tiếp được với người nước ngoài</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">122</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến, Đinh Đại
+                Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Quản trị hệ thống &amp; qui trình</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">123</field>
+            <field name="description">Thang điểm tham khảo: -2. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến, Đinh Đại
+                Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Giám sát và điều hành</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">124</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến, Đinh Đại
+                Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item6_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Kỹ năng giao việc và huấn luyện</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">125</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến, Đinh Đại
+                Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item7_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Lập kế hoạch, xây dựng chiến lược triển khai quản lý
+                dự án</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.5</field>
+            <field name="sequence">126</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item8_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Quản trị rủi ro</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.5</field>
+            <field name="sequence">127</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item9_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Hoạch định chiến lược</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.5</field>
+            <field name="sequence">128</field>
+            <field name="description">Thang điểm tham khảo: +1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item10_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Phân tích và ra quyết định</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.5</field>
+            <field name="sequence">129</field>
+            <field name="description">Thang điểm tham khảo: +1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item11_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Quản trị sự thay đổi</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.5</field>
+            <field name="sequence">130</field>
+            <field name="description">Thang điểm tham khảo: +1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc1_grp3_item12_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp3_202604" />
+            <field name="key_performance_area">Quản trị hệ thống</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.5</field>
+            <field name="sequence">131</field>
+            <field name="description">Thang điểm tham khảo: +1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">B (TC2) - KIẾN THỨC</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">40</field>
+            <field name="sequence">200</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_202604" />
+            <field name="key_performance_area">I - Kiến thức nền (Các công thức, phương pháp)</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">35</field>
+            <field name="sequence">201</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_item0_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_202604" />
+            <field name="key_performance_area">Kiến thức về an toàn &amp; vệ sinh lao động</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">202</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_section_web_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_202604" />
+            <field name="key_performance_area">1 - Phát triển web (Web Developer)</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">14</field>
+            <field name="sequence">203</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_web_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_web_202604" />
+            <field name="key_performance_area">Cấu hình và phân quyền người dùng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">204</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_web_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_web_202604" />
+            <field name="key_performance_area">Viết code thông qua việc áp dụng phần mềm mã nguồn mở
+                odoo ERP</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">205</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_web_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_web_202604" />
+            <field name="key_performance_area">Thiết kế giao diện bằng việc sử dụng các HTML/ CSS,
+                SSH, HTTP/ HTTPS… cơ bản</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">206</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_web_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_web_202604" />
+            <field name="key_performance_area">Thu thập, cải thiện các bản mô tả và yêu cầu</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">207</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_web_item5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_web_202604" />
+            <field name="key_performance_area">Tạo và duy trì các tài liệu phần mềm</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">208</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_web_item6_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_web_202604" />
+            <field name="key_performance_area">Có trách nhiệm duy trì/ cải tiến và mở rộng website</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">209</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_web_item7_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_web_202604" />
+            <field name="key_performance_area">Cập nhật các xu hướng và ứng dụng công nghệ vào công
+                việc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">210</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Huỳnh Trọng Đại.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_web_item8_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_web_202604" />
+            <field name="key_performance_area">Phối hợp với bộ phận Kinh doanh &amp; Marketing để
+                tạo ra một website chuyên nghiệp, hình ảnh bắt mắt, dễ sử dụng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">211</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
+                Tiến, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_section_mobile_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_202604" />
+            <field name="key_performance_area">2 - Phát triển ứng dụng di động</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">9</field>
+            <field name="sequence">212</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_mobile_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_mobile_202604" />
+            <field name="key_performance_area">Nghiên cứu, thiết kế, lập trình ứng dụng phần mềm di
+                động theo từng dự án</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">213</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Huỳnh Trọng Đại, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_mobile_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_mobile_202604" />
+            <field name="key_performance_area">Viết các tài liệu theo quy trình phát triển phần mềm</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">214</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
+                Tiến, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_mobile_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_mobile_202604" />
+            <field name="key_performance_area">Kiểm tra, đánh giá chất lượng ứng dụng khi đã lập
+                trình xong</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">215</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_mobile_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_mobile_202604" />
+            <field name="key_performance_area">Bảo trì, hỗ trợ giải quyết các vấn đề liên quan đến
+                kỹ thuật khi phát triển ứng dụng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">216</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Võ Châu Đăng Khoa, Huỳnh Thanh Tiến.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_mobile_item5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_mobile_202604" />
+            <field name="key_performance_area">Cải thiện quy trình, tính năng của các ứng dụng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">217</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_section_embedded_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_202604" />
+            <field name="key_performance_area">3 - Lập trình nhúng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">5</field>
+            <field name="sequence">218</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_emb_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_embedded_202604" />
+            <field name="key_performance_area">Phát triển phần mềm cho những sản phẩm nhúng như
+                driver, phần mềm ứng dụng, dashboard...</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">219</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
+                Tiến, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_emb_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_embedded_202604" />
+            <field name="key_performance_area">Viết code, test code</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">220</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
+                Tiến, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_emb_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_embedded_202604" />
+            <field name="key_performance_area">Viết document, requirement cho các sản phẩm</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">221</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
+                Tiến, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_section_security_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_202604" />
+            <field name="key_performance_area">4 - An ninh mạng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">5</field>
+            <field name="sequence">222</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_sec_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_security_202604" />
+            <field name="key_performance_area">Tham gia triển khai các giải pháp bảo mật hệ thống</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">223</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
+                Tiến, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_sec_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_security_202604" />
+            <field name="key_performance_area">Đánh giá và phát triển cách tiếp cận với giải pháp</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1.5</field>
+            <field name="sequence">224</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
+                Tiến, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp1_sec_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp1_section_security_202604" />
+            <field name="key_performance_area">Hỗ trợ xử lý lỗi, sự cố kỹ thuật của nhóm bảo mật</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">2</field>
+            <field name="sequence">225</field>
+            <field name="description">Thang điểm tham khảo: -1. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Võ Châu Đăng Khoa, Huỳnh Thanh
+                Tiến, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_202604" />
+            <field name="key_performance_area">II - Kiến thức về sản phẩm (Hiểu chức năng, ứng dụng,
+                chọn sản phẩm đúng)</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">0</field>
+            <field name="sequence">226</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp2_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp2_202604" />
+            <field name="key_performance_area">II.1 - Kiến thức sản phẩm cơ bản</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0</field>
+            <field name="sequence">227</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp2_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp2_202604" />
+            <field name="key_performance_area">II.2 - Kiến thức sản phẩm nâng cao</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0</field>
+            <field name="sequence">228</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_202604" />
+            <field name="key_performance_area">III - Kiến thức về giải pháp/ hệ thống (đọc hiểu, bản
+                vẽ, thiết kế, chọn thiết bị)</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">0</field>
+            <field name="sequence">229</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp3_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp3_202604" />
+            <field name="key_performance_area">Hệ thống PMS cơ bản</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0</field>
+            <field name="sequence">230</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp3_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp3_202604" />
+            <field name="key_performance_area">Giải pháp tiết kiệm năng lượng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0</field>
+            <field name="sequence">231</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp3_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp3_202604" />
+            <field name="key_performance_area">Kiến thức IOT cơ bản</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0</field>
+            <field name="sequence">232</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp3_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp3_202604" />
+            <field name="key_performance_area">Hệ thống MES</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0</field>
+            <field name="sequence">233</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_202604" />
+            <field name="key_performance_area">IV - Kiến thức về công ty, sản phẩm và dịch vụ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">5</field>
+            <field name="sequence">234</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Tầm nhìn, sứ mệnh, giá trị cốt lõi, văn hóa</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.3</field>
+            <field name="sequence">235</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Câu chuyện về sứ mệnh của của công ty</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.3</field>
+            <field name="sequence">236</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Ý nghĩa logo công ty</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">237</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Sản phẩm và dịch vụ chính của công ty (liệt kê 5 sản
+                phẩm &amp; dịch vụ chính)</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">238</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Kim chỉ nam hành động của công ty (An Toàn - kỹ
+                thuật/ chất lượng - tiến độ - thẩm mỹ - chi phí)</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">239</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item6_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Địa chỉ văn phòng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">240</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item7_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Số điện thoại, website, Email</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">241</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item8_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Địa chỉ nhà xưởng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">242</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item9_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Các khách hàng lớn/ dự án của công ty</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">243</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item10_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Ban giám đốc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">244</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item11_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Bộ phận quản lý trực tiếp</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">245</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item12_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Bộ phận nhân sự</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">246</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc2_grp4_item13_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc2_grp4_202604" />
+            <field name="key_performance_area">Ngày thành lập công ty</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.4</field>
+            <field name="sequence">247</field>
+            <field name="description">Thang điểm tham khảo: -1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">C (TC3) - QUI TRÌNH PHÒNG BAN</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">15</field>
+            <field name="sequence">300</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc3_grp1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc3_202604" />
+            <field name="key_performance_area">C.3 - PHÒNG IT</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">3</field>
+            <field name="sequence">301</field>
+            <field name="description">Điểm cộng tham khảo: +1.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc3_grp2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc3_202604" />
+            <field name="key_performance_area">C.6 - CÁC QUY TRÌNH KHÁC TRONG HTQLCL</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">12</field>
+            <field name="sequence">302</field>
+            <field name="description">Điểm cộng tham khảo: +3.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc3_grp2_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc3_grp2_202604" />
+            <field name="key_performance_area">C.6.1 - QUY TRÌNH PHÒNG KINH DOANH</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">3</field>
+            <field name="sequence">303</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc3_grp2_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc3_grp2_202604" />
+            <field name="key_performance_area">C.6.2 - QUY TRÌNH BP LOGISTIC</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">3</field>
+            <field name="sequence">304</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc3_grp2_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc3_grp2_202604" />
+            <field name="key_performance_area">C.6.3 - QUY TRÌNH PHÒNG NHÂN SỰ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">3</field>
+            <field name="sequence">305</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc3_grp2_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc3_grp2_202604" />
+            <field name="key_performance_area">C.6.4 - QUY TRÌNH PHÒNG KẾ TOÁN</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">3</field>
+            <field name="sequence">306</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">D (TC4) - QUI TRÌNH 5S</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">5</field>
+            <field name="sequence">400</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc4_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc4_202604" />
+            <field name="key_performance_area">Sàng lọc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">401</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc4_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc4_202604" />
+            <field name="key_performance_area">Sắp xếp</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">402</field>
+            <field name="description">Thang điểm tham khảo: -2. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Huỳnh Trọng Đại và Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc4_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc4_202604" />
+            <field name="key_performance_area">Sạch sẽ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">403</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc4_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc4_202604" />
+            <field name="key_performance_area">Săn sóc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">404</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc4_item5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc4_202604" />
+            <field name="key_performance_area">Sẳn sàng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">405</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">E (TC5) - KAIZEN - CẢI TIẾN LIÊN TỤC</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">5</field>
+            <field name="sequence">500</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc5_item1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc5_202604" />
+            <field name="key_performance_area">Hiểu về Kaizen</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.5</field>
+            <field name="sequence">501</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc5_item2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc5_202604" />
+            <field name="key_performance_area">Qui trình thực hiện Kaizen</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">0.5</field>
+            <field name="sequence">502</field>
+            <field name="description">Thang điểm tham khảo: -2. Sheet tháng 04/2026 có ghi nhận trừ
+                điểm ở Phạm Tommy, Huỳnh Trọng Đại, Đỗ Minh Đường, Đinh Đại Dương.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc5_item3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc5_202604" />
+            <field name="key_performance_area">Kế hoạch - Plan</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">503</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc5_item4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc5_202604" />
+            <field name="key_performance_area">Thực hiện - Do</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">504</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc5_item5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc5_202604" />
+            <field name="key_performance_area">Kiểm Tra - Check</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">505</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p21_tc5_item6_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc5_202604" />
+            <field name="key_performance_area">Hành động cải tiến - Action</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_1"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">binary</field>
+            <field name="weight">1</field>
+            <field name="sequence">506</field>
+            <field name="description">Thang điểm tham khảo: -2.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_01_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Tay nghề &amp; Kỹ năng thực hiện công việc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">8</field>
+            <field name="sequence">600</field>
+            <field name="description">Điểm tối đa: 8.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_02_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Chất lượng thực hiện công việc (tuân thủ các mục tiêu
+                chuẩn &amp; quy trình)</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">8</field>
+            <field name="sequence">601</field>
+            <field name="description">Điểm tối đa: 8.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_03_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Khối lượng &amp; tiến độ công việc hoàn thành</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">8</field>
+            <field name="sequence">602</field>
+            <field name="description">Điểm tối đa: 8.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_04_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Làm việc nhóm &amp; Hợp tác thực hiện công việc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">8</field>
+            <field name="sequence">603</field>
+            <field name="description">Điểm tối đa: 8.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_05_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Ý thức đảm bảo an toàn lao động</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">8</field>
+            <field name="sequence">604</field>
+            <field name="description">Điểm tối đa: 8.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_06_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Ý thức bảo vệ tài sản của công ty &amp; CĐT tại công
+                trường</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">6</field>
+            <field name="sequence">605</field>
+            <field name="description">Điểm tối đa: 6.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_07_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Ý thức sử dụng tiết kiệm tài sản của Công ty (điện,
+                nước, vật tư, thiết bị lắp đặt…)</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">6</field>
+            <field name="sequence">606</field>
+            <field name="description">Điểm tối đa: 6.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_08_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Thái độ, ý thức trách nhiệm đối với công việc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">6</field>
+            <field name="sequence">607</field>
+            <field name="description">Điểm tối đa: 6.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_09_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Quan hệ với đồng nghiệp &amp; những người khác trên
+                công trường</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">6</field>
+            <field name="sequence">608</field>
+            <field name="description">Điểm tối đa: 6.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_10_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Kỷ luật trong CV, ý thức chấp hành nội quy công ty</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">6</field>
+            <field name="sequence">609</field>
+            <field name="description">Điểm tối đa: 6.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_11_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Mặc đồng phục, đeo thẻ đầy đủ &amp; đúng quy định</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">6</field>
+            <field name="sequence">610</field>
+            <field name="description">Điểm tối đa: 6.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_12_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Ý thức sử dụng thời gian làm việc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">6</field>
+            <field name="sequence">611</field>
+            <field name="description">Điểm tối đa: 6.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_13_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Ý thức chấp hành lệnh phân công, điều hành của quản
+                trị viên, BGĐ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">6</field>
+            <field name="sequence">612</field>
+            <field name="description">Điểm tối đa: 6.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_14_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Giữ gìn vệ sinh</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">4</field>
+            <field name="sequence">613</field>
+            <field name="description">Điểm tối đa: 4.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_15_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Đi làm đầy đủ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">4</field>
+            <field name="sequence">614</field>
+            <field name="description">Điểm tối đa: 4.</field>
+        </record>
+
+        <record id="line_emp_auto_p22_16_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Đi làm đúng giờ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p2_2"></field>
+            <field name="kpi_type">manual</field>
+            <field name="manual_scoring_type">score</field>
+            <field name="weight">4</field>
+            <field name="sequence">615</field>
+            <field name="description">Điểm tối đa: 4.</field>
+        </record>
+
+        <!-- ============================================================
+             P3.1.2 - KPI PHÒNG BAN TỰ ĐỘNG HÓA
+        ============================================================= -->
+        <record id="line_dept_auto_p3_sec10_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="name">An Toàn</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="wipeout_if_child_zero">True</field>
+            <field name="weight">15</field>
+            <field name="sequence">100</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s10_1_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec10_202604" />
+            <field name="name">Trang bị bảo hộ lao động đầy đủ cho nhân viên, công nhân thi công</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_kiem_tra_ngay" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">4</field>
+            <field name="sequence">101</field>
+            <field name="description">Yếu tố quyết định thành công: Trang bị đầy đủ trang thiết bị
+                an toàn đúng, đủ với tính chất công việc thực hiện
+                Kém: 1 Lần/Tháng
+                Xuất sắc: 0 Lần / Tháng</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s10_2_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec10_202604" />
+            <field name="name">Nội quy công trường: an toàn, cấm hút thuốc.v.v..</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_kiem_tra_ngay" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">4</field>
+            <field name="sequence">102</field>
+            <field name="description">Yếu tố quyết định thành công: Thiết bị thi công cụ dụng cụ đảm
+                bảo tiêu chuẩn
+                Kém: 1 Lần/Tháng
+                Xuất sắc: 0 Lần / Tháng</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s10_3_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec10_202604" />
+            <field name="name">Lập bảng phân tích, đánh giá rủi ro, biện pháp phòng ngừa</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">4</field>
+            <field name="sequence">103</field>
+            <field name="description">Mục tiêu chiến lược: Đảm bảo an toàn trong công việc
+                Yếu tố quyết định thành công: Phân tích, đánh giá rủi ro, phương pháp làm việc an
+                toàn khi thực hiện
+                Kém: 1 Lần/Tháng
+                Xuất sắc: 0 Lần / Tháng</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s10_4_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec10_202604" />
+            <field name="name">Không xảy ra tai nạn lao động tại nơi làm việc, công trường</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">3</field>
+            <field name="sequence">104</field>
+            <field name="description">Yếu tố quyết định thành công: Đảm bảo nơi làm việc, công
+                trường
+                Kém: 1 Lần/Tháng
+                Xuất sắc: 0 Lần / Tháng</field>
+        </record>
+
+        <record id="line_dept_auto_p3_sec20_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="name">Kỹ thuật/ Chất lượng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="wipeout_if_child_zero">True</field>
+            <field name="weight">20</field>
+            <field name="sequence">200</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s20_1_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec20_202604" />
+            <field name="name">Thực hiện công việc lập trình không đúng Control Panel hoặc
+                lập bảng Control Panel không đúng yêu cầu của khách hàng dẫn đến phải sửa
+                đổi chương trình/ cài đặt nhiều hơn 1 lần.</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">10</field>
+            <field name="sequence">201</field>
+            <field name="description">Mục tiêu chiến lược: Lập trình hệ thống đúng yêu cầu
+                của khách hàng
+                Yếu tố quyết định thành công: Sự hài lòng của khách hàng
+                Sản phẩm đạt chất lượng kỹ thuật
+                Kém: 1 Lỗi / DA/việc
+                Xuất sắc: 0 Lỗi / DA/việc</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s20_2_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec20_202604" />
+            <field name="name">Thi công, lắp đặt cài đặt sửa chữa đúng nguyên lý, đúng kỹ
+                thuật, đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_loi_thiet_ke" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">10</field>
+            <field name="sequence">202</field>
+            <field name="description">Mục tiêu chiến lược: Thi công lắp đặt, cài đặt/ sửa chữa
+                đạt tiêu chuẩn kỹ thuật, chất lượng
+                Yếu tố quyết định thành công: Chất lượng lắp đặt, cài đặt, hiệu chỉnh
+                Kém: 1 Lỗi / DA/việc
+                Xuất sắc: 0 Lỗi / DA/việc</field>
+        </record>
+
+        <record id="line_dept_auto_p3_sec30_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="name">Qui trình</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="wipeout_if_child_zero">True</field>
+            <field name="weight">15</field>
+            <field name="sequence">300</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s30_1_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec30_202604" />
+            <field name="name">Áp dụng qui trình cho từng công đoạn của công việc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit"
+                ref="custom_adecsol_hr_performance_evaluator.kpi_unit_khong_ap_dung_qt" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">301</field>
+            <field name="description">Mục tiêu chiến lược: Quy trình và quản lý chất lượng
+                Yếu tố quyết định thành công: Quy trình và quản lý An toàn, chất lượng, Kỹ thuật
+                Kém: 1</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s30_2_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec30_202604" />
+            <field name="name">Đề xuất phương án thực hiện</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">3</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_phuong_an" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">302</field>
+            <field name="description">Yếu tố quyết định thành công: Hiệu suất
+                Kém: 1
+                Xuất sắc: 3 phương án, có 1 phuong án tối ưu/ 1 sự việc</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s30_3_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec30_202604" />
+            <field name="name">Qui trình 5S</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_ko_th" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">303</field>
+            <field name="description">Kém: 1 Lần</field>
+        </record>
+
+        <record id="line_dept_auto_p3_sec40_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="name">Tiến độ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="wipeout_if_child_zero">True</field>
+            <field name="weight">15</field>
+            <field name="sequence">400</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s40_1_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec40_202604" />
+            <field name="name">Thực hiện công việc nhanh chóng không ì ạch, không tập trung,
+                chậm trễ tiến độ chung với dự án</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_tre_tien_do" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">15</field>
+            <field name="sequence">401</field>
+            <field name="description">Mục tiêu chiến lược: Tiến độ hoàn thành công việc
+                Yếu tố quyết định thành công: Tiến độ thực hiện công việc
+                Kém: 1
+                Xuất sắc: 0 Lần</field>
+        </record>
+
+        <record id="line_dept_auto_p3_sec50_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="name">Chi Phí</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="wipeout_if_child_zero">True</field>
+            <field name="weight">15</field>
+            <field name="sequence">500</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s50_1_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec50_202604" />
+            <field name="name">Thực hiện công việc không triệt để, dẫn đến thực hiện một
+                công việc ở công trình nhiều hơn 1 lần</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">1.0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent_ktoan" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">501</field>
+            <field name="description">Mục tiêu chiến lược: Giới hạn chi phí phát sinh thay đổi
+                Yếu tố quyết định thành công: Giảm chi phí tối thiểu
+                Kém: &lt;2%, &gt;2%
+                Xuất sắc: &lt;/= 1%</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s50_2_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec50_202604" />
+            <field name="name">Khảo sát, đo đạc, thiết kế bản vẽ theo thực tế thi công dự án 100%</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">1.0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent_ktoan" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">502</field>
+            <field name="description">Kém: &lt;2%, &gt;2%
+                Xuất sắc: &lt;/= 1%</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s50_3_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec50_202604" />
+            <field name="name">Thực tế thi công, Lập bảng quản lí hàng hóa, vật tư theo dự án hiệu
+                quả</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">1.0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent_ktoan" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">503</field>
+            <field name="description">Kém: &lt;2%, &gt;2%
+                Xuất sắc: &lt;/= 1%</field>
+        </record>
+
+        <record id="line_dept_auto_p3_sec60_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="name">Đào tạo và Phẫm chất</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="wipeout_if_child_zero">True</field>
+            <field name="weight">15</field>
+            <field name="sequence">600</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s60_1_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec60_202604" />
+            <field name="name">Số khóa đào tạo /người</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">80</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent_ktoan" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">601</field>
+            <field name="description">Mục tiêu chiến lược: Đào tạo nhân sự
+                Yếu tố quyết định thành công: Đào tạo nhân viên theo kế hoạch đào tạo
+                Kém: &lt;80%
+                Xuất sắc: 100%</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s60_2_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec60_202604" />
+            <field name="name">Chất lượng nhân sự đáp ứng nhu cầu</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">80</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent_ktoan" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">602</field>
+            <field name="description">Kém: &lt;80%
+                Xuất sắc: 100%</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s60_3_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec60_202604" />
+            <field name="name">Nội quy công ty, nội quy công trình</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">603</field>
+            <field name="description">Mục tiêu chiến lược: Tuân thủ nội quy quy chế công ty
+                Yếu tố quyết định thành công: Nội quy công ty, nội quy công trình
+                Kém: 2lần / tháng
+                Xuất sắc: 0 lần / tháng</field>
+        </record>
+
+        <record id="line_dept_auto_p3_sec70_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="name">Thẩm Mỹ&amp; Chi phí</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="wipeout_if_child_zero">True</field>
+            <field name="weight">5</field>
+            <field name="sequence">700</field>
+        </record>
+
+        <record id="line_dept_auto_p3_item_s70_1_202604" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec70_202604" />
+            <field name="name">2 /3 ý kiến đánh giá đạt trong đó có 1 ý kiến khách hàng ( Cấp giám
+                đốc nhà máy trở lên )</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">80</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_y_kien_dg" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">701</field>
+            <field name="description">Mục tiêu chiến lược: Sản phẩm, Dịch vụ
+                Yếu tố quyết định thành công: Tiêu chí đạt thẩm mỹ
+                Kém: &lt;80%
+                Xuất sắc: 90%</field>
+        </record>
+
+        <!-- ============================================================
+             P3.1.1 - KPI CÁ NHÂN TỰ ĐỘNG HÓA
+        ============================================================= -->
+        <record id="line_emp_auto_p3_sec10_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">An Toàn</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">15</field>
+            <field name="sequence">800</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s10_1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec10_202604" />
+            <field name="key_performance_area">Các thiết bị thi công phải đúng kỹ thuật, không sử dụng
+                thiết bị hư hỏng làm ảnh hưởng đến chất lượng và thẩm mỹ.</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">15</field>
+            <field name="sequence">801</field>
+            <field name="description">Yếu tố quyết định thành công: Thiết bị thi công, công cụ, dụng
+                cụ đảm bảo tiêu chuẩn an toàn
+                Kém: 1 Lần/Tháng
+                Xuất sắc: 0 Lần / Tháng</field>
+        </record>
+
+        <record id="line_emp_auto_p3_sec20_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Kỹ thuật/ Chất lượng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">20</field>
+            <field name="sequence">900</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s20_1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec20_202604" />
+            <field name="key_performance_area">Thực hiện công việc lập trình không đúng Control Panel hoặc lập bảng
+                Control Panel không đúng yêu cầu của khách hàng dẫn đến phải sửa đổi chương trình/
+                cài đặt nhiều hơn 1 lần.</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">10</field>
+            <field name="sequence">901</field>
+            <field name="description">Yếu tố quyết định thành công: Giảm lỗi kỹ thuật lập trình,
+                hướng đến hoàn hảo đạt tiêu chuẩn kỹ thuật
+                Kém: 1 Lỗi / DA/việc
+                Xuất sắc: 0 Lỗi / DA/việc</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s20_2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec20_202604" />
+            <field name="key_performance_area">Thi công, lắp đặt cài đặt sửa chữa đúng nguyên lý, đúng kỹ thuật,
+                đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_loi_thiet_ke" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">10</field>
+            <field name="sequence">902</field>
+            <field name="description">Yếu tố quyết định thành công: Đảm bảo tiến độ dự án đúng cam
+                kết chất lượng sản phẩm dịch vụ với KH
+                Kém: 1 Lỗi / DA/việc
+                Xuất sắc: 0 Lỗi / DA/việc</field>
+        </record>
+
+        <record id="line_emp_auto_p3_sec30_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Qui trình</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">15</field>
+            <field name="sequence">1000</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s30_1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec30_202604" />
+            <field name="key_performance_area">Áp dụng qui trình cho từng công đoạn của công việc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit"
+                ref="custom_adecsol_hr_performance_evaluator.kpi_unit_khong_ap_dung_qt" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">7</field>
+            <field name="sequence">1001</field>
+            <field name="description">Yếu tố quyết định thành công: Đảm bảo qui trình thi công lắp
+                đặt chuẩn chỉnh kỹ thuật chất lượng
+                Kém: 1
+                Xuất sắc: Áp dụng đầy đủ qui trình</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s30_2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec30_202604" />
+            <field name="key_performance_area">Đề xuất phương án thực hiện tối ưu hiệu quả</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">3</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_phuong_an" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">8</field>
+            <field name="sequence">1002</field>
+            <field name="description">Yếu tố quyết định thành công: Nâng cao năng suất hiệu quả thực
+                hiện công việc
+                Kém: 1
+                Xuất sắc: 3 phương án, có 1 phương án tối ưu / 1 sự việc</field>
+        </record>
+
+        <record id="line_emp_auto_p3_sec40_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Tiến độ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">15</field>
+            <field name="sequence">1100</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s40_1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec40_202604" />
+            <field name="key_performance_area">Thực hiện công việc nhanh chóng không ì ạch, không tập trung,
+                chậm trễ tiến độ chung với dự án</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">10</field>
+            <field name="sequence">1101</field>
+            <field name="description">Yếu tố quyết định thành công: Đạt tiến độ theo yêu cầu kế
+                hoạch dự án
+                Kém: 1 Lần / Tháng
+                Xuất sắc: 0 Lần / Tháng</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s40_2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec40_202604" />
+            <field name="key_performance_area">Đảm bảo báo cáo công việc hàng ngày và hàng tuần</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">1102</field>
+            <field name="description">Yếu tố quyết định thành công: Số lần báo cáo không kịp thời,
+                không đạt yêu cầu/tháng
+                Kém: 1 Lần / Tháng
+                Xuất sắc: 0 Lần / Tháng</field>
+        </record>
+
+        <record id="line_emp_auto_p3_sec50_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Chi Phí</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">15</field>
+            <field name="sequence">1200</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s50_1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
+            <field name="key_performance_area">Thực hiện công việc không triệt để, dẫn đến thực hiện một
+                công việc ở công trình nhiều hơn 1 lần</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0.01</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_ps_chi_phi" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">3</field>
+            <field name="sequence">1201</field>
+            <field name="description">Yếu tố quyết định thành công: Giảm chi phí tối thiểu, giới hạn
+                PS chi phí +/- 2%
+                Kém: &lt;2%, &gt;2%
+                Xuất sắc: &lt;/= 1%</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s50_2_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
+            <field name="key_performance_area">Khảo sát, đo đạc, thiết kế bản vẽ theo thực tế thi công dự án 100%</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0.01</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_sai_lech_tt" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">3</field>
+            <field name="sequence">1202</field>
+            <field name="description">Yếu tố quyết định thành công: Sai lệch so với thực tế thi công
+                +/- 2%
+                Kém: &lt;2%, &gt;2%
+                Xuất sắc: &lt;/= 1%</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s50_3_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
+            <field name="key_performance_area">Thực tế thi công, Lập bảng quản lí hàng hóa, vật tư theo dự án hiệu
+                quả</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0.01</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_ps_chi_phi" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">3</field>
+            <field name="sequence">1203</field>
+            <field name="description">Yếu tố quyết định thành công: Giới hạn hao hụt &lt;=1-2% giá
+                trị /dự án
+                Kém: &lt;2%, &gt;2%
+                Xuất sắc: &lt;/= 1%</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s50_4_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
+            <field name="key_performance_area">Làm mất mát, thất thoát vật tư tại nơi làm việc</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">3</field>
+            <field name="sequence">1204</field>
+            <field name="description">Yếu tố quyết định thành công: Số lần làm mất mát thất
+                thoát vật tư
+                Kém: 1 Lần
+                Xuất sắc: 0 Lần</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s50_5_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
+            <field name="key_performance_area">Cắt dây điện đúng kích thước, sai số cho phép theo quy định</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0.01</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_sai_lech_tt" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">3</field>
+            <field name="sequence">1205</field>
+            <field name="description">Yếu tố quyết định thành công: Sai lệch so với thực tế thi công
+                +/- 2%
+                Kém: &lt;2%, &gt;2%
+                Xuất sắc: &lt;/= 1%</field>
+        </record>
+
+        <record id="line_emp_auto_p3_sec60_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Đào tạo và Phẫm chất</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">15</field>
+            <field name="sequence">1300</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s60_1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec60_202604" />
+            <field name="key_performance_area">Tham gia 100% các buổi training do phòng ban tổ chức</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">100</field>
+            <!-- <field name="unit"
+                ref="custom_adecsol_hr_performance_evaluator.kpi_unit_ty_le_phan_tram" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">15</field>
+            <field name="sequence">1301</field>
+            <field name="description">Yếu tố quyết định thành công: Tham dự đào tạo và nhận
+                kết quả đào tạo theo kế hoạch đào tạo
+                Kém: &lt;80%
+                Xuất sắc: 100%</field>
+        </record>
+
+        <record id="line_emp_auto_p3_sec70_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="key_performance_area">Thẩm Mỹ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="weight">5</field>
+            <field name="sequence">1400</field>
+        </record>
+
+        <record id="line_emp_auto_p3_item_s70_1_202604" model="hr.kpi.template.line">
+            <field name="kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec70_202604" />
+            <field name="key_performance_area">Lắp đặt thiết bị, đi dây tủ điện, máng cáp, ống luồn dây phẳng thẳng,
+                không răng cưa sứt mẻ, sạch sẽ.</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
+            <field name="kpi_type">auto</field>
+            <field name="target">0</field>
+            <!-- <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" /> -->
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+            <field name="weight">5</field>
+            <field name="sequence">1401</field>
+            <field name="description">Yếu tố quyết định thành công: Sản phẩm làm ra mang tính thẩm
+                mỹ cao, tạo uy tín với khách hàng
+                Kém: 1 Lần / Tháng
+                Xuất sắc: 0 Lần / Tháng</field>
+        </record>
+
+    </data>
+</odoo>

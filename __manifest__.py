@@ -32,10 +32,11 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "data/hr_evaluation_master_data.xml",
         "data/hr_kpi_it_3p_2026_04_seed.xml",
         "data/hr_kpi_ktoan_3p_2026_04_seed.xml",
+        "data/hr_kpi_auto_3p_2026_04_seed.xml",
         "data/hr_kpi_scoring_formula_data.xml",
         "data/hr_kpi_scoring_profile_data.xml",
         "data/hr_kpi_data_source_data.xml",
-        "data/hr_kpi_dashboard_widget_data.xml",
+        "demo/hr_kpi_dashboard_widget_data.xml",
         # "data/hr_kpi_it_sample_data.xml",
         "demo/kpi_unit_data.xml",
         # ============================== VIEWS =============================

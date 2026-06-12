@@ -24,6 +24,7 @@ const C_AMBER = "#e6a817";
 const C_RED = "#e03c3c";
 const C_PURPLE = "#7c3aed";
 const C_TEAL = "#0891b2";
+const C_SLATE = "#94a3b8";
 
 // Per-employee point colours for Chart C & D
 const POINT_COLORS = [
@@ -48,6 +49,16 @@ function formatHour(h) {
     const hours = Math.trunc(value);
     const minutes = Math.round((value - hours) * 60);
     return `${hours}:${String(minutes).padStart(2, "0")}`;
+}
+
+function formatChartMetric(value, decimals = 2) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+        return "--";
+    }
+    return Number(value).toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals,
+    });
 }
 
 /** Chart A — stacked bar: total vs done tasks per employee */
@@ -255,6 +266,7 @@ export class DeptKpiDashboard extends Component {
     static CHART_RENDERERS = {
         line: "_renderLineChart",
         bar: "_renderBarChart",
+        stacked_bar: "_renderStackedBarChart",
         doughnut: "_renderDoughnutChart",
     };
 
@@ -361,6 +373,7 @@ export class DeptKpiDashboard extends Component {
         const icons = {
             line: "fa fa-line-chart",
             bar: "fa fa-bar-chart",
+            stacked_bar: "fa fa-bar-chart",
             doughnut: "fa fa-pie-chart",
         };
         return icons[chartType] || "fa fa-area-chart";
@@ -814,6 +827,67 @@ export class DeptKpiDashboard extends Component {
                 scales: {
                     x: { grid: { display: false } },
                     y: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                    },
+                },
+            },
+        });
+    }
+
+    _renderStackedBarChart(canvas, chartInfo) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        const chartData = chartInfo.chart_data || {};
+        const chartMeta = chartInfo.chart_meta || {};
+        const datasets = (chartData.datasets || []).map((dataset, index) => ({
+            backgroundColor:
+                dataset.backgroundColor ||
+                (index === 0 ? "rgba(3, 103, 176, 0.88)" : "rgba(148, 163, 184, 0.55)"),
+            borderColor: dataset.borderColor || (index === 0 ? C_BLUE : C_SLATE),
+            borderWidth: 1,
+            borderRadius: 6,
+            borderSkipped: false,
+            maxBarThickness: 42,
+            ...dataset,
+        }));
+        return new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: chartData.labels || [],
+                datasets,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: "bottom" },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) =>
+                                `${context.dataset.label}: ${formatChartMetric(context.parsed?.y)}`,
+                            afterBody: (items) => {
+                                const index = items[0]?.dataIndex;
+                                if (index === undefined || index === null) {
+                                    return [];
+                                }
+                                return [
+                                    `${_t("Target")}: ${formatChartMetric(chartMeta.target_values?.[index])}`,
+                                    `${_t("Actual")}: ${formatChartMetric(chartMeta.actual_values?.[index])}`,
+                                    `${_t("Gap to Target")}: ${formatChartMetric(chartMeta.gap_to_target_values?.[index])}`,
+                                ];
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false },
+                    },
+                    y: {
+                        stacked: true,
                         beginAtZero: true,
                         grid: { color: "rgba(0,0,0,0.05)" },
                     },

@@ -124,56 +124,199 @@
         </record>
 
         <record id="widget_individual_micro_task_done_count" model="hr.kpi.dashboard.widget">
-            <field name="name">Xu hướng hoàn thành Task</field>
+            <field name="name">P2.1 - Không có kế hoạch hàng ngày (IT)</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
-            <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_task_done_count"/>
-            <field name="provider_key">generic_domain_daily_series</field>
-            <field name="micro_chart_type">line</field>
-            <field name="kpi_behavior">cumulative</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_it_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">doughnut</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_p21_tc1_grp1_item1_202604"/>
             <field name="sequence">5</field>
         </record>
 
         <record id="widget_individual_micro_task_on_time_rate" model="hr.kpi.dashboard.widget">
-            <field name="name">Tỷ lệ Task đúng hạn</field>
+            <field name="name">P2.1 - Không có kế hoạch, báo cáo tuần/tháng/quý/năm (IT)</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
-            <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_task_on_time_rate"/>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_it_3p_202604')])]"/>
             <field name="provider_key">generic_target_actual_bar</field>
             <field name="micro_chart_type">doughnut</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_p21_tc1_grp1_item2_202604"/>
             <field name="sequence">10</field>
         </record>
 
         <record id="widget_individual_micro_attendance_present_days" model="hr.kpi.dashboard.widget">
-            <field name="name">Tổng quan chuyên cần </field>
+            <field name="name">P2.1 - Không làm việc theo quy trình (IT)</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
-            <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_attendance_present_days"/>
-            <field name="provider_key">special_engine_attendance_overview</field>
-            <field name="micro_chart_type">doughnut</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_it_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">bar</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_p21_tc1_grp1_item3_202604"/>
             <field name="sequence">15</field>
         </record>
 
         <record id="widget_individual_micro_attendance_late_days" model="hr.kpi.dashboard.widget">
-            <field name="name">Tổng quan đúng giờ </field>
+            <field name="name">P2.1 - Không sử dụng phần mềm vào công việc (IT)</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
-            <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_attendance_late_days"/>
-            <field name="provider_key">special_engine_punctuality</field>
-            <field name="micro_chart_type">line</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_it_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">bar</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_p21_tc1_grp1_item4_202604"/>
             <field name="sequence">20</field>
         </record>
 
         <record id="widget_individual_radar_profile" model="hr.kpi.dashboard.widget">
-            <field name="name">Biểu đồ năng lực</field>
+            <field name="name">P3.1.1 Profile (IT)</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">macro</field>
             <field name="macro_widget_type">radar_chart</field>
             <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_it_3p_202604')])]"/>
+            <field name="radar_template_line_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_p3_tc1_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_p3_tc2_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_p3_tc3_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_p3_tc4_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_p3_tc5_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_p3_tc6_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_p3_tc7_202604')
+            ])]"/>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="widget_individual_micro_task_done_count_ktoan" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - Không có kế hoạch hàng ngày (Accounting)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">doughnut</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_ktoan_p21_tc1_grp1_item1_202604"/>
+            <field name="sequence">5</field>
+        </record>
+
+        <record id="widget_individual_micro_task_on_time_rate_ktoan" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - Không có kế hoạch, báo cáo tuần/tháng/quý/năm (Accounting)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">doughnut</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_ktoan_p21_tc1_grp1_item2_202604"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="widget_individual_micro_attendance_present_days_ktoan" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - Không làm việc theo quy trình (Accounting)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">bar</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_ktoan_p21_tc1_grp1_item3_202604"/>
+            <field name="sequence">15</field>
+        </record>
+
+        <record id="widget_individual_micro_attendance_late_days_ktoan" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - Không sử dụng phần mềm vào công việc (Accounting)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">bar</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_ktoan_p21_tc1_grp1_item4_202604"/>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="widget_individual_radar_profile_ktoan" model="hr.kpi.dashboard.widget">
+            <field name="name">P3.1.1 Profile (Accounting)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">macro</field>
+            <field name="macro_widget_type">radar_chart</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604')])]"/>
+            <field name="radar_template_line_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_ktoan_p3_sec10_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_ktoan_p3_sec20_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_ktoan_p3_sec30_202604')
+            ])]"/>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="widget_individual_micro_task_done_count_auto" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - Không có kế hoạch hàng ngày (Automation)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">doughnut</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_item1_202604"/>
+            <field name="sequence">5</field>
+        </record>
+
+        <record id="widget_individual_micro_task_on_time_rate_auto" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - Không có kế hoạch, báo cáo tuần/tháng/quý/năm (Automation)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">doughnut</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_item2_202604"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="widget_individual_micro_attendance_present_days_auto" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - Không làm việc theo quy trình (Automation)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">bar</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_item3_202604"/>
+            <field name="sequence">15</field>
+        </record>
+
+        <record id="widget_individual_micro_attendance_late_days_auto" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - Không sử dụng phần mềm vào công việc (Automation)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604')])]"/>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">bar</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_item4_202604"/>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="widget_individual_radar_profile_auto" model="hr.kpi.dashboard.widget">
+            <field name="name">P3.1.1 Profile (Automation)</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">macro</field>
+            <field name="macro_widget_type">radar_chart</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604')])]"/>
+            <field name="radar_template_line_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec10_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec20_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec30_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec40_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec60_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec70_202604')
+            ])]"/>
             <field name="sequence">30</field>
         </record>
 
@@ -201,51 +344,161 @@
         </record>
 
         <record id="widget_department_micro_task_done_count" model="hr.kpi.dashboard.widget">
-            <field name="name">So sánh Task hoàn thành của nhân viên</field>
+            <field name="name">P2.1 - So sánh không có kế hoạch hàng ngày (IT)</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
-            <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_task_done_count"/>
-            <field name="provider_key">generic_domain_daily_series</field>
-            <field name="micro_chart_type">bar</field>
-            <field name="kpi_behavior">cumulative</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_it_3p_202604')])]"/>
+            <field name="micro_chart_type">stacked_bar</field>
             <field name="department_micro_mode">employee_compare</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_p21_tc1_grp1_item1_202604"/>
             <field name="sequence">15</field>
         </record>
 
         <record id="widget_department_micro_task_on_time_rate" model="hr.kpi.dashboard.widget">
-            <field name="name">So sánh tỷ lệ Task đúng hạn của nhân viên</field>
+            <field name="name">P2.1 - So sánh không có kế hoạch, báo cáo tuần/tháng/quý/năm (IT)</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
-            <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_task_on_time_rate"/>
-            <field name="provider_key">generic_target_actual_bar</field>
-            <field name="micro_chart_type">bar</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_it_3p_202604')])]"/>
+            <field name="micro_chart_type">line</field>
             <field name="department_micro_mode">employee_compare</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_p21_tc1_grp1_item2_202604"/>
             <field name="sequence">18</field>
         </record>
 
         <record id="widget_department_micro_attendance_present_days" model="hr.kpi.dashboard.widget">
-            <field name="name">Tiến độ chuyên cần phòng ban</field>
+            <field name="name">P3.1.2 - Trang bị bảo hộ lao động đầy đủ (IT)</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
-            <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_attendance_present_days"/>
-            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_it_3p_202604')])]"/>
             <field name="micro_chart_type">doughnut</field>
             <field name="department_micro_mode">department_progress</field>
+            <field name="department_template_line_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.line_dept_p3_tc1_item_1_202604')
+            ])]"/>
             <field name="sequence">25</field>
         </record>
 
         <record id="widget_department_micro_attendance_late_days" model="hr.kpi.dashboard.widget">
-            <field name="name">Tiến độ đi muộn phòng ban</field>
+            <field name="name">P3.1.2 - Tiến độ KPI phòng ban (IT)</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">micro</field>
             <field name="target_model">evaluation</field>
-            <field name="data_source_id" ref="custom_adecsol_hr_performance_evaluator.source_attendance_late_days"/>
-            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_it_3p_202604')])]"/>
             <field name="micro_chart_type">bar</field>
             <field name="department_micro_mode">department_progress</field>
+            <field name="department_template_line_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.line_dept_p3_tc1_item_1_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_dept_p3_tc1_item_2_202604')
+            ])]"/>
+            <field name="sequence">35</field>
+        </record>
+
+        <record id="widget_department_micro_task_done_count_ktoan" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - So sánh không có kế hoạch hàng ngày (Accounting)</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604')])]"/>
+            <field name="micro_chart_type">stacked_bar</field>
+            <field name="department_micro_mode">employee_compare</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_ktoan_p21_tc1_grp1_item1_202604"/>
+            <field name="sequence">15</field>
+        </record>
+
+        <record id="widget_department_micro_task_on_time_rate_ktoan" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - So sánh không có kế hoạch, báo cáo tuần/tháng/quý/năm (Accounting)</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604')])]"/>
+            <field name="micro_chart_type">line</field>
+            <field name="department_micro_mode">employee_compare</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_ktoan_p21_tc1_grp1_item2_202604"/>
+            <field name="sequence">18</field>
+        </record>
+
+        <record id="widget_department_micro_attendance_present_days_ktoan" model="hr.kpi.dashboard.widget">
+            <field name="name">P3.1.2 - Chọn lọc thông tin đáng tin cậy (Accounting)</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604')])]"/>
+            <field name="micro_chart_type">doughnut</field>
+            <field name="department_micro_mode">department_progress</field>
+            <field name="department_template_line_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.line_dept_ktoan_p3_item1_202604')
+            ])]"/>
+            <field name="sequence">25</field>
+        </record>
+
+        <record id="widget_department_micro_attendance_late_days_ktoan" model="hr.kpi.dashboard.widget">
+            <field name="name">P3.1.2 - Tiến độ KPI phòng ban (Accounting)</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_ktoan_3p_202604')])]"/>
+            <field name="micro_chart_type">bar</field>
+            <field name="department_micro_mode">department_progress</field>
+            <field name="department_template_line_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.line_dept_ktoan_p3_item1_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_dept_ktoan_p3_item2_202604')
+            ])]"/>
+            <field name="sequence">35</field>
+        </record>
+
+        <record id="widget_department_micro_task_done_count_auto" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - So sánh không có kế hoạch hàng ngày (Automation)</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604')])]"/>
+            <field name="micro_chart_type">stacked_bar</field>
+            <field name="department_micro_mode">employee_compare</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_item1_202604"/>
+            <field name="sequence">15</field>
+        </record>
+
+        <record id="widget_department_micro_task_on_time_rate_auto" model="hr.kpi.dashboard.widget">
+            <field name="name">P2.1 - So sánh không có kế hoạch, báo cáo tuần/tháng/quý/năm (Automation)</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604')])]"/>
+            <field name="micro_chart_type">line</field>
+            <field name="department_micro_mode">employee_compare</field>
+            <field name="employee_template_line_id" ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p21_tc1_grp1_item2_202604"/>
+            <field name="sequence">18</field>
+        </record>
+
+        <record id="widget_department_micro_attendance_present_days_auto" model="hr.kpi.dashboard.widget">
+            <field name="name">P3.1.2 - Trang bị bảo hộ lao động đầy đủ (Automation)</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604')])]"/>
+            <field name="micro_chart_type">doughnut</field>
+            <field name="department_micro_mode">department_progress</field>
+            <field name="department_template_line_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_item_s10_1_202604')
+            ])]"/>
+            <field name="sequence">25</field>
+        </record>
+
+        <record id="widget_department_micro_attendance_late_days_auto" model="hr.kpi.dashboard.widget">
+            <field name="name">P3.1.2 - Tiến độ KPI phòng ban (Automation)</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604')])]"/>
+            <field name="micro_chart_type">bar</field>
+            <field name="department_micro_mode">department_progress</field>
+            <field name="department_template_line_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_item_s10_1_202604'),
+                ref('custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_item_s10_2_202604')
+            ])]"/>
             <field name="sequence">35</field>
         </record>
     </data>

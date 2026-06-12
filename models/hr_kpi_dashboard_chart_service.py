@@ -243,10 +243,17 @@ class HrKpiDashboardChartService(models.AbstractModel):
         if not compare_lines:
             return False
 
-        chart_type = widget.micro_chart_type or "bar"
-        if chart_type == "doughnut":
-            chart_type = "bar"
+        chart_type = widget.micro_chart_type or "stacked_bar"
+        if chart_type not in {"line", "stacked_bar"}:
+            _logger.warning(
+                "Skipping department employee compare widget '%s': chart type '%s' is not supported for mode '%s'.",
+                widget.display_name,
+                chart_type,
+                widget.department_micro_mode,
+            )
+            return False
 
+        # Snapshot labels và giá trị được lấy theo line mới nhất của từng nhân viên trong cùng kỳ/phòng ban.
         labels = [
             line.evaluation_id.employee_id.name or _("Employee")
             for line in compare_lines
@@ -259,17 +266,24 @@ class HrKpiDashboardChartService(models.AbstractModel):
             or _("Employee Comparison")
         )
 
-        datasets = [
-            {
-                "label": _("Target"),
-                "data": target_values,
-            },
-            {
-                "label": _("Actual"),
-                "data": actual_values,
-            },
-        ]
-        if chart_type == "line":
+        # Line giữ semantics Target/Actual hiện tại; stacked bar dùng Actual + Gap to Target.
+        if chart_type == "stacked_bar":
+            payload = self._build_department_employee_compare_stacked_payload(
+                labels,
+                actual_values,
+                target_values,
+            )
+        else:
+            datasets = [
+                {
+                    "label": _("Target"),
+                    "data": target_values,
+                },
+                {
+                    "label": _("Actual"),
+                    "data": actual_values,
+                },
+            ]
             for dataset in datasets:
                 dataset.update(
                     {
@@ -278,6 +292,15 @@ class HrKpiDashboardChartService(models.AbstractModel):
                         "pointRadius": 4,
                     }
                 )
+            payload = {
+                "chart_data": {
+                    "labels": labels,
+                    "datasets": datasets,
+                },
+                "chart_meta": {
+                    "note": _("Comparing employee target and actual values."),
+                },
+            }
 
         return {
             "key": "chart_widget_%s_compare_template_%s"
@@ -291,17 +314,50 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 else ""
             ),
             "chart_type": chart_type,
-            "chart_data": {
-                "labels": labels,
-                "datasets": datasets,
-            },
-            "chart_meta": {
-                # "note": _("Comparing Actual and Target values across employees."),
-            },
-            "provider_key": widget.provider_key or "",
+            "chart_data": payload.get("chart_data") or {"labels": [], "datasets": []},
+            "chart_meta": payload.get("chart_meta") or {},
+            "provider_key": "",
             "widget_class": widget.widget_class,
             "is_special_case": False,
             "special_case_source": False,
+        }
+
+    # Dựng stacked bar payload cho employee compare với semantics Actual + Gap to Target.
+    def _build_department_employee_compare_stacked_payload(
+        self, labels, actual_values, target_values
+    ):
+        # Phần gap chỉ hiển thị phần còn thiếu tới target; nếu actual vượt target thì gap về 0.
+        gap_to_target_values = [
+            round(max(target - actual, 0.0), 2)
+            for target, actual in zip(target_values, actual_values)
+        ]
+
+        return {
+            "chart_data": {
+                "labels": labels,
+                "datasets": [
+                    {
+                        "label": _("Actual"),
+                        "data": actual_values,
+                        "stack": "employee_target_progress",
+                        "backgroundColor": "rgba(3, 103, 176, 0.88)",
+                        "borderColor": "#0367b0",
+                    },
+                    {
+                        "label": _("Gap to Target"),
+                        "data": gap_to_target_values,
+                        "stack": "employee_target_progress",
+                        "backgroundColor": "rgba(148, 163, 184, 0.55)",
+                        "borderColor": "#94a3b8",
+                    },
+                ],
+            },
+            "chart_meta": {
+                # "note": _("Actual values are stacked with the remaining gap to target."),
+                "target_values": target_values,
+                "actual_values": actual_values,
+                "gap_to_target_values": gap_to_target_values,
+            },
         }
 
     # Dựng chart tiến độ phòng ban từ danh sách department template line được chọn trên widget.
@@ -311,8 +367,21 @@ class HrKpiDashboardChartService(models.AbstractModel):
             return False
 
         chart_type = widget.micro_chart_type or "bar"
-        if len(matched_lines) > 1 and chart_type == "doughnut":
-            chart_type = "bar"
+        if chart_type not in {"bar", "line", "doughnut"}:
+            _logger.warning(
+                "Skipping department progress widget '%s': chart type '%s' is not supported for mode '%s'.",
+                widget.display_name,
+                chart_type,
+                widget.department_micro_mode,
+            )
+            return False
+        if chart_type == "doughnut" and len(matched_lines) != 1:
+            _logger.warning(
+                "Skipping department progress widget '%s': doughnut chart requires exactly one matched line, got %s.",
+                widget.display_name,
+                len(matched_lines),
+            )
+            return False
 
         if len(matched_lines) == 1:
             line = matched_lines[0].sudo()
@@ -347,7 +416,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 "chart_type": chart_type,
                 "chart_data": payload.get("chart_data") or {"labels": [], "datasets": []},
                 "chart_meta": payload.get("chart_meta") or {},
-                "provider_key": widget.provider_key or "",
+                "provider_key": "",
                 "widget_class": widget.widget_class,
                 "is_special_case": False,
                 "special_case_source": False,
@@ -377,7 +446,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             "chart_type": chart_type,
             "chart_data": payload.get("chart_data") or {"labels": [], "datasets": []},
             "chart_meta": payload.get("chart_meta") or {},
-            "provider_key": widget.provider_key or "",
+            "provider_key": "",
             "widget_class": widget.widget_class,
             "is_special_case": False,
             "special_case_source": False,

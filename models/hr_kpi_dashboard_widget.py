@@ -1,5 +1,9 @@
+import logging
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 MICRO_PROVIDER_SELECTION = [
@@ -16,6 +20,7 @@ MICRO_CHART_TYPE_SELECTION = [
     ("line", "Line"),
     ("bar", "Bar"),
     ("doughnut", "Doughnut"),
+    ("stacked_bar", "Stacked Bar"),
 ]
 
 KPI_BEHAVIOR_SELECTION = [
@@ -37,6 +42,27 @@ DEPARTMENT_MICRO_MODE_SELECTION = [
     ("employee_compare", "Compare Employees"),
     ("department_progress", "Department KPI Progress"),
 ]
+
+INDIVIDUAL_PROVIDER_ALLOWED_CHART_TYPES = {
+    "generic_target_actual_bar": {"bar", "doughnut"},
+    "generic_domain_daily_series": {"line", "bar"},
+    "special_engine_punctuality": {"line"},
+    "special_engine_attendance_overview": {"doughnut"},
+}
+
+DEPARTMENT_MICRO_ALLOWED_CHART_TYPES = {
+    "employee_compare": {"line", "stacked_bar"},
+    "department_progress": {"bar", "line", "doughnut"},
+}
+
+DEPARTMENT_MICRO_DEFAULT_CHART_TYPES = {
+    "employee_compare": "stacked_bar",
+    "department_progress": "bar",
+}
+
+DEPARTMENT_MICRO_STACKED_BAR_MIGRATION_PARAM = (
+    "custom_adecsol_hr_performance_evaluator.department_micro_stacked_bar_v1"
+)
 
 class HrKpiDashboardWidget(models.Model):
     _name = "hr.kpi.dashboard.widget"
@@ -77,6 +103,7 @@ class HrKpiDashboardWidget(models.Model):
     micro_chart_type = fields.Selection(
         MICRO_CHART_TYPE_SELECTION,
         string="Chart Type",
+        help="Department widgets: Employee Compare supports Line or Stacked Bar. Department Progress supports Bar, Line, or Doughnut with a single selected line.",
     )
     kpi_behavior = fields.Selection(
         KPI_BEHAVIOR_SELECTION,
@@ -183,20 +210,151 @@ class HrKpiDashboardWidget(models.Model):
         help="Select the KPI template lines that should appear in this radar chart. Leave empty to keep the radar widget inactive until it is configured.",
     )
 
-    # Đồng bộ KPI Behavior khi provider đổi để tránh giữ lại giá trị cũ không còn hợp lệ.
-    @api.onchange("provider_key")
-    def _onchange_provider_key(self):
+    # Chạy migrate mềm sau mỗi lần registry nạp để auto-fix employee compare bar cũ sang stacked bar.
+    def _register_hook(self):
+        result = super()._register_hook()
+
+        # Chỉ migrate đúng một lần theo config flag để không chạm dữ liệu lặp lại ở các lần restart sau.
+        self._run_department_micro_stacked_bar_migration()
+        return result
+
+    # Nâng cấp widget department employee compare cũ từ bar sang stacked bar theo semantics mới.
+    def _run_department_micro_stacked_bar_migration(self):
+        config = self.env["ir.config_parameter"].sudo()
+
+        # Nếu migration đã chạy rồi thì thoát ngay để tránh write lặp lại không cần thiết.
+        if config.get_param(DEPARTMENT_MICRO_STACKED_BAR_MIGRATION_PARAM):
+            return
+
+        widgets = (
+            self.with_context(active_test=False)
+            .sudo()
+            .search(
+                [
+                    ("widget_class", "=", "micro"),
+                    ("dashboard_kind", "=", "department"),
+                    ("department_micro_mode", "=", "employee_compare"),
+                    ("micro_chart_type", "=", "bar"),
+                ]
+            )
+        )
+
+        # Dùng ORM write để dữ liệu đi qua cùng normalization/constraint với luồng thường.
+        if widgets:
+            widgets.write({"micro_chart_type": "stacked_bar"})
+            _logger.info(
+                "Migrated %s department employee compare widget(s) from bar to stacked_bar.",
+                len(widgets),
+            )
+
+        # Đánh dấu đã migrate để lần sau không cần quét lại.
+        config.set_param(DEPARTMENT_MICRO_STACKED_BAR_MIGRATION_PARAM, "1")
+
+    # Trả chart type hợp lệ theo department micro mode để UI/ORM không giữ combo cũ sai nghĩa.
+    @api.model
+    def _normalize_micro_chart_type_value(
+        self, widget_class, dashboard_kind, department_micro_mode, micro_chart_type
+    ):
+        # Chỉ micro widget mới cần logic normalize chart type.
+        if widget_class != "micro":
+            return micro_chart_type
+
+        # Department micro dùng mode làm router chính nên chart type phải bám theo mode tương ứng.
+        if dashboard_kind == "department":
+            if not department_micro_mode:
+                return micro_chart_type
+
+            allowed_chart_types = DEPARTMENT_MICRO_ALLOWED_CHART_TYPES.get(
+                department_micro_mode, set()
+            )
+            default_chart_type = DEPARTMENT_MICRO_DEFAULT_CHART_TYPES.get(
+                department_micro_mode
+            )
+            if not micro_chart_type or micro_chart_type not in allowed_chart_types:
+                return default_chart_type
+            return micro_chart_type
+
+        # Stacked bar chỉ dành cho department employee compare; rời flow này thì phải clear ra.
+        if micro_chart_type == "stacked_bar":
+            return False
+        return micro_chart_type
+
+    # Đồng bộ ngay trên form các field micro để admin thấy đúng rule mới khi đổi kind/mode/provider.
+    def _sync_micro_widget_configuration(self):
         for widget in self:
-            if widget.provider_key != "generic_domain_daily_series":
+            normalized_chart_type = self._normalize_micro_chart_type_value(
+                widget.widget_class,
+                widget.dashboard_kind,
+                widget.department_micro_mode,
+                widget.micro_chart_type,
+            )
+
+            # Tự đưa chart type về giá trị hợp lệ gần nhất để tránh save xong mới vướng constraint.
+            if normalized_chart_type != widget.micro_chart_type:
+                widget.micro_chart_type = normalized_chart_type
+
+            # KPI Behavior chỉ còn ý nghĩa với individual daily series nên các case khác đều clear.
+            if (
+                widget.widget_class != "micro"
+                or widget.dashboard_kind != "individual"
+                or widget.provider_key != "generic_domain_daily_series"
+            ):
                 widget.kpi_behavior = False
 
-    # Chuẩn hóa vals trước khi lưu để KPI Behavior chỉ tồn tại với daily series provider.
+    # Đồng bộ KPI Behavior và chart type khi provider đổi để tránh giữ lại giá trị cũ không còn hợp lệ.
+    @api.onchange("provider_key")
+    def _onchange_provider_key(self):
+        # Provider đổi có thể làm KPI Behavior hoặc chart type hiện tại không còn đúng ngữ nghĩa.
+        self._sync_micro_widget_configuration()
+
+    # Đồng bộ chart type/kpi behavior khi admin đổi kind, class hoặc department micro mode.
+    @api.onchange("dashboard_kind", "widget_class", "department_micro_mode")
+    def _onchange_micro_routing_fields(self):
+        # Department micro dùng router khác với individual nên cần normalize ngay trên form.
+        self._sync_micro_widget_configuration()
+
+    # Chuẩn hóa vals trước khi lưu để branch department và individual luôn đi đúng rule chart mới.
     @api.model
-    def _normalize_widget_vals(self, vals):
+    def _normalize_widget_vals(self, vals, current_widget=False):
         normalized_vals = dict(vals or {})
+
+        # Ghép effective state từ vals mới và record hiện tại để normalize đúng cả create lẫn write.
+        widget_class = normalized_vals.get(
+            "widget_class",
+            current_widget.widget_class if current_widget else False,
+        )
+        dashboard_kind = normalized_vals.get(
+            "dashboard_kind",
+            current_widget.dashboard_kind if current_widget else False,
+        )
+        provider_key = normalized_vals.get(
+            "provider_key",
+            current_widget.provider_key if current_widget else False,
+        )
+        department_micro_mode = normalized_vals.get(
+            "department_micro_mode",
+            current_widget.department_micro_mode if current_widget else False,
+        )
+        current_chart_type = normalized_vals.get(
+            "micro_chart_type",
+            current_widget.micro_chart_type if current_widget else False,
+        )
+        normalized_chart_type = self._normalize_micro_chart_type_value(
+            widget_class,
+            dashboard_kind,
+            department_micro_mode,
+            current_chart_type,
+        )
+
+        # Ghi đè chart type khi combo hiện tại không còn hợp lệ theo router mới của widget.
+        if normalized_chart_type != current_chart_type:
+            normalized_vals["micro_chart_type"] = normalized_chart_type
+
+        # KPI Behavior chỉ hợp lệ cho individual daily series; các branch còn lại phải clear hẳn.
         if (
-            normalized_vals.get("provider_key")
-            and normalized_vals["provider_key"] != "generic_domain_daily_series"
+            widget_class != "micro"
+            or dashboard_kind != "individual"
+            or provider_key != "generic_domain_daily_series"
         ):
             normalized_vals["kpi_behavior"] = False
         return normalized_vals
@@ -209,10 +367,13 @@ class HrKpiDashboardWidget(models.Model):
         ]
         return super().create(normalized_vals_list)
 
-    # Khi đổi provider qua ORM, tự clear KPI Behavior cũ nếu provider mới không còn dùng field này.
+    # Khi write qua ORM, normalize theo từng record để state cũ của widget không làm sai router mới.
     def write(self, vals):
-        normalized_vals = self._normalize_widget_vals(vals)
-        return super().write(normalized_vals)
+        # Mỗi record có state hiện tại khác nhau nên cần normalize riêng trước khi gọi super.
+        for widget in self:
+            normalized_vals = self._normalize_widget_vals(vals, current_widget=widget)
+            super(HrKpiDashboardWidget, widget).write(normalized_vals)
+        return True
 
     @api.constrains(
         "widget_class",
@@ -234,66 +395,72 @@ class HrKpiDashboardWidget(models.Model):
     )
     # Kiểm tra cấu hình widget theo đúng rule nghiệp vụ của từng loại dashboard chart.
     def _check_widget_config(self):
-        allowed_chart_types = {
-            "generic_target_actual_bar": {"bar", "doughnut"},
-            "generic_domain_daily_series": {"line", "bar"},
-            "special_engine_punctuality": {"line"},
-            "special_engine_attendance_overview": {"doughnut"},
-        }
         for widget in self:
-            # Micro widget chỉ bắt buộc provider và chart type; selector line mới sẽ quyết định KPI cần chart.
+            # Micro widget luôn phải có chart type; provider chỉ còn bắt buộc ở dashboard cá nhân.
             if widget.widget_class == "micro":
-                if not widget.provider_key or not widget.micro_chart_type:
+                if not widget.micro_chart_type:
                     raise ValidationError(
-                        _(
-                            "Micro widget '%s' must define a Provider and Micro Chart Type."
-                        )
+                        _("Micro widget '%s' must define a Micro Chart Type.")
                         % widget.name
                     )
-                # Giới hạn chart type theo đúng provider đang được chọn.
-                allowed = allowed_chart_types.get(widget.provider_key, set())
-                if allowed and widget.micro_chart_type not in allowed:
-                    raise ValidationError(
-                        _(
-                            "Micro Chart Type '%(chart)s' is not valid for provider '%(provider)s' on widget '%(name)s'."
-                        )
-                        % {
-                            "chart": widget.micro_chart_type,
-                            "provider": widget.provider_key,
-                            "name": widget.name,
-                        }
-                    )
-                # Daily series là provider duy nhất cần khai báo KPI behavior.
-                if (
-                    widget.provider_key == "generic_domain_daily_series"
-                    and not widget.kpi_behavior
-                ):
-                    raise ValidationError(
-                        _(
-                            "Micro widget '%s' using the daily series provider must define a KPI Behavior."
-                        )
-                        % widget.name
-                    )
-                # Các provider còn lại không được mang theo KPI behavior để tránh cấu hình nhiễu.
-                if (
-                    widget.provider_key != "generic_domain_daily_series"
-                    and widget.kpi_behavior
-                ):
-                    raise ValidationError(
-                        _(
-                            "KPI Behavior only applies to the 'generic_domain_daily_series' provider on widget '%s'."
-                        )
-                        % widget.name
-                    )
-                # Dashboard cá nhân sẽ validate line selector và provider compatibility theo employee template line.
-                if widget.dashboard_kind == "individual":
-                    widget._validate_individual_micro_selector()
 
-                # Dashboard phòng ban cần thêm mode để service biết cách dựng chart micro.
-                if (
-                    widget.dashboard_kind == "department"
-                    and not widget.department_micro_mode
-                ):
+                # Dashboard cá nhân vẫn dùng provider làm router chính như flow cũ.
+                if widget.dashboard_kind == "individual":
+                    if not widget.provider_key:
+                        raise ValidationError(
+                            _("Micro widget '%s' must define a Provider.")
+                            % widget.name
+                        )
+
+                    # Giới hạn chart type theo đúng provider của dashboard cá nhân.
+                    allowed_chart_types = INDIVIDUAL_PROVIDER_ALLOWED_CHART_TYPES.get(
+                        widget.provider_key, set()
+                    )
+                    if (
+                        allowed_chart_types
+                        and widget.micro_chart_type not in allowed_chart_types
+                    ):
+                        raise ValidationError(
+                            _(
+                                "Micro Chart Type '%(chart)s' is not valid for provider '%(provider)s' on widget '%(name)s'."
+                            )
+                            % {
+                                "chart": widget.micro_chart_type,
+                                "provider": widget.provider_key,
+                                "name": widget.name,
+                            }
+                        )
+
+                    # Daily series là provider duy nhất cần khai báo KPI behavior ở dashboard cá nhân.
+                    if (
+                        widget.provider_key == "generic_domain_daily_series"
+                        and not widget.kpi_behavior
+                    ):
+                        raise ValidationError(
+                            _(
+                                "Micro widget '%s' using the daily series provider must define a KPI Behavior."
+                            )
+                            % widget.name
+                        )
+
+                    # Các provider cá nhân còn lại không được giữ KPI behavior để tránh cấu hình nhiễu.
+                    if (
+                        widget.provider_key != "generic_domain_daily_series"
+                        and widget.kpi_behavior
+                    ):
+                        raise ValidationError(
+                            _(
+                                "KPI Behavior only applies to individual widgets using the 'generic_domain_daily_series' provider on widget '%s'."
+                            )
+                            % widget.name
+                        )
+
+                    # Dashboard cá nhân vẫn validate selector line theo provider như flow hiện tại.
+                    widget._validate_individual_micro_selector()
+                    continue
+
+                # Dashboard phòng ban dùng department micro mode làm router duy nhất.
+                if not widget.department_micro_mode:
                     raise ValidationError(
                         _(
                             "Department micro widget '%s' must define a Department Micro Mode."
@@ -301,9 +468,36 @@ class HrKpiDashboardWidget(models.Model):
                         % widget.name
                     )
 
-                # Dashboard phòng ban dùng selector khác nhau theo từng department micro mode.
-                if widget.dashboard_kind == "department":
-                    widget._validate_department_micro_selector()
+                # KPI Behavior không còn hợp lệ ở dashboard phòng ban dù provider cũ còn lưu làm metadata.
+                if widget.kpi_behavior:
+                    raise ValidationError(
+                        _(
+                            "KPI Behavior only applies to individual widgets using the 'generic_domain_daily_series' provider on widget '%s'."
+                        )
+                        % widget.name
+                    )
+
+                # Giới hạn chart type theo đúng department micro mode thay vì provider legacy.
+                allowed_chart_types = DEPARTMENT_MICRO_ALLOWED_CHART_TYPES.get(
+                    widget.department_micro_mode, set()
+                )
+                if (
+                    allowed_chart_types
+                    and widget.micro_chart_type not in allowed_chart_types
+                ):
+                    raise ValidationError(
+                        _(
+                            "Micro Chart Type '%(chart)s' is not valid for department micro mode '%(mode)s' on widget '%(name)s'."
+                        )
+                        % {
+                            "chart": widget.micro_chart_type,
+                            "mode": widget.department_micro_mode,
+                            "name": widget.name,
+                        }
+                    )
+
+                # Dashboard phòng ban dùng selector khác nhau theo từng mode đã chọn.
+                widget._validate_department_micro_selector()
                 continue
 
             # Macro widget phải khai báo rõ chart type trước khi kiểm tra từng biến thể.
@@ -418,7 +612,10 @@ class HrKpiDashboardWidget(models.Model):
 
         # Employee compare tái sử dụng employee KPI template line để map line của từng nhân viên trong cùng kỳ.
         if self.department_micro_mode == "employee_compare":
-            if self.employee_template_line_id and self.employee_template_line_id.is_section:
+            if (
+                self.employee_template_line_id
+                and self.employee_template_line_id.is_section
+            ):
                 raise ValidationError(
                     _(
                         "Department micro widget '%(widget)s' cannot use section row '%(line)s' as the employee template line."
@@ -442,6 +639,21 @@ class HrKpiDashboardWidget(models.Model):
                     % {
                         "widget": self.name,
                         "lines": ", ".join(section_lines.mapped("name")),
+                    }
+                )
+
+            # Doughnut chỉ đúng nghĩa khi widget chọn đúng một department template line duy nhất.
+            if (
+                self.micro_chart_type == "doughnut"
+                and self.department_template_line_ids
+                and len(self.department_template_line_ids) != 1
+            ):
+                raise ValidationError(
+                    _(
+                        "Department progress widget '%(widget)s' using the Doughnut chart must select exactly one Department Template Line."
+                    )
+                    % {
+                        "widget": self.name,
                     }
                 )
 

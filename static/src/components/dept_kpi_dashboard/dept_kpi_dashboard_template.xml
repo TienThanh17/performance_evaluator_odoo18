@@ -130,7 +130,7 @@
                   <i t-att-class="chartIcon(chart.chart_type)"/>
                   <t t-esc="chart.title"/>
                 </span>
-                <span t-if="chart.subtitle" class="o_dept_kpi_dynamic_subtitle" t-esc="chart.subtitle"/>
+                <!-- <span t-if="chart.subtitle" class="o_dept_kpi_dynamic_subtitle" t-esc="chart.subtitle"/> -->
               </div>
               <span t-if="chart.is_special_case" class="o_kpi_target_badge o_kpi_target_warn">Special Case</span>
             </div>

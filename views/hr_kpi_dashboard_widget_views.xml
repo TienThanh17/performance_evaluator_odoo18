@@ -10,7 +10,7 @@
                 <!-- <field name="widget_class" /> -->
                 <field name="department_ids" widget="many2many_tags" />
                 <!-- <field name="department_micro_mode"/> -->
-                <field name="data_source_id" />
+                <!-- <field name="data_source_id" /> -->
                 <!-- <field name="provider_key"/> -->
                 <field name="micro_chart_type" />
                 <field name="macro_widget_type" />
@@ -53,17 +53,38 @@
                                 invisible="dashboard_kind != 'department' or department_micro_mode != 'department_progress'"
                                 required="widget_class == 'micro' and dashboard_kind == 'department' and department_micro_mode == 'department_progress'"
                             />
-                            <field name="data_source_id" />
-                            <field name="provider_key" required="widget_class == 'micro'" />
+                            <field
+                                name="data_source_id"
+                                invisible="dashboard_kind == 'department'"
+                            />
+                            <field
+                                name="provider_key"
+                                invisible="dashboard_kind == 'department'"
+                                required="widget_class == 'micro' and dashboard_kind == 'individual'"
+                            />
                             <field name="kpi_behavior"
-                                invisible="provider_key != 'generic_domain_daily_series'"
-                                required="widget_class == 'micro' and provider_key == 'generic_domain_daily_series'" />
+                                invisible="dashboard_kind == 'department' or provider_key != 'generic_domain_daily_series'"
+                                required="widget_class == 'micro' and dashboard_kind == 'individual' and provider_key == 'generic_domain_daily_series'" />
                             <field name="micro_chart_type" required="widget_class == 'micro'" />
                             <field
                                 name="department_micro_mode"
                                 invisible="widget_class != 'micro' or dashboard_kind != 'department'"
                                 required="widget_class == 'micro' and dashboard_kind == 'department'"
                             />
+                            <div
+                                colspan="2"
+                                class="text-muted"
+                                invisible="widget_class != 'micro' or dashboard_kind != 'department' or department_micro_mode != 'employee_compare'"
+                            >
+                                Employee Compare supports Line or Stacked Bar.
+                            </div>
+                            <div
+                                colspan="2"
+                                class="text-muted"
+                                invisible="widget_class != 'micro' or dashboard_kind != 'department' or department_micro_mode != 'department_progress'"
+                            >
+                                Department Progress supports Bar, Line, or Doughnut with a single selected line.
+                            </div>
                         </group>
                         <group string="Macro Config" invisible="widget_class != 'macro'">
                             <field name="macro_widget_type" required="widget_class == 'macro'" />
