@@ -152,6 +152,22 @@ class HrKpiDashboardWidget(models.Model):
     )
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
+    department_ids = fields.Many2many(
+        "hr.department",
+        "hr_kpi_dashboard_widget_department_rel",
+        "widget_id",
+        "department_id",
+        string="Departments",
+        help="Leave empty to apply this widget to all departments. Select one or more departments to scope the widget to those departments only.",
+    )
+    radar_template_line_ids = fields.Many2many(
+        "hr.kpi.template.line",
+        "hr_kpi_dashboard_widget_radar_template_line_rel",
+        "widget_id",
+        "template_line_id",
+        string="Radar Template Lines",
+        help="Select the KPI template lines that should appear in this radar chart. Leave empty to keep the radar widget inactive until it is configured.",
+    )
 
     @api.constrains(
         "widget_class",
@@ -167,7 +183,9 @@ class HrKpiDashboardWidget(models.Model):
         "group_by_ttype",
         "date_granularity",
         "department_micro_mode",
+        "radar_template_line_ids",
     )
+    # Kiểm tra cấu hình widget theo đúng rule nghiệp vụ của từng loại dashboard chart.
     def _check_widget_config(self):
         allowed_chart_types = {
             "generic_target_actual_bar": {"bar", "doughnut"},
@@ -176,6 +194,7 @@ class HrKpiDashboardWidget(models.Model):
             "special_engine_attendance_overview": {"doughnut"},
         }
         for widget in self:
+            # Micro widget luôn cần đủ bộ source, provider và chart type để builder hoạt động đúng.
             if widget.widget_class == "micro":
                 if (
                     not widget.data_source_id
@@ -184,15 +203,16 @@ class HrKpiDashboardWidget(models.Model):
                 ):
                     raise ValidationError(
                         _(
-                            "Micro widget '%s' bat buoc phai co Data Source, Provider va Micro Chart Type."
+                            "Micro widget '%s' must define a Data Source, Provider, and Micro Chart Type."
                         )
                         % widget.name
                     )
+                # Giới hạn chart type theo đúng provider đang được chọn.
                 allowed = allowed_chart_types.get(widget.provider_key, set())
                 if allowed and widget.micro_chart_type not in allowed:
                     raise ValidationError(
                         _(
-                            "Micro Chart Type '%(chart)s' khong hop le cho provider '%(provider)s' tren widget '%(name)s'."
+                            "Micro Chart Type '%(chart)s' is not valid for provider '%(provider)s' on widget '%(name)s'."
                         )
                         % {
                             "chart": widget.micro_chart_type,
@@ -200,65 +220,92 @@ class HrKpiDashboardWidget(models.Model):
                             "name": widget.name,
                         }
                     )
+                # Daily series là provider duy nhất cần khai báo KPI behavior.
                 if (
                     widget.provider_key == "generic_domain_daily_series"
                     and not widget.kpi_behavior
                 ):
                     raise ValidationError(
                         _(
-                            "Micro widget '%s' su dung provider daily series bat buoc phai co KPI Behavior."
+                            "Micro widget '%s' using the daily series provider must define a KPI Behavior."
                         )
                         % widget.name
                     )
+                # Các provider còn lại không được mang theo KPI behavior để tránh cấu hình nhiễu.
                 if (
                     widget.provider_key != "generic_domain_daily_series"
                     and widget.kpi_behavior
                 ):
                     raise ValidationError(
                         _(
-                            "KPI Behavior chi ap dung cho provider 'generic_domain_daily_series' tren widget '%s'."
+                            "KPI Behavior only applies to the 'generic_domain_daily_series' provider on widget '%s'."
                         )
                         % widget.name
                     )
+                # Dashboard phòng ban cần thêm mode để service biết cách dựng chart micro.
                 if (
                     widget.dashboard_kind == "department"
                     and not widget.department_micro_mode
                 ):
                     raise ValidationError(
                         _(
-                            "Department micro widget '%s' bat buoc phai co Department Micro Mode."
+                            "Department micro widget '%s' must define a Department Micro Mode."
                         )
                         % widget.name
                     )
                 continue
 
+            # Macro widget phải khai báo rõ chart type trước khi kiểm tra từng biến thể.
             if not widget.macro_widget_type:
                 raise ValidationError(
-                    _("Macro widget '%s' bat buoc phai co Macro Widget Type.")
+                    _("Macro widget '%s' must define a Macro Widget Type.")
                     % widget.name
                 )
 
+            # Trend/Distribution vẫn dùng flow query động nên cần measure/group/date như cũ.
             if widget.macro_widget_type in ("trend_line", "distribution"):
                 if not widget.measure_field_id or not widget.group_by_field_id:
                     raise ValidationError(
                         _(
-                            "Macro widget '%s' bat buoc phai co Measure Field va Group By Field."
+                            "Macro widget '%s' must define both Measure Field and Group By Field."
                         )
                         % widget.name
                     )
                 if widget.group_by_ttype in ("date", "datetime") and not widget.date_granularity:
                     raise ValidationError(
                         _(
-                            "Macro widget '%s' group theo field ngay/gio bat buoc phai co Date Granularity."
+                            "Macro widget '%s' grouped by a date or datetime field must define a Date Granularity."
+                        )
+                        % widget.name
+                    )
+                continue
+
+            # Radar chart chỉ hợp lệ trên dashboard cá nhân và phải đọc từ evaluation record.
+            if widget.macro_widget_type == "radar_chart":
+                if widget.dashboard_kind != "individual":
+                    raise ValidationError(
+                        _(
+                            "Radar widget '%s' is only supported on the individual dashboard."
+                        )
+                        % widget.name
+                    )
+                if widget.target_model != "evaluation":
+                    raise ValidationError(
+                        _(
+                            "Radar widget '%s' must use the Performance Evaluation target model."
                         )
                         % widget.name
                     )
 
+    # Trả payload widget cho frontend/admin với đầy đủ metadata scope phòng ban.
     def _serialize_widget(self):
         self.ensure_one()
         data_source = self.data_source_id
         measure_field = self.measure_field_id
         group_by_field = self.group_by_field_id
+        radar_template_lines = self.radar_template_line_ids.sorted(
+            key=lambda line: (line.sequence or 0, line.id or 0)
+        )
         return {
             "id": self.id,
             "name": self.name,
@@ -279,22 +326,52 @@ class HrKpiDashboardWidget(models.Model):
             "active": bool(self.active),
             "data_source_id": data_source.id if data_source else False,
             "data_source_name": data_source.name if data_source else "",
+            "department_ids": self.department_ids.ids,
+            "department_names": self.department_ids.mapped("name"),
+            "radar_template_line_ids": radar_template_lines.ids,
+            "radar_template_line_names": radar_template_lines.mapped(
+                "key_performance_area"
+            ),
             "provider_key": self.provider_key or "",
             "micro_chart_type": self.micro_chart_type or "",
             "kpi_behavior": self.kpi_behavior or "",
         }
 
+    # Lấy record widget theo dashboard kind và scope phòng ban hiện tại.
     @api.model
-    def get_dashboard_widget_records(self, dashboard_kind, widget_class=False):
+    def get_dashboard_widget_records(
+        self, dashboard_kind, widget_class=False, department=False
+    ):
         domain = [("dashboard_kind", "=", dashboard_kind), ("active", "=", True)]
         if widget_class:
             domain.append(("widget_class", "=", widget_class))
+
+        department_id = department.id if hasattr(department, "id") else department
+
+        # Nếu dashboard không có department context thì chỉ lấy widget global.
+        # Nếu có department thì lấy cả widget global lẫn widget được gắn đúng
+        # phòng ban hiện tại.
+        if department_id:
+            domain.extend(
+                [
+                    "|",
+                    ("department_ids", "=", False),
+                    ("department_ids", "in", [department_id]),
+                ]
+            )
+        else:
+            domain.append(("department_ids", "=", False))
+
         return self.sudo().search(
             domain,
             order="sequence, id",
         )
 
+    # Trả danh sách widget đã serialize theo dashboard kind và scope phòng ban.
     @api.model
-    def get_dashboard_widgets(self, dashboard_kind):
-        widgets = self.get_dashboard_widget_records(dashboard_kind)
+    def get_dashboard_widgets(self, dashboard_kind, department=False):
+        widgets = self.get_dashboard_widget_records(
+            dashboard_kind,
+            department=department,
+        )
         return [widget._serialize_widget() for widget in widgets]

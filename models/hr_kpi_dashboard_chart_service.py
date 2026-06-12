@@ -14,6 +14,12 @@ class HrKpiDashboardChartService(models.AbstractModel):
     _name = "hr.kpi.dashboard.chart.service"
     _description = "KPI Dashboard Chart Service"
 
+    # Xác định phòng ban hiện tại của record dashboard để lọc widget đúng scope.
+    def _resolve_widget_department(self, evaluation):
+        if not evaluation or "department_id" not in evaluation._fields:
+            return False
+        return evaluation.department_id
+
     @api.model
     def build_dynamic_charts(self, evaluation, dashboard_kind="individual"):
         evaluation = evaluation.sudo()
@@ -21,8 +27,10 @@ class HrKpiDashboardChartService(models.AbstractModel):
             return []
 
         charts = []
+        current_department = self._resolve_widget_department(evaluation)
         widgets = self.env["hr.kpi.dashboard.widget"].get_dashboard_widget_records(
-            dashboard_kind
+            dashboard_kind,
+            department=current_department,
         )
         for widget in widgets:
             chart = False
@@ -300,6 +308,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
     # ---------------------------------------------------------
     # MACRO WIDGETS
     # ---------------------------------------------------------
+    # Điều phối builder macro theo chart type để mỗi loại widget đi đúng flow dựng dữ liệu.
     def _build_macro_chart(self, evaluation, widget):
         if widget.macro_widget_type == "radar_chart":
             if widget.dashboard_kind != "individual":
@@ -311,20 +320,46 @@ class HrKpiDashboardChartService(models.AbstractModel):
             return self._build_macro_distribution(evaluation, widget)
         return False
 
+    # Dựng radar chart từ danh sách template line được cấu hình tường minh trên widget.
     def _build_macro_radar(self, evaluation, widget):
-        qualitative_lines = evaluation.evaluation_line_ids.filtered(
-            lambda line: not line.is_section and not line.data_source_id
+        # Soft rollout: radar widget chưa cấu hình line thì tạm thời không render chart.
+        selected_template_lines = widget.radar_template_line_ids.sorted(
+            key=lambda line: (line.sequence or 0, line.id or 0)
         )
-        if not qualitative_lines:
+        if not selected_template_lines:
             return False
 
+        # Lập map evaluation line theo template line để resolve đúng snapshot của kỳ đánh giá hiện tại.
+        evaluation_line_by_template = {
+            line.kpi_line_id.id: line
+            for line in evaluation.evaluation_line_ids
+            if line.kpi_line_id
+        }
+
+        # Chỉ giữ lại các line đã được admin chọn và thực sự tồn tại trong evaluation hiện tại.
+        matched_lines = []
+        for template_line in selected_template_lines:
+            evaluation_line = evaluation_line_by_template.get(template_line.id)
+            if evaluation_line:
+                matched_lines.append((template_line, evaluation_line))
+
+        # Nếu toàn bộ line đã chọn đều không có snapshot tương ứng thì bỏ qua widget này.
+        if not matched_lines:
+            return False
+
+        # Dùng nhãn snapshot của evaluation line trước để phản ánh đúng dữ liệu đã generate.
         labels = [
-            line.key_performance_area or line.name or _("KPI")
-            for line in qualitative_lines
+            evaluation_line.key_performance_area
+            or getattr(evaluation_line, "name", False)
+            or template_line.key_performance_area
+            or _("KPI")
+            for template_line, evaluation_line in matched_lines
         ]
+
+        # Điểm radar đọc trực tiếp từ final_rating của từng evaluation line đã được map theo template.
         scores = [
-            round(float(getattr(line, "final_rating", 0.0) or 0.0), 2)
-            for line in qualitative_lines
+            round(float(getattr(evaluation_line, "final_rating", 0.0) or 0.0), 2)
+            for _, evaluation_line in matched_lines
         ]
         return {
             "widget_id": widget.id,
