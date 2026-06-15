@@ -168,7 +168,7 @@ class HrKpiScoringFormula(models.Model):
                             _("Bậc thang %(index)s có giá trị 'to' không hợp lệ.")
                             % {"index": index}
                         )
-                    if upper <= lower:
+                    if upper < lower:
                         raise ValidationError(
                             _("Bậc thang %(index)s: 'to' phải lớn hơn 'from'.")
                             % {"index": index}

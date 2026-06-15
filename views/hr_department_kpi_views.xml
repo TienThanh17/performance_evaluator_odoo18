@@ -98,7 +98,7 @@
                                     <field name="child_template_rows_json" column_invisible="1" />
                                     <field name="child_template_line_count" column_invisible="1" />
 
-                                    <field name="name" string="Title" width="400px" />
+                                    <field name="name" string="Title" width="450px" />
                                     <!-- <field name="pillar_id" options="{'no_create': True}" /> -->
                                     <!-- <field name="parent_line_id"
                                         domain="[('department_kpi_id', '=', parent.id), ('id', '!=', id)]"
@@ -118,7 +118,7 @@
                                     <field name="unit"
                                         string="Unit"
                                         invisible="is_section or kpi_type != 'auto'"
-                                        optional="show" width="120px" />
+                                        optional="show" width="300px" />
 
                                     <field name="scoring_formula_id"
                                         invisible="is_section or kpi_type != 'auto'"

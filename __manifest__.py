@@ -36,6 +36,9 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "data/hr_kpi_it_3p_2026_04_seed.xml",
         "data/hr_kpi_ktoan_3p_2026_04_seed.xml",
         "data/hr_kpi_auto_3p_2026_04_seed.xml",
+        "data/hr_kpi_pkt_ltd_3p_2026_04_seed.xml",
+        "data/hr_kpi_ptk_ltd_3p_2026_04_seed.xml",
+        "data/hr_kpi_manager_pkt_ltd_3p_seed.xml",
         "data/hr_kpi_dashboard_widget_seed.xml",
         # "data/hr_kpi_it_sample_data.xml",  # Requires formula_linear_higher_bonus, currently commented in formula seed
         "data/ir_cron_data.xml",

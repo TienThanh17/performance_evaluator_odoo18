@@ -36,6 +36,7 @@
                                     invisible="is_section or kpi_type != 'auto'"
                                     options="{'no_create': True}" />
                                 <field name="weight" />
+
                                 <field name="wipeout_if_child_zero"
                                     invisible="not is_section" />
                             </group>
@@ -87,7 +88,7 @@
         </record>
 
         <!-- Shared list view for KPI Template Line (dùng chung cho P2.1, P2.2) -->
-    <record id="view_hr_kpi_template_line_shared_list" model="ir.ui.view">
+        <record id="view_hr_kpi_template_line_shared_list" model="ir.ui.view">
             <field name="name">hr.kpi.template.line.shared.list</field>
             <field name="model">hr.kpi.template.line</field>
             <field name="arch" type="xml">
@@ -97,15 +98,17 @@
                             context="{'default_is_section': True, 'default_display_type': 'line_section'}" />
                         <create name="add_kpi" string="Add KPI" />
                     </control>
-                    
-                    <field name="sequence" widget="kpi_template_tree_handle" width="30px" invisible="is_section"/>
-                    
+
+                    <field name="sequence" readonly='1' />
+                    <field name="sequence" widget="kpi_template_tree_handle" width="30px"
+                        invisible="is_section" />
+
                     <field name="is_section" column_invisible="True" />
                     <field name="pillar_code" column_invisible="True" />
                     <field name="parent_dept_kpi_id" column_invisible="True" />
 
                     <field name="key_performance_area" string="Title" width="300px" />
-                    
+
                     <field name="description"
                         string="Info"
                         widget="kpi_description_icon"
@@ -115,7 +118,7 @@
                     <field name="kpi_type" invisible="is_section" width="100px" />
                     <field name="manual_scoring_type"
                         invisible="is_section or kpi_type != 'manual'"
-                        optional="hide"
+                        optional="show"
                         width="140px" />
                     <field name="unit"
                         string="Unit"
@@ -174,7 +177,8 @@
                                 <field name="department_id" />
                                 <field name="job_id" widget="many2many_tags" />
                                 <field name="scoring_profile_id" />
-                                <!-- <field name="department_kpi_id" options="{'no_create': True}" /> -->
+                                <!-- <field name="department_kpi_id" options="{'no_create': True}"
+                                /> -->
                             </group>
                         </group>
 
@@ -216,12 +220,13 @@
                                             stars, each star = 20 points.<br /> Score: enter the
                                             score directly into the score field.<br />
                         <br />
-                        <strong>- Auto KPI</strong><br />
-                                            Score is calculated from <strong>Target</strong> and <strong>
-                                            Actual</strong> based on the selected <strong>Scoring
+                        <strong>-
+                                            Auto KPI</strong><br /> Score is calculated from <strong>
+                                            Target</strong> and <strong>
+                                                            Actual</strong> based on the selected <strong>Scoring
                                             Formula</strong>. If a data source is linked, the system
-                                            can auto-fill <strong>Actual</strong> before applying the
-                                            formula. </div>
+                                            can auto-fill <strong>Actual</strong> before applying
+                                            the formula. </div>
                                                 </details>
                                             </div>
                                         </div>
@@ -273,12 +278,13 @@
                                             stars, each star = 20 points.<br /> Score: enter the
                                             score directly into the score field.<br />
                         <br />
-                        <strong>- Auto KPI</strong><br />
-                                            Score is calculated from <strong>Target</strong> and <strong>
-                                            Actual</strong> based on the selected <strong>Scoring
+                        <strong>-
+                                            Auto KPI</strong><br /> Score is calculated from <strong>
+                                            Target</strong> and <strong>
+                                                            Actual</strong> based on the selected <strong>Scoring
                                             Formula</strong>. If a data source is linked, the system
-                                            can auto-fill <strong>Actual</strong> before applying the
-                                            formula. </div>
+                                            can auto-fill <strong>Actual</strong> before applying
+                                            the formula. </div>
                                                 </details>
                                             </div>
                                         </div>
@@ -301,14 +307,14 @@
                                     widget="kpi_template_tree_one2many"
                                     context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p3_individual'}">
                                     <list editable="bottom" decoration-bf="is_section">
-                                        <field name="sequence" widget="kpi_template_tree_handle" />
+                                        <field name="sequence" widget="kpi_template_tree_handle" invisible="is_section"/>
                                         <field name="is_section" column_invisible="True" />
                                         <field name="pillar_code" column_invisible="True" />
 
                                         <field name="parent_dept_kpi_id" column_invisible="True" />
 
                                         <field name="key_performance_area" string="Title"
-                                            width="400px" />
+                                            width="450px" />
                                         <field name="description"
                                             string="Info"
                                             widget="kpi_description_icon"
@@ -335,7 +341,7 @@
                                         <field name="unit"
                                             string="Unit"
                                             invisible="is_section or kpi_type != 'auto'"
-                                            optional="show" width="80px" />
+                                            optional="show" width="300px" />
 
                                         <field name="scoring_formula_id"
                                             invisible="is_section or kpi_type != 'auto'"
@@ -343,7 +349,8 @@
 
                                         <field name="is_auto" column_invisible="1" />
                                         <field name="data_source_id"
-                                            invisible="is_section or not is_auto" width="150px" />
+                                            invisible="is_section or not is_auto" width="150px"
+                                            optional="hide" />
 
                                         <field name="target" string="Target"
                                             invisible="is_section or kpi_type != 'auto'"
@@ -376,7 +383,7 @@
                                             <span
                                                 style="font-size: 14px; font-style: italic;">
                                                 If the total top-level P3.1.1 weight is 0, the
-                                            system falls back to the average of top-level P3.1.1
+                                                system falls back to the average of top-level P3.1.1
                                             line scores.
                                             </span>
 
@@ -397,12 +404,13 @@
                                             stars, each star = 20 points.<br /> Score: enter the
                                             score directly into the score field.<br />
                         <br />
-                        <strong>- Auto KPI</strong><br />
-                                            Score is calculated from <strong>Target</strong> and <strong>
-                                            Actual</strong> based on the selected <strong>Scoring
+                        <strong>-
+                                            Auto KPI</strong><br /> Score is calculated from <strong>
+                                            Target</strong> and <strong>
+                                                            Actual</strong> based on the selected <strong>Scoring
                                             Formula</strong>. If a data source is linked, the system
-                                            can auto-fill <strong>Actual</strong> before applying the
-                                            formula. </div>
+                                            can auto-fill <strong>Actual</strong> before applying
+                                            the formula. </div>
                                                 </details>
                                             </div>
                                         </div>

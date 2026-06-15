@@ -239,10 +239,36 @@ class HrKpiTemplate(models.Model):
             )
         return self.env["hr.kpi.template.line"].browse(ordered_ids)
 
+    # Duplicate the KPI template and rebuild its line tree on the new record.
     def copy(self, default=None):
         default = dict(default or {})
         default.setdefault("name", self.name + " (Copy)")
+
+        # Create the new parent first so copied lines can point to a real template.
         new_parent = super().copy(default)
-        for line in self.kpi_line_ids:
-            line.copy({"kpi_id": new_parent.id})
+
+        # Copy lines in preorder so every parent exists before its children.
+        source_lines = self.get_hierarchy_ordered_lines()
+        line_model = self.env["hr.kpi.template.line"].with_context(
+            skip_hierarchy_sequence_sync=True,
+            skip_normalized_3p_weight_validation=True,
+        )
+        copied_lines = self.env["hr.kpi.template.line"]
+        line_map = {}
+
+        for source_line in source_lines:
+            # Reuse the source values, but remap the parent line to the duplicated tree.
+            line_vals = source_line.copy_data()[0]
+            line_vals["kpi_id"] = new_parent.id
+            line_vals["parent_line_id"] = line_map.get(
+                source_line.parent_line_id.id, False
+            )
+
+            copied_line = line_model.create(line_vals)
+            line_map[source_line.id] = copied_line.id
+            copied_lines |= copied_line
+
+        # Validate the fully duplicated tree only once after all nodes exist.
+        if copied_lines:
+            copied_lines._validate_normalized_3p_weight_structure()
         return new_parent

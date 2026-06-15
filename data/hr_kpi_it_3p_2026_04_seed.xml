@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <!-- ============================================================
              MASTER DATA - PHÒNG BAN / CHỨC VỤ / NHÂN SỰ / KỲ ĐÁNH GIÁ
         ============================================================= -->
@@ -37,7 +37,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_leader_3p_202604" />
-          
+
             <field name="work_email">pham.tommy@example.com</field>
         </record>
         <record id="employee_it_huynh_trong_dai_3p_202604" model="hr.employee">
@@ -47,7 +47,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_staff_3p_202604" />
-          
+
             <field name="work_email">huynh.trong.dai@example.com</field>
         </record>
         <record id="employee_it_do_minh_duong_3p_202604" model="hr.employee">
@@ -57,7 +57,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
-          
+
             <field name="work_email">do.minh.duong@example.com</field>
         </record>
         <record id="employee_it_vo_chau_dang_khoa_3p_202604" model="hr.employee">
@@ -67,7 +67,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
-          
+
             <field name="work_email">vo.chau.dang.khoa@example.com</field>
         </record>
         <record id="employee_it_huynh_thanh_tien_3p_202604" model="hr.employee">
@@ -77,7 +77,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
-          
+
             <field name="work_email">huynh.thanh.tien@example.com</field>
         </record>
         <record id="employee_it_dinh_dai_duong_3p_202604" model="hr.employee">
@@ -87,15 +87,15 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
-          
+
             <field name="work_email">dinh.dai.duong@example.com</field>
         </record>
 
         <record id="period_it_3p_202604" model="hr.kpi.period">
-            <field name="name">Tháng 04/2026</field>
+            <field name="name">Tháng 06/2026</field>
             <field name="period_type">monthly</field>
-            <field name="date_start">2026-04-01</field>
-            <field name="date_end">2026-04-30</field>
+            <field name="date_start">2026-06-01</field>
+            <field name="date_end">2026-06-30</field>
         </record>
 
         <record id="kpi_unit_vi_pham_thang" model="hr.kpi.unit">
@@ -202,8 +202,18 @@
             <field name="weight">10</field>
 
             <field name="sequence">10</field>
-            <field name="description">Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất
-                công việc thực hiện</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Trang bị đầy đủ trang thiết bị
+                        an toàn đúng, đủ với tính chất công việc thực hiện</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị bảo hộ lao động đầy đủ cho
+                        nhân viên, công nhân thi công</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc1_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -221,8 +231,18 @@
             <field name="weight">2</field>
 
             <field name="sequence">11</field>
-            <field name="description">Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất
-                công việc thực hiện</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Trang bị đầy đủ trang thiết bị
+                        an toàn đúng, đủ với tính chất công việc thực hiện</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị bảo hộ lao động đầy đủ cho
+                        nhân viên, công nhân thi công</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc1_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -241,7 +261,18 @@
             <field name="weight">2</field>
 
             <field name="sequence">12</field>
-            <field name="description">Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
+                        đảm bảo tiêu chuẩn</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công trường: an toàn, cấm
+                        hút thuốc.v.v… Nơi làm việc đảm bảo an toàn</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc1_item_3_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -261,7 +292,20 @@
             <field name="weight">2</field>
 
             <field name="sequence">13</field>
-            <field name="description">Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
+                        đảm bảo tiêu chuẩn</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết bị, công cụ dụng cụ thi công
+                        có kiểm định, kiểm tra định kỳ.Dàn giáo, dây đai, thang, máy cắt, khoan,
+                        máy hàn, xe cẩu, xe nâng… có kiểm định/ chứng nhận an toàn, kiểm tra định
+                        kỳ và còn hiệu lực</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc1_item_4_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -280,8 +324,18 @@
             <field name="weight">2</field>
 
             <field name="sequence">14</field>
-            <field name="description">Phân tích, đánh giá rủi ro, phương pháp làm việc an toàn khi
-                thực hiện</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Phân tích, đánh giá rủi ro,
+                        phương pháp làm việc an toàn khi thực hiện</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Lập bảng phân tích, đánh giá rủi
+                        ro, biện pháp phòng ngừa</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
         <!-- The department template has a 5th row: line_dept_p3_tc1_item_5_202604 for Dao tao, huan
         luyen an toan CBNV -->
@@ -302,7 +356,18 @@
             <field name="weight">2</field>
 
             <field name="sequence">15</field>
-            <field name="description">Đào tạo, huấn luyện an toàn CBNV</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo, huấn luyện an toàn
+                        CBNV</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Họp nhắc nhỡ, huấn luyện hàng ngày,
+                        trước khi làm việc Đào tạo định kỳ, đào tạo cho NV mới</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_p3_tc2_202604" model="hr.department.kpi.template.line">
@@ -318,7 +383,18 @@
             <field name="weight">20</field>
 
             <field name="sequence">20</field>
-            <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Kỹ thuật/ Chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
+                        phẩm đạt chất lượng kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết kế đúng kỹ thuật ( Tiêu chuẩn
+                        IEC / TCVN )</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
+                    <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc2_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -336,7 +412,18 @@
             <field name="weight">7</field>
 
             <field name="sequence">21</field>
-            <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Kỹ thuật/ Chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
+                        phẩm đạt chất lượng kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết kế đúng kỹ thuật ( Tiêu chuẩn
+                        IEC / TCVN )</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
+                    <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc2_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -354,7 +441,18 @@
             <field name="weight">6.5</field>
 
             <field name="sequence">22</field>
-            <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Kỹ thuật/ Chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
+                        phẩm đạt chất lượng kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cung cấp đầy đủ hồ sơ thiết kế (
+                        Bản vẽ, BOM, Spec, ..)</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
+                    <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc2_item_3_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -372,7 +470,18 @@
             <field name="weight">6.5</field>
 
             <field name="sequence">23</field>
-            <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Kỹ thuật/ Chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
+                        phẩm đạt chất lượng kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chọn lựa thiết bị đúng ( Tiêu chuẩn
+                        IEC / TCVN )</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
+                    <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_p3_tc3_202604" model="hr.department.kpi.template.line">
@@ -388,7 +497,18 @@
             <field name="weight">15</field>
 
             <field name="sequence">30</field>
-            <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Quy trình và quản lý An toàn,
+                        chất lượng, Kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Áp dụng qui trình cho từng công
+                        đoạn của công việc</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0</p>
+                    <p><strong>Kém:</strong> 1</p>
+                    <p><strong>Xuất sắc:</strong> 0</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc3_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -407,7 +527,18 @@
             <field name="weight">3.5</field>
 
             <field name="sequence">31</field>
-            <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Quy trình và quản lý An toàn,
+                        chất lượng, Kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Áp dụng qui trình cho từng công
+                        đoạn của công việc</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0</p>
+                    <p><strong>Kém:</strong> 1</p>
+                    <p><strong>Xuất sắc:</strong> 0</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc3_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -425,7 +556,16 @@
             <field name="weight">3.5</field>
 
             <field name="sequence">32</field>
-            <field name="description">Hiệu suất</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Hiệu suất</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Đề xuất phương án thực hiện</p>
+                    <p><strong>Mục tiêu 2026:</strong> 3 phương án</p>
+                    <p><strong>Kém:</strong> 1</p>
+                    <p><strong>Xuất sắc:</strong> 3 phương án, có 1 phuong án tối ưu/ 1 sự việc</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc3_item_3_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -443,7 +583,16 @@
             <field name="weight">4</field>
 
             <field name="sequence">33</field>
-            <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Hiệu suất</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cải tiến sản phẩm, Kaizen</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1 Lần</p>
+                    <p><strong>Kém:</strong> 0 Lần</p>
+                    <p><strong>Xuất sắc:</strong> &gt; 2 Lần</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc3_item_4_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -461,7 +610,16 @@
             <field name="weight">4</field>
 
             <field name="sequence">34</field>
-            <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Hiệu suất</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Qui trình 5S</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0</p>
+                    <p><strong>Kém:</strong> 1 Lần</p>
+                    <p><strong>Xuất sắc:</strong> 0</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_p3_tc4_202604" model="hr.department.kpi.template.line">
@@ -477,7 +635,16 @@
             <field name="weight">20</field>
 
             <field name="sequence">40</field>
-            <field name="description">Tiến độ thực hiện công việc</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Tiến độ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc kịp tiến độ</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
+                    <p><strong>Kém:</strong> 1 lần</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc4_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -495,7 +662,16 @@
             <field name="weight">10</field>
 
             <field name="sequence">41</field>
-            <field name="description">Tiến độ thực hiện công việc</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Tiến độ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc kịp tiến độ</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
+                    <p><strong>Kém:</strong> 1 lần</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc4_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -513,7 +689,17 @@
             <field name="weight">10</field>
 
             <field name="sequence">42</field>
-            <field name="description">Tiến độ thực hiện công việc</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Tiến độ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Báo cáo đúng hạn, đầy đủ thông
+                        tin</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
+                    <p><strong>Kém:</strong> 1 lần</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_p3_tc5_202604" model="hr.department.kpi.template.line">
@@ -529,7 +715,17 @@
             <field name="weight">15</field>
 
             <field name="sequence">50</field>
-            <field name="description">Giảm chi phí tối thiểu</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Chi Phí</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Giảm thất thoát vật tư trong lập dự
+                        toán</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
+                    <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc5_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -547,7 +743,17 @@
             <field name="weight">7.5</field>
 
             <field name="sequence">51</field>
-            <field name="description">Giảm chi phí tối thiểu</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Chi Phí</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Giảm thất thoát vật tư trong lập dự
+                        toán</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
+                    <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc5_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -565,7 +771,17 @@
             <field name="weight">7.5</field>
 
             <field name="sequence">52</field>
-            <field name="description">Giảm chi phí tối thiểu</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Chi Phí</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Khảo sát, đo đạc, thiết kế bản vẽ
+                        theo thực tế thi công dự án 100%</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
+                    <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_p3_tc6_202604" model="hr.department.kpi.template.line">
@@ -581,7 +797,17 @@
             <field name="weight">15</field>
 
             <field name="sequence">60</field>
-            <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
+                        đào tạo</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Đào tạo /người</p>
+                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
+                    <p><strong>Kém:</strong> &lt;80%</p>
+                    <p><strong>Xuất sắc:</strong> 100</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc6_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -599,7 +825,17 @@
             <field name="weight">5</field>
 
             <field name="sequence">61</field>
-            <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
+                        đào tạo</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Đào tạo /người</p>
+                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
+                    <p><strong>Kém:</strong> &lt;80%</p>
+                    <p><strong>Xuất sắc:</strong> 100</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc6_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -617,7 +853,18 @@
             <field name="weight">5</field>
 
             <field name="sequence">62</field>
-            <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
+                        đào tạo</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chất lượng nhân sự đáp ứng nhu
+                        cầu</p>
+                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
+                    <p><strong>Kém:</strong> &lt;80%</p>
+                    <p><strong>Xuất sắc:</strong> 100</p>
+                </div>
+            </field>
         </record>
         <record id="line_dept_p3_tc6_item_3_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
@@ -635,7 +882,17 @@
             <field name="weight">5</field>
 
             <field name="sequence">63</field>
-            <field name="description">Nội quy công ty</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Nội quy công ty</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công ty, nội quy công
+                        trình</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 lần / tháng</p>
+                    <p><strong>Kém:</strong> 2lần / tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 lần / tháng</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_p3_tc7_202604" model="hr.department.kpi.template.line">
@@ -651,7 +908,17 @@
             <field name="weight">5</field>
 
             <field name="sequence">70</field>
-            <field name="description">Tiêu chí đạt thẩm mỹ</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Thẩm Mỹ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tiêu chí đạt thẩm mỹ</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> 2 /3 ý kiến đánh giá đạt trong đó
+                        có 1 ý kiến khách hàng ( Cấp giám đốc nhà máy trở lên )</p>
+                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
+                    <p><strong>Kém:</strong> &lt;80%</p>
+                    <p><strong>Xuất sắc:</strong> 90%</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_p3_tc7_item1_202604" model="hr.department.kpi.template.line">
@@ -671,14 +938,24 @@
             <field name="weight">5</field>
 
             <field name="sequence">71</field>
-            <field name="description">Tiêu chí đạt thẩm mỹ</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Thẩm Mỹ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tiêu chí đạt thẩm mỹ</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> 2 /3 ý kiến đánh giá đạt trong đó
+                        có 1 ý kiến khách hàng ( Cấp giám đốc nhà máy trở lên )</p>
+                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
+                    <p><strong>Kém:</strong> &lt;80%</p>
+                    <p><strong>Xuất sắc:</strong> 90%</p>
+                </div>
+            </field>
         </record>
 
         <!-- ============================================================
              TEMPLATE NHÂN VIÊN - P2.1 + P2.2 + P3.1.1
         ============================================================= -->
         <record id="tpl_emp_kpi_it_3p_202604" model="hr.kpi.template">
-            <field name="name">Bộ tiêu chí 3P IT - Hàng tháng 2026 (P2.1 + P2.2 + P3.1.1)</field>
+            <field name="name">Bộ tiêu chí 3P IT</field>
             <!-- <field name="department_id"
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" /> -->
             <field name="period_type">monthly</field>
@@ -2494,8 +2771,6 @@
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">10</field>
             <field name="sequence">700</field>
-            <field name="description">Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất
-                công việc thực hiện</field>
         </record>
         <record id="line_emp_p3_tc1_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2513,8 +2788,18 @@
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">2.5</field>
             <field name="sequence">701</field>
-            <field name="description">Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất
-                công việc thực hiện</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Trang bị đầy đủ trang thiết bị
+                        an toàn đúng, đủ với tính chất công việc thực hiện</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị bảo hộ lao động đầy đủ cho
+                        nhân viên, công nhân thi công</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc1_item2_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2532,7 +2817,18 @@
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">2.5</field>
             <field name="sequence">702</field>
-            <field name="description">Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
+                        đảm bảo tiêu chuẩn</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công trường: an toàn, cấm
+                        hút thuốc.v.v… Nơi làm việc đảm bảo an toàn</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc1_item3_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2551,7 +2847,20 @@
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">2.5</field>
             <field name="sequence">703</field>
-            <field name="description">Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
+                        đảm bảo tiêu chuẩn</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết bị, công cụ dụng cụ thi công
+                        có kiểm định, kiểm tra định kỳ.Dàn giáo, dây đai, thang, máy cắt, khoan,
+                        máy hàn, xe cẩu, xe nâng… có kiểm định/ chứng nhận an toàn, kiểm tra định
+                        kỳ và còn hiệu lực</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc1_item4_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2570,8 +2879,18 @@
                 ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
             <field name="weight">2.5</field>
             <field name="sequence">704</field>
-            <field name="description">Phân tích, đánh giá rủi ro, phương pháp làm việc an toàn khi
-                thực hiện</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Phân tích, đánh giá rủi ro,
+                        phương pháp làm việc an toàn khi thực hiện</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Lập bảng phân tích, đánh giá rủi
+                        ro, biện pháp phòng ngừa</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
+                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_emp_p3_tc2_202604" model="hr.kpi.template.line">
@@ -2587,7 +2906,6 @@
             <field name="weight">20</field>
 
             <field name="sequence">710</field>
-            <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
         </record>
         <record id="line_emp_p3_tc2_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2605,7 +2923,18 @@
             <field name="weight">7</field>
 
             <field name="sequence">711</field>
-            <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Kỹ thuật/ Chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
+                        phẩm đạt chất lượng kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết kế đúng kỹ thuật (Tiêu chuẩn
+                        IEC / TCVN)</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
+                    <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc2_item2_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2624,7 +2953,18 @@
             <field name="weight">6.5</field>
 
             <field name="sequence">712</field>
-            <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Kỹ thuật/ Chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
+                        phẩm đạt chất lượng kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cung cấp đầy đủ hồ sơ thiết kế (Bản
+                        vẽ, BOM, Spec, ..)</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
+                    <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc2_item3_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2642,7 +2982,18 @@
             <field name="weight">6.5</field>
 
             <field name="sequence">713</field>
-            <field name="description">Sự hài lòng của khách hàng. Sản phẩm đạt chất lượng kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Kỹ thuật/ Chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
+                        phẩm đạt chất lượng kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chọn lựa thiết bị đúng (Tiêu chuẩn
+                        IEC / TCVN)</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
+                    <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_emp_p3_tc3_202604" model="hr.kpi.template.line">
@@ -2656,10 +3007,9 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">15</field>
-
             <field name="sequence">720</field>
-            <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
         </record>
+
         <record id="line_emp_p3_tc3_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604" />
@@ -2677,7 +3027,18 @@
             <field name="weight">3.5</field>
 
             <field name="sequence">721</field>
-            <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Quy trình và quản lý An toàn,
+                        chất lượng, Kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Áp dụng qui trình cho từng công
+                        đoạn của công việc</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0</p>
+                    <p><strong>Kém:</strong> 1</p>
+                    <p><strong>Xuất sắc:</strong> 0</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc3_item2_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2695,7 +3056,16 @@
             <field name="weight">3.5</field>
 
             <field name="sequence">722</field>
-            <field name="description">Hiệu suất</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Hiệu suất</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Đề xuất phương án thực hiện</p>
+                    <p><strong>Mục tiêu 2026:</strong> 3 phương án</p>
+                    <p><strong>Kém:</strong> 1</p>
+                    <p><strong>Xuất sắc:</strong> 3 phương án, có 1 phuong án tối ưu/ 1 sự việc</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc3_item3_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2713,7 +3083,16 @@
             <field name="weight">4</field>
 
             <field name="sequence">723</field>
-            <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Hiệu suất</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cải tiến sản phẩm, Kaizen</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1 Lần</p>
+                    <p><strong>Kém:</strong> 0 Lần</p>
+                    <p><strong>Xuất sắc:</strong> &gt; 2 Lần</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc3_item4_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2731,7 +3110,16 @@
             <field name="weight">4</field>
 
             <field name="sequence">724</field>
-            <field name="description">Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Hiệu suất</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Qui trình 5S</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0</p>
+                    <p><strong>Kém:</strong> 1 Lần</p>
+                    <p><strong>Xuất sắc:</strong> 0</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_emp_p3_tc4_202604" model="hr.kpi.template.line">
@@ -2747,7 +3135,6 @@
             <field name="weight">20</field>
 
             <field name="sequence">730</field>
-            <field name="description">Tiến độ thực hiện công việc</field>
         </record>
         <record id="line_emp_p3_tc4_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2765,7 +3152,16 @@
             <field name="weight">10</field>
 
             <field name="sequence">731</field>
-            <field name="description">Tiến độ thực hiện công việc</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Tiến độ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc kịp tiến độ</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
+                    <p><strong>Kém:</strong> 1 lần</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc4_item2_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2783,7 +3179,17 @@
             <field name="weight">10</field>
 
             <field name="sequence">732</field>
-            <field name="description">Tiến độ thực hiện công việc</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Tiến độ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Báo cáo đúng hạn, đầy đủ thông
+                        tin</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
+                    <p><strong>Kém:</strong> 1 lần</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_emp_p3_tc5_202604" model="hr.kpi.template.line">
@@ -2799,7 +3205,6 @@
             <field name="weight">15</field>
 
             <field name="sequence">740</field>
-            <field name="description">Giảm chi phí tối thiểu</field>
         </record>
         <record id="line_emp_p3_tc5_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2817,7 +3222,17 @@
             <field name="weight">7.5</field>
 
             <field name="sequence">741</field>
-            <field name="description">Giảm chi phí tối thiểu</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Chi Phí</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Giảm thất thoát vật tư trong lập dự
+                        toán</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
+                    <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc5_item2_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2836,7 +3251,17 @@
             <field name="weight">7.5</field>
 
             <field name="sequence">742</field>
-            <field name="description">Giảm chi phí tối thiểu</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Chi Phí</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Khảo sát, đo đạc, thiết kế bản vẽ
+                        theo thực tế thi công dự án 100%</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
+                    <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_emp_p3_tc6_202604" model="hr.kpi.template.line">
@@ -2852,7 +3277,18 @@
             <field name="weight">15</field>
 
             <field name="sequence">750</field>
-            <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
+                        đào tạo</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chất lượng nhân sự đáp ứng nhu
+                        cầu</p>
+                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
+                    <p><strong>Kém:</strong> &lt;80%</p>
+                    <p><strong>Xuất sắc:</strong> 100</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc6_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2870,7 +3306,18 @@
             <field name="weight">7.5</field>
 
             <field name="sequence">751</field>
-            <field name="description">Đào tạo nhân viên theo kế hoạch đào tạo</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
+                        đào tạo</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chất lượng nhân sự đáp ứng nhu
+                        cầu</p>
+                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
+                    <p><strong>Kém:</strong> &lt;80%</p>
+                    <p><strong>Xuất sắc:</strong> 100</p>
+                </div>
+            </field>
         </record>
         <record id="line_emp_p3_tc6_item2_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -2888,7 +3335,17 @@
             <field name="weight">7.5</field>
 
             <field name="sequence">752</field>
-            <field name="description">Nội quy công ty</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Nội quy công ty</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công ty, nội quy công
+                        trình</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 lần / tháng</p>
+                    <p><strong>Kém:</strong> 2lần / tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 lần / tháng</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_emp_p3_tc7_202604" model="hr.kpi.template.line">
@@ -2904,7 +3361,17 @@
             <field name="weight">5</field>
 
             <field name="sequence">760</field>
-            <field name="description">Tiêu chí đạt thẩm mỹ</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Thẩm Mỹ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tiêu chí đạt thẩm mỹ</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> 2 /3 ý kiến đánh giá đạt trong đó
+                        có 1 ý kiến khách hàng (Cấp giám đốc nhà máy trở lên)</p>
+                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
+                    <p><strong>Kém:</strong> &lt;80%</p>
+                    <p><strong>Xuất sắc:</strong> 90%</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_emp_p3_tc7_item1_202604" model="hr.kpi.template.line">
@@ -2924,7 +3391,17 @@
             <field name="weight">5</field>
 
             <field name="sequence">761</field>
-            <field name="description">Tiêu chí đạt thẩm mỹ</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Thẩm Mỹ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tiêu chí đạt thẩm mỹ</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> 2 /3 ý kiến đánh giá đạt trong đó
+                        có 1 ý kiến khách hàng (Cấp giám đốc nhà máy trở lên)</p>
+                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
+                    <p><strong>Kém:</strong> &lt;80%</p>
+                    <p><strong>Xuất sắc:</strong> 90%</p>
+                </div>
+            </field>
         </record>
     </data>
 </odoo>

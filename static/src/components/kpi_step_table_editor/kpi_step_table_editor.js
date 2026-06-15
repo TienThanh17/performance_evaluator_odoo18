@@ -126,7 +126,7 @@ export class KpiStepTableEditor extends Component {
             const lower = Number(row.from || 0);
             const score = Number(row.score || 0);
             const upper = row.to === null ? null : Number(row.to);
-            if (upper !== null && upper <= lower) {
+            if (upper !== null && upper < lower) {
                 return "Giá trị 'Đến' phải lớn hơn 'Từ'.";
             }
             if (score < 0 || score > this.scoreBase) {

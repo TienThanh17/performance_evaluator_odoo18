@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="period_it_3p_202607" model="hr.kpi.period">
+            <field name="name">Tháng 07/2026</field>
+            <field name="period_type">monthly</field>
+            <field name="date_start">2026-07-01</field>
+            <field name="date_end">2026-07-31</field>
+        </record>
+
+        <record id="period_it_3p_202608" model="hr.kpi.period">
+            <field name="name">Tháng 08/2026</field>
+            <field name="period_type">monthly</field>
+            <field name="date_start">2026-08-01</field>
+            <field name="date_end">2026-08-31</field>
+        </record>
+
+        <record id="period_it_3p_202609" model="hr.kpi.period">
+            <field name="name">Tháng 09/2026</field>
+            <field name="period_type">monthly</field>
+            <field name="date_start">2026-09-01</field>
+            <field name="date_end">2026-09-30</field>
+        </record>
+
+        <record id="period_it_3p_202610" model="hr.kpi.period">
+            <field name="name">Tháng 10/2026</field>
+            <field name="period_type">monthly</field>
+            <field name="date_start">2026-10-01</field>
+            <field name="date_end">2026-10-31</field>
+        </record>
+
+        <record id="period_it_3p_202611" model="hr.kpi.period">
+            <field name="name">Tháng 11/2026</field>
+            <field name="period_type">monthly</field>
+            <field name="date_start">2026-11-01</field>
+            <field name="date_end">2026-11-30</field>
+        </record>
+
+        <record id="period_it_3p_202612" model="hr.kpi.period">
+            <field name="name">Tháng 12/2026</field>
+            <field name="period_type">monthly</field>
+            <field name="date_start">2026-12-01</field>
+            <field name="date_end">2026-12-31</field>
+        </record>
+
+    </data>
+</odoo>

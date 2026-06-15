@@ -42,6 +42,7 @@
                 <header>
                     <button name="action_aggregate" type="object" string="Aggregate" class="oe_highlight"/>
                     <button name="action_set_draft" type="object" string="Set to Draft" invisible="state == 'draft'"/>
+                    <button name="action_export_excel" string="Xuất Excel" type="object" class="btn-secondary" icon="fa-file-excel-o"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
                 </header>
                 <sheet>

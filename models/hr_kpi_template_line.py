@@ -9,7 +9,7 @@ from .kpi_type_utils import (
     get_manual_scoring_type_required_message,
 )
 
-WEIGHT_TOLERANCE = 0.0001
+WEIGHT_TOLERANCE = 0.01
 SEQUENCE_STEP = 10
 
 
@@ -175,14 +175,15 @@ class HrKpiTemplateLine(models.Model):
     @api.depends("kpi_type", "scoring_formula_id", "scoring_formula_id.formula_type")
     def _compute_is_special_scoring(self):
         for rec in self:
-            effective_formula_type = (
-                rec.scoring_formula_id.formula_type if rec.scoring_formula_id else False
-            )
-            rec.is_special_scoring = bool(
-                rec.kpi_type == "auto"
-                and effective_formula_type
-                and effective_formula_type != "linear"
-            )
+            # effective_formula_type = (
+            #     rec.scoring_formula_id.formula_type if rec.scoring_formula_id else False
+            # )
+            # rec.is_special_scoring = bool(
+            #     rec.kpi_type == "auto"
+            #     and effective_formula_type
+            #     and effective_formula_type != "linear"
+            # )
+            rec.is_special_scoring = False
 
     # Resolve the default display unit from the selected data source.
     def _get_unit_by_code(self, code):
@@ -647,19 +648,19 @@ class HrKpiTemplateLine(models.Model):
         old_scope_keys = self._get_sequence_scope_keys()
         res = super().write(vals)
 
-        if affected_scope_fields.intersection(vals):
-            if "parent_line_id" in vals and "sequence" not in vals:
-                for rec in self:
-                    # Nếu người dùng đổi parent mà không kéo thả explicit sequence,
-                    # line/subtree sẽ được dời về cuối block của parent mới để giữ
-                    # tree order tự nhiên và không chen vào giữa sibling cũ.
-                    rec._move_subtree_to_parent_end()
+        # if affected_scope_fields.intersection(vals):
+        #     if "parent_line_id" in vals and "sequence" not in vals:
+        #         for rec in self:
+        #             # Nếu người dùng đổi parent mà không kéo thả explicit sequence,
+        #             # line/subtree sẽ được dời về cuối block của parent mới để giữ
+        #             # tree order tự nhiên và không chen vào giữa sibling cũ.
+        #             rec._move_subtree_to_parent_end()
 
-            # Sau các thay đổi ảnh hưởng tới scope/thứ tự, phải chuẩn hóa lại cả scope
-            # cũ lẫn scope mới để subtree không bị đứt khúc trong flattened sequence.
-            self._normalize_hierarchy_scopes(
-                old_scope_keys + self._get_sequence_scope_keys()
-            )
+        #     # Sau các thay đổi ảnh hưởng tới scope/thứ tự, phải chuẩn hóa lại cả scope
+        #     # cũ lẫn scope mới để subtree không bị đứt khúc trong flattened sequence.
+        #     self._normalize_hierarchy_scopes(
+        #         old_scope_keys + self._get_sequence_scope_keys()
+        #     )
         self._reset_wipeout_flag_on_leaf_rows()
         self._validate_normalized_3p_weight_structure()
         return res
