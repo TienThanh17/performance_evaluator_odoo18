@@ -213,11 +213,14 @@ class HrEvaluation3PSummary(models.Model):
             )
         return True
 
+
     def action_export_excel(self):
         self.ensure_one()
         try:
             import xlsxwriter
         except ImportError:
+            from odoo.exceptions import UserError
+
             raise UserError(
                 "Vui lòng cài đặt thư viện xlsxwriter (pip install xlsxwriter)."
             )
@@ -229,7 +232,6 @@ class HrEvaluation3PSummary(models.Model):
         # ==========================================
         # 1. ĐỊNH DẠNG (FORMATS)
         # ==========================================
-        # Font chữ tiêu chuẩn
         font_name = "Arial"
 
         title_format = workbook.add_format(
@@ -250,7 +252,6 @@ class HrEvaluation3PSummary(models.Model):
                 "text_wrap": True,
             }
         )
-
         section_format = workbook.add_format(
             {"font_name": font_name, "bold": True, "font_size": 11, "valign": "vcenter"}
         )
@@ -267,7 +268,6 @@ class HrEvaluation3PSummary(models.Model):
             }
         )
 
-        # Header formats với màu nền đặc trưng phân biệt các phần 3P
         header_base = {
             "font_name": font_name,
             "bold": True,
@@ -276,39 +276,19 @@ class HrEvaluation3PSummary(models.Model):
             "border": 1,
             "text_wrap": True,
         }
+        header_main = workbook.add_format({**header_base, "bg_color": "#D9D9D9"})
+        header_p1 = workbook.add_format({**header_base, "bg_color": "#BDD7EE"})
+        header_p2 = workbook.add_format({**header_base, "bg_color": "#E2EFDA"})
+        header_p3 = workbook.add_format({**header_base, "bg_color": "#F8CBAD"})
 
-        header_main = workbook.add_format(
-            {**header_base, "bg_color": "#D9D9D9"}
-        )  # Xám nhạt
-        header_p1 = workbook.add_format(
-            {**header_base, "bg_color": "#BDD7EE"}
-        )  # Xanh dương nhạt
-        header_p2 = workbook.add_format(
-            {**header_base, "bg_color": "#E2EFDA"}
-        )  # Xanh lá nhạt
-        header_p3 = workbook.add_format(
-            {**header_base, "bg_color": "#F8CBAD"}
-        )  # Cam nhạt
-
-        # Cell formats
         cell_center = workbook.add_format(
-            {
-                "font_name": font_name,
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-            }
+            {"font_name": font_name, "align": "center", "valign": "vcenter", "border": 1}
         )
         cell_left = workbook.add_format(
             {"font_name": font_name, "align": "left", "valign": "vcenter", "border": 1}
         )
         cell_num = workbook.add_format(
-            {
-                "font_name": font_name,
-                "align": "center",
-                "valign": "vcenter",
-                "border": 1,
-            }
+            {"font_name": font_name, "align": "center", "valign": "vcenter", "border": 1}
         )
 
         # ==========================================
@@ -319,37 +299,32 @@ class HrEvaluation3PSummary(models.Model):
         sheet.set_column("C:C", 22)  # Họ Tên
         sheet.set_column("D:D", 18)  # Chức vụ
         sheet.set_column("E:F", 15)  # P1.1, P1.2
-        sheet.set_column("G:K", 6)  # P2.1 TC1-TC5
-        sheet.set_column("L:L", 8)  # P2.1 Hệ số
-        sheet.set_column("M:AB", 5)  # P2.2 TC1-TC16
+        sheet.set_column("G:L", 6)  # P2.1 (TC1-TC5 + Hệ số)
+        sheet.set_column("M:AB", 5)  # P2.2 (TC1-TC16)
         sheet.set_column("AC:AC", 8)  # P2.2 Hệ số
-        sheet.set_column("AD:AJ", 10)  # P3.1 Điểm, Trọng số...
-        sheet.set_column("AK:AK", 8)  # Hệ số tổng KPI
-        sheet.set_column("AL:AM", 15)  # Xếp loại, Ghi chú
 
-        # Đóng băng dòng header
-        sheet.freeze_panes(14, 4)
+        # Cập nhật độ rộng cột cho P3.1.1, P3.1.2, Tổng P3.1 và P3.2
+        sheet.set_column("AD:AG", 15)
+        sheet.set_column("AH:AI", 15)  # Xếp loại, Ghi chú
+
+        # Đóng băng dòng header (tới dòng 16)
+        sheet.freeze_panes(16, 4)
 
         # ==========================================
         # 3. PHẦN THÔNG TIN CHUNG (HEADER BÁO CÁO)
         # ==========================================
         sheet.merge_range("C2:H3", "BẢNG ĐÁNH GIÁ THEO PHƯƠNG PHÁP 3P", title_format)
-
         doc_info = "No. IT. 022025\nDate: 31/03/2026\nPage: 01/01"
-        sheet.merge_range("AK2:AM4", doc_info, doc_info_format)
+        sheet.merge_range("AG2:AI4", doc_info, doc_info_format)
 
         sheet.write("A6", "I", section_format)
         sheet.write("B6", "THÔNG TIN CHUNG", section_format)
-
         sheet.write("C7", "Bộ phận được đánh giá:", label_format)
         sheet.write("D7", "Công nghệ thông tin (IT)", label_format)
-
         sheet.write("C8", "Tháng đánh giá:", label_format)
         sheet.write("D8", "04/2026", label_format)
-
         sheet.write("C9", "Người đánh giá:", label_format)
         sheet.write("D9", "Võ Văn Trọng", label_format)
-
         sheet.write("C10", "Tiêu chí đánh giá:", label_format)
         sheet.write("D10", "Phương pháp 3P với trọng số", label_format)
 
@@ -366,159 +341,154 @@ class HrEvaluation3PSummary(models.Model):
         row_h2 = 14  # Excel Row 15 (Tầng 2)
         row_h3 = 15  # Excel Row 16 (Tầng 3)
 
-        # Cột chung (Merge 3 dòng dọc)
+        # Cột chung
         sheet.merge_range(row_h1, 0, row_h3, 0, "STT", header_main)
         sheet.merge_range(row_h1, 1, row_h3, 1, "Mã nhân viên", header_main)
         sheet.merge_range(row_h1, 2, row_h3, 2, "Họ và tên", header_main)
         sheet.merge_range(row_h1, 3, row_h3, 3, "Chức vụ", header_main)
 
-        # Tầng 1 (Nhóm tiêu chí lớn)
+        # --- TẦNG 1 ---
         sheet.merge_range(
             row_h1, 4, row_h1, 5, "TIÊU CHÍ P1\n(lương theo vị trí)", header_p1
         )
         sheet.merge_range(
             row_h1, 6, row_h1, 28, "TIÊU CHÍ P2\n(lương theo năng lực)", header_p2
         )
+
+        # Cập nhật: TIÊU CHÍ P3 làm Parent bao trọn 4 cột từ 29 (AD) đến 32 (AG)
         sheet.merge_range(
             row_h1,
             29,
             row_h1,
-            36,
+            32,
             "TIÊU CHÍ P3\n(lương theo hiệu quả công việc)",
             header_p3,
         )
-        sheet.merge_range(row_h1, 37, row_h3, 37, "XẾP LOẠI", header_main)
-        sheet.merge_range(row_h1, 38, row_h3, 38, "Ghi chú", header_main)
 
-        # Tầng 2 (Nhóm phụ)
-        sheet.write(row_h2, 4, "P1.1", header_p1)
-        sheet.write(row_h2, 5, "P1.2", header_p1)
-        sheet.merge_range(row_h2, 6, row_h2, 11, "P2.1 (Kiến thức)", header_p2)
-        sheet.merge_range(row_h2, 12, row_h2, 28, "P2.2 (Kỹ năng, thái độ)", header_p2)
-        sheet.merge_range(row_h2, 29, row_h2, 31, "P3.1.1 (KPI Cá nhân)", header_p3)
-        sheet.merge_range(row_h2, 32, row_h2, 34, "P3.1.2 (KPI Phòng ban)", header_p3)
-        sheet.merge_range(row_h2, 35, row_h2, 36, "Tổng KPI (P3.1)", header_p3)
+        sheet.merge_range(row_h1, 33, row_h3, 33, "XẾP LOẠI", header_main)
+        sheet.merge_range(row_h1, 34, row_h3, 34, "Ghi chú", header_main)
 
-        # Tầng 3 (Chi tiết TC)
-        sheet.write(row_h3, 4, "Lương Cơ bản", header_p1)
-        sheet.write(row_h3, 5, "Phụ cấp", header_p1)
+        # --- TẦNG 2 & 3 CỦA P1 & P2 ---
+        sheet.merge_range(row_h2, 4, row_h3, 4, "P1.1", header_p1)
+        sheet.merge_range(row_h2, 5, row_h3, 5, "P1.2", header_p1)
 
-        # P2.1 (TC1 -> TC5)
-        p21_cols = ["TC1", "TC2", "TC3", "TC4", "TC5", "Hệ Số"]
-        for i, text in enumerate(p21_cols):
-            sheet.write(row_h3, 6 + i, text, header_p2)
+        sheet.merge_range(row_h2, 6, row_h2, 11, "P2.1", header_p2)
+        for i, col in enumerate(range(6, 11)):
+            sheet.write(row_h3, col, f"TC{i + 1}", header_p2)
+        sheet.write(row_h3, 11, "Hệ số", header_p2)
 
-        # P2.2 (TC1 -> TC16)
-        p22_cols = [f"TC{i}" for i in range(1, 17)] + ["Hệ Số"]
-        for i, text in enumerate(p22_cols):
-            sheet.write(row_h3, 12 + i, text, header_p2)
+        sheet.merge_range(row_h2, 12, row_h2, 28, "P2.2", header_p2)
+        for i, col in enumerate(range(12, 28)):
+            sheet.write(row_h3, col, f"TC{i + 1}", header_p2)
+        sheet.write(row_h3, 28, "Hệ số", header_p2)
 
-        # P3.1.1 & P3.1.2
-        p3_cols = [
-            "Điểm thưởng\nbị trừ",
-            "Điểm",
-            "Trọng số",
-            "Điểm thưởng\nbị trừ",
-            "Điểm",
-            "Trọng số",
-            "Tổng trọng số",
-            "Hệ số",
-        ]
-        for i, text in enumerate(p3_cols):
-            sheet.write(row_h3, 29 + i, text, header_p3)
+        # --- TẦNG 2 & 3 CỦA P3 ---
+        # 1. P3.1 nằm bên dưới TIÊU CHÍ P3 và làm parent cho 3 cột con
+        sheet.merge_range(row_h2, 29, row_h2, 31, "P3.1", header_p3)
+
+        # 2. P3.2 ngang hàng P3.1, merge luôn tầng 2 xuống tầng 3 do không có con
+        sheet.merge_range(row_h2, 32, row_h3, 32, "P3.2\n(theo doanh thu)", header_p3)
+
+        # 3. Các thành phần con nằm bên dưới P3.1
+        sheet.write(row_h3, 29, "P3.1.1\n(KPI Cá nhân)", header_p3)
+        sheet.write(row_h3, 30, "P3.1.2\n(KPI Phòng ban)", header_p3)
+        sheet.write(row_h3, 31, "Tổng KPI\n(P3.1)", header_p3)
 
         # ==========================================
-        # 5. DUMMY DATA LẤY TỪ MẪU CỦA BẠN
+        # 5. DỮ LIỆU MẪU (DUMMY DATA)
         # ==========================================
         dummy_data = [
-            {
-                "stt": 1,
-                "ma_nv": "E802",
-                "ten": "Phạm Tommy",
-                "chuc_vu": "Leader",
-                "p11": "Dành cho KT",
-                "p12": "Dành cho KT",
-                "p21": [33, 27, 15, 5, 3],
-                "p21_hs": 0.83,
-                "p22": [6, 5, 5, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 4, 3, 4],
-                "p22_hs": 0.91,
-                "p311": [0.2, 0.8, 0.48],
-                "p312": [0, 1, 0.4],
-                "p3_tong": [0.88, 0.7],
-                "xep_loai": "",
-                "ghi_chu": "Dành cho kế toán",
-            },
-            {
-                "stt": 2,
-                "ma_nv": "E804",
-                "ten": "Huỳnh Trọng Đại",
-                "chuc_vu": "Nhân Viên",
-                "p11": "Dành cho KT",
-                "p12": "Dành cho KT",
-                "p21": [29, 27, 15, 4, 3],
-                "p21_hs": 0.78,
-                "p22": [6, 5, 5, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 4, 3, 4],
-                "p22_hs": 0.91,
-                "p311": [0, 1, 0.6],
-                "p312": [0, 1, 0.4],
-                "p3_tong": [1, 1],
-                "xep_loai": "",
-                "ghi_chu": "Dành cho kế toán",
-            },
-            {
-                "stt": 3,
-                "ma_nv": "E809",
-                "ten": "Đỗ Minh Đường",
-                "chuc_vu": "Nhân Viên (Thử việc)",
-                "p11": "",
-                "p12": "",
-                "p21": ["", "", "", "", ""],
-                "p21_hs": "",
-                "p22": ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-                "p22_hs": "",
-                "p311": ["", "", ""],
-                "p312": ["", "", ""],
-                "p3_tong": ["", ""],
-                "xep_loai": "",
-                "ghi_chu": "",
-            },
+            [
+                1,
+                "E802",
+                "Phạm Tommy",
+                "Leader",
+                15000000,
+                2000000,
+                5,
+                4,
+                5,
+                4,
+                5,
+                1.0,  # P2.1
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                4,
+                1.0,  # P2.2
+                85,
+                90,
+                87.5,
+                120,  # Dữ liệu cho: P3.1.1, P3.1.2, Tổng P3.1, P3.2
+                "A",
+                "Hoàn thành xuất sắc",
+            ],
+            [
+                2,
+                "E804",
+                "Huỳnh Trọng Đại",
+                "Nhân Viên",
+                10000000,
+                1000000,
+                4,
+                4,
+                4,
+                4,
+                4,
+                0.9,  # P2.1
+                4,
+                3,
+                4,
+                3,
+                4,
+                3,
+                4,
+                3,
+                4,
+                3,
+                4,
+                3,
+                4,
+                3,
+                4,
+                3,
+                0.8,  # P2.2
+                75,
+                80,
+                77.5,
+                85,  # Dữ liệu cho: P3.1.1, P3.1.2, Tổng P3.1, P3.2
+                "B",
+                "",
+            ],
         ]
 
-        # In dữ liệu
-        row = 16
-        for d in dummy_data:
-            sheet.write(row, 0, d["stt"], cell_center)
-            sheet.write(row, 1, d["ma_nv"], cell_center)
-            sheet.write(row, 2, d["ten"], cell_left)
-            sheet.write(row, 3, d["chuc_vu"], cell_left)
-            sheet.write(row, 4, d["p11"], cell_center)
-            sheet.write(row, 5, d["p12"], cell_center)
+        row = 16  # Bắt đầu ghi dữ liệu từ Excel Row 17
+        for line in dummy_data:
+            sheet.write(row, 0, line[0], cell_center)  # STT
+            sheet.write(row, 1, line[1], cell_center)  # Mã NV
+            sheet.write(row, 2, line[2], cell_left)  # Họ Tên
+            sheet.write(row, 3, line[3], cell_left)  # Chức vụ
 
-            # Đổ dữ liệu P2.1 (TC1-TC5)
-            for i, val in enumerate(d["p21"]):
-                sheet.write(row, 6 + i, val, cell_num)
-            sheet.write(row, 11, d["p21_hs"], cell_num)
-
-            # Đổ dữ liệu P2.2 (TC1-TC16)
-            for i, val in enumerate(d["p22"]):
-                sheet.write(row, 12 + i, val, cell_num)
-            sheet.write(row, 28, d["p22_hs"], cell_num)
-
-            # Đổ dữ liệu P3
-            sheet.write(row, 29, d["p311"][0], cell_num)
-            sheet.write(row, 30, d["p311"][1], cell_num)
-            sheet.write(row, 31, d["p311"][2], cell_num)
-
-            sheet.write(row, 32, d["p312"][0], cell_num)
-            sheet.write(row, 33, d["p312"][1], cell_num)
-            sheet.write(row, 34, d["p312"][2], cell_num)
-
-            sheet.write(row, 35, d["p3_tong"][0], cell_num)
-            sheet.write(row, 36, d["p3_tong"][1], cell_num)
-
-            sheet.write(row, 37, d["xep_loai"], cell_center)
-            sheet.write(row, 38, d["ghi_chu"], cell_left)
-
+            # Ghi Dữ liệu đồng loạt từ cột P1 đến Hết (từ index 4 đến 34)
+            for col_idx in range(4, 35):
+                val = line[col_idx]
+                if isinstance(val, (int, float)):
+                    sheet.write(row, col_idx, val, cell_num)
+                else:
+                    align_format = cell_left if col_idx == 34 else cell_center
+                    sheet.write(row, col_idx, val, align_format)
             row += 1
 
        # --- III. ĐÁNH GIÁ & Ý KIẾN CỦA TBP/ NGƯỜI ĐÁNH GIÁ ---
@@ -561,6 +531,8 @@ class HrEvaluation3PSummary(models.Model):
             current_row += 1
 
         workbook.close()
+
+        # Phần code return base64/action url lưu file bạn tiếp tục giữ theo logic hiện tại
         output.seek(0)
         file_data = output.read()
         output.close()
