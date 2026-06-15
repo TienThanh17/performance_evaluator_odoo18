@@ -189,7 +189,7 @@
             <field name="period_type">monthly</field>
         </record>
 
-        <record id="line_dept_p3_tc1_202604" model="hr.department.kpi.template.line">
+<record id="line_dept_p3_tc1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
             <field name="name">TC1 - An Toàn</field>
@@ -200,21 +200,9 @@
             <field name="display_type">line_section</field>
             <field name="wipeout_if_child_zero">True</field>
             <field name="weight">10</field>
-
             <field name="sequence">10</field>
-            <field name="description" type="html">
-                <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> An Toàn</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Trang bị đầy đủ trang thiết bị
-                        an toàn đúng, đủ với tính chất công việc thực hiện</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị bảo hộ lao động đầy đủ cho
-                        nhân viên, công nhân thi công</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
-                    <p><strong>Kém:</strong> 1 Lần/Tháng</p>
-                    <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
-                </div>
-            </field>
         </record>
+
         <record id="line_dept_p3_tc1_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -227,7 +215,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
 
             <field name="sequence">11</field>
@@ -244,6 +232,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc1_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -257,7 +246,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_kiem_tra_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
 
             <field name="sequence">12</field>
@@ -274,6 +263,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc1_item_3_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -288,7 +278,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_1lmt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
 
             <field name="sequence">13</field>
@@ -307,6 +297,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc1_item_4_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -320,7 +311,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_hang_muc" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
 
             <field name="sequence">14</field>
@@ -337,8 +328,7 @@
                 </div>
             </field>
         </record>
-        <!-- The department template has a 5th row: line_dept_p3_tc1_item_5_202604 for Dao tao, huan
-        luyen an toan CBNV -->
+
         <record id="line_dept_p3_tc1_item_5_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -352,7 +342,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_tai_nan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
 
             <field name="sequence">15</field>
@@ -383,19 +373,8 @@
             <field name="weight">20</field>
 
             <field name="sequence">20</field>
-            <field name="description" type="html">
-                <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Kỹ thuật/ Chất lượng</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
-                        phẩm đạt chất lượng kỹ thuật</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết kế đúng kỹ thuật ( Tiêu chuẩn
-                        IEC / TCVN )</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
-                    <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
-                    <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
-                </div>
-            </field>
         </record>
+
         <record id="line_dept_p3_tc2_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -408,7 +387,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_loi_thiet_ke" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">7</field>
 
             <field name="sequence">21</field>
@@ -425,6 +404,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc2_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -437,7 +417,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_thieu_ho_so" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.5</field>
 
             <field name="sequence">22</field>
@@ -454,6 +434,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc2_item_3_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -466,7 +447,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_chon_sai_tb" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.5</field>
 
             <field name="sequence">23</field>
@@ -497,19 +478,8 @@
             <field name="weight">15</field>
 
             <field name="sequence">30</field>
-            <field name="description" type="html">
-                <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Qui trình</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Quy trình và quản lý An toàn,
-                        chất lượng, Kỹ thuật</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Áp dụng qui trình cho từng công
-                        đoạn của công việc</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0</p>
-                    <p><strong>Kém:</strong> 1</p>
-                    <p><strong>Xuất sắc:</strong> 0</p>
-                </div>
-            </field>
         </record>
+
         <record id="line_dept_p3_tc3_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -523,7 +493,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_khong_ap_dung_qt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3.5</field>
 
             <field name="sequence">31</field>
@@ -540,6 +510,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc3_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -552,7 +523,7 @@
             <field name="target">3</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_phuong_an" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_3_kem_1" />
             <field name="weight">3.5</field>
 
             <field name="sequence">32</field>
@@ -567,6 +538,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc3_item_3_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -579,7 +551,7 @@
             <field name="target">1</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_1_kem_0" />
             <field name="weight">4</field>
 
             <field name="sequence">33</field>
@@ -594,6 +566,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc3_item_4_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -606,7 +579,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_ko_th" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">4</field>
 
             <field name="sequence">34</field>
@@ -635,17 +608,8 @@
             <field name="weight">20</field>
 
             <field name="sequence">40</field>
-            <field name="description" type="html">
-                <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Tiến độ</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc kịp tiến độ</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
-                    <p><strong>Kém:</strong> 1 lần</p>
-                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
-                </div>
-            </field>
         </record>
+
         <record id="line_dept_p3_tc4_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -658,7 +622,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_tre_tien_do" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">10</field>
 
             <field name="sequence">41</field>
@@ -673,6 +637,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc4_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -685,7 +650,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_bc_khong_kip" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">10</field>
 
             <field name="sequence">42</field>
@@ -715,18 +680,8 @@
             <field name="weight">15</field>
 
             <field name="sequence">50</field>
-            <field name="description" type="html">
-                <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Chi Phí</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Giảm thất thoát vật tư trong lập dự
-                        toán</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
-                    <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
-                    <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
-                </div>
-            </field>
         </record>
+
         <record id="line_dept_p3_tc5_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -739,7 +694,7 @@
             <field name="target">0.01</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_ps_chi_phi" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">7.5</field>
 
             <field name="sequence">51</field>
@@ -755,6 +710,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc5_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -767,7 +723,7 @@
             <field name="target">0.01</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_sai_lech_tt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">7.5</field>
 
             <field name="sequence">52</field>
@@ -797,18 +753,8 @@
             <field name="weight">15</field>
 
             <field name="sequence">60</field>
-            <field name="description" type="html">
-                <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
-                        đào tạo</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Đào tạo /người</p>
-                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
-                    <p><strong>Kém:</strong> &lt;80%</p>
-                    <p><strong>Xuất sắc:</strong> 100</p>
-                </div>
-            </field>
         </record>
+
         <record id="line_dept_p3_tc6_item_1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -818,10 +764,10 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.8</field>
+            <field name="target">80</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_pct_khoa_dt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5</field>
 
             <field name="sequence">61</field>
@@ -837,6 +783,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc6_item_2_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -846,10 +793,10 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.8</field>
+            <field name="target">80</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_pct_ns_dat_yc" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5</field>
 
             <field name="sequence">62</field>
@@ -866,6 +813,7 @@
                 </div>
             </field>
         </record>
+
         <record id="line_dept_p3_tc6_item_3_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
@@ -878,7 +826,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_nq" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_2" />
             <field name="weight">5</field>
 
             <field name="sequence">63</field>
@@ -908,17 +856,6 @@
             <field name="weight">5</field>
 
             <field name="sequence">70</field>
-            <field name="description" type="html">
-                <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Thẩm Mỹ</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Tiêu chí đạt thẩm mỹ</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> 2 /3 ý kiến đánh giá đạt trong đó
-                        có 1 ý kiến khách hàng ( Cấp giám đốc nhà máy trở lên )</p>
-                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
-                    <p><strong>Kém:</strong> &lt;80%</p>
-                    <p><strong>Xuất sắc:</strong> 90%</p>
-                </div>
-            </field>
         </record>
 
         <record id="line_dept_p3_tc7_item1_202604" model="hr.department.kpi.template.line">
@@ -931,10 +868,10 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.8</field>
+            <field name="target">80</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_y_kien_dg" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5</field>
 
             <field name="sequence">71</field>
@@ -2785,7 +2722,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2.5</field>
             <field name="sequence">701</field>
             <field name="description" type="html">
@@ -2814,7 +2751,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_kiem_tra_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2.5</field>
             <field name="sequence">702</field>
             <field name="description" type="html">
@@ -2844,7 +2781,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_1lmt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2.5</field>
             <field name="sequence">703</field>
             <field name="description" type="html">
@@ -2876,7 +2813,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_hang_muc" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2.5</field>
             <field name="sequence">704</field>
             <field name="description" type="html">
@@ -2919,7 +2856,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_loi_thiet_ke" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">7</field>
 
             <field name="sequence">711</field>
@@ -2949,7 +2886,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_thieu_ho_so" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.5</field>
 
             <field name="sequence">712</field>
@@ -2978,7 +2915,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_chon_sai_tb" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.5</field>
 
             <field name="sequence">713</field>
@@ -3009,7 +2946,6 @@
             <field name="weight">15</field>
             <field name="sequence">720</field>
         </record>
-
         <record id="line_emp_p3_tc3_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_it_3p_202604" />
@@ -3023,7 +2959,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_khong_ap_dung_qt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3.5</field>
 
             <field name="sequence">721</field>
@@ -3052,7 +2988,7 @@
             <field name="target">3</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_phuong_an" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_3_kem_1" />
             <field name="weight">3.5</field>
 
             <field name="sequence">722</field>
@@ -3079,7 +3015,7 @@
             <field name="target">1</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_1_kem_0" />
             <field name="weight">4</field>
 
             <field name="sequence">723</field>
@@ -3106,7 +3042,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_ko_th" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">4</field>
 
             <field name="sequence">724</field>
@@ -3148,7 +3084,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_tre_tien_do" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">10</field>
 
             <field name="sequence">731</field>
@@ -3175,7 +3111,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_bc_khong_kip" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">10</field>
 
             <field name="sequence">732</field>
@@ -3215,10 +3151,10 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.01</field>
+            <field name="target">1</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_ps_chi_phi" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">7.5</field>
 
             <field name="sequence">741</field>
@@ -3228,7 +3164,7 @@
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Giảm thất thoát vật tư trong lập dự
                         toán</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1%</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
                 </div>
@@ -3244,10 +3180,10 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.01</field>
+            <field name="target">1</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_sai_lech_tt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">7.5</field>
 
             <field name="sequence">742</field>
@@ -3277,18 +3213,6 @@
             <field name="weight">15</field>
 
             <field name="sequence">750</field>
-            <field name="description" type="html">
-                <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
-                        đào tạo</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chất lượng nhân sự đáp ứng nhu
-                        cầu</p>
-                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
-                    <p><strong>Kém:</strong> &lt;80%</p>
-                    <p><strong>Xuất sắc:</strong> 100</p>
-                </div>
-            </field>
         </record>
         <record id="line_emp_p3_tc6_item1_202604" model="hr.kpi.template.line">
             <field name="kpi_id"
@@ -3299,10 +3223,10 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.8</field>
+            <field name="target">80</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_pct_ns_dat_yc" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">7.5</field>
 
             <field name="sequence">751</field>
@@ -3331,7 +3255,7 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_nq" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_2" />
             <field name="weight">7.5</field>
 
             <field name="sequence">752</field>
@@ -3361,17 +3285,6 @@
             <field name="weight">5</field>
 
             <field name="sequence">760</field>
-            <field name="description" type="html">
-                <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Thẩm Mỹ</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Tiêu chí đạt thẩm mỹ</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> 2 /3 ý kiến đánh giá đạt trong đó
-                        có 1 ý kiến khách hàng (Cấp giám đốc nhà máy trở lên)</p>
-                    <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
-                    <p><strong>Kém:</strong> &lt;80%</p>
-                    <p><strong>Xuất sắc:</strong> 90%</p>
-                </div>
-            </field>
         </record>
 
         <record id="line_emp_p3_tc7_item1_202604" model="hr.kpi.template.line">
@@ -3384,10 +3297,10 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.8</field>
+            <field name="target">80</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_nq" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5</field>
 
             <field name="sequence">761</field>

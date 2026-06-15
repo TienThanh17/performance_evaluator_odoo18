@@ -222,145 +222,353 @@ class HrEvaluation3PSummary(models.Model):
                 "Vui lòng cài đặt thư viện xlsxwriter (pip install xlsxwriter)."
             )
 
-        # Khởi tạo luồng ghi file
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {"in_memory": True})
-        sheet = workbook.add_worksheet("Kết Quả Đánh Giá 3P")  # [cite: 1]
+        sheet = workbook.add_worksheet("Kết Quả Đánh Giá 3P")
 
-        # --- ĐỊNH DẠNG (FORMATS) ---
+        # ==========================================
+        # 1. ĐỊNH DẠNG (FORMATS)
+        # ==========================================
+        # Font chữ tiêu chuẩn
+        font_name = "Arial"
+
         title_format = workbook.add_format(
-            {"bold": True, "font_size": 14, "align": "center", "valign": "vcenter"}
-        )
-        section_format = workbook.add_format(
-            {"bold": True, "font_size": 11, "valign": "vcenter"}
-        )
-        info_format = workbook.add_format({"font_size": 11, "valign": "vcenter"})
-        header_format = workbook.add_format(
             {
+                "font_name": font_name,
                 "bold": True,
+                "font_size": 16,
+                "align": "center",
+                "valign": "vcenter",
+            }
+        )
+        doc_info_format = workbook.add_format(
+            {
+                "font_name": font_name,
+                "font_size": 10,
+                "align": "right",
+                "valign": "top",
+                "text_wrap": True,
+            }
+        )
+
+        section_format = workbook.add_format(
+            {"font_name": font_name, "bold": True, "font_size": 11, "valign": "vcenter"}
+        )
+        label_format = workbook.add_format(
+            {"font_name": font_name, "font_size": 11, "valign": "vcenter"}
+        )
+        note_format = workbook.add_format(
+            {
+                "font_name": font_name,
+                "font_size": 10,
+                "italic": True,
+                "valign": "vcenter",
+                "font_color": "red",
+            }
+        )
+
+        # Header formats với màu nền đặc trưng phân biệt các phần 3P
+        header_base = {
+            "font_name": font_name,
+            "bold": True,
+            "align": "center",
+            "valign": "vcenter",
+            "border": 1,
+            "text_wrap": True,
+        }
+
+        header_main = workbook.add_format(
+            {**header_base, "bg_color": "#D9D9D9"}
+        )  # Xám nhạt
+        header_p1 = workbook.add_format(
+            {**header_base, "bg_color": "#BDD7EE"}
+        )  # Xanh dương nhạt
+        header_p2 = workbook.add_format(
+            {**header_base, "bg_color": "#E2EFDA"}
+        )  # Xanh lá nhạt
+        header_p3 = workbook.add_format(
+            {**header_base, "bg_color": "#F8CBAD"}
+        )  # Cam nhạt
+
+        # Cell formats
+        cell_center = workbook.add_format(
+            {
+                "font_name": font_name,
                 "align": "center",
                 "valign": "vcenter",
                 "border": 1,
-                "text_wrap": True,
-                "bg_color": "#D9D9D9",
             }
         )
-        cell_center = workbook.add_format(
-            {"align": "center", "valign": "vcenter", "border": 1}
-        )
         cell_left = workbook.add_format(
-            {"align": "left", "valign": "vcenter", "border": 1}
+            {"font_name": font_name, "align": "left", "valign": "vcenter", "border": 1}
         )
         cell_num = workbook.add_format(
             {
-                "align": "right",
+                "font_name": font_name,
+                "align": "center",
                 "valign": "vcenter",
                 "border": 1,
-                "num_format": "#,##0.00",
             }
         )
 
-        # --- THIẾT LẬP CHIỀU RỘNG CỘT ---
+        # ==========================================
+        # 2. CẤU HÌNH CỘT (COLUMN WIDTH)
+        # ==========================================
         sheet.set_column("A:A", 5)  # STT
-        sheet.set_column("B:B", 15)  # Mã nhân viên
-        sheet.set_column("C:C", 25)  # Họ và tên
-        sheet.set_column("D:D", 20)  # Chức vụ
-        sheet.set_column("E:H", 15)  # P1, P2
-        sheet.set_column("I:K", 15)  # P3
+        sheet.set_column("B:B", 12)  # Mã NV
+        sheet.set_column("C:C", 22)  # Họ Tên
+        sheet.set_column("D:D", 18)  # Chức vụ
+        sheet.set_column("E:F", 15)  # P1.1, P1.2
+        sheet.set_column("G:K", 6)  # P2.1 TC1-TC5
+        sheet.set_column("L:L", 8)  # P2.1 Hệ số
+        sheet.set_column("M:AB", 5)  # P2.2 TC1-TC16
+        sheet.set_column("AC:AC", 8)  # P2.2 Hệ số
+        sheet.set_column("AD:AJ", 10)  # P3.1 Điểm, Trọng số...
+        sheet.set_column("AK:AK", 8)  # Hệ số tổng KPI
+        sheet.set_column("AL:AM", 15)  # Xếp loại, Ghi chú
 
-        # --- THÔNG TIN GÓC PHẢI ---
-        # [cite: 1]
-        sheet.write(
-            "J1", f"Date: {date.today().strftime('%d/%m/%Y')}\nPage: 01/01", info_format
+        # Đóng băng dòng header
+        sheet.freeze_panes(14, 4)
+
+        # ==========================================
+        # 3. PHẦN THÔNG TIN CHUNG (HEADER BÁO CÁO)
+        # ==========================================
+        sheet.merge_range("C2:H3", "BẢNG ĐÁNH GIÁ THEO PHƯƠNG PHÁP 3P", title_format)
+
+        doc_info = "No. IT. 022025\nDate: 31/03/2026\nPage: 01/01"
+        sheet.merge_range("AK2:AM4", doc_info, doc_info_format)
+
+        sheet.write("A6", "I", section_format)
+        sheet.write("B6", "THÔNG TIN CHUNG", section_format)
+
+        sheet.write("C7", "Bộ phận được đánh giá:", label_format)
+        sheet.write("D7", "Công nghệ thông tin (IT)", label_format)
+
+        sheet.write("C8", "Tháng đánh giá:", label_format)
+        sheet.write("D8", "04/2026", label_format)
+
+        sheet.write("C9", "Người đánh giá:", label_format)
+        sheet.write("D9", "Võ Văn Trọng", label_format)
+
+        sheet.write("C10", "Tiêu chí đánh giá:", label_format)
+        sheet.write("D10", "Phương pháp 3P với trọng số", label_format)
+
+        note_text = "Chú ý: đây là bảng tổng hợp Lương 3P của nhân viên phòng ban. Cuối mỗi tháng, trưởng bộ phận sẽ đánh giá nhân viên các tiêu chí P2.1; P2.2; P3.1.1; P3.1.2 tại các sheet tương ứng"
+        sheet.merge_range("A11:M11", note_text, note_format)
+
+        sheet.write("A12", "II", section_format)
+        sheet.write("B12", "BẢNG TỔNG HỢP KẾT QUẢ", section_format)
+
+        # ==========================================
+        # 4. VẼ BẢNG HEADER 3 TẦNG (ROWS 13, 14, 15)
+        # ==========================================
+        row_h1 = 13  # Excel Row 14 (Tầng 1)
+        row_h2 = 14  # Excel Row 15 (Tầng 2)
+        row_h3 = 15  # Excel Row 16 (Tầng 3)
+
+        # Cột chung (Merge 3 dòng dọc)
+        sheet.merge_range(row_h1, 0, row_h3, 0, "STT", header_main)
+        sheet.merge_range(row_h1, 1, row_h3, 1, "Mã nhân viên", header_main)
+        sheet.merge_range(row_h1, 2, row_h3, 2, "Họ và tên", header_main)
+        sheet.merge_range(row_h1, 3, row_h3, 3, "Chức vụ", header_main)
+
+        # Tầng 1 (Nhóm tiêu chí lớn)
+        sheet.merge_range(
+            row_h1, 4, row_h1, 5, "TIÊU CHÍ P1\n(lương theo vị trí)", header_p1
         )
-
-        # --- TIÊU ĐỀ CHÍNH ---
         sheet.merge_range(
-            "A2:K3", "BẢNG ĐÁNH GIÁ THEO PHƯƠNG PHÁP 3P", title_format
-        )  # [cite: 1]
-
-        # --- I. THÔNG TIN CHUNG ---
-        sheet.write("A5", "I", section_format)  # [cite: 1]
-        sheet.write("B5", "THÔNG TIN CHUNG", section_format)  # [cite: 1]
-
-        sheet.write("C6", "Bộ phận được đánh giá:", info_format)  # [cite: 1]
-        sheet.write("D6", self.department_id.name if self.department_id else "")
-
-        sheet.write("C7", "Kỳ đánh giá:", info_format)  # [cite: 1]
-        sheet.write("D7", self.period_id.name if self.period_id else "")
-
-        sheet.write("C8", "Tiêu chí đánh giá:", info_format)  # [cite: 1]
-        sheet.write("D8", "Phương pháp 3P với trọng số")  # [cite: 1]
-
-        # --- II. BẢNG TỔNG HỢP KẾT QUẢ ---
-        sheet.write("A10", "II", section_format)  # [cite: 1]
-        sheet.write("B10", "BẢNG TỔNG HỢP KẾT QUẢ", section_format)  # [cite: 1]
-
-        # Header Dòng 1 (Gộp ô)
-        sheet.merge_range("A11:A12", "STT", header_format)  # [cite: 1]
-        sheet.merge_range("B11:B12", "Mã nhân viên", header_format)  # [cite: 1]
-        sheet.merge_range("C11:C12", "Họ và tên", header_format)  # [cite: 1]
-        sheet.merge_range("D11:D12", "Chức vụ", header_format)  # [cite: 1]
-
+            row_h1, 6, row_h1, 28, "TIÊU CHÍ P2\n(lương theo năng lực)", header_p2
+        )
         sheet.merge_range(
-            "E11:F11", "TIÊU CHÍ P1\n(lương theo vị trí)", header_format
-        )  # [cite: 1]
-        sheet.merge_range(
-            "G11:H11", "TIÊU CHÍ P2\n(lương theo năng lực)", header_format
-        )  # [cite: 1]
-        sheet.merge_range(
-            "I11:K11", "TIÊU CHÍ P3\n(lương theo hiệu quả công việc)", header_format
-        )  #
+            row_h1,
+            29,
+            row_h1,
+            36,
+            "TIÊU CHÍ P3\n(lương theo hiệu quả công việc)",
+            header_p3,
+        )
+        sheet.merge_range(row_h1, 37, row_h3, 37, "XẾP LOẠI", header_main)
+        sheet.merge_range(row_h1, 38, row_h3, 38, "Ghi chú", header_main)
 
-        # Header Dòng 2 (Chi tiết)
-        sheet.write("E12", "P1.1\n(Lương cơ bản)", header_format)  #
-        sheet.write("F12", "P1.2\n(Phụ cấp)", header_format)  #
-        sheet.write("G12", "P2.1\n(Kiến thức)", header_format)  #
-        sheet.write("H12", "P2.2\n(Kỹ năng)", header_format)  #
-        sheet.write("I12", "P3.1.1\nKPI Cá nhân", header_format)  #
-        sheet.write("J12", "P3.1.2\nKPI Phòng ban", header_format)  #
-        sheet.write("K12", "P3.1\nTổng KPI", header_format)  #
+        # Tầng 2 (Nhóm phụ)
+        sheet.write(row_h2, 4, "P1.1", header_p1)
+        sheet.write(row_h2, 5, "P1.2", header_p1)
+        sheet.merge_range(row_h2, 6, row_h2, 11, "P2.1 (Kiến thức)", header_p2)
+        sheet.merge_range(row_h2, 12, row_h2, 28, "P2.2 (Kỹ năng, thái độ)", header_p2)
+        sheet.merge_range(row_h2, 29, row_h2, 31, "P3.1.1 (KPI Cá nhân)", header_p3)
+        sheet.merge_range(row_h2, 32, row_h2, 34, "P3.1.2 (KPI Phòng ban)", header_p3)
+        sheet.merge_range(row_h2, 35, row_h2, 36, "Tổng KPI (P3.1)", header_p3)
 
-        # --- ĐỔ DỮ LIỆU ---
-        row = 12
-        for idx, line in enumerate(self.line_ids, start=1):
-            # Cố gắng lấy mã nhân viên nếu có (Odoo thường dùng barcode, registration_number, hoặc tự custom)
-            # Ở đây để tạm là id nếu không có trường chuyên biệt
-            emp_code = getattr(line.employee_id, "barcode", "") or getattr(
-                line.employee_id, "registration_number", str(line.employee_id.id)
-            )
+        # Tầng 3 (Chi tiết TC)
+        sheet.write(row_h3, 4, "Lương Cơ bản", header_p1)
+        sheet.write(row_h3, 5, "Phụ cấp", header_p1)
 
-            sheet.write(row, 0, idx, cell_center)
-            sheet.write(row, 1, emp_code, cell_center)
-            sheet.write(
-                row, 2, line.employee_id.name if line.employee_id else "", cell_left
-            )
-            sheet.write(row, 3, line.job_id.name if line.job_id else "", cell_left)
+        # P2.1 (TC1 -> TC5)
+        p21_cols = ["TC1", "TC2", "TC3", "TC4", "TC5", "Hệ Số"]
+        for i, text in enumerate(p21_cols):
+            sheet.write(row_h3, 6 + i, text, header_p2)
 
-            sheet.write(row, 4, line.p1_base_salary, cell_num)
-            sheet.write(row, 5, line.p1_allowance, cell_num)
-            sheet.write(row, 6, line.p2_1_score_raw, cell_num)
-            sheet.write(row, 7, line.p2_2_score_raw, cell_num)
-            sheet.write(row, 8, line.p3_individual_score, cell_num)
-            sheet.write(row, 9, line.p3_department_score, cell_num)
-            sheet.write(row, 10, line.p3_1_score, cell_num)
+        # P2.2 (TC1 -> TC16)
+        p22_cols = [f"TC{i}" for i in range(1, 17)] + ["Hệ Số"]
+        for i, text in enumerate(p22_cols):
+            sheet.write(row_h3, 12 + i, text, header_p2)
+
+        # P3.1.1 & P3.1.2
+        p3_cols = [
+            "Điểm thưởng\nbị trừ",
+            "Điểm",
+            "Trọng số",
+            "Điểm thưởng\nbị trừ",
+            "Điểm",
+            "Trọng số",
+            "Tổng trọng số",
+            "Hệ số",
+        ]
+        for i, text in enumerate(p3_cols):
+            sheet.write(row_h3, 29 + i, text, header_p3)
+
+        # ==========================================
+        # 5. DUMMY DATA LẤY TỪ MẪU CỦA BẠN
+        # ==========================================
+        dummy_data = [
+            {
+                "stt": 1,
+                "ma_nv": "E802",
+                "ten": "Phạm Tommy",
+                "chuc_vu": "Leader",
+                "p11": "Dành cho KT",
+                "p12": "Dành cho KT",
+                "p21": [33, 27, 15, 5, 3],
+                "p21_hs": 0.83,
+                "p22": [6, 5, 5, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 4, 3, 4],
+                "p22_hs": 0.91,
+                "p311": [0.2, 0.8, 0.48],
+                "p312": [0, 1, 0.4],
+                "p3_tong": [0.88, 0.7],
+                "xep_loai": "",
+                "ghi_chu": "Dành cho kế toán",
+            },
+            {
+                "stt": 2,
+                "ma_nv": "E804",
+                "ten": "Huỳnh Trọng Đại",
+                "chuc_vu": "Nhân Viên",
+                "p11": "Dành cho KT",
+                "p12": "Dành cho KT",
+                "p21": [29, 27, 15, 4, 3],
+                "p21_hs": 0.78,
+                "p22": [6, 5, 5, 8, 8, 6, 6, 6, 6, 6, 6, 6, 6, 4, 3, 4],
+                "p22_hs": 0.91,
+                "p311": [0, 1, 0.6],
+                "p312": [0, 1, 0.4],
+                "p3_tong": [1, 1],
+                "xep_loai": "",
+                "ghi_chu": "Dành cho kế toán",
+            },
+            {
+                "stt": 3,
+                "ma_nv": "E809",
+                "ten": "Đỗ Minh Đường",
+                "chuc_vu": "Nhân Viên (Thử việc)",
+                "p11": "",
+                "p12": "",
+                "p21": ["", "", "", "", ""],
+                "p21_hs": "",
+                "p22": ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+                "p22_hs": "",
+                "p311": ["", "", ""],
+                "p312": ["", "", ""],
+                "p3_tong": ["", ""],
+                "xep_loai": "",
+                "ghi_chu": "",
+            },
+        ]
+
+        # In dữ liệu
+        row = 16
+        for d in dummy_data:
+            sheet.write(row, 0, d["stt"], cell_center)
+            sheet.write(row, 1, d["ma_nv"], cell_center)
+            sheet.write(row, 2, d["ten"], cell_left)
+            sheet.write(row, 3, d["chuc_vu"], cell_left)
+            sheet.write(row, 4, d["p11"], cell_center)
+            sheet.write(row, 5, d["p12"], cell_center)
+
+            # Đổ dữ liệu P2.1 (TC1-TC5)
+            for i, val in enumerate(d["p21"]):
+                sheet.write(row, 6 + i, val, cell_num)
+            sheet.write(row, 11, d["p21_hs"], cell_num)
+
+            # Đổ dữ liệu P2.2 (TC1-TC16)
+            for i, val in enumerate(d["p22"]):
+                sheet.write(row, 12 + i, val, cell_num)
+            sheet.write(row, 28, d["p22_hs"], cell_num)
+
+            # Đổ dữ liệu P3
+            sheet.write(row, 29, d["p311"][0], cell_num)
+            sheet.write(row, 30, d["p311"][1], cell_num)
+            sheet.write(row, 31, d["p311"][2], cell_num)
+
+            sheet.write(row, 32, d["p312"][0], cell_num)
+            sheet.write(row, 33, d["p312"][1], cell_num)
+            sheet.write(row, 34, d["p312"][2], cell_num)
+
+            sheet.write(row, 35, d["p3_tong"][0], cell_num)
+            sheet.write(row, 36, d["p3_tong"][1], cell_num)
+
+            sheet.write(row, 37, d["xep_loai"], cell_center)
+            sheet.write(row, 38, d["ghi_chu"], cell_left)
 
             row += 1
+
+       # --- III. ĐÁNH GIÁ & Ý KIẾN CỦA TBP/ NGƯỜI ĐÁNH GIÁ ---
+        # Chuyển xuống dưới bảng kết quả một khoảng cách nhỏ
+        start_row = row + 2 
+        
+        # Tiêu đề mục III
+        sheet.write(start_row, 0, 'III', section_format)
+        sheet.write(start_row, 1, 'ĐÁNH GIÁ & Ý KIẾN CỦA TBP/ NGƯỜI ĐÁNH GIÁ', section_format)
+
+        # Header bảng III
+        table_header = workbook.add_format({
+            'bold': True, 'align': 'center', 'valign': 'vcenter', 
+            'border': 1, 'bg_color': '#D9D9D9', 'text_wrap': True
+        })
+        
+        # Thiết lập độ rộng cột cho bảng III
+        sheet.set_column('A:A', 5)   # STT
+        sheet.set_column('B:C', 20)  # Họ và tên, Chức vụ
+        sheet.set_column('D:D', 50)  # Đánh giá (để rộng để dễ viết)
+
+        # Ghi header cột
+        sheet.write(start_row + 1, 0, 'STT', table_header)
+        sheet.write(start_row + 1, 1, 'Họ và tên', table_header)
+        sheet.write(start_row + 1, 2, 'Chức vụ', table_header)
+        sheet.write(start_row + 1, 3, 'Đánh giá và ý kiến trưởng bộ phận', table_header)
+        
+        # Đổ dữ liệu nhân viên vào bảng III
+        table_cell_center = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
+        table_cell_left = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'border': 1, 'text_wrap': True})
+
+        current_row = start_row + 2
+        for idx, line in enumerate(self.line_ids, start=1):
+            sheet.write(current_row, 0, idx, table_cell_center)
+            sheet.write(current_row, 1, line.employee_id.name or '', table_cell_left)
+            sheet.write(current_row, 2, line.job_id.name or '', table_cell_left)
+            # Ô trống để TBP điền tay hoặc để bạn nhập dữ liệu từ Odoo vào nếu có trường note
+            sheet.write(current_row, 3, '', table_cell_left) 
+            sheet.set_row(current_row, 40) # Tăng chiều cao dòng cho ô ý kiến
+            current_row += 1
 
         workbook.close()
         output.seek(0)
         file_data = output.read()
         output.close()
 
-        # Tạo file đính kèm và trả về action tải xuống
-        safe_dept_name = (
-            self.department_id.name.replace("/", "_") if self.department_id else "Dept"
-        )
-        file_name = f"Ket_Qua_3P_{safe_dept_name}.xlsx"
-
+        # Tạo file đính kèm để tải xuống
         attachment = self.env["ir.attachment"].create(
             {
-                "name": file_name,
+                "name": "Mau_Bang_Tong_Hop_3P_Dummy.xlsx",
                 "type": "binary",
                 "datas": base64.b64encode(file_data),
                 "res_model": self._name,

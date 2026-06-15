@@ -118,11 +118,11 @@
                                     <field name="unit"
                                         string="Unit"
                                         invisible="is_section or kpi_type != 'auto'"
-                                        optional="show" width="300px" />
+                                        optional="show" width="320px" />
 
                                     <field name="scoring_formula_id"
                                         invisible="is_section or kpi_type != 'auto'"
-                                        options="{'no_create': True}" width="180px" />
+                                        options="{'no_create': True}" width="320px" />
 
                                     <field name="is_auto" column_invisible="1" />
                                     <field name="dept_source_type"
