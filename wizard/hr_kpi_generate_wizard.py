@@ -51,12 +51,9 @@ class HrKpiGenerateWizard(models.TransientModel):
             return
         self.deadline = self.period_id.date_end + relativedelta(days=5)
 
+    # Chỉ lấy những nhân viên thật sự nằm trong scope áp dụng của KPI template đang chọn.
     def _employee_matches_kpi(self, employee, kpi):
-        if not kpi:
-            return False
-        if kpi.department_id:
-            return bool(employee.department_id and employee.department_id == kpi.department_id)
-        return False
+        return bool(kpi and employee and kpi.matches_employee(employee))
 
     def action_generate(self):
         self.ensure_one()
@@ -93,7 +90,6 @@ class HrKpiGenerateWizard(models.TransientModel):
                 exists = Evaluation.search(
                     [
                         ("employee_id", "=", emp.id),
-                        ("kpi_id", "=", self.kpi_id.id),
                         ("period_id", "=", self.period_id.id),
                         ("start_date", "=", self.start_date),
                         ("end_date", "=", self.end_date),

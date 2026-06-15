@@ -12,7 +12,7 @@
                             <field name="department_kpi_id" required="1" readonly="1"/>
                             <field name="department_id" />
                             <field name="kpi_template_id"
-                                   domain="[('department_id', '=', department_id), ('department_kpi_id', '=', department_kpi_id)]"
+                                   domain="[('department_id', '=', department_id), ('period_type', '=', period_type), ('job_id', '=', False), '|', ('department_kpi_id', '=', department_kpi_id), ('department_kpi_id', '=', False)]"
                                    options="{'no_create': True}"/>
                         </group>
                         <group>

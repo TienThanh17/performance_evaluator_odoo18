@@ -437,7 +437,7 @@
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="kpi_id"
                                     readonly="1"
-                                    domain="[('period_type', '=', period_type), ('department_id', '=', department_id)]"
+                                    domain="[('period_type', '=', period_type), ('department_id', '=', department_id), '|', ('job_id', '=', False), ('job_id', 'in', [job_id])]"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md " />
                             </group>
                             <group colspan="5">

@@ -37,10 +37,13 @@ class HrKpiTemplate(models.Model):
         help="KPI lines that belong to the P3 individual pillar.",
         ondelete='cascade',
     )
-    job_id = fields.Many2one(
+    job_id = fields.Many2many(
         "hr.job",
-        string="Job Position",
-        help="Apply this KPI template to employees in the selected job position.",
+        "hr_kpi_template_hr_job_rel",
+        "kpi_template_id",
+        "job_id",
+        string="Job Positions",
+        help="Apply this KPI template to employees in the selected job positions.",
     )
     department_id = fields.Many2one(
         "hr.department",
@@ -101,6 +104,22 @@ class HrKpiTemplate(models.Model):
             rec.pillar_p3_ind_name = pillar_dict.get(
                 "p3_individual", "P3.1.1 KPI Cá Nhân"
             )
+
+    # Kiểm tra template KPI này có áp dụng được cho nhân viên theo phòng ban và vị trí hay không.
+    def matches_employee(self, employee):
+        self.ensure_one()
+        if not employee:
+            return False
+
+        # Nếu template có giới hạn phòng ban thì nhân viên phải thuộc đúng phòng ban đó.
+        if self.department_id and employee.department_id != self.department_id:
+            return False
+
+        # Nếu template có giới hạn vị trí thì job hiện tại của nhân viên phải nằm trong danh sách được phép.
+        if self.job_id and (not employee.job_id or employee.job_id not in self.job_id):
+            return False
+
+        return True
 
     # @api.constrains("kpi_line_ids")
     # def _check_total_weight(self):

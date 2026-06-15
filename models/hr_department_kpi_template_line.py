@@ -164,6 +164,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
     )
     def _compute_child_template_line_trace(self):
         for line in self:
+            # Chỉ hiển thị trace của các KPI con thực sự chấm điểm để bảng ma trận dễ đọc hơn.
             child_lines = line.child_template_line_ids.filtered(
                 lambda child: not child.is_section
             ).sorted(
@@ -181,13 +182,14 @@ class HrDepartmentKpiTemplateLine(models.Model):
 
             child_rows = []
             for child_line in child_lines:
+                # Ghép danh sách job position thành một chuỗi ổn định để UI trace hiển thị đúng với many2many.
                 kpi_template = child_line.kpi_id
-                job = kpi_template.job_id
+                job_names = ", ".join(sorted(kpi_template.job_id.mapped("name")))
                 child_rows.append(
                     {
                         "kpi_template_id": kpi_template.id or False,
                         "kpi_template": kpi_template.name or "",
-                        "job_name": job.name or "",
+                        "job_name": job_names,
                         "child_kpi_id": child_line.id or False,
                         "child_kpi": child_line.key_performance_area or "",
                         "weight": child_line.weight or 0.0,

@@ -34,7 +34,7 @@ class PerformanceEvaluation(models.Model):
         "hr.kpi.template",
         string="KPI Template",
         required=False,
-        domain="[('period_id', '=', period_id), ('department_id', '=', department_id)]",
+        domain="[('period_type', '=', period_type), ('department_id', '=', department_id), '|', ('job_id', '=', False), ('job_id', 'in', [job_id])]",
         tracking=True,
         help="KPI template used to generate evaluation lines.",
     )
@@ -772,15 +772,36 @@ class PerformanceEvaluation(models.Model):
                 record.manager_id = False
                 record.department_id = False
 
+    # Đảm bảo KPI template được chọn luôn khớp với phòng ban và vị trí hiện tại của nhân viên.
+    @api.constrains("employee_id", "kpi_id")
+    def _check_kpi_matches_employee_scope(self):
+        for record in self:
+            if not record.employee_id or not record.kpi_id:
+                continue
+
+            # Chặn việc gán template của phòng ban/vị trí khác để bản đánh giá không sai scope nghiệp vụ.
+            if not record.kpi_id.matches_employee(record.employee_id):
+                raise ValidationError(
+                    _(
+                        "The selected KPI template does not match the employee's department or job position scope."
+                    )
+                )
+
+    # Tự bỏ KPI đang chọn nếu nhân viên hoặc kỳ đánh giá đổi sang scope không còn phù hợp.
     @api.onchange("employee_id", "period_id")
     def _onchange_employee_or_period_clear_kpi(self):
-        """Xóa KPI đã chọn nếu nó không còn phù hợp với Nhân viên (Phòng ban) hoặc Chu kỳ mới."""
+        """Xóa KPI đã chọn nếu nó không còn phù hợp với Nhân viên (Phòng ban/Vị trí) hoặc Chu kỳ mới."""
         if self.kpi_id:
-            # Kiểm tra xem KPI hiện tại có khớp với Tần suất đánh giá và Phòng ban mới không
-            if (self.kpi_id.period_type != self.period_type) or (
-                self.kpi_id.department_id
-                and self.kpi_id.department_id != self.department_id
-            ):
+            # Kiểm tra kỳ đánh giá trước để tránh giữ lại template của chu kỳ khác.
+            kpi_matches_period = self.kpi_id.period_type == self.period_type
+
+            # Kiểm tra đồng thời phòng ban và vị trí thông qua helper dùng chung của template.
+            kpi_matches_employee = bool(
+                self.employee_id and self.kpi_id.matches_employee(self.employee_id)
+            )
+
+            # Nếu một trong hai điều kiện không còn đúng thì phải bỏ template hiện tại.
+            if not kpi_matches_period or not kpi_matches_employee:
                 self.kpi_id = False
 
     # ------------------------------------------------------------
