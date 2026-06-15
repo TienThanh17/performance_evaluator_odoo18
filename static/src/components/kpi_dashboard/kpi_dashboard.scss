@@ -509,40 +509,44 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     margin-bottom: 18px;
 }
 
+/* --- Giải pháp Hybrid: Flexbox kết hợp tỷ lệ Toán học --- */
 .o_kpi_dynamic_grid {
     display: flex;
     flex-wrap: wrap;
+    gap: 16px;
     align-items: stretch;
-    justify-content: flex-start;
-    gap: 18px;
-    width: 100%;
 
-    > .o_kpi_chart_card {
-        flex: 1 1 0;
-        min-width: 0;
-    }
-
-    > .o_kpi_chart_card[data-chart-type="doughnut"] {
+    .o_kpi_chart_card {
+        /* Chìa khóa lấp đầy: flex-grow: 1 báo cho trình duyệt biết 
+           "Nếu dòng còn dư chỗ, hãy chia đều khoảng trống đó và bắt các chart phình to ra cho khít mép phải" */
         flex-grow: 1;
-        min-width: 240px;
+        flex-shrink: 1;
     }
 
-    > .o_kpi_chart_card[data-chart-type="bar"],
-    > .o_kpi_chart_card[data-chart-type="line"],
-    > .o_kpi_chart_card[data-chart-type="stacked_bar"] {
-        flex-grow: 2;
-        min-width: 420px;
+    /* 1. Doughnut / Pie: Định mức cơ bản 1/3 dòng (Đảm bảo tối đa 3 chart/dòng) */
+    .o_kpi_card_compact {
+        flex-basis: calc(33.333% - 16px);
+        /* Tránh trường hợp Doughnut rớt xuống dòng 1 mình bị phình to 100% màn hình trông rất xấu */
+        max-width: 50%; 
     }
 
-    > .o_kpi_chart_card[data-chart-type="radar"] {
-        flex: 1 1 100%;
-        width: 100%;
-        min-width: 100%;
+    /* 2. Bar / Line: Định mức cơ bản 1/2 dòng (Dài hơn Doughnut, đi cặp tự chia 5:5) */
+    .o_kpi_card_wide {
+        flex-basis: calc(50% - 16px);
     }
 
-    > .o_kpi_chart_card[data-chart-type="doughnut"]:only-child {
-        max-width: 420px;
-        margin-inline: auto;
+    /* 3. Radar: Chiếm trọn vẹn cả dòng */
+    .o_kpi_card_full {
+        flex-basis: 100%;
+        max-width: 100%;
+    }
+
+    /* Đảm bảo hiển thị đẹp trên cả màn hình điện thoại nhỏ */
+    @media (max-width: 768px) {
+        .o_kpi_card_compact, .o_kpi_card_wide, .o_kpi_card_full {
+            flex-basis: 100%;
+            max-width: 100%;
+        }
     }
 }
 

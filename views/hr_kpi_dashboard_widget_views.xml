@@ -6,19 +6,10 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name" />
-                <!-- <field name="dashboard_kind" /> -->
-                <!-- <field name="widget_class" /> -->
                 <field name="department_ids" widget="many2many_tags" />
-                <!-- <field name="department_micro_mode"/> -->
-                <!-- <field name="data_source_id" /> -->
-                <!-- <field name="provider_key"/> -->
                 <field name="micro_chart_type" />
                 <field name="macro_widget_type" />
-                <!-- <field name="target_model"/>
-                <field name="measure_field_id"/>
-                <field name="group_by_field_id"/> -->
                 <field name="sequence" />
-                <!-- <field name="active" /> -->
             </list>
         </field>
     </record>
@@ -55,6 +46,7 @@
                             />
                             <field
                                 name="data_source_id"
+                                readonly="1"
                                 invisible="dashboard_kind == 'department'"
                             />
                             <field

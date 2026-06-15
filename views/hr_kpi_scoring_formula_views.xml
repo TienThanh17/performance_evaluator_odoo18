@@ -53,7 +53,6 @@
                     </group>
 
                     <group string="Cấu hình trừ điểm" invisible="formula_type != 'penalty'">
-                        <field name="penalty_base_score"/>
                         <field name="penalty_deduct_per_unit"/>
                         <field name="penalty_floor"/>
                         <field name="preview_expression" readonly="1"/>

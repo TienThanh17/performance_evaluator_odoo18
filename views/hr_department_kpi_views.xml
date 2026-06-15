@@ -98,7 +98,7 @@
                                     <field name="child_template_rows_json" column_invisible="1" />
                                     <field name="child_template_line_count" column_invisible="1" />
 
-                                    <field name="name" string="Title" />
+                                    <field name="name" string="Title" width="400px" />
                                     <!-- <field name="pillar_id" options="{'no_create': True}" /> -->
                                     <!-- <field name="parent_line_id"
                                         domain="[('department_kpi_id', '=', parent.id), ('id', '!=', id)]"
@@ -109,31 +109,33 @@
                                         string="Info"
                                         widget="kpi_description_icon"
                                         invisible="is_section"
-                                        optional="show" />
+                                        optional="show" width="100px" />
 
-                                    <field name="kpi_type" invisible="is_section" />
+                                    <field name="kpi_type" invisible="is_section" width="100px" />
                                     <field name="manual_scoring_type"
-                                        invisible="is_section or kpi_type != 'manual'" />
+                                        invisible="is_section or kpi_type != 'manual'"
+                                        optional="hide" width="140px" />
                                     <field name="unit"
                                         string="Unit"
                                         invisible="is_section or kpi_type != 'auto'"
-                                        optional="show" />
-                                    <field name="target" string="Target"
-                                        invisible="is_section or kpi_type != 'auto'" />
+                                        optional="show" width="120px" />
+
                                     <field name="scoring_formula_id"
                                         invisible="is_section or kpi_type != 'auto'"
-                                        options="{'no_create': True}" />
+                                        options="{'no_create': True}" width="180px" />
 
                                     <field name="is_auto" column_invisible="1" />
                                     <field name="dept_source_type"
-                                        invisible="is_section or not is_auto" />
+                                        invisible="is_section or not is_auto" optional="hide" width="130px" />
                                     <field name="data_source_id"
-                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'" />
+                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'" optional="hide" width="150px" />
 
-                                    <field name="weight" />
+                                    <field name="target" string="Target"
+                                        invisible="is_section or kpi_type != 'auto'" width="100px" />
+                                    <field name="weight" width="80px" />
                                     <field name="wipeout_if_child_zero"
                                         invisible="not is_section"
-                                        optional="hide" />
+                                        optional="hide" width="100px" />
                                     <button name="action_open_popup" type="object"
                                         icon="fa-pencil" title="Open Details"
                                         width="40px" />
@@ -146,6 +148,56 @@
                                     </control>
                                 </list>
                             </field>
+                            <div
+                                class="o_perf_summary mt-3 d-flex justify-content-between align-items-start">
+                                <div
+                                    class="o_perf_summary_body o_perf_summary_body_left flex-grow-1 pe-3">
+                                    <div class="o_perf_summary_title">Scoring Formula</div>
+                                    <div class="text-muted mt-2" style="font-size: 14px;">
+                                        <strong>Department KPI Score</strong> = ∑ (Top-level P3.1.2
+                                        Line Score × Weight) / ∑ Weight<br />
+                                        <span
+                                            style="font-size: 14px; font-style: italic;">
+                                            If the total top-level P3.1.2 weight is 0, the system
+                                        falls back to the average of top-level P3.1.2 line scores.
+                                        </span>
+
+                                        <div
+                                            class="mt-3">
+                                            <details>
+                                                <summary
+                                                    class="btn btn-sm btn-outline-info text-start"
+                                                    style="cursor: pointer;">
+                                                    <i class="fa fa-info-circle me-1" />
+                                                    <strong>Line Scoring Guide</strong>
+                                                </summary>
+
+                                                <div
+                                                    class="mt-2 p-3 border rounded bg-light text-dark">
+                                                    <strong>- Manual KPI</strong><br /> Binary: Pass
+                                        = 100 points, Fail = 0 points.<br /> Rating: 0 to 5 stars,
+                                        each star = 20 points.<br /> Score: enter the score directly
+                                        into the score field.<br />
+                        <br />
+                        <strong>- Auto KPI</strong><br />
+                                        Score is calculated from <strong>Target</strong> and <strong>
+                                        Actual</strong> based on the selected <strong>Scoring
+                                        Formula</strong>. If a data source is linked, the system can
+                                        auto-fill <strong>Actual</strong> before applying the
+                                        formula. </div>
+                                            </details>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="o_perf_summary_body o_perf_summary_body_right">
+                                    <div class="o_perf_summary_title">Evaluation Results</div>
+                                    <div class="text-muted mt-2" style="font-size: 14px;">
+                                        Calculated when this KPI template is used in a department
+                                        evaluation.
+                                    </div>
+                                </div>
+                            </div>
                         </page>
                     </notebook>
                 </sheet>

@@ -21,7 +21,7 @@
             <field name="description">target / actual * max_score, tối đa max_score.</field>
         </record>
 
-        <record id="formula_linear_higher_bonus" model="hr.kpi.scoring.formula">
+        <!-- <record id="formula_linear_higher_bonus" model="hr.kpi.scoring.formula">
             <field name="name">Tuyến tính - Có bonus khi vượt target</field>
             <field name="sequence">3</field>
             <field name="formula_type">linear</field>
@@ -29,27 +29,23 @@
             <field name="linear_allow_exceed">True</field>
             
             <field name="description">actual / target * max_score, không giới hạn trên.</field>
-        </record>
+        </record> -->
 
         <record id="formula_penalty_1pt" model="hr.kpi.scoring.formula">
-            <field name="name">Trừ điểm - 1 điểm/đơn vị</field>
+            <field name="name">Trừ điểm - 10 điểm/đơn vị</field>
             <field name="sequence">10</field>
             <field name="formula_type">penalty</field>
-            <field name="penalty_base_score">0.0</field>
             <field name="penalty_deduct_per_unit">10.0</field>
             <field name="penalty_floor">0.0</field>
-            
             <field name="description">Bắt đầu từ max_score runtime, trừ 1 điểm mỗi đơn vị vi phạm.</field>
         </record>
 
         <record id="formula_penalty_2pt" model="hr.kpi.scoring.formula">
-            <field name="name">Trừ điểm - 2 điểm/đơn vị</field>
+            <field name="name">Trừ điểm - 20 điểm/đơn vị</field>
             <field name="sequence">11</field>
             <field name="formula_type">penalty</field>
-            <field name="penalty_base_score">0.0</field>
             <field name="penalty_deduct_per_unit">20.0</field>
             <field name="penalty_floor">0.0</field>
-            
             <field name="description">Bắt đầu từ max_score runtime, trừ 2 điểm mỗi đơn vị vi phạm.</field>
         </record>
 

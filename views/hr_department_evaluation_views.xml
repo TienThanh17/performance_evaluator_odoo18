@@ -193,20 +193,21 @@
                             <button name="action_compute_auto_kpi" string="Compute KPI"
                                 type="object"
                                 class="oe_highlight"
-                                invisible="state != 'draft'" />
+                                invisible="state in ('approved', 'cancel')" />
                             <field name="evaluation_line_ids" widget="kpi_one2many"
                                 readonly="state in ('approved', 'cancel')"
                                 context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_department_evaluation_line_form_popup', 'title_field': 'name'}">
                                 <list editable="bottom"
                                     decoration-bf="is_section"
-                                    create='0'  delete="0"
+                                    create='0' delete="0"
                                 >
                                     <field name="is_section" column_invisible="1" />
                                     <field name="is_auto" column_invisible="1" />
                                     <field name="dept_source_type" column_invisible="1" />
                                     <field name="child_line_rows_json" column_invisible="1" />
 
-                                    <field name="name" string="Title" readonly="1" force_save="1" />
+                                    <field name="name" string="Title" readonly="1" force_save="1"
+                                        width="260px" />
                                     <!-- <field name="pillar_id"
                                         options="{'no_create': True}"
                                         invisible="is_section"
@@ -219,36 +220,39 @@
                                     <field name="description"
                                         string="Info"
                                         widget="kpi_description_icon"
+                                        width="100px"
                                         invisible="is_section"
                                         optional="show" />
 
                                     <field name="kpi_type" readonly="1" invisible="is_section"
-                                        force_save="1" />
+                                        force_save="1" width="100px" />
                                     <field name="manual_scoring_type"
                                         readonly="1"
                                         invisible="is_section or kpi_type != 'manual'"
-                                        force_save="1" />
+                                        force_save="1" width="150px" optional="hide" />
 
-                                    <field name="dept_source_type" optional="show" readonly="1"
-                                        invisible="is_section or not is_auto" />
+                                    <field name="dept_source_type" optional="hide" readonly="1"
+                                        invisible="is_section or not is_auto" width="140px" />
                                     <field name="data_source_id" optional="show" readonly="1"
-                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'" />
+                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'"
+                                        width="160px" />
                                     <field name="scoring_formula_id" optional="hide" readonly="1"
-                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'" />
-                                    <field name="manager_comment" optional="hide"
+                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'"
+                                        width="160px" />
+                                    <field name="manager_comment" optional="hide" width="200px"
                                         invisible="is_section" />
 
                                     <field name="unit" optional="show" readonly="1"
-                                        invisible="is_section or kpi_type != 'auto'" />
+                                        invisible="is_section or kpi_type != 'auto'" width="90px" />
                                     <field name="target" readonly="1"
-                                        invisible="is_section or kpi_type != 'auto'" />
+                                        invisible="is_section or kpi_type != 'auto'" width="100px" />
                                     <field name="actual"
                                         readonly="is_auto and dept_source_type in ['data_source', 'child_kpi_average']"
-                                        invisible="is_section or kpi_type != 'auto'" />
+                                        invisible="is_section or kpi_type != 'auto'" width="100px" />
                                     <field name="wipeout_if_child_zero"
                                         invisible="not is_section"
                                         optional="hide"
-                                        readonly="1" />
+                                        readonly="1" width="120px" />
                                     <!-- <field name="target_display" string="Target"
                                          invisible="is_section or kpi_type != 'auto'" />
                                      <field name="actual_display" string="Actual"
@@ -258,27 +262,32 @@
                                         string="Manager Rating (Y/N)"
                                         invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
                                         column_invisible="not parent.has_binary_kpi"
+                                        width="140px"
                                     />
                                     <field name="manager_rating_selection"
                                         string="Manager Rating" widget="priority_onchange"
                                         invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
                                         column_invisible="not parent.has_rating_kpi"
+                                        width="120px"
                                     />
                                     <field name="manager_rating_score" string="Manager Score"
                                         invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
                                         column_invisible="not parent.has_score_kpi"
+                                        width="120px"
                                     />
-                                    <field name="weight" readonly="1" />
+                                    <field name="weight" readonly="1" width="90px" />
 
                                     <field name="final_score_badge_class" column_invisible="1" />
                                     <field name="final_score_badge_text" string="Score" readonly="1"
                                         widget="badge"
+                                        width="100px"
                                         decoration-info="final_score_badge_class == 'o_kpi_badge_excellent'"
                                         decoration-success="final_score_badge_class == 'o_kpi_badge_pass'"
                                         decoration-danger="final_score_badge_class == 'o_kpi_badge_fail'" />
 
                                     <button name="action_open_popup" type="object"
                                         icon="fa-pencil" title="Open Details"
+                                        width="70px"
                                     />
 
                                     <control>
@@ -289,19 +298,47 @@
                                 </list>
                             </field>
                             <div
-                                class="o_perf_summary mt-3 d-flex justify-content-between align-items-center">
+                                class="o_perf_summary mt-3 d-flex justify-content-between align-items-start">
                                 <div
                                     class="o_perf_summary_body o_perf_summary_body_left flex-grow-1 pe-3">
                                     <div class="o_perf_summary_title">Scoring Formula</div>
                                     <div class="text-muted mt-2" style="font-size: 14px;">
-                                        <strong>Department KPI Score</strong> = ∑ (Top-level
-                                        P3.1.2 Line Score × Weight) / ∑ Weight<br />
-                                        <span style="font-size: 14px; font-style: italic;">If
-                                        the total top-level P3.1.2 weight is 0, the system falls
-                                        back to the average of top-level P3.1.2 line
-                                        scores.</span>
+                                        <strong>Department KPI Score</strong> = ∑ (Top-level P3.1.2
+                                        Line Score × Weight) / ∑ Weight<br />
+            <span
+                                            style="font-size: 14px; font-style: italic;">
+                                            If the total top-level P3.1.2 weight is 0, the system
+                                        falls back to the average of top-level P3.1.2 line scores.
+                                        </span>
+            
+            <div
+                                            class="mt-3">
+                                            <details>
+                                                <summary
+                                                    class="btn btn-sm btn-outline-info text-start"
+                                                    style="cursor: pointer;">
+                                                    <i class="fa fa-info-circle me-1" />
+                                                    <strong>Line Scoring Guide</strong>
+                                                </summary>
+
+                                                <div
+                                                    class="mt-2 p-3 border rounded bg-light text-dark">
+                                                    <strong>- Manual KPI</strong><br /> Binary: Pass
+                                        = 100 points, Fail = 0 points.<br /> Rating: 0 to 5 stars,
+                                        each star = 20 points.<br /> Score: enter the score directly
+                                        into the score field.<br />
+                        <br />
+                        <strong>- Auto KPI</strong><br />
+                                        Score is calculated from <strong>Target</strong> and <strong>
+                                        Actual</strong> based on the selected <strong>Scoring
+                                        Formula</strong>. If a data source is linked, the system can
+                                        auto-fill <strong>Actual</strong> before applying the
+                                        formula. </div>
+                                            </details>
+                                        </div>
                                     </div>
                                 </div>
+
                                 <div class="o_perf_summary_body o_perf_summary_body_right">
                                     <div class="o_perf_summary_title">Evaluation Results</div>
                                     <div class="o_perf_summary_score">

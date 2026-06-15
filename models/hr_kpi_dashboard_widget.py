@@ -95,6 +95,7 @@ class HrKpiDashboardWidget(models.Model):
         "hr.kpi.data.source",
         string="Data Source",
         ondelete="set null",
+        related="employee_template_line_id.data_source_id"
     )
     provider_key = fields.Selection(
         MICRO_PROVIDER_SELECTION,

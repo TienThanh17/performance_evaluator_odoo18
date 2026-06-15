@@ -4,7 +4,7 @@
         <!-- ============================================================
              MASTER DATA - PHÒNG BAN / CHỨC VỤ / NHÂN SỰ / KỲ ĐÁNH GIÁ
         ============================================================= -->
-        <!-- <record id="dept_it_3p_202604" model="hr.department">
+        <record id="dept_it_3p_202604" model="hr.department">
             <field name="name">Công nghệ thông tin (IT)</field>
         </record>
 
@@ -24,13 +24,6 @@
             <field name="name">DEV</field>
         </record>
 
-        <record id="employee_it_manager_3p_202604" model="hr.employee">
-            <field name="name">Võ Văn Trọng</field>
-            <field name="job_id"
-                ref="custom_adecsol_hr_performance_evaluator.job_it_manager_3p_202604" />
-            <field name="work_email">vo.van.trong@example.com</field>
-        </record>
-
         <record id="dept_it_3p_202604" model="hr.department">
             <field name="manager_id"
             ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604"/>
@@ -44,8 +37,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_leader_3p_202604" />
-            <field name="parent_id"
-                ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604" />
+          
             <field name="work_email">pham.tommy@example.com</field>
         </record>
         <record id="employee_it_huynh_trong_dai_3p_202604" model="hr.employee">
@@ -55,8 +47,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_staff_3p_202604" />
-            <field name="parent_id"
-                ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604" />
+          
             <field name="work_email">huynh.trong.dai@example.com</field>
         </record>
         <record id="employee_it_do_minh_duong_3p_202604" model="hr.employee">
@@ -66,8 +57,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
-            <field name="parent_id"
-                ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604" />
+          
             <field name="work_email">do.minh.duong@example.com</field>
         </record>
         <record id="employee_it_vo_chau_dang_khoa_3p_202604" model="hr.employee">
@@ -77,8 +67,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
-            <field name="parent_id"
-                ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604" />
+          
             <field name="work_email">vo.chau.dang.khoa@example.com</field>
         </record>
         <record id="employee_it_huynh_thanh_tien_3p_202604" model="hr.employee">
@@ -88,8 +77,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
-            <field name="parent_id"
-                ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604" />
+          
             <field name="work_email">huynh.thanh.tien@example.com</field>
         </record>
         <record id="employee_it_dinh_dai_duong_3p_202604" model="hr.employee">
@@ -99,8 +87,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
                 ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
-            <field name="parent_id"
-                ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604" />
+          
             <field name="work_email">dinh.dai.duong@example.com</field>
         </record>
 
@@ -109,7 +96,7 @@
             <field name="period_type">monthly</field>
             <field name="date_start">2026-04-01</field>
             <field name="date_end">2026-04-30</field>
-        </record> -->
+        </record>
 
         <record id="kpi_unit_vi_pham_thang" model="hr.kpi.unit">
             <field name="name">Số lần vi phạm / tháng</field>

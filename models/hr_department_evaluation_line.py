@@ -542,7 +542,6 @@ class HrDepartmentEvaluationLine(models.Model):
         "scoring_formula_id.linear_direction",
         "scoring_formula_id.linear_allow_exceed",
         "scoring_formula_id.step_out_of_range",
-        "scoring_formula_id.penalty_base_score",
         "scoring_formula_id.penalty_deduct_per_unit",
         "scoring_formula_id.penalty_floor",
         "scoring_formula_id.expression_code",

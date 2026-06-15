@@ -298,29 +298,46 @@ $dept-shadow-hover:  0 6px 24px rgba(3, 103, 176, 0.18);
 
   > .o_dept_kpi_chart_card {
     display: flex;
-    flex: 2 1 340px;
     flex-direction: column;
     min-width: 0;
-  }
-
-  > .o_dept_kpi_chart_card[data-chart-type="doughnut"] {
+    
+    /* CHÌA KHÓA: flex-grow: 1 giúp tự động chia đều và lấp đầy khoảng trống bên phải */
     flex-grow: 1;
+    flex-shrink: 1;
   }
 
+  /* 1. Doughnut / Pie: Định mức 1/3 dòng (Đảm bảo tối đa 3 chart / dòng) */
+  > .o_dept_kpi_chart_card[data-chart-type="doughnut"],
+  > .o_dept_kpi_chart_card[data-chart-type="pie"] {
+    flex-basis: calc(33.333% - 20px);
+    max-width: 50%; /* Chặn không cho doughnut tự phình to hơn một nửa màn hình nếu bị rớt dòng lẻ */
+  }
+
+  /* 2. Bar / Line / Stacked Bar: Định mức 1/2 dòng (Dài hơn Doughnut, đứng cặp tự chia 5:5) */
   > .o_dept_kpi_chart_card[data-chart-type="bar"],
   > .o_dept_kpi_chart_card[data-chart-type="line"],
   > .o_dept_kpi_chart_card[data-chart-type="stacked_bar"] {
-    flex-grow: 2;
+    flex-basis: calc(50% - 20px);
   }
 
+  /* 3. Radar: Chiếm trọn 1 dòng */
   > .o_dept_kpi_chart_card[data-chart-type="radar"] {
-    flex: 1 1 100%;
-    width: 100%;
+    flex-basis: 100%;
+    max-width: 100%;
   }
 
+  /* Xử lý mượt mà khi chỉ có 1 Doughnut duy nhất trên màn hình */
   > .o_dept_kpi_chart_card[data-chart-type="doughnut"]:only-child {
     max-width: 420px;
     margin-inline: auto;
+  }
+
+  /* Đảm bảo giao diện mobile luôn hiển thị 1 cột */
+  @media (max-width: 768px) {
+    > .o_dept_kpi_chart_card {
+      flex-basis: 100% !important;
+      max-width: 100% !important;
+    }
   }
 }
 
@@ -672,4 +689,173 @@ $dept-shadow-hover:  0 6px 24px rgba(3, 103, 176, 0.18);
         background: #fee2e2;
         color: $dept-red;
     }
+}
+
+.pd-comment-btn {
+    min-width: 110px;
+    border: 1px solid $dept-border;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #f8fafc;
+    color: $dept-muted;
+    transition: all 0.2s ease;
+
+    &.is-active {
+        background: rgba(3, 103, 176, 0.10);
+        color: $dept-primary;
+        border-color: rgba(3, 103, 176, 0.20);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(3, 103, 176, 0.16);
+            transform: translateY(-1px);
+        }
+    }
+
+    &.is-empty,
+    &:disabled {
+        cursor: default;
+        opacity: 0.75;
+    }
+}
+
+.o_dept_comment_modal_backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    background: rgba(15, 23, 42, 0.52);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.o_dept_comment_modal {
+    width: 100%;
+    max-width: 1040px;
+    max-height: 80vh;
+    background: $dept-surface;
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.o_dept_comment_modal_header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    border-bottom: 1px solid $dept-border;
+    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.o_dept_comment_modal_title {
+    font-size: 18px;
+    font-weight: 800;
+    color: $dept-text;
+}
+
+.o_dept_comment_modal_subtitle {
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    font-weight: 600;
+    color: $dept-muted;
+}
+
+.o_dept_comment_modal_close {
+    width: 36px;
+    height: 36px;
+    border: 1px solid $dept-border;
+    border-radius: 999px;
+    background: #fff;
+    color: $dept-muted;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        color: $dept-primary;
+        border-color: rgba(3, 103, 176, 0.20);
+        background: rgba(3, 103, 176, 0.06);
+    }
+}
+
+.o_dept_comment_modal_body {
+    padding: 18px 22px 22px;
+    overflow: auto;
+}
+
+.o_dept_comment_modal_loading,
+.o_dept_comment_modal_empty {
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: $dept-muted;
+
+    .fa {
+        font-size: 28px;
+        opacity: 0.65;
+    }
+
+    p {
+        margin: 0;
+        font-size: 14px;
+    }
+}
+
+.o_dept_comment_modal_table_wrap {
+    overflow: auto;
+}
+
+.o_dept_comment_modal_table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    th {
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: $dept-muted;
+        font-weight: 700;
+        padding: 10px 12px;
+        border-bottom: 2px solid $dept-border;
+        white-space: nowrap;
+    }
+
+    td {
+        padding: 12px;
+        border-bottom: 1px solid $dept-border;
+        vertical-align: top;
+        color: $dept-text;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+}
+
+.o_dept_comment_modal_kpi {
+    min-width: 220px;
+    font-weight: 700;
+    color: $dept-primary;
 }

@@ -169,6 +169,24 @@
     }
 }
 
+// Keep the custom KPI template drag handle column visually compact.
+.o_list_renderer {
+    .o_kpi_template_handle_cell {
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+        text-align: center;
+
+        .o_row_handle,
+        .oi-draggable,
+        .fa {
+            margin: 0 auto;
+        }
+    }
+}
+
 @media (max-width: 767.98px) {
     .o_kpi_child_inline_row {
         .o_kpi_child_inline_grid {

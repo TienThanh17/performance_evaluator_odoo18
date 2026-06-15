@@ -50,7 +50,6 @@ class TestKpiScoringFormula(TransactionCase):
             {
                 "name": "Penalty Formula",
                 "formula_type": "penalty",
-                "penalty_base_score": 0.0,
                 "penalty_deduct_per_unit": 1.0,
                 "penalty_floor": 0.0,
             }

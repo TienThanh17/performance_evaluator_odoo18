@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="widget_department_micro_task_done_count" model="hr.kpi.dashboard.widget">
+            <field name="name">So sánh Task hoàn thành của nhân viên</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="micro_chart_type">stacked_bar</field>
+            <field name="department_micro_mode">employee_compare</field>
+            <field name="employee_template_line_id" ref="line_emp_p3_tc1_item1_202604"/>
+            <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
+            <field name="sequence">5</field>
+        </record>
+
+        <record id="widget_department_micro_task_on_time_rate" model="hr.kpi.dashboard.widget">
+            <field name="name">So sánh tỷ lệ Task đúng hạn của nhân viên</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="micro_chart_type">line</field>
+            <field name="department_micro_mode">employee_compare</field>
+            <field name="employee_template_line_id" ref="line_emp_p3_tc1_item2_202604"/>
+            <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="widget_department_micro_attendance_present_days" model="hr.kpi.dashboard.widget">
+            <field name="name">Số ngày đi làm thực tế</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="micro_chart_type">line</field>
+            <field name="department_micro_mode">employee_compare</field>
+            <field name="employee_template_line_id" ref="line_emp_p3_tc1_item3_202604"/>
+            <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
+            <field name="sequence">25</field>
+        </record>
+
+        <record id="widget_department_task_distribution" model="hr.kpi.dashboard.widget">
+            <field name="name">Xếp hạng điểm P3.1.1</field>
+            <field name="dashboard_kind">department</field>
+            <field name="widget_class">macro</field>
+            <field name="macro_widget_type">distribution</field>
+            <field name="target_model">evaluation</field>
+            <field name="measure_field_id" ref="field_hr_performance_evaluation__total_p3_individual"/>
+            <field name="group_by_field_id" ref="field_hr_performance_evaluation__employee_id"/>
+            <field name="sequence">60</field>
+        </record>
+
+        <record id="widget_individual_micro_task_done_count" model="hr.kpi.dashboard.widget">
+            <field name="name">Xu hướng hoàn thành Task</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="provider_key">generic_domain_daily_series</field>
+            <field name="micro_chart_type">line</field>
+            <field name="kpi_behavior">cumulative</field>
+            <field name="employee_template_line_id" ref="line_emp_p3_tc1_item1_202604"/>
+            <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
+            <field name="sequence">5</field>
+        </record>
+
+        <record id="widget_individual_micro_task_on_time_rate" model="hr.kpi.dashboard.widget">
+            <field name="name">Tỷ lệ Task đúng hạn</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="provider_key">generic_target_actual_bar</field>
+            <field name="micro_chart_type">doughnut</field>
+            <field name="employee_template_line_id" ref="line_emp_p3_tc1_item2_202604"/>
+            <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="widget_individual_micro_attendance_present_days" model="hr.kpi.dashboard.widget">
+            <field name="name">Số ngày đi làm thực tế</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="provider_key">special_engine_attendance_overview</field>
+            <field name="micro_chart_type">doughnut</field>
+            <field name="employee_template_line_id" ref="line_emp_p3_tc1_item3_202604"/>
+            <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
+            <field name="sequence">15</field>
+        </record>
+
+        <record id="widget_individual_micro_attendance_late_days" model="hr.kpi.dashboard.widget">
+            <field name="name">Số ngày đi muộn</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">micro</field>
+            <field name="target_model">evaluation</field>
+            <field name="provider_key">special_engine_punctuality</field>
+            <field name="micro_chart_type">line</field>
+            <field name="employee_template_line_id" ref="line_emp_p3_tc1_item4_202604"/>
+            <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="widget_individual_score_trend" model="hr.kpi.dashboard.widget">
+            <field name="name">Xu hướng điểm</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">macro</field>
+            <field name="macro_widget_type">trend_line</field>
+            <field name="target_model">evaluation</field>
+            <field name="measure_field_id" ref="field_hr_performance_evaluation__total_p3_individual"/>
+            <field name="group_by_field_id" ref="field_hr_performance_evaluation__start_date"/>
+            <field name="date_granularity">month</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="widget_individual_department_ranking" model="hr.kpi.dashboard.widget">
+            <field name="name">Xếp hạng điểm P3.1.1</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">macro</field>
+            <field name="macro_widget_type">distribution</field>
+            <field name="target_model">evaluation</field>
+            <field name="measure_field_id" ref="field_hr_performance_evaluation__total_p3_individual"/>
+            <field name="group_by_field_id" ref="field_hr_performance_evaluation__employee_id"/>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="widget_individual_radar_profile" model="hr.kpi.dashboard.widget">
+            <field name="name">Biểu đồ năng lực</field>
+            <field name="dashboard_kind">individual</field>
+            <field name="widget_class">macro</field>
+            <field name="macro_widget_type">radar_chart</field>
+            <field name="target_model">evaluation</field>
+            <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
+            <field name="radar_template_line_ids" eval="[(6, 0, [
+                ref('line_emp_p3_tc1_202604'),
+                ref('line_emp_p3_tc2_202604'),
+                ref('line_emp_p3_tc3_202604'),
+                ref('line_emp_p3_tc4_202604'),
+                ref('line_emp_p3_tc5_202604'),
+                ref('line_emp_p3_tc6_202604'),
+                ref('line_emp_p3_tc7_202604')
+            ])]"/>
+            <field name="sequence">999</field>
+        </record>
+
+    </data>
+</odoo>

@@ -274,24 +274,34 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 target_values,
             )
         else:
+            # Line chart dùng target chuẩn từ template line để render một đường tham chiếu ngang cho cả nhóm nhân viên.
+            reference_target = round(
+                float(widget.employee_template_line_id.target or 0.0), 2
+            )
             datasets = [
                 {
                     "label": _("Target"),
-                    "data": target_values,
+                    "data": [reference_target] * len(labels),
+                    "borderColor": "#ef4444",
+                    "backgroundColor": "rgba(0,0,0,0)",
+                    "borderDash": [5, 4],
+                    "borderWidth": 2,
+                    "pointRadius": 0,
+                    "pointHoverRadius": 0,
+                    "fill": False,
+                    "tension": 0,
                 },
                 {
                     "label": _("Actual"),
                     "data": actual_values,
+                    "borderColor": "#2279BA",
+                    "pointBackgroundColor": "#2279BA",
+                    "pointBorderColor": "#2279BA",
+                    "fill": False,
+                    "tension": 0.3,
+                    "pointRadius": 4,
                 },
             ]
-            for dataset in datasets:
-                dataset.update(
-                    {
-                        "fill": False,
-                        "tension": 0.3,
-                        "pointRadius": 4,
-                    }
-                )
             payload = {
                 "chart_data": {
                     "labels": labels,

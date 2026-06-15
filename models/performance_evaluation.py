@@ -4,6 +4,7 @@ from datetime import datetime
 from markupsafe import Markup
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools import html2plaintext
 
 from .kpi_type_utils import NORMALIZED_3P_PILLAR_CODES
 
@@ -994,6 +995,67 @@ class PerformanceEvaluation(models.Model):
                 "default_employee_id": self.employee_id.id,
                 "default_evaluation_id": self.id,
             },
+        }
+
+    # Chuẩn hóa HTML comment về plain text để dashboard có thể đếm và hiển thị ổn định.
+    def _normalize_comment_text(self, value):
+        # Chuyển HTML về text và gom khoảng trắng để bỏ qua các markup rỗng.
+        plain_text = html2plaintext(value or "")
+        return " ".join(plain_text.split()).strip()
+
+    # Kiểm tra một evaluation line có comment ở phía employee hoặc manager hay không.
+    def _line_has_dashboard_comment(self, line):
+        self.ensure_one()
+
+        # Chỉ giữ các line có nội dung comment thật sự sau khi loại bỏ HTML rỗng.
+        employee_comment = self._normalize_comment_text(line.employee_comment)
+        manager_comment = self._normalize_comment_text(line.manager_comment)
+        return bool(employee_comment or manager_comment)
+
+    # Tính tổng số comment employee + manager để roster dashboard hiển thị một con số duy nhất.
+    def get_comment_count(self):
+        self.ensure_one()
+        comment_count = 0
+
+        # Mỗi phía comment có nội dung được tính là một đơn vị độc lập.
+        for line in self.evaluation_line_ids.filtered(lambda rec: not rec.is_section):
+            if self._normalize_comment_text(line.employee_comment):
+                comment_count += 1
+            if self._normalize_comment_text(line.manager_comment):
+                comment_count += 1
+
+        return comment_count
+
+    # Trả về danh sách KPI line có comment để popup dashboard phòng ban có thể render trực tiếp.
+    def get_comment_popup_rows(self):
+        self.ensure_one()
+        rows = []
+
+        # Giữ đúng thứ tự sequence của phiếu để popup phản ánh cùng cấu trúc với form đánh giá.
+        comment_lines = self.evaluation_line_ids.filtered(
+            lambda line: not line.is_section and self._line_has_dashboard_comment(line)
+        ).sorted(lambda line: (line.sequence or 0, line.id or 0))
+
+        # Serialize sang dict plain data để OWL popup dùng ngay qua RPC.
+        for line in comment_lines:
+            rows.append(
+                {
+                    "id": line.id,
+                    "kpi_title": line.key_performance_area or line.display_name or _("KPI"),
+                    "employee_comment": self._normalize_comment_text(
+                        line.employee_comment
+                    ),
+                    "manager_comment": self._normalize_comment_text(
+                        line.manager_comment
+                    ),
+                }
+            )
+
+        return {
+            "evaluation_id": self.id,
+            "evaluation_name": self.name or "",
+            "employee_name": self.employee_id.name or "",
+            "rows": rows,
         }
 
     def get_dashboard_data(self):

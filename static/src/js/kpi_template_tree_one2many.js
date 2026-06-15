@@ -1,5 +1,6 @@
 /** @odoo-module */
 
+import { makeContext } from "@web/core/context";
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
@@ -22,7 +23,7 @@ export const kpiTemplateTreeHandleField = {
     displayName: _t("Handle"),
     supportedTypes: ["integer"],
     isEmpty: () => false,
-    listViewWidth: 20,
+    listViewWidth: 30,
 };
 
 registry
@@ -74,10 +75,10 @@ class KpiTemplateTreeListRenderer extends KPIListRenderer {
     getColumnClass(column) {
         const classes = super.getColumnClass(column);
         if (column.widget === "kpi_template_tree_handle") {
-            return classes.replace(
+            return `${classes.replace(
                 "o_kpi_template_tree_handle_cell",
                 "o_handle_cell",
-            );
+            )} o_kpi_template_handle_cell`.trim();
         }
         return classes;
     }
@@ -85,10 +86,10 @@ class KpiTemplateTreeListRenderer extends KPIListRenderer {
     getCellClass(column, record) {
         const classes = super.getCellClass(column, record);
         if (column.widget === "kpi_template_tree_handle") {
-            return classes
+            return `${classes
                 .replace("o_kpi_template_tree_handle_cell", "o_handle_cell")
                 .replace("o_list_number", "")
-                .trim();
+                .trim()} o_kpi_template_handle_cell`;
         }
         return classes;
     }
@@ -331,6 +332,14 @@ class KpiTemplateTreeOne2ManyField extends KPIOne2ManyField {
         ...KPIOne2ManyField.components,
         ListRenderer: KpiTemplateTreeListRenderer,
     };
+
+    async onAdd({ context = {}, editable } = {}) {
+        const normalizedContext = makeContext([this.props.context, context]);
+        if (normalizedContext.default_is_section) {
+            normalizedContext.force_popup_section = true;
+        }
+        return super.onAdd({ context: normalizedContext, editable });
+    }
 }
 
 registry.category("fields").add("kpi_template_tree_one2many", {

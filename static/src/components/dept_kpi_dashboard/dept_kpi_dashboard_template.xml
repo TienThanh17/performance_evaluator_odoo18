@@ -195,6 +195,7 @@
                   <th>P3.1</th>
                   <th>RESULT</th>
                   <th>STATUS</th>
+                  <th>COMMENT</th>
                   <th>ACTION</th>
                 </tr>
               </thead>
@@ -278,6 +279,15 @@
                       </span>
                     </td>
                     <td>
+                      <button
+                        t-attf-class="pd-comment-btn #{ev.comment_count ? 'is-active' : 'is-empty'}"
+                        t-att-disabled="!ev.comment_count"
+                        t-on-click="() => this.openCommentPopup(ev)"
+                      >
+                        <t t-esc="formatCommentCount(ev.comment_count)"/>
+                      </button>
+                    </td>
+                    <td>
                       <button t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}" t-on-click="() => this.openEvaluation(ev.id)">
                         <i class="fa fa-chevron-right"/>
                       </button>
@@ -337,6 +347,66 @@
               </tbody>
             </table>
             <p t-else="" class="o_dept_kpi_empty">No quantitative KPI data available.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      t-if="state.commentModalOpen"
+      class="o_dept_comment_modal_backdrop"
+      t-on-click="closeCommentPopup"
+    >
+      <div
+        class="o_dept_comment_modal"
+        role="dialog"
+        aria-modal="true"
+        t-on-click.stop=""
+      >
+        <div class="o_dept_comment_modal_header">
+          <div>
+            <div class="o_dept_comment_modal_title">KPI Comments</div>
+            <div class="o_dept_comment_modal_subtitle">
+              <t t-esc="state.commentModalEmployeeName || '—'"/>
+              <t t-if="state.commentModalEvaluationName">
+                <span>•</span>
+                <t t-esc="state.commentModalEvaluationName"/>
+              </t>
+            </div>
+          </div>
+          <button type="button" class="o_dept_comment_modal_close" t-on-click="closeCommentPopup">
+            <i class="fa fa-times"/>
+          </button>
+        </div>
+
+        <div class="o_dept_comment_modal_body">
+          <div t-if="state.commentModalLoading" class="o_dept_comment_modal_loading">
+            <div class="o_dept_kpi_spinner"/>
+            <p>Loading comments…</p>
+          </div>
+          <div t-elif="state.commentModalRows.length" class="o_dept_comment_modal_table_wrap">
+            <table class="o_dept_comment_modal_table">
+              <thead>
+                <tr>
+                  <th>KPI</th>
+                  <th>Employee Comment</th>
+                  <th>Manager Comment</th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="state.commentModalRows" t-as="row" t-key="row.id">
+                  <tr>
+                    <td class="o_dept_comment_modal_kpi" t-esc="row.kpi_title"/>
+                    <td t-esc="commentText(row.employee_comment)"/>
+                    <td t-esc="commentText(row.manager_comment)"/>
+                  </tr>
+                </t>
+              </tbody>
+            </table>
+          </div>
+          <div t-else="" class="o_dept_comment_modal_empty">
+            <i class="fa fa-commenting-o"/>
+            <p>No comments available for this evaluation.</p>
           </div>
         </div>
       </div>

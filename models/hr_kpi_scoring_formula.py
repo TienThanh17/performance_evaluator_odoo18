@@ -51,12 +51,8 @@ class HrKpiScoringFormula(models.Model):
         string="Xử lý ngoài bảng",
     )
 
-    penalty_base_score = fields.Float(
-        default=10.0,
-        string="Điểm ban đầu",
-    )
     penalty_deduct_per_unit = fields.Float(
-        default=1.0,
+        default=10.0,
         string="Điểm trừ mỗi đơn vị vi phạm",
     )
     penalty_floor = fields.Float(
@@ -95,7 +91,6 @@ class HrKpiScoringFormula(models.Model):
         "formula_type",
         "linear_direction",
         "linear_allow_exceed",
-        "penalty_base_score",
         "penalty_deduct_per_unit",
         "penalty_floor",
         "expression_code",
@@ -114,13 +109,8 @@ class HrKpiScoringFormula(models.Model):
             elif rec.formula_type == "step_table":
                 rec.preview_expression = "lookup(actual, step_table)"
             elif rec.formula_type == "penalty":
-                base_expr = (
-                    f"{rec.penalty_base_score:g}"
-                    if (rec.penalty_base_score or 0.0) > 0.0
-                    else scale
-                )
                 rec.preview_expression = (
-                    f"max({base_expr} - actual * "
+                    f"max({scale} - actual * "
                     f"{rec.penalty_deduct_per_unit:g}, {rec.penalty_floor:g})"
                 )
             elif rec.formula_type == "expression":
@@ -289,12 +279,12 @@ class HrKpiScoringFormula(models.Model):
         nearest = min(sorted_steps, key=lambda row: abs(midpoint(row) - actual))
         return self._clamp_score(float(nearest.get("score", 0.0)), max_score)
 
+    # Tính điểm kiểu penalty luôn bắt đầu từ thang điểm chuẩn runtime rồi trừ theo actual.
     def _score_penalty(self, actual, max_score):
         self.ensure_one()
-        base_score = float(self.penalty_base_score or max_score)
         deduct_per_unit = float(self.penalty_deduct_per_unit or 0.0)
         floor = float(self.penalty_floor or 0.0)
-        score = base_score - (actual * deduct_per_unit)
+        score = float(max_score) - (actual * deduct_per_unit)
         return round(max(score, floor), 4)
 
     def _score_expression(self, actual, target, max_score):

@@ -307,9 +307,19 @@ export class DeptKpiDashboard extends Component {
             selectedEvaluationId: null,
             data: null,
             approvingAll: false,
+            commentModalOpen: false,
+            commentModalLoading: false,
+            commentModalRows: [],
+            commentModalEmployeeName: "",
+            commentModalEvaluationName: "",
         });
 
         this._charts = {};
+        this._onWindowKeydown = (event) => {
+            if (event.key === "Escape" && this.state.commentModalOpen) {
+                this.closeCommentPopup();
+            }
+        };
 
         onWillStart(async () => {
             const [isManager, isHR] = await Promise.all([
@@ -322,12 +332,14 @@ export class DeptKpiDashboard extends Component {
         });
 
         onMounted(async () => {
+            window.addEventListener("keydown", this._onWindowKeydown);
             if (this.state.phase === "done") {
                 await this._renderAllCharts();
             }
         });
 
         onWillUnmount(() => {
+            window.removeEventListener("keydown", this._onWindowKeydown);
             this._destroyCharts();
         });
 
@@ -413,6 +425,17 @@ export class DeptKpiDashboard extends Component {
 
     levelLabel(lvl) {
         return { excellent: _t("⭐ Excellent"), pass: _t("✓ Pass"), fail: _t("✗ Fail") }[lvl] || "—";
+    }
+
+    formatCommentCount(count) {
+        const normalizedCount = Number(count || 0);
+        return normalizedCount === 1
+            ? _t("1 comment")
+            : _t("%s comments").replace("%s", normalizedCount);
+    }
+
+    commentText(value) {
+        return value || "—";
     }
 
     // ── Quantitative Table Helpers ───────────────────────────────────────────
@@ -604,6 +627,50 @@ export class DeptKpiDashboard extends Component {
                 default_evaluation_id: evalId,
             },
         });
+    }
+
+    async openCommentPopup(evaluationRow) {
+        const commentCount = Number(evaluationRow?.comment_count || 0);
+        if (!evaluationRow?.id || !commentCount || this.state.commentModalLoading) {
+            return;
+        }
+
+        this.state.commentModalOpen = true;
+        this.state.commentModalLoading = true;
+        this.state.commentModalRows = [];
+        this.state.commentModalEmployeeName = evaluationRow.employee_id?.[1] || "";
+        this.state.commentModalEvaluationName = evaluationRow.name || "";
+
+        try {
+            const payload = await this.orm.call(
+                "hr.performance.evaluation",
+                "get_comment_popup_rows",
+                [evaluationRow.id],
+            );
+            this.state.commentModalRows = payload?.rows || [];
+            this.state.commentModalEmployeeName =
+                payload?.employee_name || this.state.commentModalEmployeeName;
+            this.state.commentModalEvaluationName =
+                payload?.evaluation_name || this.state.commentModalEvaluationName;
+        } catch (error) {
+            this.notification.add(
+                error?.data?.message ||
+                    error?.message ||
+                    _t("Could not load evaluation comments."),
+                { type: "danger" }
+            );
+            this.closeCommentPopup();
+        } finally {
+            this.state.commentModalLoading = false;
+        }
+    }
+
+    closeCommentPopup() {
+        this.state.commentModalOpen = false;
+        this.state.commentModalLoading = false;
+        this.state.commentModalRows = [];
+        this.state.commentModalEmployeeName = "";
+        this.state.commentModalEvaluationName = "";
     }
 
     // ── Chart rendering ───────────────────────────────────────────────────────

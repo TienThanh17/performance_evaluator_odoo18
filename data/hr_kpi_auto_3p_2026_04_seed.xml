@@ -4,21 +4,37 @@
         <!-- ============================================================
              MASTER DATA - PHÒNG BAN / NHÂN SỰ TỰ ĐỘNG HÓA
         ============================================================= -->
-        <!-- <record id="dept_auto_3p_202604" model="hr.department">
+        <record id="dept_auto_3p_202604" model="hr.department">
             <field name="name">Tự động hóa</field>
         </record>
 
-        <record id="employee_auto_nguyen_phuoc_tan_3p_202604" model="hr.employee">
-            <field name="name">Nguyễn Phước Tân</field>
-            <field name="department_id"
-                ref="custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604" />
-            <field name="work_email">nguyen.phuoc.tan@example.com</field>
-        </record> -->
+        <!-- 1. Lê Công Dũng (Manager) -->
+        <record id="employee_auto_le_cong_dung_3p_202604" model="hr.employee">
+            <field name="name">Lê Công Dũng</field>
+            <field name="department_id" ref="custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604" />
+            <field name="work_email">le.cong.dung@example.com</field>
+        </record>
+
+        <!-- 2. Hồ Hữu Thanh Sơn -->
+        <record id="employee_auto_ho_huu_thanh_son_3p_202604" model="hr.employee">
+            <field name="name">Hồ Hữu Thanh Sơn</field>
+            <field name="department_id" ref="custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604" />
+            <field name="parent_id" ref="custom_adecsol_hr_performance_evaluator.employee_auto_le_cong_dung_3p_202604" />
+            <field name="work_email">ho.huu.thanh.son@example.com</field>
+        </record>
+
+        <!-- 3. Tăng Phú Vinh -->
+        <record id="employee_auto_tang_phu_vinh_3p_202604" model="hr.employee">
+            <field name="name">Tăng Phú Vinh</field>
+            <field name="department_id" ref="custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604" />
+            <field name="parent_id" ref="custom_adecsol_hr_performance_evaluator.employee_auto_le_cong_dung_3p_202604" />
+            <field name="work_email">tang.phu_vinh@example.com</field>
+        </record>
 
         <!-- ============================================================
              TEMPLATES - PHÒNG BAN & NHÂN VIÊN TỰ ĐỘNG HÓA
         ============================================================= -->
-        <!-- <record id="tpl_dept_kpi_auto_3p_202604" model="hr.department.kpi.template">
+        <record id="tpl_dept_kpi_auto_3p_202604" model="hr.department.kpi.template">
             <field name="name">P3.1.2 KPI Phòng Ban - Tự động hóa</field>
             <field name="department_id"
                 ref="custom_adecsol_hr_performance_evaluator.dept_auto_3p_202604" />
@@ -32,7 +48,7 @@
             <field name="period_type">monthly</field>
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
-        </record> -->
+        </record>
 
         <!-- ============================================================
              DUPLICATED P2.1 & P2.2 LINES FROM IT TEMPLATE

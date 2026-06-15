@@ -648,6 +648,9 @@ class HrPerformanceReport(models.Model):
                     ),
                     "performance_level": ev.performance_level or False,
                     "state": ev.state or False,
+                    "name": ev.name or "",
+                    # Dùng cùng một rule với popup để roster và chi tiết luôn khớp nhau.
+                    "comment_count": ev.get_comment_count(),
                 }
             )
 

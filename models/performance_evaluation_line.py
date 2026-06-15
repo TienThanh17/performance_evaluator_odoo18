@@ -766,7 +766,6 @@ class PerformanceEvaluationLine(models.Model):
         "scoring_formula_id.linear_allow_exceed",
         "scoring_formula_id.step_table_json",
         "scoring_formula_id.step_out_of_range",
-        "scoring_formula_id.penalty_base_score",
         "scoring_formula_id.penalty_deduct_per_unit",
         "scoring_formula_id.penalty_floor",
         "scoring_formula_id.expression_code",
@@ -1222,38 +1221,38 @@ class PerformanceEvaluationLine(models.Model):
             # =====================================================================
             # LOGIC 1: if the user edits employee-side fields
             # =====================================================================
-            # if editing_employee_fields:
-            #     if not is_own_evaluation:
-            #         raise UserError(
-            #             _(
-            #                 "Only the employee being evaluated can edit self-rating and comments."
-            #             )
-            #         )
+            if editing_employee_fields:
+                if not is_own_evaluation:
+                    raise UserError(
+                        _(
+                            "Only the employee being evaluated can edit self-rating and comments."
+                        )
+                    )
 
-            #     if any(line.evaluation_id.state != "self_evaluation" for line in self):
-            #         raise UserError(
-            #             _(
-            #                 "Employee fields can only be edited in the Self Evaluation state."
-            #             )
-            #         )
+                if any(line.evaluation_id.state != "self_evaluation" for line in self):
+                    raise UserError(
+                        _(
+                            "Employee fields can only be edited in the Self Evaluation state."
+                        )
+                    )
 
             # =====================================================================
             # LOGIC 2: if the user edits manager-side fields
             # =====================================================================
-            # if editing_manager_fields:
-            #     if not is_manager_group:
-            #         raise UserError(
-            #             _(
-            #                 "You do not have the required Manager access to edit manager fields."
-            #             )
-            #         )
+            if editing_manager_fields:
+                if not is_manager_group:
+                    raise UserError(
+                        _(
+                            "You do not have the required Manager access to edit manager fields."
+                        )
+                    )
 
-            #     if any(line.evaluation_id.state != "manager_evaluating" for line in self):
-            #         raise UserError(
-            #             _(
-            #                 "Manager rating is only editable in the Manager Evaluating state."
-            #             )
-            #         )
+                if any(line.evaluation_id.state != "manager_evaluating" for line in self):
+                    raise UserError(
+                        _(
+                            "Manager rating is only editable in the Manager Evaluating state."
+                        )
+                    )
 
         res = super().write(vals)
         affected_lines = self | parent_lines_before | self.mapped("parent_line_id")
