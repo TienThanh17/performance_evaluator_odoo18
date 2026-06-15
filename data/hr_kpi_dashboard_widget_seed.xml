@@ -49,7 +49,7 @@
             <field name="sequence">60</field>
         </record>
 
-        <record id="widget_individual_micro_task_done_count" model="hr.kpi.dashboard.widget">
+        <!-- <record id="widget_individual_micro_task_done_count" model="hr.kpi.dashboard.widget">
             <field name="name">Xu hướng hoàn thành Task</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">micro</field>
@@ -96,7 +96,7 @@
             <field name="employee_template_line_id" ref="line_emp_p3_tc1_item4_202604"/>
             <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
             <field name="sequence">20</field>
-        </record>
+        </record> -->
 
         <record id="widget_individual_score_trend" model="hr.kpi.dashboard.widget">
             <field name="name">Xu hướng điểm</field>

@@ -98,7 +98,7 @@
                         <create name="add_kpi" string="Add KPI" />
                     </control>
                     
-                    <field name="sequence" widget="kpi_template_tree_handle" width="30px" />
+                    <field name="sequence" widget="kpi_template_tree_handle" width="30px" invisible="is_section"/>
                     
                     <field name="is_section" column_invisible="True" />
                     <field name="pillar_code" column_invisible="True" />

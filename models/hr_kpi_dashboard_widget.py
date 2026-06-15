@@ -211,46 +211,6 @@ class HrKpiDashboardWidget(models.Model):
         help="Select the KPI template lines that should appear in this radar chart. Leave empty to keep the radar widget inactive until it is configured.",
     )
 
-    # Chạy migrate mềm sau mỗi lần registry nạp để auto-fix employee compare bar cũ sang stacked bar.
-    def _register_hook(self):
-        result = super()._register_hook()
-
-        # Chỉ migrate đúng một lần theo config flag để không chạm dữ liệu lặp lại ở các lần restart sau.
-        self._run_department_micro_stacked_bar_migration()
-        return result
-
-    # Nâng cấp widget department employee compare cũ từ bar sang stacked bar theo semantics mới.
-    def _run_department_micro_stacked_bar_migration(self):
-        config = self.env["ir.config_parameter"].sudo()
-
-        # Nếu migration đã chạy rồi thì thoát ngay để tránh write lặp lại không cần thiết.
-        if config.get_param(DEPARTMENT_MICRO_STACKED_BAR_MIGRATION_PARAM):
-            return
-
-        widgets = (
-            self.with_context(active_test=False)
-            .sudo()
-            .search(
-                [
-                    ("widget_class", "=", "micro"),
-                    ("dashboard_kind", "=", "department"),
-                    ("department_micro_mode", "=", "employee_compare"),
-                    ("micro_chart_type", "=", "bar"),
-                ]
-            )
-        )
-
-        # Dùng ORM write để dữ liệu đi qua cùng normalization/constraint với luồng thường.
-        if widgets:
-            widgets.write({"micro_chart_type": "stacked_bar"})
-            _logger.info(
-                "Migrated %s department employee compare widget(s) from bar to stacked_bar.",
-                len(widgets),
-            )
-
-        # Đánh dấu đã migrate để lần sau không cần quét lại.
-        config.set_param(DEPARTMENT_MICRO_STACKED_BAR_MIGRATION_PARAM, "1")
-
     # Trả chart type hợp lệ theo department micro mode để UI/ORM không giữ combo cũ sai nghĩa.
     @api.model
     def _normalize_micro_chart_type_value(

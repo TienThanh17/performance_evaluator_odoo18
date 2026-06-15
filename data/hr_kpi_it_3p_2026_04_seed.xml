@@ -24,11 +24,11 @@
             <field name="name">DEV</field>
         </record>
 
-        <record id="dept_it_3p_202604" model="hr.department">
+        <!-- <record id="dept_it_3p_202604" model="hr.department">
             <field name="manager_id"
             ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604"/>
             <field name="manager_id" search="[('user_id', '=', ref('base.user_admin'))]" />
-        </record>
+        </record> -->
 
         <record id="employee_it_pham_tommy_3p_202604" model="hr.employee">
             <field name="name">Phạm Tommy</field>
@@ -180,10 +180,10 @@
         </record>
 
         <!-- ============================================================
-             P3.1.1 - KPI PHÒNG BAN
+             P3.1.2 - KPI PHÒNG BAN
         ============================================================= -->
         <record id="tpl_dept_kpi_it_3p_202604" model="hr.department.kpi.template">
-            <field name="name">P3.1.1 KPI Phòng Ban - Công nghệ thông tin (IT)</field>
+            <field name="name">P3.1.2 KPI Phòng Ban - Công nghệ thông tin (IT)</field>
             <!-- <field name="department_id"
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" /> -->
             <field name="period_type">monthly</field>
