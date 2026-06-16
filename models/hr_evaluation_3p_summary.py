@@ -1,4 +1,5 @@
 import io
+import xlsxwriter
 import base64
 from odoo import _, api, fields, models
 from datetime import date
@@ -213,7 +214,6 @@ class HrEvaluation3PSummary(models.Model):
             )
         return True
 
-
     def action_export_excel(self):
         self.ensure_one()
         try:
@@ -282,13 +282,23 @@ class HrEvaluation3PSummary(models.Model):
         header_p3 = workbook.add_format({**header_base, "bg_color": "#F8CBAD"})
 
         cell_center = workbook.add_format(
-            {"font_name": font_name, "align": "center", "valign": "vcenter", "border": 1}
+            {
+                "font_name": font_name,
+                "align": "center",
+                "valign": "vcenter",
+                "border": 1,
+            }
         )
         cell_left = workbook.add_format(
             {"font_name": font_name, "align": "left", "valign": "vcenter", "border": 1}
         )
         cell_num = workbook.add_format(
-            {"font_name": font_name, "align": "center", "valign": "vcenter", "border": 1}
+            {
+                "font_name": font_name,
+                "align": "center",
+                "valign": "vcenter",
+                "border": 1,
+            }
         )
 
         # ==========================================
@@ -298,17 +308,19 @@ class HrEvaluation3PSummary(models.Model):
         sheet.set_column("B:B", 12)  # Mã NV
         sheet.set_column("C:C", 22)  # Họ Tên
         sheet.set_column("D:D", 18)  # Chức vụ
-        sheet.set_column("E:F", 15)  # P1.1, P1.2
+        sheet.set_column("E:F", 15)  # P1.1, P1.2 (Mức lương)
         sheet.set_column("G:L", 6)  # P2.1 (TC1-TC5 + Hệ số)
         sheet.set_column("M:AB", 5)  # P2.2 (TC1-TC16)
         sheet.set_column("AC:AC", 8)  # P2.2 Hệ số
 
-        # Cập nhật độ rộng cột cho P3.1.1, P3.1.2, Tổng P3.1 và P3.2
-        sheet.set_column("AD:AG", 15)
-        sheet.set_column("AH:AI", 15)  # Xếp loại, Ghi chú
+        # Cấu hình độ rộng cho toàn bộ các cột con của Tiêu chí P3
+        sheet.set_column("AD:AL", 12)  # Từ cột P3.1.1 cho tới Hệ số của P3.2
 
-        # Đóng băng dòng header (tới dòng 16)
-        sheet.freeze_panes(16, 4)
+        # SỬA Ở ĐÂY: Tăng width cho cột "Đánh giá..." (Cột AM) và bỏ cột Xếp loại
+        sheet.set_column("AM:AM", 35)
+
+        # Đóng băng dòng header
+        sheet.freeze_panes(0, 4)
 
         # ==========================================
         # 3. PHẦN THÔNG TIN CHUNG (HEADER BÁO CÁO)
@@ -335,17 +347,24 @@ class HrEvaluation3PSummary(models.Model):
         sheet.write("B12", "BẢNG TỔNG HỢP KẾT QUẢ", section_format)
 
         # ==========================================
-        # 4. VẼ BẢNG HEADER 3 TẦNG (ROWS 13, 14, 15)
+        # 4. VẼ BẢNG HEADER 4 TẦNG (ROWS 14, 15, 16, 17)
         # ==========================================
-        row_h1 = 13  # Excel Row 14 (Tầng 1)
-        row_h2 = 14  # Excel Row 15 (Tầng 2)
-        row_h3 = 15  # Excel Row 16 (Tầng 3)
+        row_h1 = 13  # Excel Row 14 (Tầng 1 - Nhóm Tiêu chí chính)
+        row_h2 = 14  # Excel Row 15 (Tầng 2 - Thành phần P)
+        row_h3 = 15  # Excel Row 16 (Tầng 3 - Tên KPI / Chỉ số)
+        row_h4 = 16  # Excel Row 17 (Tầng 4 - Chi tiết thành phần con)
 
-        # Cột chung
-        sheet.merge_range(row_h1, 0, row_h3, 0, "STT", header_main)
-        sheet.merge_range(row_h1, 1, row_h3, 1, "Mã nhân viên", header_main)
-        sheet.merge_range(row_h1, 2, row_h3, 2, "Họ và tên", header_main)
-        sheet.merge_range(row_h1, 3, row_h3, 3, "Chức vụ", header_main)
+        # THÊM MỚI Ở ĐÂY: Tăng chiều cao (height) của các dòng header để thấy đủ chữ bị rớt dòng
+        sheet.set_row(row_h1, 40)
+        sheet.set_row(row_h2, 30)
+        sheet.set_row(row_h3, 40)
+        sheet.set_row(row_h4, 40)
+
+        # Cột chung kéo dài dọc qua cả 4 tầng header
+        sheet.merge_range(row_h1, 0, row_h4, 0, "STT", header_main)
+        sheet.merge_range(row_h1, 1, row_h4, 1, "Mã nhân viên", header_main)
+        sheet.merge_range(row_h1, 2, row_h4, 2, "Họ và tên", header_main)
+        sheet.merge_range(row_h1, 3, row_h4, 3, "Chức vụ", header_main)
 
         # --- TẦNG 1 ---
         sheet.merge_range(
@@ -354,45 +373,61 @@ class HrEvaluation3PSummary(models.Model):
         sheet.merge_range(
             row_h1, 6, row_h1, 28, "TIÊU CHÍ P2\n(lương theo năng lực)", header_p2
         )
-
-        # Cập nhật: TIÊU CHÍ P3 làm Parent bao trọn 4 cột từ 29 (AD) đến 32 (AG)
         sheet.merge_range(
             row_h1,
             29,
             row_h1,
-            32,
+            37,
             "TIÊU CHÍ P3\n(lương theo hiệu quả công việc)",
             header_p3,
         )
 
-        sheet.merge_range(row_h1, 33, row_h3, 33, "XẾP LOẠI", header_main)
-        sheet.merge_range(row_h1, 34, row_h3, 34, "Ghi chú", header_main)
+        # SỬA Ở ĐÂY: Bỏ merge cột Xếp loại (38), dời cột Ý kiến Trưởng BP lên index 38
+        sheet.merge_range(
+            row_h1, 38, row_h4, 38, "Đánh giá và ý kiến\ntrưởng bộ phận", header_main
+        )
 
-        # --- TẦNG 2 & 3 CỦA P1 & P2 ---
+        # --- TIÊU CHÍ P1 ---
         sheet.merge_range(row_h2, 4, row_h3, 4, "P1.1", header_p1)
+        sheet.write(row_h4, 4, "Mức lương", header_p1)
+
         sheet.merge_range(row_h2, 5, row_h3, 5, "P1.2", header_p1)
+        sheet.write(row_h4, 5, "Mức lương", header_p1)
 
-        sheet.merge_range(row_h2, 6, row_h2, 11, "P2.1", header_p2)
+        # --- TIÊU CHÍ P2 ---
+        sheet.merge_range(row_h2, 6, row_h3, 11, "P2.1", header_p2)
         for i, col in enumerate(range(6, 11)):
-            sheet.write(row_h3, col, f"TC{i + 1}", header_p2)
-        sheet.write(row_h3, 11, "Hệ số", header_p2)
+            sheet.write(row_h4, col, f"TC{i + 1}", header_p2)
+        sheet.write(row_h4, 11, "Hệ số", header_p2)
 
-        sheet.merge_range(row_h2, 12, row_h2, 28, "P2.2", header_p2)
+        sheet.merge_range(row_h2, 12, row_h3, 28, "P2.2", header_p2)
         for i, col in enumerate(range(12, 28)):
-            sheet.write(row_h3, col, f"TC{i + 1}", header_p2)
-        sheet.write(row_h3, 28, "Hệ số", header_p2)
+            sheet.write(row_h4, col, f"TC{i + 1}", header_p2)
+        sheet.write(row_h4, 28, "Hệ số", header_p2)
 
-        # --- TẦNG 2 & 3 CỦA P3 ---
-        # 1. P3.1 nằm bên dưới TIÊU CHÍ P3 và làm parent cho 3 cột con
-        sheet.merge_range(row_h2, 29, row_h2, 31, "P3.1", header_p3)
+        # --- TIÊU CHÍ P3 ---
+        # Tầng 2: Phân bổ P3.1 và P3.2 nằm ngang hàng nhau
+        sheet.merge_range(row_h2, 29, row_h2, 36, "P3.1", header_p3)
+        sheet.merge_range(row_h2, 37, row_h3, 37, "P3.2\n(theo doanh thu)", header_p3)
+        sheet.write(row_h4, 37, "Hệ số", header_p3)  # Cell hệ số dưới P3.2
 
-        # 2. P3.2 ngang hàng P3.1, merge luôn tầng 2 xuống tầng 3 do không có con
-        sheet.merge_range(row_h2, 32, row_h3, 32, "P3.2\n(theo doanh thu)", header_p3)
+        # Tầng 3: Các thành phần con nằm bên dưới P3.1
+        sheet.merge_range(row_h3, 29, row_h3, 31, "P3.1.1\n(KPI Cá nhân)", header_p3)
+        sheet.merge_range(row_h3, 32, row_h3, 34, "P3.1.2\n(KPI Phòng ban)", header_p3)
+        sheet.merge_range(row_h3, 35, row_h3, 36, "Tổng KPI\n(P3.1)", header_p3)
 
-        # 3. Các thành phần con nằm bên dưới P3.1
-        sheet.write(row_h3, 29, "P3.1.1\n(KPI Cá nhân)", header_p3)
-        sheet.write(row_h3, 30, "P3.1.2\n(KPI Phòng ban)", header_p3)
-        sheet.write(row_h3, 31, "Tổng KPI\n(P3.1)", header_p3)
+        # Tầng 4: Chi tiết thành phần con dưới P3.1.1, P3.1.2 và Tổng KPI (P3.1)
+        # Dưới P3.1.1
+        sheet.write(row_h4, 29, "Điểm thưởng\nbị trừ", header_p3)
+        sheet.write(row_h4, 30, "Điểm", header_p3)
+        sheet.write(row_h4, 31, "Trọng số", header_p3)
+        # Dưới P3.1.2
+        sheet.write(row_h4, 32, "Điểm thưởng\nbị trừ", header_p3)
+        sheet.write(row_h4, 33, "Điểm", header_p3)
+        sheet.write(row_h4, 34, "Trọng số", header_p3)
+        # Dưới Tổng KPI (P3.1)
+        sheet.write(row_h4, 35, "Tổng trọng số", header_p3)
+        sheet.write(row_h4, 36, "Hệ số", header_p3)
 
         # ==========================================
         # 5. DỮ LIỆU MẪU (DUMMY DATA)
@@ -410,7 +445,7 @@ class HrEvaluation3PSummary(models.Model):
                 5,
                 4,
                 5,
-                1.0,  # P2.1
+                1.0,
                 4,
                 4,
                 4,
@@ -427,13 +462,17 @@ class HrEvaluation3PSummary(models.Model):
                 4,
                 4,
                 4,
-                1.0,  # P2.2
+                1.0,
+                0.2,
                 85,
+                0.8,
+                0,
                 90,
-                87.5,
-                120,  # Dữ liệu cho: P3.1.1, P3.1.2, Tổng P3.1, P3.2
-                "A",
-                "Hoàn thành xuất sắc",
+                1.0,
+                0.48,
+                0.88,
+                0.7,
+                "Cần cố gắng duy trì phong độ",  # SỬA Ở ĐÂY: Bỏ chuỗi "A", chỉ giữ lại câu Ghi chú
             ],
             [
                 2,
@@ -447,7 +486,7 @@ class HrEvaluation3PSummary(models.Model):
                 4,
                 4,
                 4,
-                0.9,  # P2.1
+                0.9,
                 4,
                 3,
                 4,
@@ -464,70 +503,91 @@ class HrEvaluation3PSummary(models.Model):
                 3,
                 4,
                 3,
-                0.8,  # P2.2
+                0.8,
+                0,
                 75,
+                1.0,
+                0,
                 80,
-                77.5,
-                85,  # Dữ liệu cho: P3.1.1, P3.1.2, Tổng P3.1, P3.2
-                "B",
-                "",
+                1.0,
+                0.4,
+                1.0,
+                1.0,
+                "",  # SỬA Ở ĐÂY: Bỏ chuỗi "B"
             ],
         ]
 
-        row = 16  # Bắt đầu ghi dữ liệu từ Excel Row 17
+        row = 17
         for line in dummy_data:
-            sheet.write(row, 0, line[0], cell_center)  # STT
-            sheet.write(row, 1, line[1], cell_center)  # Mã NV
-            sheet.write(row, 2, line[2], cell_left)  # Họ Tên
-            sheet.write(row, 3, line[3], cell_left)  # Chức vụ
+            sheet.write(row, 0, line[0], cell_center)
+            sheet.write(row, 1, line[1], cell_center)
+            sheet.write(row, 2, line[2], cell_left)
+            sheet.write(row, 3, line[3], cell_left)
 
-            # Ghi Dữ liệu đồng loạt từ cột P1 đến Hết (từ index 4 đến 34)
-            for col_idx in range(4, 35):
+            # SỬA Ở ĐÂY: Giảm vòng lặp đi 1 cột (từ 40 xuống 39)
+            for col_idx in range(4, 39):
                 val = line[col_idx]
                 if isinstance(val, (int, float)):
                     sheet.write(row, col_idx, val, cell_num)
                 else:
-                    align_format = cell_left if col_idx == 34 else cell_center
+                    align_format = cell_left if col_idx == 38 else cell_center
                     sheet.write(row, col_idx, val, align_format)
             row += 1
 
-       # --- III. ĐÁNH GIÁ & Ý KIẾN CỦA TBP/ NGƯỜI ĐÁNH GIÁ ---
+        # --- III. ĐÁNH GIÁ & Ý KIẾN CỦA TBP/ NGƯỜI ĐÁNH GIÁ ---
         # Chuyển xuống dưới bảng kết quả một khoảng cách nhỏ
-        start_row = row + 2 
-        
+        start_row = row + 2
+
         # Tiêu đề mục III
-        sheet.write(start_row, 0, 'III', section_format)
-        sheet.write(start_row, 1, 'ĐÁNH GIÁ & Ý KIẾN CỦA TBP/ NGƯỜI ĐÁNH GIÁ', section_format)
+        sheet.write(start_row, 0, "III", section_format)
+        sheet.write(
+            start_row, 1, "ĐÁNH GIÁ & Ý KIẾN CỦA TBP/ NGƯỜI ĐÁNH GIÁ", section_format
+        )
 
         # Header bảng III
-        table_header = workbook.add_format({
-            'bold': True, 'align': 'center', 'valign': 'vcenter', 
-            'border': 1, 'bg_color': '#D9D9D9', 'text_wrap': True
-        })
-        
-        # Thiết lập độ rộng cột cho bảng III
-        sheet.set_column('A:A', 5)   # STT
-        sheet.set_column('B:C', 20)  # Họ và tên, Chức vụ
-        sheet.set_column('D:D', 50)  # Đánh giá (để rộng để dễ viết)
+        table_header = workbook.add_format(
+            {
+                "bold": True,
+                "align": "center",
+                "valign": "vcenter",
+                "border": 1,
+                "bg_color": "#D9D9D9",
+                "text_wrap": True,
+            }
+        )
 
-        # Ghi header cột
-        sheet.write(start_row + 1, 0, 'STT', table_header)
-        sheet.write(start_row + 1, 1, 'Họ và tên', table_header)
-        sheet.write(start_row + 1, 2, 'Chức vụ', table_header)
-        sheet.write(start_row + 1, 3, 'Đánh giá và ý kiến trưởng bộ phận', table_header)
+        # Ghi header cột và merge cell theo đúng cấu trúc của bảng trên
+        sheet.set_row(start_row + 1, 30) # Chiều cao dòng header
+        sheet.write(start_row + 1, 0, "STT", table_header)
+        sheet.write(start_row + 1, 1, "Mã nhân viên", table_header)
         
-        # Đổ dữ liệu nhân viên vào bảng III
-        table_cell_center = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
-        table_cell_left = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'border': 1, 'text_wrap': True})
+        # Merge cột C và D cho "Họ và tên" (để lấp đầy khoảng trống của cột Chức vụ bảng trên)
+        sheet.merge_range(start_row + 1, 2, start_row + 1, 3, "Họ và tên", table_header)
+        
+        # Merge từ cột E (index 4 - bắt đầu Tiêu chí P1) đến cột AC (index 28 - kết thúc Tiêu chí P2)
+        sheet.merge_range(start_row + 1, 4, start_row + 1, 28, "Đánh giá và ý kiến trưởng bộ phận", table_header)
+
+        # Đổ dữ liệu nhân viên vào bảng III từ dummy_data
+        table_cell_center = workbook.add_format(
+            {"align": "center", "valign": "vcenter", "border": 1}
+        )
+        table_cell_left = workbook.add_format(
+            {"align": "left", "valign": "vcenter", "border": 1, "text_wrap": True}
+        )
 
         current_row = start_row + 2
-        for idx, line in enumerate(self.line_ids, start=1):
-            sheet.write(current_row, 0, idx, table_cell_center)
-            sheet.write(current_row, 1, line.employee_id.name or '', table_cell_left)
-            sheet.write(current_row, 2, line.job_id.name or '', table_cell_left)
-            # Ô trống để TBP điền tay hoặc để bạn nhập dữ liệu từ Odoo vào nếu có trường note
-            sheet.write(current_row, 3, '', table_cell_left) 
-            sheet.set_row(current_row, 40) # Tăng chiều cao dòng cho ô ý kiến
+        for line in dummy_data:
+            sheet.set_row(current_row, 40)  # Tăng chiều cao dòng cho ô ý kiến
+            
+            sheet.write(current_row, 0, line[0], table_cell_center) # STT
+            sheet.write(current_row, 1, line[1], table_cell_center) # Mã NV
+            
+            # Merge cột C và D ghi Họ tên
+            sheet.merge_range(current_row, 2, current_row, 3, line[2], table_cell_left)
+            
+            # Merge cột từ E đến AC ghi Ý kiến đánh giá (Lấy từ phần tử cuối cùng của dummy_data)
+            sheet.merge_range(current_row, 4, current_row, 28, line[-1], table_cell_left)
+            
             current_row += 1
 
         workbook.close()
