@@ -779,7 +779,7 @@
                                         <field name="is_auto" column_invisible="1" />
                                         <field name="final_rating_badge_class" column_invisible="1" />
                                         <field name="key_performance_area" string="Title"
-                                            width="300px"
+                                            width="400px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
                                         <field name="parent_dept_evaluation_line_id" optional="hide"
                                             invisible="is_section"
@@ -799,7 +799,7 @@
                                         <field name="unit" optional="show"
                                             invisible="is_section or kpi_type != 'auto'"
                                             readonly="is_employee and not is_manager and not is_department_manager and not is_hr"
-                                            width="80px" />
+                                            width="300px" />
                                         <field name="data_source_id" invisible="kpi_type != 'auto'"
                                             width="150px"
                                             readonly="not is_manager and not is_department_manager"
