@@ -1859,7 +1859,7 @@
         <!-- ============================================================
              P3.1.2 - KPI PHÒNG BAN KẾ TOÁN
         ============================================================= -->
-        <record id="line_dept_ktoan_p3_sec10_202604" model="hr.department.kpi.template.line">
+       <record id="line_dept_ktoan_p3_sec10_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_ktoan_3p_202604" />
             <field name="name">Tài chính kế toán</field>
@@ -1913,13 +1913,19 @@
             <field name="target">1</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_1_kem_2" />
             <field name="weight">10</field>
-            <field name="sequence">11</field>
-            <field name="description">Mục tiêu chiến lược: Kế hoạch thu chi hợp lý
-                Yếu tố quyết định thành công: Nắm được thông tin từ các nguồn tin đáng tin cậy
-                Kém: 2 lần / tháng
-                Xuất sắc: 0 lần/ tháng</field>
+            <field name="sequence">805</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Kế hoạch thu chi hợp lý</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Nắm được thông tin từ các nguồn tin đáng tin cậy</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chọn lọc thông tin đáng tin cậy để lên kế hoạch hợp lý</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1 lần / tháng</p>
+                    <p><strong>Kém:</strong> 2 lần / tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 lần/ tháng</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_ktoan_p3_item2_202604" model="hr.department.kpi.template.line">
@@ -1935,15 +1941,19 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_bao_cao" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_5_kem_6" />
             <field name="weight">10</field>
-            <field name="sequence">12</field>
-            <field name="description">Mục tiêu chiến lược: Báo cáo đúng hạn
-                Yếu tố quyết định thành công: Số liệu được hạch toán đầy đủ, chính xác
-                Kém: 6 lần/báo cáo lớn (tài chính, thuế)
-                3 lần/ báo cáo nội bộ
-                Xuất sắc: 3 lần/báo cáo lớn (tài chính, thuế)
-                0 lần/ báo cáo nội bộ</field>
+            <field name="sequence">810</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Báo cáo đúng hạn</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Số liệu được hạch toán đầy đủ, chính xác</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nhập liệu sai dẫn đến trể tiến độ báo cáo</p>
+                    <p><strong>Mục tiêu 2026:</strong> 5 lần/báo cáo lớn (tài chính, thuế) <br/> 2 lần/ báo cáo nội bộ</p>
+                    <p><strong>Kém:</strong> 6 lần/báo cáo lớn (tài chính, thuế) <br/> 3 lần/ báo cáo nội bộ</p>
+                    <p><strong>Xuất sắc:</strong> 3 lần/báo cáo lớn (tài chính, thuế) <br/> 0 lần/ báo cáo nội bộ</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_ktoan_p3_item3_202604" model="hr.department.kpi.template.line">
@@ -1958,13 +1968,19 @@
             <field name="target">0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">10</field>
-            <field name="sequence">13</field>
-            <field name="description">Mục tiêu chiến lược: Tính lương đúng đủ
-                Yếu tố quyết định thành công: Các bộ phận gửi đúng ngày theo quy định
-                Kém: 1 lần/tháng
-                Xuất sắc: 0 lần/tháng</field>
+            <field name="sequence">815</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Tính lương đúng đủ</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Các bộ phận gửi đúng ngày theo quy định</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Tính thiếu, tính dư lương NV công ty</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 lần/tháng</p>
+                    <p><strong>Kém:</strong> 1 lần/tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 lần/tháng</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_ktoan_p3_item4_202604" model="hr.department.kpi.template.line">
@@ -1980,15 +1996,19 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_bao_cao" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_1_kem_2" />
             <field name="weight">10</field>
-            <field name="sequence">14</field>
-            <field name="description">Mục tiêu chiến lược: Quản lý tốt &amp; chặt chẽ tài chính của
-                Cty.
-                Yếu tố quyết định thành công: Báo cáo đầy đủ, kịp thời, rõ ràng, dễ hiểu, chính xác
-                &amp; trung thực số liệu kế toán.
-                Kém: 2 lần/báo cáo
-                Xuất sắc: 0 lần/báo cáo</field>
+            <field name="sequence">820</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Quản lý tốt &amp; chặt chẽ tài chính của Cty.</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Báo cáo đầy đủ, kịp thời, rõ ràng, dễ hiểu, chính xác &amp; trung thực số liệu kế toán.</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Báo cáo không phù hợp, không trung thực với số liệu thực tế</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1 lần/báo cáo</p>
+                    <p><strong>Kém:</strong> 2 lần/báo cáo</p>
+                    <p><strong>Xuất sắc:</strong> 0 lần/báo cáo</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_ktoan_p3_item5_202604" model="hr.department.kpi.template.line">
@@ -2003,15 +2023,19 @@
             <field name="target">80.0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent_ktoan" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80_kem_60" />
             <field name="weight">10</field>
-            <field name="sequence">15</field>
-            <field name="description">Mục tiêu chiến lược: Sử dụng vốn hiệu quả
-                Yếu tố quyết định thành công: Giảm chi phí:
-                - Cắt giảm chi phí quảng cáo, in ấn, hoạt động Cty không cần thiết.
-                - Giảm chi phí lãi vay (thu hồi công nợ đúng hạn, giảm bớt tiền vay).
-                Kém: 0.6
-                Xuất sắc: 0.9</field>
+            <field name="sequence">825</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Sử dụng vốn hiệu quả</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí:<br/>- Cắt giảm chi phí quảng cáo, in ấn, hoạt động Cty không cần thiết.<br/>- Giảm chi phí lãi vay (thu hồi công nợ đúng hạn, giảm bớt tiền vay).</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> % Tổng chi phí thực tế/Tổng chi phí kế hoạch</p>
+                    <p><strong>Mục tiêu 2026:</strong> 80%</p>
+                    <p><strong>Kém:</strong> 60%</p>
+                    <p><strong>Xuất sắc:</strong> 90%</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_ktoan_p3_item6_202604" model="hr.department.kpi.template.line">
@@ -2027,13 +2051,19 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_khong_ap_dung_qt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_3_kem_4" />
             <field name="weight">10</field>
-            <field name="sequence">16</field>
-            <field name="description">Mục tiêu chiến lược: Quy trình và quản lý chất lượng
-                Yếu tố quyết định thành công: Quy trình và quản lý việc thực hiện theo quy trình
-                Kém: 4 lần/tháng
-                Xuất sắc: 1 lần/tháng</field>
+            <field name="sequence">905</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Quy trình và quản lý chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Quy trình và quản lý việc thực hiện theo quy trình</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Áp dụng quy trình vào từng vị trí công việc</p>
+                    <p><strong>Mục tiêu 2026:</strong> 3 lần / tháng</p>
+                    <p><strong>Kém:</strong> 4 lần/tháng</p>
+                    <p><strong>Xuất sắc:</strong> 1 lần/tháng</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_ktoan_p3_item7_202604" model="hr.department.kpi.template.line">
@@ -2041,20 +2071,26 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_ktoan_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_ktoan_p3_sec20_202604" />
-            <field name="name">Không cải tiến phương án thực hiện công việc làm ảnh hưởng chất lượng
-                công việc</field>
+            <field name="name">Không cải tiến phương án thực hiện công việc làm ảnh hưởng chất lượng công việc</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
             <field name="target">5</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_5_kem_6" />
             <field name="weight">10</field>
-            <field name="sequence">17</field>
-            <field name="description">Yếu tố quyết định thành công: Hiệu suất
-                Kém: 6 lần/tháng
-                Xuất sắc: 2 lần/tháng</field>
+            <field name="sequence">910</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Quy trình và quản lý chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Hiệu suất</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Không cải tiến phương án thực hiện công việc làm ảnh hưởng chất lượng công việc</p>
+                    <p><strong>Mục tiêu 2026:</strong> 5 lần / tháng</p>
+                    <p><strong>Kém:</strong> 6 lần/tháng</p>
+                    <p><strong>Xuất sắc:</strong> 2 lần/tháng</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_ktoan_p3_item8_202604" model="hr.department.kpi.template.line">
@@ -2069,11 +2105,19 @@
             <field name="target">1</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_vi_pham_ko_th" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_1_kem_2" />
             <field name="weight">10</field>
-            <field name="sequence">18</field>
-            <field name="description">Kém: 2 lần/tháng
-                Xuất sắc: 0 lần/tháng</field>
+            <field name="sequence">915</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Quy trình và quản lý chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Hiệu suất</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Qui trình 5S</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1 lần / tháng</p>
+                    <p><strong>Kém:</strong> 2 lần/tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 lần/tháng</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_ktoan_p3_item9_202604" model="hr.department.kpi.template.line">
@@ -2088,13 +2132,19 @@
             <field name="target">90.0</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent_ktoan" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_90_kem_70" />
             <field name="weight">10</field>
-            <field name="sequence">19</field>
-            <field name="description">Mục tiêu chiến lược: Chất lượng nhân sự
-                Yếu tố quyết định thành công: Chất lượng nhân sự đáp ứng nhu cầu
-                Kém: 0.7
-                Xuất sắc: 1</field>
+            <field name="sequence">1005</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Chất lượng nhân sự</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Chất lượng nhân sự đáp ứng nhu cầu</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Năng lực làm việc</p>
+                    <p><strong>Mục tiêu 2026:</strong> 90%</p>
+                    <p><strong>Kém:</strong> 70%</p>
+                    <p><strong>Xuất sắc:</strong> 100%</p>
+                </div>
+            </field>
         </record>
 
         <record id="line_dept_ktoan_p3_item10_202604" model="hr.department.kpi.template.line">
@@ -2109,15 +2159,20 @@
             <field name="target">2</field>
             <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_so_lan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_2_kem_3" />
             <field name="weight">10</field>
-            <field name="sequence">20</field>
-            <field name="description">Mục tiêu chiến lược: Tuân thủ quy định công ty
-                Yếu tố quyết định thành công: Tuân thủ nội quy, quy định công ty
-                Kém: 3 lần/tháng
-                Xuất sắc: 0 lần/tháng</field>
+            <field name="sequence">1010</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu chiến lược:</strong> Tuân thủ quy định công ty</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tuân thủ nội quy, quy định công ty</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Không thực hiện nội quy, quy định công ty</p>
+                    <p><strong>Mục tiêu 2026:</strong> 2 lần / tháng</p>
+                    <p><strong>Kém:</strong> 3 lần/tháng</p>
+                    <p><strong>Xuất sắc:</strong> 0 lần/tháng</p>
+                </div>
+            </field>
         </record>
-
         <!-- ============================================================
              P3.1.1 - KPI CÁ NHÂN KẾ TOÁN
         ============================================================= -->

@@ -873,12 +873,45 @@ export class DeptKpiDashboard extends Component {
         const ctx = canvas?.getContext?.("2d");
         if (!ctx) return null;
         const chartData = chartInfo.chart_data || {};
+        const chartMeta = chartInfo.chart_meta || {};
+        const targetLine = chartMeta.target_line || null;
+        const yAxis = chartMeta.y_axis || {};
         const datasets = (chartData.datasets || []).map((dataset) => ({
             backgroundColor: C_BLUE,
             borderRadius: 6,
             maxBarThickness: 42,
             ...dataset,
         }));
+        const fullWidthTargetLinePlugin = targetLine
+            ? {
+                  id: `fullWidthTargetLine_${chartInfo.widget_id || "bar"}`,
+                  afterDatasetsDraw: (chart) => {
+                      if (chart.$targetLineHidden) {
+                          return;
+                      }
+                      const {
+                          ctx: chartCtx,
+                          chartArea,
+                          scales: { y },
+                      } = chart;
+                      if (!chartArea || !y) {
+                          return;
+                      }
+
+                      // Vẽ đường target phủ toàn bộ chart area để mốc chuẩn không bị co vào giữa các cột.
+                      const yPos = y.getPixelForValue(targetLine.value);
+                      chartCtx.save();
+                      chartCtx.beginPath();
+                      chartCtx.moveTo(chartArea.left, yPos);
+                      chartCtx.lineTo(chartArea.right, yPos);
+                      chartCtx.lineWidth = 1.5;
+                      chartCtx.strokeStyle = targetLine.color || C_RED;
+                      chartCtx.setLineDash(targetLine.dash || [6, 6]);
+                      chartCtx.stroke();
+                      chartCtx.restore();
+                  },
+              }
+            : null;
         return new Chart(ctx, {
             type: "bar",
             data: {
@@ -889,16 +922,50 @@ export class DeptKpiDashboard extends Component {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: datasets.length > 1 },
+                    legend: {
+                        display: datasets.length > 1 || !!targetLine,
+                        onClick: (event, legendItem, legend) => {
+                            if (legendItem.datasetIndex === -1) {
+                                // Toggle riêng target line ảo để tránh Chart.js xử lý như một dataset thật.
+                                legend.chart.$targetLineHidden = !legend.chart.$targetLineHidden;
+                                legend.chart.update();
+                                return;
+                            }
+                            Chart.defaults.plugins.legend.onClick(event, legendItem, legend);
+                        },
+                        labels: {
+                            generateLabels: (chart) => {
+                                const baseLabels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                if (!targetLine) {
+                                    return baseLabels;
+                                }
+                                return [
+                                    ...baseLabels,
+                                    {
+                                        text: targetLine.label || "Target",
+                                        fillStyle: "rgba(0,0,0,0)",
+                                        strokeStyle: targetLine.color || C_RED,
+                                        lineWidth: 1.5,
+                                        lineDash: targetLine.dash || [6, 6],
+                                        hidden: Boolean(chart.$targetLineHidden),
+                                        datasetIndex: -1,
+                                    },
+                                ];
+                            },
+                        },
+                    },
                 },
                 scales: {
                     x: { grid: { display: false } },
                     y: {
-                        beginAtZero: true,
+                        beginAtZero: yAxis.beginAtZero ?? true,
+                        min: yAxis.min,
+                        max: yAxis.max,
                         grid: { color: "rgba(0,0,0,0.05)" },
                     },
                 },
             },
+            plugins: fullWidthTargetLinePlugin ? [fullWidthTargetLinePlugin] : [],
         });
     }
 

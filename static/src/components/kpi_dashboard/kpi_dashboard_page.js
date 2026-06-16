@@ -65,6 +65,7 @@ export class KpiDashboard extends Component {
         radar: "_renderRadarChart",
         line: "_renderLineChart",
         bar: "_renderBarChart",
+        stacked_bar: "_renderStackedBarChart",
         doughnut: "_renderDoughnutChart",
     };
 
@@ -595,6 +596,7 @@ export class KpiDashboard extends Component {
         const icons = {
             line: "fa fa-line-chart",
             bar: "fa fa-bar-chart",
+            stacked_bar: "fa fa-tasks",
             doughnut: "fa fa-pie-chart",
         };
         return icons[chartType] || "fa fa-area-chart";
@@ -749,7 +751,7 @@ export class KpiDashboard extends Component {
         });
         const yAxis = chartMeta.y_axis || {};
         const isHourAxis = yAxis.format === "hour";
-        const yTicks = { font: { size: 10 } };
+        const yTicks = { font: { size: 12 } };
         if (yAxis.stepSize != null) {
             yTicks.stepSize = yAxis.stepSize;
         }
@@ -787,7 +789,8 @@ export class KpiDashboard extends Component {
                 },
                 scales: {
                     x: {
-                        ticks: { maxTicksLimit: 10, font: { size: 10 } },
+                        offset: true,
+                        ticks: { maxTicksLimit: 10, font: { size: 12 } },
                         grid: { display: false },
                     },
                     y: {
@@ -845,10 +848,127 @@ export class KpiDashboard extends Component {
         const ctx = canvas?.getContext?.("2d");
         if (!ctx) return null;
         const chartData = chartInfo.chart_data || {};
+        const chartMeta = chartInfo.chart_meta || {};
+        const targetLine = chartMeta.target_line || null;
+        const yAxis = chartMeta.y_axis || {};
+        const yTicks = { font: { size: 12 } };
+        if (yAxis.integerOnly) {
+            yTicks.callback = (value) => (Number.isInteger(value) ? value : "");
+        }
         const datasets = (chartData.datasets || []).map((dataset) => ({
             backgroundColor: COLOR_BLUE,
             borderRadius: 6,
             maxBarThickness: 42,
+            ...dataset,
+        }));
+        const fullWidthTargetLinePlugin = targetLine
+            ? {
+                  id: `fullWidthTargetLine_${chartInfo.widget_id || "bar"}`,
+                  afterDatasetsDraw: (chart) => {
+                      if (chart.$targetLineHidden) {
+                          return;
+                      }
+                      const {
+                          ctx: chartCtx,
+                          chartArea,
+                          scales: { y },
+                      } = chart;
+                      if (!chartArea || !y) {
+                          return;
+                      }
+
+                      // Vẽ đường target kéo hết bề ngang chart area thay vì chỉ nối qua tâm các cột.
+                      const yPos = y.getPixelForValue(targetLine.value);
+                      chartCtx.save();
+                      chartCtx.beginPath();
+                      chartCtx.moveTo(chartArea.left, yPos);
+                      chartCtx.lineTo(chartArea.right, yPos);
+                      chartCtx.lineWidth = 1.5;
+                      chartCtx.strokeStyle = targetLine.color || COLOR_RED;
+                      chartCtx.setLineDash(targetLine.dash || [6, 6]);
+                      chartCtx.stroke();
+                      chartCtx.restore();
+                  },
+              }
+            : null;
+        return new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: chartData.labels || [],
+                datasets,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: datasets.length > 1 || !!targetLine,
+                        onClick: (event, legendItem, legend) => {
+                            if (legendItem.datasetIndex === -1) {
+                                // Toggle riêng target line ảo thay vì đưa Chart.js đi tìm dataset không tồn tại.
+                                legend.chart.$targetLineHidden = !legend.chart.$targetLineHidden;
+                                legend.chart.update();
+                                return;
+                            }
+                            Chart.defaults.plugins.legend.onClick(event, legendItem, legend);
+                        },
+                        labels: {
+                            generateLabels: (chart) => {
+                                const baseLabels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                if (!targetLine) {
+                                    return baseLabels;
+                                }
+                                return [
+                                    ...baseLabels,
+                                    {
+                                        text: targetLine.label || "Target",
+                                        fillStyle: "rgba(0,0,0,0)",
+                                        strokeStyle: targetLine.color || COLOR_RED,
+                                        lineWidth: 1.5,
+                                        lineDash: targetLine.dash || [6, 6],
+                                        hidden: Boolean(chart.$targetLineHidden),
+                                        datasetIndex: -1,
+                                    },
+                                ];
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: yAxis.beginAtZero ?? true,
+                        min: yAxis.min,
+                        max: yAxis.max,
+                        ticks: yTicks,
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                    },
+                },
+            },
+            plugins: fullWidthTargetLinePlugin ? [fullWidthTargetLinePlugin] : [],
+        });
+    }
+
+    _renderStackedBarChart(canvas, chartInfo) {
+        const Chart = window.Chart;
+        const ctx = canvas?.getContext?.("2d");
+        if (!ctx) return null;
+        const chartData = chartInfo.chart_data || {};
+        const chartMeta = chartInfo.chart_meta || {};
+        const yAxis = chartMeta.y_axis || {};
+        const yTicks = { font: { size: 12 } };
+        if (yAxis.integerOnly) {
+            yTicks.callback = (value) => (Number.isInteger(value) ? value : "");
+        }
+        const datasets = (chartData.datasets || []).map((dataset, index) => ({
+            backgroundColor:
+                dataset.backgroundColor ||
+                (index === 0 ? "rgba(3, 103, 176, 0.88)" : "rgba(148, 163, 184, 0.55)"),
+            borderColor: dataset.borderColor || (index === 0 ? COLOR_BLUE : "#94a3b8"),
+            borderWidth: 1,
+            borderRadius: 6,
+            borderSkipped: false,
+            maxBarThickness: 48,
             ...dataset,
         }));
         return new Chart(ctx, {
@@ -861,12 +981,36 @@ export class KpiDashboard extends Component {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: datasets.length > 1 },
+                    legend: { display: true, position: "top" },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) =>
+                                `${context.dataset.label}: ${context.parsed?.y ?? "--"}`,
+                            afterBody: (items) => {
+                                const index = items[0]?.dataIndex;
+                                if (index === undefined || index === null) {
+                                    return [];
+                                }
+                                return [
+                                    `${_t("Target")}: ${chartMeta.target_values?.[index] ?? "--"}`,
+                                    `${_t("Actual")}: ${chartMeta.actual_values?.[index] ?? "--"}`,
+                                    `${_t("Gap to Target")}: ${chartMeta.gap_to_target_values?.[index] ?? "--"}`,
+                                ];
+                            },
+                        },
+                    },
                 },
                 scales: {
-                    x: { grid: { display: false } },
+                    x: {
+                        stacked: true,
+                        grid: { display: false },
+                    },
                     y: {
-                        beginAtZero: true,
+                        stacked: true,
+                        beginAtZero: yAxis.beginAtZero ?? true,
+                        min: yAxis.min,
+                        max: yAxis.max,
+                        ticks: yTicks,
                         grid: { color: "rgba(0,0,0,0.05)" },
                     },
                 },

@@ -32,15 +32,16 @@
                             <field
                                 name="employee_template_line_id"
                                 options="{'no_create': True}"
-                                domain="[('is_section', '=', False)]"
+                                domain="[('is_section', '=', False), '|', ('kpi_id.department_id', '=', False), ('kpi_id.department_id', 'in', department_ids)]"
                                 invisible="dashboard_kind == 'department' and department_micro_mode == 'department_progress'"
                                 required="widget_class == 'micro' and (dashboard_kind == 'individual' or (dashboard_kind == 'department' and department_micro_mode == 'employee_compare'))"
+                                context="{'search_default_group_by_kpi': 1}"
                             />
                             <field
                                 name="department_template_line_ids"
                                 widget="many2many_tags"
                                 options="{'no_create': True}"
-                                domain="[('is_section', '=', False)]"
+                                domain="[('is_section', '=', False), '|', ('department_kpi_id.department_id', '=', False), ('department_kpi_id.department_id', 'in', department_ids)]"
                                 invisible="dashboard_kind != 'department' or department_micro_mode != 'department_progress'"
                                 required="widget_class == 'micro' and dashboard_kind == 'department' and department_micro_mode == 'department_progress'"
                             />
@@ -75,20 +76,27 @@
                                 class="text-muted"
                                 invisible="widget_class != 'micro' or dashboard_kind != 'department' or department_micro_mode != 'department_progress'"
                             >
-                                Department Progress supports Bar, Line, or Doughnut with a single selected line.
+                                Department Progress supports Bar, Line, or Doughnut with a single
+                                selected line.
                             </div>
                         </group>
                         <group string="Macro Config" invisible="widget_class != 'macro'">
                             <field name="macro_widget_type" required="widget_class == 'macro'" />
-                            <field name="target_model" />
+                            <field
+                                name="target_model"
+                                invisible="macro_widget_type == 'radar_chart'"
+                            />
                             <field
                                 name="radar_template_line_ids"
                                 widget="many2many_tags"
                                 options="{'no_create': True}"
+                                domain="[('id', 'in', available_radar_template_line_ids)]"
                                 invisible="macro_widget_type != 'radar_chart'"
                                 required="widget_class == 'macro' and macro_widget_type == 'radar_chart'"
+                                context="{'search_default_group_by_kpi': 1}"
                             />
                             <field name="target_model_real_name" invisible="1" />
+                            <field name="available_radar_template_line_ids" invisible="1" />
                             <field name="group_by_ttype" invisible="1" />
                             <field
                                 name="measure_field_id"
@@ -109,11 +117,28 @@
                                 invisible="macro_widget_type == 'radar_chart' or group_by_ttype not in ('date', 'datetime')"
                                 required="widget_class == 'macro' and macro_widget_type in ('trend_line', 'distribution') and group_by_ttype in ('date', 'datetime')"
                             />
-                            <field name="filter_domain" widget="domain" options="{'model': 'target_model_real_name'}"/>
+                            <field name="filter_domain" widget="domain"
+                                options="{'model': 'target_model_real_name'}"
+                                invisible="macro_widget_type == 'radar_chart'" />
                         </group>
                     </group>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="view_hr_kpi_template_line_search" model="ir.ui.view">
+        <field name="name">hr.kpi.template.line.search</field>
+        <field name="model">hr.kpi.template.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="key_performance_area" />
+
+                <group expand="0" string="Group By">
+                    <filter name="group_by_kpi" string="KPI Template"
+                        context="{'group_by': 'kpi_id'}" />
+                </group>
+            </search>
         </field>
     </record>
 

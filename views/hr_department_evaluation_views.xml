@@ -238,7 +238,7 @@
                                         width="160px" />
                                     <field name="scoring_formula_id" optional="hide" readonly="1"
                                         invisible="is_section"
-                                        width="190px" />
+                                        width="300px" />
                                     <field name="manager_comment" optional="hide" width="200px"
                                         invisible="is_section" />
 

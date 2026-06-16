@@ -381,6 +381,40 @@ $dept-shadow-hover:  0 6px 24px rgba(3, 103, 176, 0.18);
   line-height: 1.35;
 }
 
+.o_dept_kpi_dynamic_header_badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.o_dept_kpi_mode_badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+
+  &--employee {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-color: #7dd3fc;
+  }
+
+  &--department {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #86efac;
+  }
+}
+
 .o_dept_kpi_scorecard {
   background: $dept-surface;
   border-radius: $dept-radius;

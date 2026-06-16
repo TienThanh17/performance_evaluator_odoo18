@@ -132,7 +132,21 @@
                 </span>
                 <!-- <span t-if="chart.subtitle" class="o_dept_kpi_dynamic_subtitle" t-esc="chart.subtitle"/> -->
               </div>
-              <span t-if="chart.is_special_case" class="o_kpi_target_badge o_kpi_target_warn">Special Case</span>
+              <div class="o_dept_kpi_dynamic_header_badges">
+                <span
+                  t-if="chart.department_micro_mode === 'employee_compare'"
+                  class="o_dept_kpi_mode_badge o_dept_kpi_mode_badge--employee"
+                >
+                  Employee Compare
+                </span>
+                <span
+                  t-if="chart.department_micro_mode === 'department_progress'"
+                  class="o_dept_kpi_mode_badge o_dept_kpi_mode_badge--department"
+                >
+                  Department KPI
+                </span>
+                <span t-if="chart.is_special_case" class="o_kpi_target_badge o_kpi_target_warn">Special Case</span>
+              </div>
             </div>
 
             <div

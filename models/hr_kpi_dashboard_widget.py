@@ -44,7 +44,7 @@ DEPARTMENT_MICRO_MODE_SELECTION = [
 ]
 
 INDIVIDUAL_PROVIDER_ALLOWED_CHART_TYPES = {
-    "generic_target_actual_bar": {"bar", "doughnut"},
+    "generic_target_actual_bar": {"line", "bar", "doughnut", "stacked_bar"},
     "generic_domain_daily_series": {"line", "bar"},
     "special_engine_punctuality": {"line"},
     "special_engine_attendance_overview": {"doughnut"},
@@ -210,11 +210,42 @@ class HrKpiDashboardWidget(models.Model):
         string="Radar Template Lines",
         help="Select the KPI template lines that should appear in this radar chart. Leave empty to keep the radar widget inactive until it is configured.",
     )
+    available_radar_template_line_ids = fields.Many2many(
+        "hr.kpi.template.line",
+        compute="_compute_available_radar_template_line_ids",
+        string="Available Radar Template Lines",
+    )
+
+    # Xây domain cho radar template lines theo department đang gắn trên widget.
+    def _get_radar_template_line_domain(self):
+        self.ensure_one()
+
+        # Radar chart hiện dùng section line làm trục tổng hợp trên biểu đồ.
+        domain = [("is_section", "=", True)]
+        if self.department_ids:
+            # Chỉ cho phép line thuộc các employee KPI template của đúng department đã chọn.
+            domain.append(("kpi_id.department_id", "in", self.department_ids.ids))
+        return domain
+
+    # Tính sẵn tập line hợp lệ để form dùng domain ngay cả khi chỉ mở record mà không có onchange.
+    @api.depends("department_ids")
+    def _compute_available_radar_template_line_ids(self):
+        template_line_model = self.env["hr.kpi.template.line"]
+        for widget in self:
+            # Tái sử dụng cùng một domain business rule để UI và backend luôn thống nhất.
+            widget.available_radar_template_line_ids = template_line_model.search(
+                widget._get_radar_template_line_domain()
+            )
 
     # Trả chart type hợp lệ theo department micro mode để UI/ORM không giữ combo cũ sai nghĩa.
     @api.model
     def _normalize_micro_chart_type_value(
-        self, widget_class, dashboard_kind, department_micro_mode, micro_chart_type
+        self,
+        widget_class,
+        dashboard_kind,
+        department_micro_mode,
+        micro_chart_type,
+        provider_key=False,
     ):
         # Chỉ micro widget mới cần logic normalize chart type.
         if widget_class != "micro":
@@ -235,8 +266,11 @@ class HrKpiDashboardWidget(models.Model):
                 return default_chart_type
             return micro_chart_type
 
-        # Stacked bar chỉ dành cho department employee compare; rời flow này thì phải clear ra.
-        if micro_chart_type == "stacked_bar":
+        # Individual chỉ giữ stacked bar cho provider target/actual đã hỗ trợ semantics này.
+        if (
+            micro_chart_type == "stacked_bar"
+            and provider_key != "generic_target_actual_bar"
+        ):
             return False
         return micro_chart_type
 
@@ -248,6 +282,7 @@ class HrKpiDashboardWidget(models.Model):
                 widget.dashboard_kind,
                 widget.department_micro_mode,
                 widget.micro_chart_type,
+                widget.provider_key,
             )
 
             # Tự đưa chart type về giá trị hợp lệ gần nhất để tránh save xong mới vướng constraint.
@@ -273,6 +308,19 @@ class HrKpiDashboardWidget(models.Model):
     def _onchange_micro_routing_fields(self):
         # Department micro dùng router khác với individual nên cần normalize ngay trên form.
         self._sync_micro_widget_configuration()
+
+    # Làm mới domain radar lines khi phạm vi department thay đổi trên widget.
+    @api.onchange("department_ids", "macro_widget_type", "widget_class")
+    def _onchange_radar_template_line_ids_domain(self):
+        radar_domain = [("id", "=", False)]
+        for widget in self:
+            radar_domain = widget._get_radar_template_line_domain()
+
+            # Bỏ các line không còn thuộc domain mới để form không giữ cấu hình lệch department.
+            widget.radar_template_line_ids = widget.radar_template_line_ids.filtered_domain(
+                radar_domain
+            )
+        return {"domain": {"radar_template_line_ids": radar_domain}}
 
     # Chuẩn hóa vals trước khi lưu để branch department và individual luôn đi đúng rule chart mới.
     @api.model
@@ -305,6 +353,7 @@ class HrKpiDashboardWidget(models.Model):
             dashboard_kind,
             department_micro_mode,
             current_chart_type,
+            provider_key,
         )
 
         # Ghi đè chart type khi combo hiện tại không còn hợp lệ theo router mới của widget.
@@ -318,6 +367,15 @@ class HrKpiDashboardWidget(models.Model):
             or provider_key != "generic_domain_daily_series"
         ):
             normalized_vals["kpi_behavior"] = False
+
+        macro_widget_type = normalized_vals.get(
+            "macro_widget_type",
+            current_widget.macro_widget_type if current_widget else False,
+        )
+
+        # Radar chart luôn đọc trực tiếp từ evaluation nên không cần cho admin chọn target model.
+        if widget_class == "macro" and macro_widget_type == "radar_chart":
+            normalized_vals["target_model"] = "evaluation"
         return normalized_vals
 
     # Làm sạch dữ liệu đầu vào ngay từ create để constraint không bị vướng bởi giá trị cũ.
@@ -501,6 +559,25 @@ class HrKpiDashboardWidget(models.Model):
                             "Radar widget '%s' must use the Performance Evaluation target model."
                         )
                         % widget.name
+                    )
+                invalid_radar_lines = widget.radar_template_line_ids.filtered(
+                    lambda line: not line.is_section
+                    or (
+                        widget.department_ids
+                        and line.kpi_id.department_id not in widget.department_ids
+                    )
+                )
+                if invalid_radar_lines:
+                    raise ValidationError(
+                        _(
+                            "Radar widget '%(widget)s' contains template lines outside the selected departments: %(lines)s."
+                        )
+                        % {
+                            "widget": widget.name,
+                            "lines": ", ".join(
+                                invalid_radar_lines.mapped("key_performance_area")
+                            ),
+                        }
                     )
 
     # Kiểm tra selector line và provider compatibility cho micro widget trên dashboard cá nhân.

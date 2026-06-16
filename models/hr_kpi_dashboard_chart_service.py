@@ -9,6 +9,23 @@ from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
 
+TARGET_100_MEASURE_FIELDS = {
+    "total_p2_1",
+    "total_p2_2",
+    "total_p3_individual",
+}
+
+CHART_COLOR_PALETTE = [
+    "#2279BA",
+    "#10b981",
+    "#f59e0b",
+    "#8b5cf6",
+    "#ef4444",
+    "#06b6d4",
+    "#84cc16",
+    "#f97316",
+]
+
 
 class HrKpiDashboardChartService(models.AbstractModel):
     _name = "hr.kpi.dashboard.chart.service"
@@ -44,6 +61,11 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 chart = self._build_macro_chart(evaluation, widget)
             if not chart:
                 continue
+
+            # Chuẩn hóa palette ở bước cuối để mọi line/bar/stacked bar đều có màu dễ phân biệt.
+            chart["chart_data"] = self._apply_visual_palette_to_chart_data(
+                chart.get("chart_data"), chart.get("chart_type")
+            )
             chart.setdefault(
                 "key",
                 "chart_widget_%s_%s"
@@ -55,12 +77,81 @@ class HrKpiDashboardChartService(models.AbstractModel):
             charts.append(chart)
         return charts
 
+    # Pha thêm alpha vào mã màu hex để tái sử dụng cùng palette cho fill và border.
+    def _with_alpha(self, color_hex, alpha_hex):
+        base_color = (color_hex or "").strip()
+        if not base_color.startswith("#") or len(base_color) != 7:
+            return color_hex
+        return f"{base_color}{alpha_hex}"
+
+    # Trả palette quay vòng theo số lượng phần tử để chart nhiều value nhìn tách bạch hơn.
+    def _get_rotated_palette(self, size, offset=0):
+        if size <= 0:
+            return []
+        palette_size = len(CHART_COLOR_PALETTE)
+        return [
+            CHART_COLOR_PALETTE[(offset + index) % palette_size]
+            for index in range(size)
+        ]
+
+    # Tô màu điểm/cột theo từng value khi chart có từ 2 giá trị trở lên.
+    def _apply_visual_palette_to_chart_data(self, chart_data, chart_type):
+        if chart_type not in {"line", "bar", "stacked_bar"}:
+            return chart_data
+        if not chart_data:
+            return chart_data
+
+        labels = list((chart_data or {}).get("labels") or [])
+        datasets = list((chart_data or {}).get("datasets") or [])
+        if len(labels) < 2 or not datasets:
+            return chart_data
+
+        styled_datasets = []
+        for dataset_index, dataset in enumerate(datasets):
+            styled_dataset = dict(dataset or {})
+            data_values = list(styled_dataset.get("data") or [])
+            if len(data_values) < 2:
+                styled_datasets.append(styled_dataset)
+                continue
+
+            # Giữ nguyên các target/reference line nét đứt để không phá semantics cảnh báo.
+            if chart_type == "line" and styled_dataset.get("borderDash"):
+                styled_datasets.append(styled_dataset)
+                continue
+
+            # Gap to Target của stacked bar phải luôn giữ màu xám để semantics thiếu hụt không bị đổi nghĩa.
+            if chart_type == "stacked_bar" and styled_dataset.get("label") == _("Gap to Target"):
+                gap_gray = "#94a3b8"
+                styled_dataset["backgroundColor"] = [
+                    self._with_alpha(gap_gray, "8C")
+                ] * len(data_values)
+                styled_dataset["borderColor"] = [gap_gray] * len(data_values)
+                styled_datasets.append(styled_dataset)
+                continue
+
+            palette = self._get_rotated_palette(len(data_values), offset=dataset_index * 2)
+            if chart_type == "line":
+                # Line chart vẫn giữ màu line chính, nhưng point color đa dạng để từng value nổi bật hơn.
+                styled_dataset["pointBackgroundColor"] = palette
+                styled_dataset["pointBorderColor"] = palette
+            else:
+                # Bar/stacked bar dùng palette theo từng cột để mắt người đọc phân biệt nhanh từng value.
+                styled_dataset["backgroundColor"] = [
+                    self._with_alpha(color, "CC") for color in palette
+                ]
+                styled_dataset["borderColor"] = palette
+            styled_datasets.append(styled_dataset)
+
+        styled_chart_data = dict(chart_data)
+        styled_chart_data["datasets"] = styled_datasets
+        return styled_chart_data
+
     def _provider_registry(self):
         return {
             "generic_target_actual_bar": {
                 "builder": self._build_generic_target_actual_bar,
                 "default_chart_type": "bar",
-                "allowed_chart_types": {"bar", "doughnut"},
+                "allowed_chart_types": {"line", "bar", "doughnut", "stacked_bar"},
                 "is_special_case": False,
                 "special_case_source": False,
             },
@@ -328,6 +419,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             "chart_meta": payload.get("chart_meta") or {},
             "provider_key": "",
             "widget_class": widget.widget_class,
+            "department_micro_mode": widget.department_micro_mode or "",
             "is_special_case": False,
             "special_case_source": False,
         }
@@ -428,6 +520,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 "chart_meta": payload.get("chart_meta") or {},
                 "provider_key": "",
                 "widget_class": widget.widget_class,
+                "department_micro_mode": widget.department_micro_mode or "",
                 "is_special_case": False,
                 "special_case_source": False,
             }
@@ -458,6 +551,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             "chart_meta": payload.get("chart_meta") or {},
             "provider_key": "",
             "widget_class": widget.widget_class,
+            "department_micro_mode": widget.department_micro_mode or "",
             "is_special_case": False,
             "special_case_source": False,
         }
@@ -551,8 +645,38 @@ class HrKpiDashboardChartService(models.AbstractModel):
             },
         }
 
+    # Trả về target chuẩn cho các measure cần vẽ đường benchmark 100 điểm.
+    def _get_macro_measure_target_value(self, measure_name):
+        # Chỉ các tổng pillar chuẩn hóa theo thang 100 mới cần benchmark line cố định.
+        if measure_name in TARGET_100_MEASURE_FIELDS:
+            return 100.0
+        return False
+
+    # Trả nhãn measure thân thiện để legend ưu tiên hiển thị theo field đo thay vì tên widget.
+    def _get_macro_measure_label(self, widget):
+        measure_field = widget.measure_field_id
+        if not measure_field:
+            return widget.name or _("Measure")
+        return measure_field.field_description or measure_field.name or widget.name or _(
+            "Measure"
+        )
+
+    # Tạo metadata trục Y đủ chỗ cho benchmark line để target 100 không bị vẽ ra ngoài chart area.
+    def _build_macro_target_axis_meta(self, values, target_value):
+        if target_value is False:
+            return {}
+
+        # Các measure chuẩn hóa theo thang 100 phải luôn khóa trục Y trong khoảng 0..100.
+        return {
+            "min": 0,
+            "max": float(target_value or 100.0),
+            "beginAtZero": True,
+        }
+
+    # Dựng line chart trend và thêm benchmark line khi measure có target chuẩn.
     def _build_macro_trend(self, evaluation, widget):
         measure_name = widget.measure_field_id.name
+        measure_label = self._get_macro_measure_label(widget)
         group_by_name = widget.group_by_field_id.name
         group_by_expr = self._build_groupby_expr(widget)
         model_name = self._resolve_target_model_name(widget)
@@ -591,6 +715,42 @@ class HrKpiDashboardChartService(models.AbstractModel):
         else:
             line_color = "#10b981"
 
+        # Dataset chính hiển thị diễn biến score thực tế theo từng bucket thời gian/nhóm.
+        datasets = [
+            {
+                "label": measure_label,
+                "data": values,
+                "borderColor": line_color,
+                "backgroundColor": f"{line_color}33",
+                "pointBackgroundColor": line_color,
+                "tension": 0.3,
+                "fill": True,
+            }
+        ]
+
+        target_value = self._get_macro_measure_target_value(measure_name)
+        chart_meta = {}
+        if target_value is not False:
+            # Khi measure có target chuẩn 100, thêm đường benchmark đỏ nét đứt để người xem so sánh nhanh.
+            datasets.append(
+                {
+                    "label": _("Target"),
+                    "data": [target_value] * len(labels),
+                    "borderColor": "#dc2626",
+                    "backgroundColor": "transparent",
+                    "pointBackgroundColor": "#dc2626",
+                    "pointRadius": 0,
+                    "pointHoverRadius": 0,
+                    "borderDash": [6, 6],
+                    "tension": 0,
+                    "fill": False,
+                }
+            )
+            # Ép trục Y luôn đủ chỗ cho target line, đặc biệt khi score thực tế thấp hơn 100.
+            chart_meta["y_axis"] = self._build_macro_target_axis_meta(
+                values, target_value
+            )
+
         return {
             "widget_id": widget.id,
             "sequence": widget.sequence or 0,
@@ -598,34 +758,28 @@ class HrKpiDashboardChartService(models.AbstractModel):
             "chart_type": "line",
             "chart_data": {
                 "labels": labels,
-                "datasets": [
-                    {
-                        "label": widget.name or _("Trend"),
-                        "data": values,
-                        "borderColor": line_color,
-                        "backgroundColor": f"{line_color}33",
-                        "pointBackgroundColor": line_color,
-                        "tension": 0.3,
-                        "fill": True,
-                    }
-                ],
+                "datasets": datasets,
             },
-            "chart_meta": {},
+            "chart_meta": chart_meta,
         }
 
+    # Dựng bar chart distribution và giữ thứ tự trục thời gian ổn định khi group theo date/datetime.
     def _build_macro_distribution(self, evaluation, widget):
         measure_name = widget.measure_field_id.name
+        measure_label = self._get_macro_measure_label(widget)
         group_by_name = widget.group_by_field_id.name
         group_by_expr = self._build_groupby_expr(widget)
         model_name = self._resolve_target_model_name(widget)
         if not model_name or not measure_name or not group_by_name:
             return False
 
+        # Lấy domain nền theo widget và mở rộng thêm filter_domain nếu admin có cấu hình.
         domain = self._build_macro_distribution_domain(evaluation, widget)
         extra_domain = self._parse_filter_domain(widget.filter_domain)
         if extra_domain:
             domain.extend(extra_domain)
 
+        # Group dữ liệu theo đúng field/granularity đang cấu hình trên widget.
         distribution_data = self.env[model_name].sudo().read_group(
             domain=domain,
             fields=[f"{measure_name}:avg"],
@@ -634,15 +788,25 @@ class HrKpiDashboardChartService(models.AbstractModel):
         if not distribution_data:
             return False
 
-        distribution_data.sort(
-            key=lambda item: self._extract_aggregate_value(item, measure_name) or 0.0,
-            reverse=True,
-        )
+        # Group theo thời gian phải hiển thị theo thứ tự tăng dần thật sự của bucket để tránh tháng 6 đứng trước tháng 5.
+        if widget.group_by_ttype in ("date", "datetime"):
+            distribution_data.sort(
+                key=lambda item: self._build_time_group_sort_key(
+                    self._extract_group_value(item, group_by_expr, group_by_name)
+                )
+            )
+        else:
+            # Các distribution không phải thời gian vẫn ưu tiên sort theo giá trị để nổi bật nhóm lớn nhất.
+            distribution_data.sort(
+                key=lambda item: self._extract_aggregate_value(item, measure_name) or 0.0,
+                reverse=True,
+            )
 
         labels = []
         scores = []
         colors = []
         for item in distribution_data:
+            # Chuẩn hóa label và aggregate value để frontend luôn nhận mảng đồng bộ.
             group_value = self._extract_group_value(item, group_by_expr, group_by_name)
             labels.append(
                 self._normalize_group_label(group_value, widget.group_by_ttype)
@@ -661,6 +825,30 @@ class HrKpiDashboardChartService(models.AbstractModel):
             else:
                 colors.append("#3b82f6")
 
+        # Dataset cột chính hiển thị score aggregate của từng bucket/group.
+        datasets = [
+            {
+                "label": measure_label,
+                "data": scores,
+                "backgroundColor": colors,
+            }
+        ]
+
+        target_value = self._get_macro_measure_target_value(measure_name)
+        chart_meta = {}
+        if target_value is not False:
+            # Distribution dùng chart_meta để frontend vẽ một đường ngang full width thay vì line dataset theo tâm cột.
+            chart_meta["target_line"] = {
+                "label": _("Target"),
+                "value": target_value,
+                "color": "#dc2626",
+                "dash": [6, 6],
+            }
+            # Đồng bộ luôn scale Y để target 100 vẫn nằm trong chart dù dữ liệu thực tế còn thấp.
+            chart_meta["y_axis"] = self._build_macro_target_axis_meta(
+                scores, target_value
+            )
+
         return {
             "widget_id": widget.id,
             "sequence": widget.sequence or 0,
@@ -668,15 +856,9 @@ class HrKpiDashboardChartService(models.AbstractModel):
             "chart_type": "bar",
             "chart_data": {
                 "labels": labels,
-                "datasets": [
-                    {
-                        "label": widget.name or _("Distribution"),
-                        "data": scores,
-                        "backgroundColor": colors,
-                    }
-                ],
+                "datasets": datasets,
             },
-            "chart_meta": {},
+            "chart_meta": chart_meta,
         }
 
     def _resolve_target_model_name(self, widget):
@@ -709,19 +891,29 @@ class HrKpiDashboardChartService(models.AbstractModel):
             domain.append(("evaluation_id.department_id", "=", evaluation.department_id.id))
         return domain
 
+    # Tạo domain cho distribution và không khóa về một period khi trục X đang là thời gian.
     def _build_macro_distribution_domain(self, evaluation, widget):
+        use_time_axis = widget.group_by_ttype in ("date", "datetime")
+
+        # Khi chart đang group theo thời gian thì cần mở rộng qua nhiều kỳ để thấy nhiều cột so sánh.
         if widget.target_model == "evaluation":
-            return [
+            domain = [
                 ("department_id", "=", evaluation.department_id.id),
-                ("period_id", "=", evaluation.period_id.id),
                 ("state", "!=", "cancel"),
             ]
+            if not use_time_axis:
+                # Các distribution không dùng time axis vẫn giữ logic so sánh trong cùng kỳ như trước.
+                domain.append(("period_id", "=", evaluation.period_id.id))
+            return domain
 
-        return [
+        domain = [
             ("evaluation_id.department_id", "=", evaluation.department_id.id),
-            ("evaluation_id.period_id", "=", evaluation.period_id.id),
             ("evaluation_id.state", "!=", "cancel"),
         ]
+        if not use_time_axis:
+            # Nhánh evaluation line cũng chỉ khóa cùng kỳ khi chart không group theo thời gian.
+            domain.append(("evaluation_id.period_id", "=", evaluation.period_id.id))
+        return domain
 
     def _parse_filter_domain(self, filter_domain):
         if not filter_domain:
@@ -749,6 +941,35 @@ class HrKpiDashboardChartService(models.AbstractModel):
         if group_type in ("date", "datetime") and group_value:
             return str(group_value)
         return str(group_value or _("Undefined"))
+
+    # Chuẩn hóa raw group value của bucket thời gian thành sort key tăng dần ổn định.
+    def _build_time_group_sort_key(self, group_value):
+        normalized_value = group_value[0] if isinstance(group_value, tuple) else group_value
+        if isinstance(normalized_value, datetime.datetime):
+            return normalized_value
+        if isinstance(normalized_value, datetime.date):
+            return datetime.datetime.combine(normalized_value, datetime.time.min)
+        if not normalized_value:
+            return datetime.datetime.min
+
+        text_value = str(normalized_value).strip()
+
+        # Ưu tiên parse datetime ISO trước để giữ đúng thứ tự cả date lẫn datetime group bucket.
+        try:
+            return datetime.datetime.fromisoformat(text_value.replace(" ", "T"))
+        except ValueError:
+            pass
+
+        # Fallback cho bucket chỉ có phần ngày hoặc chỉ có year-month do read_group trả về.
+        for candidate in (f"{text_value}-01", text_value):
+            try:
+                parsed_date = fields.Date.to_date(candidate)
+                if parsed_date:
+                    return datetime.datetime.combine(parsed_date, datetime.time.min)
+            except Exception:
+                continue
+
+        return datetime.datetime.max
 
     def _group_matches_current_employee(self, group_value, evaluation):
         if not evaluation.employee_id:
@@ -803,6 +1024,41 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 "data": [target_val, actual_val],
             }
         ]
+        # Target/actual chart dùng thang điểm nguyên nên trục Y nên hiển thị số nguyên để dễ đọc.
+        chart_meta["y_axis"] = {
+            "beginAtZero": True,
+            "integerOnly": True,
+        }
+        if chart_type == "stacked_bar":
+            # Stacked bar của target/actual biểu diễn phần đạt được và phần còn thiếu tới target trên cùng một cột.
+            gap_to_target = round(max(target_val - actual_val, 0.0), 2)
+            return {
+                "chart_data": {
+                    "labels": [self._line_title(line, source)],
+                    "datasets": [
+                        {
+                            "label": _("Actual"),
+                            "data": [round(actual_val, 2)],
+                            "stack": "target_actual_progress",
+                            "backgroundColor": "rgba(3, 103, 176, 0.88)",
+                            "borderColor": "#0367b0",
+                        },
+                        {
+                            "label": _("Gap to Target"),
+                            "data": [gap_to_target],
+                            "stack": "target_actual_progress",
+                            "backgroundColor": "rgba(148, 163, 184, 0.55)",
+                            "borderColor": "#94a3b8",
+                        },
+                    ],
+                },
+                "chart_meta": {
+                    **chart_meta,
+                    "target_values": [round(target_val, 2)],
+                    "actual_values": [round(actual_val, 2)],
+                    "gap_to_target_values": [gap_to_target],
+                },
+            }
         if chart_type == "line":
             datasets[0].update(
                 {

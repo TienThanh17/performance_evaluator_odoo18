@@ -2,7 +2,7 @@
 <odoo>
     <data noupdate="1">
 
-        <record id="widget_department_micro_task_done_count" model="hr.kpi.dashboard.widget">
+        <!-- <record id="widget_department_micro_task_done_count" model="hr.kpi.dashboard.widget">
             <field name="name">So sánh Task hoàn thành của nhân viên</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">micro</field>
@@ -12,9 +12,9 @@
             <field name="employee_template_line_id" ref="line_emp_p3_tc1_item1_202604"/>
             <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
             <field name="sequence">5</field>
-        </record>
+        </record> -->
 
-        <record id="widget_department_micro_task_on_time_rate" model="hr.kpi.dashboard.widget">
+        <!-- <record id="widget_department_micro_task_on_time_rate" model="hr.kpi.dashboard.widget">
             <field name="name">So sánh tỷ lệ Task đúng hạn của nhân viên</field>
             <field name="dashboard_kind">department</field>
             <field name="widget_class">micro</field>
@@ -36,7 +36,7 @@
             <field name="employee_template_line_id" ref="line_emp_p3_tc1_item3_202604"/>
             <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
             <field name="sequence">25</field>
-        </record>
+        </record> -->
 
         <record id="widget_department_task_distribution" model="hr.kpi.dashboard.widget">
             <field name="name">Xếp hạng điểm P3.1.1</field>
@@ -99,7 +99,7 @@
         </record> -->
 
         <record id="widget_individual_score_trend" model="hr.kpi.dashboard.widget">
-            <field name="name">Xu hướng điểm</field>
+            <field name="name">Xu hướng điểm P3.1.1 cá nhân</field>
             <field name="dashboard_kind">individual</field>
             <field name="widget_class">macro</field>
             <field name="macro_widget_type">trend_line</field>
