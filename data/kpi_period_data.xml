@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="0">
+        
+        <record id="period_it_3p_202606" model="hr.kpi.period">
+            <field name="name">Tháng 06/2026</field>
+            <field name="period_type">monthly</field>
+            <field name="date_start">2026-06-01</field>
+            <field name="date_end">2026-06-30</field>
+        </record>
 
         <record id="period_it_3p_202607" model="hr.kpi.period">
             <field name="name">Tháng 07/2026</field>

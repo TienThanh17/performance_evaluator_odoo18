@@ -151,8 +151,7 @@
             <field name="step_out_of_range">nearest</field>
             <field name="step_table_json"><![CDATA[
 [
-  {"from": 0, "to": 0, "score": 100},
-  {"from": 1, "to": 1, "score": 50},
+  {"from": 0, "to": 1, "score": 100},
   {"from": 2, "to": 999, "score": 0}
 ]
             ]]></field>

@@ -438,6 +438,7 @@ class HrEvaluation3PSummary(models.Model):
         cell_center,
         cell_left,
         cell_num,
+        cell_percent,
         cell_heso_data,
     ):
         employee = summary_line.employee_id
@@ -510,28 +511,30 @@ class HrEvaluation3PSummary(models.Model):
         p3_department_penalty = float(
             snapshot.get("p3_department", {}).get("zero_weight_sum", 0.0) or 0.0
         )
-        sheet.write(row, 32, p3_individual_penalty, cell_num)
-        sheet.write(row, 35, p3_department_penalty, cell_num)
+        p3_individual_penalty_value = p3_individual_penalty / 100.0
+        p3_department_penalty_value = p3_department_penalty / 100.0
+        sheet.write(row, 32, p3_individual_penalty_value, cell_percent)
+        sheet.write(row, 35, p3_department_penalty_value, cell_percent)
 
         # Viết công thức điểm sau khi trừ penalty cho P3.1.1 và P3.1.2.
         p3_individual_penalty_cell = xl_rowcol_to_cell(row, 32)
         p3_individual_score_cell = xl_rowcol_to_cell(row, 33)
         p3_department_penalty_cell = xl_rowcol_to_cell(row, 35)
         p3_department_score_cell = xl_rowcol_to_cell(row, 36)
-        p3_individual_score_value = 100.0 - p3_individual_penalty
-        p3_department_score_value = 100.0 - p3_department_penalty
+        p3_individual_score_value = 1.0 - p3_individual_penalty_value
+        p3_department_score_value = 1.0 - p3_department_penalty_value
         sheet.write_formula(
             row,
             33,
-            f"=100-{p3_individual_penalty_cell}",
-            cell_num,
+            f"=1-{p3_individual_penalty_cell}",
+            cell_percent,
             p3_individual_score_value,
         )
         sheet.write_formula(
             row,
             36,
-            f"=100-{p3_department_penalty_cell}",
-            cell_num,
+            f"=1-{p3_department_penalty_cell}",
+            cell_percent,
             p3_department_score_value,
         )
 
@@ -539,25 +542,23 @@ class HrEvaluation3PSummary(models.Model):
         p3_individual_weight_cell = xl_rowcol_to_cell(row, 34)
         p3_department_weight_cell = xl_rowcol_to_cell(row, 37)
         p3_individual_weight_value = (
-            (p3_individual_score_value / 100.0) * (p3_individual_weight / 100.0)
+            p3_individual_score_value * (p3_individual_weight / 100.0)
         )
         p3_department_weight_value = (
-            (p3_department_score_value / 100.0) * (p3_department_weight / 100.0)
+            p3_department_score_value * (p3_department_weight / 100.0)
         )
         sheet.write_formula(
             row,
             34,
-            # f"=({p3_individual_score_cell}/100)*({p3_individual_weight}/100)",
             f"=({p3_individual_score_cell}*({p3_individual_weight}/100))",
-            cell_num,
+            cell_percent,
             p3_individual_weight_value,
         )
         sheet.write_formula(
             row,
             37,
-            # f"=({p3_department_score_cell}/100)*({p3_department_weight}/100)",
             f"=({p3_department_score_cell}*({p3_department_weight}/100))",
-            cell_num,
+            cell_percent,
             p3_department_weight_value,
         )
 
@@ -793,6 +794,15 @@ class HrEvaluation3PSummary(models.Model):
                 "border": 1,
             }
         )
+        cell_percent = workbook.add_format(
+            {
+                "font_name": font_name,
+                "align": "center",
+                "valign": "vcenter",
+                "border": 1,
+                "num_format": "0%",
+            }
+        )
 
         # ==========================================
         # 2. CẤU HÌNH CỘT (COLUMN WIDTH)
@@ -944,6 +954,7 @@ class HrEvaluation3PSummary(models.Model):
                 cell_center,
                 cell_left,
                 cell_num,
+                cell_percent,
                 cell_heso_data,
             )
             row += 1

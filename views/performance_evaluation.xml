@@ -795,7 +795,7 @@
                                             width="140px" />
                                         <field name="scoring_formula_id"
                                             readonly="is_employee and not is_manager and not is_department_manager and not is_hr"
-                                            width="200px" />
+                                            width="315px" />
                                         <field name="unit" optional="show"
                                             invisible="is_section or kpi_type != 'auto'"
                                             readonly="is_employee and not is_manager and not is_department_manager and not is_hr"

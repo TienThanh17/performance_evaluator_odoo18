@@ -91,13 +91,6 @@
             <field name="work_email">dinh.dai.duong@example.com</field>
         </record>
 
-        <record id="period_it_3p_202604" model="hr.kpi.period">
-            <field name="name">Tháng 06/2026</field>
-            <field name="period_type">monthly</field>
-            <field name="date_start">2026-06-01</field>
-            <field name="date_end">2026-06-30</field>
-        </record>
-
         <record id="kpi_unit_vi_pham_thang" model="hr.kpi.unit">
             <field name="name">Số lần vi phạm / tháng</field>
             <field name="code">vi_pham_thang</field>
