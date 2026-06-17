@@ -28,7 +28,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         # ============================== DATA =============================
         "data/kpi_sequence.xml",
         "data/ir_config_parameter_data.xml",
-        "data/hr_evaluation_master_data.xml",
+        "data/hr_pillar_seed.xml",
         "demo/kpi_unit_data.xml",
         "data/hr_kpi_scoring_profile_data.xml",
         "data/hr_kpi_scoring_formula_data.xml",
@@ -39,9 +39,8 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "data/hr_kpi_pkt_ltd_3p_2026_04_seed.xml",
         "data/hr_kpi_ptk_ltd_3p_2026_04_seed.xml",
         "data/hr_kpi_manager_pkt_ltd_3p_seed.xml",
-        "data/hr_kpi_dashboard_widget_seed.xml",
-        "data/kpi_period_data.xml",
-        # "data/hr_kpi_it_sample_data.xml",  # Requires formula_linear_higher_bonus, currently commented in formula seed
+        # "data/hr_kpi_dashboard_widget_seed.xml",
+        "data/kpi_period_seed.xml",
         "data/ir_cron_data.xml",
         # ============================== VIEWS =============================
         "views/kpi_menu_views.xml",
@@ -61,7 +60,6 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "views/performance_evaluation.xml",
         "views/hr_department_evaluation_views.xml",
         "views/hr_evaluation_3p_summary_views.xml",
-        # "views/performance_report_views.xml",
         "views/hr_score.xml",
         "views/hr_department.xml",
         "views/kpi_tree_dashboard_views.xml",

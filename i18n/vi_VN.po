@@ -209,6 +209,8 @@ msgid ""
 "<i class=\"fa fa-info-circle me-1\"/>\n"
 "                                                        <strong>Line Scoring Guide</strong>"
 msgstr ""
+"<i class=\"fa fa-info-circle me-1\"/>\n"
+"                                                        <strong>Hướng dẫn tính điểm dòng KPI</strong>"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_form
@@ -217,6 +219,8 @@ msgid ""
 "<i class=\"fa fa-info-circle me-1\"/>\n"
 "                                                    <strong>Line Scoring Guide</strong>"
 msgstr ""
+"<i class=\"fa fa-info-circle me-1\"/>\n"
+"                                                        <strong>Hướng dẫn tính điểm dòng KPI</strong>"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -294,6 +298,17 @@ msgid ""
 "                                            can auto-fill <strong>Actual</strong> before applying\n"
 "                                            the formula."
 msgstr ""
+"<strong>- KPI thủ công</strong><br/> Đạt / Không đạt: Đạt\n"
+"                                        = 100 điểm, Không đạt = 0 điểm.<br/> Đánh giá sao: 0 đến 5 sao,\n"
+"                                        mỗi sao = 20 điểm.<br/> Điểm số: nhập điểm trực tiếp\n"
+"                                        vào ô điểm số.<br/>\n"
+"                        <br/>\n"
+"                        <strong>- KPI tự động</strong><br/>\n"
+"                                        Điểm được tính toán từ <strong>Mục tiêu</strong> và <strong>\n"
+"                                        Thực tế</strong> dựa trên <strong>Công thức tính\n"
+"                                        điểm</strong> được chọn. Nếu có liên kết với nguồn dữ liệu,\n"
+"                                        hệ thống có thể tự động điền <strong>Thực tế</strong>\n"
+"                                        trước khi áp dụng công thức."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_form
@@ -310,6 +325,17 @@ msgid ""
 "                                            source is linked, the system can auto-fill <strong>\n"
 "                                            Actual</strong> before applying the formula."
 msgstr ""
+"<strong>- KPI thủ công</strong><br/> Đạt / Không đạt: Đạt\n"
+"                                        = 100 điểm, Không đạt = 0 điểm.<br/> Đánh giá sao: 0 đến 5 sao,\n"
+"                                        mỗi sao = 20 điểm.<br/> Điểm số: nhập điểm trực tiếp\n"
+"                                        vào ô điểm số.<br/>\n"
+"                        <br/>\n"
+"                        <strong>- KPI tự động</strong><br/>\n"
+"                                        Điểm được tính toán từ <strong>Mục tiêu</strong> và <strong>\n"
+"                                        Thực tế</strong> dựa trên <strong>Công thức tính\n"
+"                                        điểm</strong> được chọn. Nếu có liên kết với nguồn dữ liệu,\n"
+"                                        hệ thống có thể tự động điền <strong>Thực tế</strong>\n"
+"                                        trước khi áp dụng công thức."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_performance_evaluation_form
@@ -326,6 +352,17 @@ msgid ""
 "                                        linked, the system can auto-fill <strong>Actual</strong>\n"
 "                                        before applying the formula."
 msgstr ""
+"<strong>- KPI thủ công</strong><br/> Đạt / Không đạt: Đạt\n"
+"                                        = 100 điểm, Không đạt = 0 điểm.<br/> Đánh giá sao: 0 đến 5 sao,\n"
+"                                        mỗi sao = 20 điểm.<br/> Điểm số: nhập điểm trực tiếp\n"
+"                                        vào ô điểm số.<br/>\n"
+"                        <br/>\n"
+"                        <strong>- KPI tự động</strong><br/>\n"
+"                                        Điểm được tính toán từ <strong>Mục tiêu</strong> và <strong>\n"
+"                                        Thực tế</strong> dựa trên <strong>Công thức tính\n"
+"                                        điểm</strong> được chọn. Nếu có liên kết với nguồn dữ liệu,\n"
+"                                        hệ thống có thể tự động điền <strong>Thực tế</strong>\n"
+"                                        trước khi áp dụng công thức."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_form
@@ -342,6 +379,17 @@ msgid ""
 "                                        auto-fill <strong>Actual</strong> before applying the\n"
 "                                        formula."
 msgstr ""
+"<strong>- KPI thủ công</strong><br/> Đạt / Không đạt: Đạt\n"
+"                                        = 100 điểm, Không đạt = 0 điểm.<br/> Đánh giá sao: 0 đến 5 sao,\n"
+"                                        mỗi sao = 20 điểm.<br/> Điểm số: nhập điểm trực tiếp\n"
+"                                        vào ô điểm số.<br/>\n"
+"                        <br/>\n"
+"                        <strong>- KPI tự động</strong><br/>\n"
+"                                        Điểm được tính toán từ <strong>Mục tiêu</strong> và <strong>\n"
+"                                        Thực tế</strong> dựa trên <strong>Công thức tính\n"
+"                                        điểm</strong> được chọn. Nếu có liên kết với nguồn dữ liệu,\n"
+"                                        hệ thống có thể tự động điền <strong>Thực tế</strong>\n"
+"                                        trước khi áp dụng công thức."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_data_source_form
@@ -981,6 +1029,8 @@ msgid ""
 "Calculated when this KPI template is used in a department\n"
 "                                        evaluation."
 msgstr ""
+"Được tính toán khi mẫu KPI này được sử dụng trong phiếu đánh\n"
+"                                         giá phòng ban."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_form
@@ -988,6 +1038,8 @@ msgid ""
 "Calculated when this KPI template is used in an\n"
 "                                            evaluation."
 msgstr ""
+"Được tính toán khi mẫu KPI này được sử dụng trong phiếu đánh\n"
+"                                         giá nhân viên."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_generate_wizard_form
