@@ -343,7 +343,7 @@
               <thead>
                 <tr>
                   <th>KPI Measure</th>
-                    <th>Unit Measure</th>
+                  <th>Unit Measure</th>
                   <th>Target</th>
                   <th>Actual</th>
                   <th>Score</th>

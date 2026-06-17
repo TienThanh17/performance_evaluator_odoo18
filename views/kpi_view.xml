@@ -99,7 +99,6 @@
                         <create name="add_kpi" string="Add KPI" />
                     </control>
 
-                    <field name="sequence" readonly='1' />
                     <field name="sequence" widget="kpi_template_tree_handle" width="30px"
                         invisible="is_section" />
 
@@ -176,9 +175,8 @@
                             <group>
                                 <field name="department_id" />
                                 <field name="job_id" widget="many2many_tags" />
-                                <field name="scoring_profile_id" />
-                                <!-- <field name="department_kpi_id" options="{'no_create': True}"
-                                /> -->
+                                <!-- <field name="scoring_profile_id" /> -->
+                                <!-- <field name="department_kpi_id" options="{'no_create': True}"/> -->
                             </group>
                         </group>
 

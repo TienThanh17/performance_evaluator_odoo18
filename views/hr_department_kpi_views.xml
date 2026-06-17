@@ -82,7 +82,7 @@
                             <field name="name" />
                             <field name="department_id" />
                             <field name="period_type" />
-                            <field name="scoring_profile_id" />
+                            <!-- <field name="scoring_profile_id" /> -->
                         </group>
                     </group>
                     <notebook>

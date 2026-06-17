@@ -79,9 +79,9 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_kpi_scoring_formula"
+    <!-- <menuitem id="menu_kpi_scoring_formula"
         name="Scoring Formula"
         parent="menu_kpi_configuration"
         action="action_hr_kpi_scoring_formula"
-        sequence="25"/>
+        sequence="25"/> -->
 </odoo>
