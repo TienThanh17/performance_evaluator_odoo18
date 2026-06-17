@@ -76,11 +76,13 @@ class HrEvaluation3PSummary(models.Model):
             self.env["hr.department"].browse(department_id) if department_id else False
         )
         period = self.env["hr.kpi.period"].browse(period_id) if period_id else False
+
+        # Dùng placeholder theo vị trí để tránh lỗi KeyError khi bản dịch làm sai tên biến nội suy.
         if department and period:
-            return _("3P Summary - %(department)s - %(period)s") % {
-                "department": department.display_name,
-                "period": period.display_name,
-            }
+            return _("3P Summary - %s - %s") % (
+                department.display_name,
+                period.display_name,
+            )
         return _("3P Summary")
 
     def action_set_draft(self):

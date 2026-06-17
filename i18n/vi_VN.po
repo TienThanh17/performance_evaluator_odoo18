@@ -193,8 +193,8 @@ msgstr "Kết Quả 3P"
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_evaluation_3p_summary.py:0
-msgid "3P Summary - %(department)s - %(period)s"
-msgstr "Tóm tắt 3P - %(department)s - %( Period)s"
+msgid "3P Summary - %s - %s"
+msgstr "Tóm tắt 3P - %s - %s"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.kpi.unit,name:custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_1_gia_tri_du_an
@@ -6299,7 +6299,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Đóng góp phòng ban"
-msgstr "Đóng góp phòng cấm"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__macro_widget_type__trend_line
