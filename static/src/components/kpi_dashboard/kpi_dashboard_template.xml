@@ -120,7 +120,7 @@
                 'o_kpi_card_wide'
             "/>
             
-            <div t-attf-class="o_kpi_card o_kpi_chart_card {{ card_weight_class }}">
+            <div t-attf-class="o_kpi_card o_kpi_chart_card {{ card_weight_class }}" t-att-data-chart-type="chart.chart_type || 'bar'">
               <div class="o_kpi_card_header">
                 <span class="o_kpi_card_title">
                     <i t-attf-class="fa me-2 {{ chart.chart_type === 'doughnut' ? 'fa-pie-chart text-warning' : (chart.chart_type === 'radar' ? 'fa-bullseye text-danger' : 'fa-bar-chart text-primary') }}"/>
@@ -130,6 +130,10 @@
               
               <div t-attf-class="o_kpi_chart_container {{ chart.chart_type === 'radar' ? 'o_kpi_chart_container_large' : '' }}">
                 <canvas t-att-data-chart-key="chart.key || (chart.widget_id ? 'chart_widget_' + chart.widget_id : 'chart_' + chart_index)"></canvas>
+                <div t-if="chart.chart_type === 'doughnut' and chart.chart_meta and chart.chart_meta.center_value" class="o_kpi_doughnut_center">
+                  <div class="o_kpi_doughnut_val" t-esc="chart.chart_meta.center_value"/>
+                  <div class="o_kpi_doughnut_lbl" t-esc="chart.chart_meta.center_label"/>
+                </div>
               </div>
               
               <div t-if="chart.chart_meta?.note" class="o_kpi_chart_note text-muted text-center mt-2" style="font-size: 0.85em;">
@@ -154,10 +158,9 @@
                 <thead>
                   <tr>
                     <th>KPI Measure</th>
+                    <th>Unit Measure</th>
                     <th>Target</th>
                     <th>Actual</th>
-                    <th>Variance</th>
-                    <th>Status</th>
                     <th>Score</th>
                   </tr>
                 </thead>
@@ -165,19 +168,9 @@
                   <t t-foreach="state.data.quantitative_table" t-as="row" t-key="row_index">
                     <tr>
                       <td class="o_kpi_table_name" t-esc="row.name"/>
-                      <td>
-                        <span t-if="row.linear_direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
-                        <span t-if="row.linear_direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
-                        <span class="ms-1" t-esc="row.target"/>
-                      </td>
+                      <td t-esc="row.unit_measure"/>
+                      <td t-esc="row.target"/>
                       <td t-esc="row.actual"/>
-
-                      <td>
-                        <span t-att-class="varianceClass(row)" t-esc="formatVariance(row)"/>
-                      </td>
-                      <td>
-                        <span t-att-class="statusClass(row)" t-esc="statusText(row)"/>
-                      </td>
                       <td>
                         <b t-esc="formatScore(row.final_score, 2)"/>
                       </td>

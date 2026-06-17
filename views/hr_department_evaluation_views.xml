@@ -166,30 +166,30 @@
                         </group>
                     </group>
                     <group>
-                        <group string="Scores">
+                        <!-- <group string="Scores">
                             <group>
                                 <field name="dept_kpi_score" string="Department KPI Score"
                                     widget="badge"
                                     readonly="1" />
-                                <!--                                <field name="avg_individual_score" string="Average Individual
-                                Score"-->
-                                <!--                                    readonly="1" />-->
-                                <!--                                <field name="department_score" string="Overall Score"
-                                readonly="1" />-->
-                                <!--                                <field name="department_level" widget="badge"-->
-                                <!--                                    string="Performance Level"-->
-                                <!--                                    decoration-success="department_level == 'pass'"-->
-                                <!--                                    decoration-info="department_level == 'excellent'"-->
-                                <!--                                    decoration-danger="department_level == 'fail'" readonly="1"
-                                />-->
                             </group>
-                        </group>
+                        </group> -->
+                        <div
+                            class="score_value font-weight-bold mt-3"
+                            style="font-size: 24px; color: #7c3aed;">
+                            <label for="dept_kpi_score"
+                                string="P3.1.2 Total"
+                                class="text-uppercase small fw-bold mb-0 text-nowrap"
+                                style="color: #7c3aed;" />
+
+                            <field name="dept_kpi_score" readonly="1" nolabel="1"
+                                class="w-auto mb-0" />
+                        </div>
                     </group>
                     <notebook>
-                        <page string="P3.1.2">
-                            <h2 class="text-primary mt-2 mb-3">
+                        <page string="P3.1.2 Department KPI">
+                            <!-- <h2 class="text-primary mt-2 mb-3">
                                 <field name="pillar_p3_dept_name" readonly="1" nolabel="1" />
-                            </h2>
+                            </h2> -->
                             <button name="action_compute_auto_kpi" string="Compute KPI"
                                 type="object"
                                 class="oe_highlight"
@@ -206,17 +206,8 @@
                                     <field name="dept_source_type" column_invisible="1" />
                                     <field name="child_line_rows_json" column_invisible="1" />
 
-                                    <field name="name" string="Title" readonly="1" force_save="1"
-                                        width="400px" />
-                                    <!-- <field name="pillar_id"
-                                        options="{'no_create': True}"
-                                        invisible="is_section"
-                                        optional="show" /> -->
-                                    <!-- <field name="parent_line_id"
-                                        domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
-                                        options="{'no_create': True}"
-                                        invisible="is_section"
-                                        optional="show" /> -->
+                                    <field name="name" string="Title" readonly="1"
+                                        width="500px" />
                                     <field name="description"
                                         string="Info"
                                         widget="kpi_description_icon"
@@ -224,21 +215,31 @@
                                         invisible="is_section"
                                         optional="show" />
 
+                                    <field name="pillar_id"
+                                        options="{'no_create': True}"
+                                        invisible="is_section"
+                                        optional="hide" />
+                                    <field name="parent_line_id"
+                                        domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
+                                        options="{'no_create': True}"
+                                        invisible="is_section"
+                                        optional="hide" />
+
                                     <field name="kpi_type" readonly="1" invisible="is_section"
-                                        force_save="1" width="100px" />
+                                        width="100px" />
                                     <field name="manual_scoring_type"
                                         readonly="1"
                                         invisible="is_section or kpi_type != 'manual'"
-                                        force_save="1" width="150px" optional="hide" />
+                                        width="150px" optional="hide" />
 
                                     <field name="dept_source_type" optional="hide" readonly="1"
                                         invisible="is_section" width="140px" />
-                                    <field name="data_source_id" optional="show" readonly="1"
+                                    <field name="data_source_id" optional="hide" readonly="1"
                                         invisible="is_section or dept_source_type != 'data_source'"
                                         width="160px" />
                                     <field name="scoring_formula_id" optional="hide" readonly="1"
                                         invisible="is_section"
-                                        width="300px" />
+                                        width="320px" />
                                     <field name="manager_comment" optional="hide" width="200px"
                                         invisible="is_section" />
 
@@ -331,9 +332,9 @@
                         <strong>- Auto KPI</strong><br />
                                         Score is calculated from <strong>Target</strong> and <strong>
                                         Actual</strong> based on the selected <strong>Scoring
-                                        Formula</strong>. If a data source is linked, the system can
-                                        auto-fill <strong>Actual</strong> before applying the
-                                        formula. </div>
+                                                        Formula</strong>. If a data source is
+                                        linked, the system can auto-fill <strong>Actual</strong>
+                                        before applying the formula. </div>
                                             </details>
                                         </div>
                                     </div>

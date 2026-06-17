@@ -483,10 +483,10 @@
                             </group>
                         </group>
                         <notebook>
-                            <page string="P2.1">
-                                <h2 class="text-primary mt-2 mb-3">
+                            <page string="P2.1 Knowledge">
+                                <!-- <h2 class="text-primary mt-2 mb-3">
                                     <field name="pillar_p2_1_name" readonly="1" nolabel="1" />
-                                </h2>
+                                </h2> -->
                                 <field name="evaluation_line_p2_1_ids" widget="kpi_one2many"
                                     context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_1'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
@@ -495,7 +495,7 @@
                                         <field name="is_section" column_invisible="1" />
                                         <field name="final_rating_badge_class" column_invisible="1" />
                                         <field name="key_performance_area" string="Title"
-                                            width="300px"
+                                            width="500px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
                                         <!-- <field name="parent_line_id" optional="show"
                                         width="150px" /> -->
@@ -622,10 +622,10 @@
                                     </div>
                                 </div>
                             </page>
-                            <page string="P2.2">
-                                <h2 class="text-primary mt-2 mb-3">
+                            <page string="P2.2 Professional Skills">
+                                <!-- <h2 class="text-primary mt-2 mb-3">
                                     <field name="pillar_p2_2_name" readonly="1" nolabel="1" />
-                                </h2>
+                                </h2> -->
                                 <field name="evaluation_line_p2_2_ids" widget="kpi_one2many"
                                     context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p2_2'}">
                                     <list editable="bottom" decoration-warning="manager_edited"
@@ -634,7 +634,7 @@
                                         <field name="is_section" column_invisible="1" />
                                         <field name="final_rating_badge_class" column_invisible="1" />
                                         <field name="key_performance_area" string="Title"
-                                            width="300px"
+                                            width="500px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
                                         <!-- <field name="parent_line_id" optional="show"
                                         width="150px" /> -->
@@ -760,10 +760,10 @@
                                     </div>
                                 </div>
                             </page>
-                            <page string="P3.1.1">
-                                <h2 class="text-primary mt-2 mb-3">
+                            <page string="P3.1.1 Individual KPI">
+                                <!-- <h2 class="text-primary mt-2 mb-3">
                                     <field name="pillar_p3_ind_name" readonly="1" nolabel="1" />
-                                </h2>
+                                </h2> -->
                                 <button name="action_compute_auto_kpi"
                                     type="object"
                                     string="Compute KPI"
@@ -779,8 +779,13 @@
                                         <field name="is_auto" column_invisible="1" />
                                         <field name="final_rating_badge_class" column_invisible="1" />
                                         <field name="key_performance_area" string="Title"
-                                            width="400px"
+                                            width="500px"
                                             readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager" />
+                                        <field name="description"
+                                            string="Info"
+                                            widget="kpi_description_icon"
+                                            invisible="is_section"
+                                            optional="show" width="100px" />
                                         <field name="parent_dept_evaluation_line_id" optional="hide"
                                             invisible="is_section"
                                             readonly="is_employee and not is_manager and not is_department_manager and not is_hr"

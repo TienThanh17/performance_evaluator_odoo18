@@ -4,7 +4,7 @@
 <t t-name="performance_evaluator.DeptKpiDashboard">
 <div class="o_dept_kpi_page" t-ref="dashboardRoot">
 
-  <!-- ══ Header / Selector Bar ══ -->
+      <!-- ══ Header / Selector Bar ══ -->
   <div class="o_dept_kpi_header_bar">
     <div class="o_dept_kpi_brand">
       <i class="fa fa-building"/>
@@ -13,7 +13,7 @@
 
     <div class="o_dept_kpi_header_controls">
       <div class="o_dept_kpi_selectors">
-      <!-- Department selector -->
+            <!-- Department selector -->
         <div class="o_dept_kpi_selector_group">
           <label>Department:</label>
           <select t-on-change="onSelectDepartment">
@@ -26,7 +26,7 @@
           </select>
         </div>
 
-        <!-- Evaluation selector -->
+            <!-- Evaluation selector -->
         <t t-if="state.evaluations.length">
           <div class="o_dept_kpi_selector_group">
             <label>Evaluation:</label>
@@ -53,25 +53,25 @@
     </div>
   </div>
 
-  <!-- ══ Loading ══ -->
+      <!-- ══ Loading ══ -->
   <div t-if="state.phase === 'loading'" class="o_dept_kpi_loading">
     <div class="o_dept_kpi_spinner"/>
     <p>Loading dashboard data…</p>
   </div>
 
-  <!-- ══ Error ══ -->
+      <!-- ══ Error ══ -->
   <div t-elif="state.phase === 'error'" class="o_dept_kpi_error">
     <i class="fa fa-exclamation-triangle"/>
     <p t-esc="state.errorMsg"/>
   </div>
 
-  <!-- ══ Empty ══ -->
+      <!-- ══ Empty ══ -->
   <div t-elif="state.phase === 'empty'" class="o_dept_kpi_empty">
     <i class="fa fa-bar-chart"/>
     <p>No department evaluations found. Please select a department or create an evaluation.</p>
   </div>
 
-  <!-- ══ Dashboard Body ══ -->
+      <!-- ══ Dashboard Body ══ -->
   <div t-elif="state.phase === 'done'" class="o_dept_kpi_body">
     <t t-set="report" t-value="state.data.report_dashboard || {}"/>
 
@@ -130,14 +130,15 @@
                   <i t-att-class="chartIcon(chart.chart_type)"/>
                   <t t-esc="chart.title"/>
                 </span>
-                <!-- <span t-if="chart.subtitle" class="o_dept_kpi_dynamic_subtitle" t-esc="chart.subtitle"/> -->
+                    <!-- <span t-if="chart.subtitle" class="o_dept_kpi_dynamic_subtitle"
+                    t-esc="chart.subtitle"/> -->
               </div>
               <div class="o_dept_kpi_dynamic_header_badges">
                 <span
                   t-if="chart.department_micro_mode === 'employee_compare'"
                   class="o_dept_kpi_mode_badge o_dept_kpi_mode_badge--employee"
                 >
-                  Employee Compare
+                  Employee KPI Compare
                 </span>
                 <span
                   t-if="chart.department_micro_mode === 'department_progress'"
@@ -162,6 +163,7 @@
                   <div class="o_kpi_doughnut_lbl" t-esc="chart.chart_meta.center_label"/>
                 </div>
               </div>
+              <p t-if="chart.chart_meta and chart.chart_meta.note" class="o_kpi_chart_note" t-esc="chart.chart_meta.note"/>
             </div>
             <p t-else="" class="o_kpi_chart_note o_kpi_muted">No chart data available for this period.</p>
 
@@ -176,8 +178,6 @@
                 </div>
               </t>
             </div>
-
-            <p t-if="chart.chart_meta and chart.chart_meta.note" class="o_kpi_chart_note" t-esc="chart.chart_meta.note"/>
           </div>
         </t>
       </div>
@@ -222,7 +222,10 @@
                           <img class="pd-avatar" t-att-src="'/web/image/hr.employee/' + ev.employee_id[0] + '/image_128'" t-att-alt="ev.employee_id[1]" loading="lazy"/>
                         </t>
                         <span class="pd-emp-name">
-                          <a t-if="ev.employee_id" href="#" class="pd-employee-link" t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0], ev.id)">
+                          <a t-if="ev.employee_id" href="#" 
+                            class="pd-employee-link" 
+                            t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0], ev.id)" 
+                            t-att-data-tooltip="'Click để mở Dashboard của ' + ev.employee_id[1]"> 
                             <t t-esc="ev.employee_id[1]"/>
                           </a>
                           <t t-else="">—</t>
@@ -302,7 +305,11 @@
                       </button>
                     </td>
                     <td>
-                      <button t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}" t-on-click="() => this.openEvaluation(ev.id)">
+                      <button 
+                        t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}"
+                        t-on-click="() => this.openEvaluation(ev.id)"
+                        t-att-data-tooltip="'Click để mở Phiếu điểm của ' + ev.employee_id[1]"
+                      >
                         <i class="fa fa-chevron-right"/>
                       </button>
                     </td>
@@ -321,6 +328,7 @@
       </div>
     </div>
 
+        <!-- Quantitative Table -->
     <div class="o_dept_kpi_chart_row o_dept_kpi_chart_row--1col" style="margin-top: 20px;">
       <div class="o_dept_kpi_chart_card">
         <div class="o_dept_kpi_chart_header">
@@ -328,7 +336,6 @@
             <span class="o_dept_kpi_chart_dot o_dept_kpi_chart_dot--blue"/>
             Detailed Evaluation Log
           </div>
-          <span class="o_dept_kpi_chart_badge o_dept_kpi_chart_badge--blue">Quantitative</span>
         </div>
         <div class="o_dept_kpi_chart_body">
           <div class="o_kpi_table_wrapper">
@@ -336,10 +343,9 @@
               <thead>
                 <tr>
                   <th>KPI Measure</th>
+                    <th>Unit Measure</th>
                   <th>Target</th>
                   <th>Actual</th>
-                  <th>Variance</th>
-                  <th>Status</th>
                   <th>Score</th>
                 </tr>
               </thead>
@@ -347,14 +353,9 @@
                 <t t-foreach="state.data.quantitative_table" t-as="row" t-key="row_index">
                   <tr>
                     <td class="o_kpi_table_name" t-esc="row.name"/>
-                    <td>
-                      <span t-if="row.linear_direction === 'higher_better'" class="fa fa-arrow-up text-success"/>
-                      <span t-if="row.linear_direction === 'lower_better'" class="fa fa-arrow-down text-danger"/>
-                      <span class="ms-1" t-esc="row.target"/>
-                    </td>
+                     <td t-esc="row.unit_measure"/>
+                    <td t-esc="row.target"/>
                     <td t-esc="row.actual"/>
-                    <td><span t-att-class="varianceClass(row)" t-esc="formatVariance(row)"/></td>
-                    <td><span t-att-class="statusClass(row)" t-esc="statusText(row)"/></td>
                     <td><b t-esc="formatScore(row.final_score)"/></td>
                   </tr>
                 </t>
@@ -426,9 +427,11 @@
       </div>
     </div>
 
-  </div><!-- /o_dept_kpi_body -->
+  </div><!--
+      /o_dept_kpi_body -->
 
-</div><!-- /o_dept_kpi_page -->
+</div><!--
+    /o_dept_kpi_page -->
 </t>
 
 </templates>

@@ -86,10 +86,10 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="P3.1.2">
-                            <h2 class="text-primary mt-2 mb-3">
+                        <page string="P3.1.2 Department KPI">
+                            <!-- <h2 class="text-primary mt-2 mb-3">
                                 <field name="pillar_p3_dept_name" readonly="1" nolabel="1" />
-                            </h2>
+                            </h2> -->
                             <field name="kpi_line_ids" widget="kpi_template_tree_one2many"
                                 context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_department_line_form_popup', 'default_pillar_code': 'p3_department'}">
                                 <list editable="bottom" decoration-bf="is_section">

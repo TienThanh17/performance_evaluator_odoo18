@@ -64,7 +64,7 @@
                                 invisible="widget_class != 'micro' or dashboard_kind != 'department'"
                                 required="widget_class == 'micro' and dashboard_kind == 'department'"
                             />
-                            <div
+                            <!-- <div
                                 colspan="2"
                                 class="text-muted"
                                 invisible="widget_class != 'micro' or dashboard_kind != 'department' or department_micro_mode != 'employee_compare'"
@@ -78,7 +78,7 @@
                             >
                                 Department Progress supports Bar, Line, or Doughnut with a single
                                 selected line.
-                            </div>
+                            </div> -->
                         </group>
                         <group string="Macro Config" invisible="widget_class != 'macro'">
                             <field name="macro_widget_type" required="widget_class == 'macro'" />

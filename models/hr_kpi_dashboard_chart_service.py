@@ -115,6 +115,9 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 continue
 
             # Giữ nguyên các target/reference line nét đứt để không phá semantics cảnh báo.
+            if styled_dataset.get("type") == "line" and styled_dataset.get("borderDash"):
+                styled_datasets.append(styled_dataset)
+                continue
             if chart_type == "line" and styled_dataset.get("borderDash"):
                 styled_datasets.append(styled_dataset)
                 continue
@@ -145,6 +148,24 @@ class HrKpiDashboardChartService(models.AbstractModel):
         styled_chart_data = dict(chart_data)
         styled_chart_data["datasets"] = styled_datasets
         return styled_chart_data
+
+    # Dựng dataset line nét đứt màu đỏ từ target của từng KPI line để mọi chart cùng dùng một semantics.
+    def _build_target_reference_dataset(self, target_values):
+        # Chuẩn hóa target về list số để line/bar/stacked bar đều có thể vẽ chung một target line overlay.
+        normalized_targets = [round(float(value or 0.0), 2) for value in (target_values or [])]
+        return {
+            "type": "line",
+            "label": _("Target"),
+            "data": normalized_targets,
+            "borderColor": "#ef4444",
+            "backgroundColor": "rgba(0,0,0,0)",
+            "borderDash": [5, 4],
+            "borderWidth": 2,
+            "pointRadius": 0,
+            "pointHoverRadius": 0,
+            "fill": False,
+            "tension": 0,
+        }
 
     def _provider_registry(self):
         return {
@@ -335,7 +356,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             return False
 
         chart_type = widget.micro_chart_type or "stacked_bar"
-        if chart_type not in {"line", "stacked_bar"}:
+        if chart_type not in {"line", "bar", "stacked_bar"}:
             _logger.warning(
                 "Skipping department employee compare widget '%s': chart type '%s' is not supported for mode '%s'.",
                 widget.display_name,
@@ -357,7 +378,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             or _("Employee Comparison")
         )
 
-        # Line giữ semantics Target/Actual hiện tại; stacked bar dùng Actual + Gap to Target.
+        # Employee compare bar/line dùng actual làm series chính và target line đỏ làm benchmark theo từng nhân viên.
         if chart_type == "stacked_bar":
             payload = self._build_department_employee_compare_stacked_payload(
                 labels,
@@ -365,34 +386,25 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 target_values,
             )
         else:
-            # Line chart dùng target chuẩn từ template line để render một đường tham chiếu ngang cho cả nhóm nhân viên.
-            reference_target = round(
-                float(widget.employee_template_line_id.target or 0.0), 2
-            )
             datasets = [
-                {
-                    "label": _("Target"),
-                    "data": [reference_target] * len(labels),
-                    "borderColor": "#ef4444",
-                    "backgroundColor": "rgba(0,0,0,0)",
-                    "borderDash": [5, 4],
-                    "borderWidth": 2,
-                    "pointRadius": 0,
-                    "pointHoverRadius": 0,
-                    "fill": False,
-                    "tension": 0,
-                },
                 {
                     "label": _("Actual"),
                     "data": actual_values,
-                    "borderColor": "#2279BA",
-                    "pointBackgroundColor": "#2279BA",
-                    "pointBorderColor": "#2279BA",
-                    "fill": False,
-                    "tension": 0.3,
-                    "pointRadius": 4,
                 },
+                self._build_target_reference_dataset(target_values),
             ]
+            if chart_type == "line":
+                # Line chart giữ point/tension ở dataset actual để xu hướng so sánh giữa nhân viên đọc dễ hơn.
+                datasets[0].update(
+                    {
+                        "borderColor": "#2279BA",
+                        "pointBackgroundColor": "#2279BA",
+                        "pointBorderColor": "#2279BA",
+                        "fill": False,
+                        "tension": 0.3,
+                        "pointRadius": 4,
+                    }
+                )
             payload = {
                 "chart_data": {
                     "labels": labels,
@@ -400,6 +412,10 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 },
                 "chart_meta": {
                     # "note": _("Comparing employee target and actual values."),
+                    "y_axis": {
+                        "beginAtZero": True,
+                        "integerOnly": True,
+                    },
                 },
             }
 
@@ -452,6 +468,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                         "backgroundColor": "rgba(148, 163, 184, 0.55)",
                         "borderColor": "#94a3b8",
                     },
+                    self._build_target_reference_dataset(target_values),
                 ],
             },
             "chart_meta": {
@@ -459,6 +476,10 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 "target_values": target_values,
                 "actual_values": actual_values,
                 "gap_to_target_values": gap_to_target_values,
+                "y_axis": {
+                    "beginAtZero": True,
+                    "integerOnly": True,
+                },
             },
         }
 
@@ -469,7 +490,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             return False
 
         chart_type = widget.micro_chart_type or "bar"
-        if chart_type not in {"bar", "line", "doughnut"}:
+        if chart_type not in {"bar", "line", "doughnut", "stacked_bar"}:
             _logger.warning(
                 "Skipping department progress widget '%s': chart type '%s' is not supported for mode '%s'.",
                 widget.display_name,
@@ -1018,12 +1039,8 @@ class HrKpiDashboardChartService(models.AbstractModel):
             }
             return {"chart_data": chart_data, "chart_meta": chart_meta}
 
-        datasets = [
-            {
-                "label": self._line_title(line, source),
-                "data": [target_val, actual_val],
-            }
-        ]
+        actual_label = self._line_title(line, source)
+        target_dataset = self._build_target_reference_dataset([target_val])
         # Target/actual chart dùng thang điểm nguyên nên trục Y nên hiển thị số nguyên để dễ đọc.
         chart_meta["y_axis"] = {
             "beginAtZero": True,
@@ -1034,7 +1051,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
             gap_to_target = round(max(target_val - actual_val, 0.0), 2)
             return {
                 "chart_data": {
-                    "labels": [self._line_title(line, source)],
+                    "labels": [actual_label],
                     "datasets": [
                         {
                             "label": _("Actual"),
@@ -1050,6 +1067,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                             "backgroundColor": "rgba(148, 163, 184, 0.55)",
                             "borderColor": "#94a3b8",
                         },
+                        target_dataset,
                     ],
                 },
                 "chart_meta": {
@@ -1060,17 +1078,34 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 },
             }
         if chart_type == "line":
-            datasets[0].update(
-                {
-                    "fill": False,
-                    "tension": 0.3,
-                    "pointRadius": 4,
-                }
-            )
+            # Line chart của target/actual cần giữ lại hai điểm Target và Actual như UX cũ,
+            # đồng thời phủ thêm một đường target nét đứt để người xem vẫn thấy mốc chuẩn rõ ràng.
+            return {
+                "chart_data": {
+                    "labels": [_("Target"), _("Actual")],
+                    "datasets": [
+                        {
+                            "label": actual_label,
+                            "data": [round(target_val, 2), round(actual_val, 2)],
+                            "fill": False,
+                            "tension": 0.3,
+                            "pointRadius": 4,
+                        },
+                        self._build_target_reference_dataset([target_val, target_val]),
+                    ],
+                },
+                "chart_meta": chart_meta,
+            }
         return {
             "chart_data": {
-                "labels": [_("Target"), _("Actual")],
-                "datasets": datasets,
+                "labels": [actual_label],
+                "datasets": [
+                    {
+                        "label": actual_label,
+                        "data": [round(actual_val, 2)],
+                    },
+                    target_dataset,
+                ],
             },
             "chart_meta": chart_meta,
         }
@@ -1082,25 +1117,59 @@ class HrKpiDashboardChartService(models.AbstractModel):
         labels = [label_getter(line) for line in lines]
         target_values = [round(float(line.target or 0.0), 2) for line in lines]
         actual_values = [round(float(line.actual or 0.0), 2) for line in lines]
+        target_dataset = self._build_target_reference_dataset(target_values)
+        if chart_type == "stacked_bar":
+            # Stacked bar hiển thị phần đạt được và phần còn thiếu theo từng line, sau đó phủ target line lên trên.
+            gap_to_target_values = [
+                round(max(target - actual, 0.0), 2)
+                for target, actual in zip(target_values, actual_values)
+            ]
+            return {
+                "chart_data": {
+                    "labels": labels,
+                    "datasets": [
+                        {
+                            "label": _("Actual"),
+                            "data": actual_values,
+                            "stack": "target_actual_progress",
+                            "backgroundColor": "rgba(3, 103, 176, 0.88)",
+                            "borderColor": "#0367b0",
+                        },
+                        {
+                            "label": _("Gap to Target"),
+                            "data": gap_to_target_values,
+                            "stack": "target_actual_progress",
+                            "backgroundColor": "rgba(148, 163, 184, 0.55)",
+                            "borderColor": "#94a3b8",
+                        },
+                        target_dataset,
+                    ],
+                },
+                "chart_meta": {
+                    "y_axis": {
+                        "beginAtZero": True,
+                        "integerOnly": True,
+                    },
+                    "target_values": target_values,
+                    "actual_values": actual_values,
+                    "gap_to_target_values": gap_to_target_values,
+                },
+            }
         datasets = [
-            {
-                "label": _("Target"),
-                "data": target_values,
-            },
             {
                 "label": _("Actual"),
                 "data": actual_values,
             },
+            target_dataset,
         ]
         if chart_type == "line":
-            for dataset in datasets:
-                dataset.update(
-                    {
-                        "fill": False,
-                        "tension": 0.3,
-                        "pointRadius": 4,
-                    }
-                )
+            datasets[0].update(
+                {
+                    "fill": False,
+                    "tension": 0.3,
+                    "pointRadius": 4,
+                }
+            )
         return {
             "chart_data": {
                 "labels": labels,
@@ -1108,6 +1177,10 @@ class HrKpiDashboardChartService(models.AbstractModel):
             },
             "chart_meta": {
                 # "note": _("Comparing Target and Actual values."),
+                "y_axis": {
+                    "beginAtZero": True,
+                    "integerOnly": True,
+                },
             },
         }
 

@@ -51,8 +51,8 @@ INDIVIDUAL_PROVIDER_ALLOWED_CHART_TYPES = {
 }
 
 DEPARTMENT_MICRO_ALLOWED_CHART_TYPES = {
-    "employee_compare": {"line", "stacked_bar"},
-    "department_progress": {"bar", "line", "doughnut"},
+    "employee_compare": {"line", "bar", "stacked_bar"},
+    "department_progress": {"bar", "line", "doughnut", "stacked_bar"},
 }
 
 DEPARTMENT_MICRO_DEFAULT_CHART_TYPES = {
@@ -104,7 +104,7 @@ class HrKpiDashboardWidget(models.Model):
     micro_chart_type = fields.Selection(
         MICRO_CHART_TYPE_SELECTION,
         string="Chart Type",
-        help="Department widgets: Employee Compare supports Line or Stacked Bar. Department Progress supports Bar, Line, or Doughnut with a single selected line.",
+        help="Department widgets: Employee Compare supports Line, Bar, or Stacked Bar. Department Progress supports Bar, Line, Doughnut, or Stacked Bar. Doughnut still requires exactly one selected line.",
     )
     kpi_behavior = fields.Selection(
         KPI_BEHAVIOR_SELECTION,

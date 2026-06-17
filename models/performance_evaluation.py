@@ -433,36 +433,6 @@ class PerformanceEvaluation(models.Model):
                     </div>
                 """
 
-    # @api.constrains("period", "performance_report_id")
-    # def _check_period_active(self):
-    #     for record in self:
-    #         matching_alerts = self.env["hr.performance.report"].search(
-    #             [("active", "=", True), ("period", "=", record.period)]
-    #         )
-    #         if not matching_alerts:
-    #             raise ValidationError(
-    #                 f"The selected period '{record.period}' is not valid for any active evaluation alert. "
-    #                 f"Please ensure there is at least one active alert with this period."
-    #             )
-
-    # @api.model
-    # def default_get(self, fields_list):
-    #     defaults = super().default_get(fields_list)
-    #     active_alert = self.env["hr.performance.report"].search(
-    #         [("active", "=", True)], limit=1
-    #     )
-    #     if active_alert:
-    #         defaults.update(
-    #             {
-    #                 "evaluation_alert_id": active_alert.id,
-    #                 "start_date": active_alert.start_date,
-    #                 "end_date": active_alert.end_date,
-    #                 "deadline": active_alert.deadline,
-    #                 "period": active_alert.period,
-    #             }
-    #         )
-    #     return defaults
-
     def action_submit(self):
         base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
         for record in self:
@@ -1156,68 +1126,34 @@ class PerformanceEvaluation(models.Model):
         return result
 
     # ------------------------------------------------------------------
-    # Spider Web – manual KPI lines
-    # ------------------------------------------------------------------
-    # def _get_spider_web_data(self, evaluation):
-    #     lines = evaluation.evaluation_line_ids.filtered(
-    #         lambda l: not l.is_section and l.kpi_type == "manual"
-    #     )
-    #     labels = []
-    #     scores = []
-    #     max_val = self.env["res.config.settings"].get_score_scale_base()
-
-    #     for line in lines:
-    #         labels.append(line.key_performance_area or "KPI")
-    #         scores.append(round(float(line.final_rating or 0.0), 2))
-
-    #     return {
-    #         "labels": labels,
-    #         "scores": scores,
-    #         "max": max_val,
-    #     }
-
-    # ------------------------------------------------------------------
     # Quantitative Table
     # ------------------------------------------------------------------
+    # Trả toàn bộ dòng KPI auto có dữ liệu định lượng để bảng log không bỏ sót các line con dưới section.
+    # Chuẩn bị dữ liệu bảng KPI định lượng cho dashboard, tách riêng đơn vị đo thành một cột độc lập.
     def _get_quantitative_table_data(self, evaluation):
+        # Chỉ bỏ section/note; các KPI auto là line con vẫn phải xuất hiện trong bảng chi tiết.
         lines = evaluation.evaluation_line_ids.filtered(
-            lambda l: not l.is_section and not l.parent_line_id and l.kpi_type == "auto"
-        )
+            lambda l: not l.is_section and l.kpi_type == "auto"
+        ).sorted(key=lambda l: (l.sequence or 0, l.id or 0))
         rows = []
         for line in lines:
+            # Chuẩn hóa số liệu gốc trước khi format để variance và final score dùng cùng một nguồn.
             target = float(line.target or 0.0)
             actual = float(line.actual or 0.0)
             final = float(line.final_rating or 0.0)
 
-            if target != 0:
-                variance_pct = round((actual - target) / abs(target) * 100, 1)
-            else:
-                variance_pct = 0.0
+            unit_text = line.unit.name if line.unit else ""
+            # Giữ target/actual ở dạng số đã format gọn để frontend render trực tiếp.
+            target_text = f"{target:g}"
+            actual_text = f"{actual:g}"
 
-            if line.unit and line.unit.code == "percent":
-                target_text = f"{target:g}%"
-                actual_text = f"{actual:g}%"
-            else:
-                unit_name = line.unit.name if line.unit else ""
-                target_text = f"{target:g} {unit_name}" if unit_name else f"{target:g}"
-                actual_text = f"{actual:g} {unit_name}" if unit_name else f"{actual:g}"
-            formula = (
-                line.kpi_line_id.get_effective_formula() if line.kpi_line_id else False
-            )
             rows.append(
                 {
                     "name": line.key_performance_area or "",
+                    "unit_measure": unit_text,
                     "target": target_text,
                     "actual": actual_text,
-                    "variance": variance_pct,
-                    "final_score": round(final, 2),
-                    "linear_direction": (
-                        formula.linear_direction
-                        if formula
-                        and formula.formula_type == "linear"
-                        and formula.linear_direction
-                        else "higher_better"
-                    ),
+                    "final_score": round(final, 2)
                 }
             )
         return rows

@@ -826,8 +826,13 @@ export class DeptKpiDashboard extends Component {
         const isHourAxis = yAxis.format === "hour";
         const yTicks = {
             stepSize: yAxis.stepSize,
-            callback: isHourAxis ? (value) => formatHour(value) : undefined,
+            font: { size: 12 },
         };
+        if (isHourAxis) {
+            yTicks.callback = (value) => formatHour(value);
+        } else if (yAxis.integerOnly) {
+            yTicks.callback = (value) => (Number.isInteger(value) ? value : "");
+        }
         return new Chart(ctx, {
             type: "line",
             data: {
@@ -853,7 +858,7 @@ export class DeptKpiDashboard extends Component {
                 },
                 scales: {
                     x: {
-                        ticks: { maxTicksLimit: 10, font: { size: 10 } },
+                        ticks: { maxTicksLimit: 10, font: { size: 12 } },
                         grid: { display: false },
                     },
                     y: {
@@ -876,42 +881,92 @@ export class DeptKpiDashboard extends Component {
         const chartMeta = chartInfo.chart_meta || {};
         const targetLine = chartMeta.target_line || null;
         const yAxis = chartMeta.y_axis || {};
-        const datasets = (chartData.datasets || []).map((dataset) => ({
-            backgroundColor: C_BLUE,
-            borderRadius: 6,
-            maxBarThickness: 42,
-            ...dataset,
-        }));
-        const fullWidthTargetLinePlugin = targetLine
-            ? {
-                  id: `fullWidthTargetLine_${chartInfo.widget_id || "bar"}`,
-                  afterDatasetsDraw: (chart) => {
-                      if (chart.$targetLineHidden) {
-                          return;
-                      }
-                      const {
-                          ctx: chartCtx,
-                          chartArea,
-                          scales: { y },
-                      } = chart;
-                      if (!chartArea || !y) {
-                          return;
-                      }
+        const yTicks = { font: { size: 12 } };
+        if (yAxis.integerOnly) {
+            yTicks.callback = (value) => (Number.isInteger(value) ? value : "");
+        }
+        const datasets = (chartData.datasets || []).map((dataset) => {
+            const isTargetLine =
+                dataset?.type === "line" ||
+                (Array.isArray(dataset?.borderDash) && dataset.borderDash.length > 0);
+            if (isTargetLine) {
+                return {
+                    type: "line",
+                    borderColor: C_RED,
+                    backgroundColor: "rgba(0,0,0,0)",
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    fill: false,
+                    tension: 0,
+                    ...dataset,
+                };
+            }
+            return {
+                backgroundColor: C_BLUE,
+                borderRadius: 6,
+                maxBarThickness: 42,
+                ...dataset,
+            };
+        });
+        const referenceLinePlugin = {
+            id: `datasetReferenceLine_${chartInfo.widget_id || "bar"}`,
+            afterDatasetsDraw: (chart) => {
+                const {
+                    ctx: chartCtx,
+                    chartArea,
+                    scales: { x, y },
+                } = chart;
+                if (!chartArea || !x || !y) {
+                    return;
+                }
 
-                      // Vẽ đường target phủ toàn bộ chart area để mốc chuẩn không bị co vào giữa các cột.
-                      const yPos = y.getPixelForValue(targetLine.value);
-                      chartCtx.save();
-                      chartCtx.beginPath();
-                      chartCtx.moveTo(chartArea.left, yPos);
-                      chartCtx.lineTo(chartArea.right, yPos);
-                      chartCtx.lineWidth = 1.5;
-                      chartCtx.strokeStyle = targetLine.color || C_RED;
-                      chartCtx.setLineDash(targetLine.dash || [6, 6]);
-                      chartCtx.stroke();
-                      chartCtx.restore();
-                  },
-              }
-            : null;
+                chart.data.datasets.forEach((dataset, datasetIndex) => {
+                    const isReferenceLine =
+                        dataset?.type === "line" &&
+                        Array.isArray(dataset?.borderDash) &&
+                        dataset.borderDash.length > 0;
+                    if (!isReferenceLine) {
+                        return;
+                    }
+
+                    const meta = chart.getDatasetMeta(datasetIndex);
+                    if (!meta || meta.hidden) {
+                        return;
+                    }
+
+                    const values = Array.isArray(dataset.data) ? dataset.data : [];
+                    if (!values.length) {
+                        return;
+                    }
+
+                    chartCtx.save();
+                    chartCtx.beginPath();
+                    chartCtx.lineWidth = dataset.borderWidth || 2;
+                    chartCtx.strokeStyle = dataset.borderColor || C_RED;
+                    chartCtx.setLineDash(dataset.borderDash || [5, 4]);
+
+                    if (values.length === 1) {
+                        const yPos = y.getPixelForValue(values[0]);
+                        chartCtx.moveTo(chartArea.left, yPos);
+                        chartCtx.lineTo(chartArea.right, yPos);
+                    } else {
+                        values.forEach((value, valueIndex) => {
+                            const xPos = x.getPixelForValue(valueIndex);
+                            const yPos = y.getPixelForValue(value);
+                            if (valueIndex === 0) {
+                                chartCtx.moveTo(xPos, yPos);
+                            } else {
+                                chartCtx.lineTo(xPos, yPos);
+                            }
+                        });
+                    }
+
+                    chartCtx.stroke();
+                    chartCtx.restore();
+                });
+            },
+        };
         return new Chart(ctx, {
             type: "bar",
             data: {
@@ -926,7 +981,6 @@ export class DeptKpiDashboard extends Component {
                         display: datasets.length > 1 || !!targetLine,
                         onClick: (event, legendItem, legend) => {
                             if (legendItem.datasetIndex === -1) {
-                                // Toggle riêng target line ảo để tránh Chart.js xử lý như một dataset thật.
                                 legend.chart.$targetLineHidden = !legend.chart.$targetLineHidden;
                                 legend.chart.update();
                                 return;
@@ -961,11 +1015,45 @@ export class DeptKpiDashboard extends Component {
                         beginAtZero: yAxis.beginAtZero ?? true,
                         min: yAxis.min,
                         max: yAxis.max,
+                        ticks: yTicks,
                         grid: { color: "rgba(0,0,0,0.05)" },
                     },
                 },
             },
-            plugins: fullWidthTargetLinePlugin ? [fullWidthTargetLinePlugin] : [],
+            plugins: [
+                ...(targetLine
+                    ? [
+                          {
+                              id: `fullWidthTargetLine_${chartInfo.widget_id || "bar"}`,
+                              afterDatasetsDraw: (chart) => {
+                                  if (chart.$targetLineHidden) {
+                                      return;
+                                  }
+                                  const {
+                                      ctx: chartCtx,
+                                      chartArea,
+                                      scales: { y },
+                                  } = chart;
+                                  if (!chartArea || !y) {
+                                      return;
+                                  }
+
+                                  const yPos = y.getPixelForValue(targetLine.value);
+                                  chartCtx.save();
+                                  chartCtx.beginPath();
+                                  chartCtx.moveTo(chartArea.left, yPos);
+                                  chartCtx.lineTo(chartArea.right, yPos);
+                                  chartCtx.lineWidth = 1.5;
+                                  chartCtx.strokeStyle = targetLine.color || C_RED;
+                                  chartCtx.setLineDash(targetLine.dash || [6, 6]);
+                                  chartCtx.stroke();
+                                  chartCtx.restore();
+                              },
+                          },
+                      ]
+                    : []),
+                referenceLinePlugin,
+            ],
         });
     }
 
@@ -975,17 +1063,98 @@ export class DeptKpiDashboard extends Component {
         if (!ctx) return null;
         const chartData = chartInfo.chart_data || {};
         const chartMeta = chartInfo.chart_meta || {};
-        const datasets = (chartData.datasets || []).map((dataset, index) => ({
-            backgroundColor:
-                dataset.backgroundColor ||
-                (index === 0 ? "rgba(3, 103, 176, 0.88)" : "rgba(148, 163, 184, 0.55)"),
-            borderColor: dataset.borderColor || (index === 0 ? C_BLUE : C_SLATE),
-            borderWidth: 1,
-            borderRadius: 6,
-            borderSkipped: false,
-            maxBarThickness: 42,
-            ...dataset,
-        }));
+        const yAxis = chartMeta.y_axis || {};
+        const yTicks = { font: { size: 12 } };
+        if (yAxis.integerOnly) {
+            yTicks.callback = (value) => (Number.isInteger(value) ? value : "");
+        }
+        const datasets = (chartData.datasets || []).map((dataset, index) => {
+            const isTargetLine =
+                dataset?.type === "line" ||
+                (Array.isArray(dataset?.borderDash) && dataset.borderDash.length > 0);
+            if (isTargetLine) {
+                return {
+                    type: "line",
+                    borderColor: C_RED,
+                    backgroundColor: "rgba(0,0,0,0)",
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    fill: false,
+                    tension: 0,
+                    ...dataset,
+                };
+            }
+            return {
+                backgroundColor:
+                    dataset.backgroundColor ||
+                    (index === 0 ? "rgba(3, 103, 176, 0.88)" : "rgba(148, 163, 184, 0.55)"),
+                borderColor: dataset.borderColor || (index === 0 ? C_BLUE : C_SLATE),
+                borderWidth: 1,
+                borderRadius: 6,
+                borderSkipped: false,
+                maxBarThickness: 42,
+                ...dataset,
+            };
+        });
+        const referenceLinePlugin = {
+            id: `stackedReferenceLine_${chartInfo.widget_id || "stacked_bar"}`,
+            afterDatasetsDraw: (chart) => {
+                const {
+                    ctx: chartCtx,
+                    chartArea,
+                    scales: { x, y },
+                } = chart;
+                if (!chartArea || !x || !y) {
+                    return;
+                }
+
+                chart.data.datasets.forEach((dataset, datasetIndex) => {
+                    const isReferenceLine =
+                        dataset?.type === "line" &&
+                        Array.isArray(dataset?.borderDash) &&
+                        dataset.borderDash.length > 0;
+                    if (!isReferenceLine) {
+                        return;
+                    }
+
+                    const meta = chart.getDatasetMeta(datasetIndex);
+                    if (!meta || meta.hidden) {
+                        return;
+                    }
+
+                    const values = Array.isArray(dataset.data) ? dataset.data : [];
+                    if (!values.length) {
+                        return;
+                    }
+
+                    chartCtx.save();
+                    chartCtx.beginPath();
+                    chartCtx.lineWidth = dataset.borderWidth || 2;
+                    chartCtx.strokeStyle = dataset.borderColor || C_RED;
+                    chartCtx.setLineDash(dataset.borderDash || [5, 4]);
+
+                    if (values.length === 1) {
+                        const yPos = y.getPixelForValue(values[0]);
+                        chartCtx.moveTo(chartArea.left, yPos);
+                        chartCtx.lineTo(chartArea.right, yPos);
+                    } else {
+                        values.forEach((value, valueIndex) => {
+                            const xPos = x.getPixelForValue(valueIndex);
+                            const yPos = y.getPixelForValue(value);
+                            if (valueIndex === 0) {
+                                chartCtx.moveTo(xPos, yPos);
+                            } else {
+                                chartCtx.lineTo(xPos, yPos);
+                            }
+                        });
+                    }
+
+                    chartCtx.stroke();
+                    chartCtx.restore();
+                });
+            },
+        };
         return new Chart(ctx, {
             type: "bar",
             data: {
@@ -996,7 +1165,7 @@ export class DeptKpiDashboard extends Component {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: true, position: "bottom" },
+                    legend: { display: true, position: "top" },
                     tooltip: {
                         callbacks: {
                             label: (context) =>
@@ -1022,11 +1191,15 @@ export class DeptKpiDashboard extends Component {
                     },
                     y: {
                         stacked: true,
-                        beginAtZero: true,
+                        beginAtZero: yAxis.beginAtZero ?? true,
+                        min: yAxis.min,
+                        max: yAxis.max,
+                        ticks: yTicks,
                         grid: { color: "rgba(0,0,0,0.05)" },
                     },
                 },
             },
+            plugins: [referenceLinePlugin],
         });
     }
 

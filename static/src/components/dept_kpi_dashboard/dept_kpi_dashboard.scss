@@ -612,8 +612,10 @@ $dept-shadow-hover:  0 6px 24px rgba(3, 103, 176, 0.18);
 
     &--doughnut {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 12px;
       padding: 16px;
     }
   }

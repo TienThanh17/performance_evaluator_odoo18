@@ -668,48 +668,30 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         normalized_dashboard["evaluations"] = normalized_rows
         return normalized_dashboard
 
+    # Chuẩn bị dữ liệu bảng KPI định lượng của phòng ban theo cùng cấu trúc với dashboard cá nhân.
     def _get_quantitative_table_data(self):
         self.ensure_one()
+        # Chỉ lấy các KPI auto thực sự là dòng dữ liệu để hiển thị trong bảng chi tiết.
         lines = self.evaluation_line_ids.filtered(
-            lambda l: not l.is_section and not l.parent_line_id and l.kpi_type == "auto"
+            lambda l: not l.is_section and l.kpi_type == "auto"
         )
         rows = []
         for line in lines:
+            # Chuẩn hóa giá trị gốc trước khi format để các chỉ số trong bảng dùng chung một nguồn dữ liệu.
             target = float(line.target or 0.0)
             actual = float(line.actual or 0.0)
             final = float(line.final_score or 0.0)
-
-            if target != 0:
-                variance_pct = round((actual - target) / abs(target) * 100, 2)
-            else:
-                variance_pct = 0.0
-
-            if line.unit and line.unit.code == "percent":
-                target_text = f"{target:g}%"
-                actual_text = f"{actual:g}%"
-            else:
-                unit_name = line.unit.name if line.unit else ""
-                target_text = f"{target:g} {unit_name}" if unit_name else f"{target:g}"
-                actual_text = f"{actual:g} {unit_name}" if unit_name else f"{actual:g}"
-            formula = (
-                line.department_kpi_line_id.get_effective_formula()
-                if line.department_kpi_line_id
-                else False
-            )
+            unit_text = line.unit.name if line.unit else ""
+            # Giữ target/actual ở dạng số gọn để frontend render theo cùng quy ước của dashboard cá nhân.
+            target_text = f"{target:g}"
+            actual_text = f"{actual:g}"
             rows.append(
                 {
                     "name": line.name or "",
+                    "unit_measure": unit_text,
                     "target": target_text,
                     "actual": actual_text,
-                    "variance": variance_pct,
                     "final_score": round(final, 2),
-                    "linear_direction": (
-                        formula.linear_direction
-                        if formula
-                        and formula.formula_type == "linear"
-                        and formula.linear_direction
-                        else "higher_better"
-                    ),
                 }
             )
         return rows

@@ -9,26 +9,27 @@
         </record>
 
         <record id="job_it_manager_3p_202604" model="hr.job">
-            <field name="name">QTV đánh giá</field>
+            <field name="name">Trưởng Phòng IT</field>
         </record>
         <record id="job_it_leader_3p_202604" model="hr.job">
-            <field name="name">Leader</field>
+            <field name="name">Leader IT</field>
         </record>
         <record id="job_it_staff_3p_202604" model="hr.job">
-            <field name="name">Nhân Viên</field>
-        </record>
-        <record id="job_it_probation_3p_202604" model="hr.job">
-            <field name="name">Nhân Viên (Thử việc)</field>
-        </record>
-        <record id="job_it_dev_3p_202604" model="hr.job">
-            <field name="name">DEV</field>
+            <field name="name">Nhân Viên IT</field>
         </record>
 
-        <!-- <record id="dept_it_3p_202604" model="hr.department">
+        <record id="employee_it_vo_van_trong_3p_202604" model="hr.employee">
+            <field name="name">Võ Văn Trọng</field>
+            <field name="identification_id">E801</field>
+            <field name="job_id"
+                ref="custom_adecsol_hr_performance_evaluator.job_it_manager_3p_202604" />
+            <field name="work_email">vo.van.trong@example.com</field>
+        </record>
+
+        <record id="dept_it_3p_202604" model="hr.department">
             <field name="manager_id"
-            ref="custom_adecsol_hr_performance_evaluator.employee_it_manager_3p_202604"/>
-            <field name="manager_id" search="[('user_id', '=', ref('base.user_admin'))]" />
-        </record> -->
+                ref="custom_adecsol_hr_performance_evaluator.employee_it_vo_van_trong_3p_202604" />
+        </record>
 
         <record id="employee_it_pham_tommy_3p_202604" model="hr.employee">
             <field name="name">Phạm Tommy</field>
@@ -56,7 +57,7 @@
             <field name="department_id"
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
-                ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
+                ref="custom_adecsol_hr_performance_evaluator.job_it_staff_3p_202604" />
 
             <field name="work_email">do.minh.duong@example.com</field>
         </record>
@@ -66,7 +67,7 @@
             <field name="department_id"
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
-                ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
+                ref="custom_adecsol_hr_performance_evaluator.job_it_staff_3p_202604" />
 
             <field name="work_email">vo.chau.dang.khoa@example.com</field>
         </record>
@@ -76,7 +77,7 @@
             <field name="department_id"
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
-                ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
+                ref="custom_adecsol_hr_performance_evaluator.job_it_staff_3p_202604" />
 
             <field name="work_email">huynh.thanh.tien@example.com</field>
         </record>
@@ -86,7 +87,7 @@
             <field name="department_id"
                 ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
             <field name="job_id"
-                ref="custom_adecsol_hr_performance_evaluator.job_it_probation_3p_202604" />
+                ref="custom_adecsol_hr_performance_evaluator.job_it_staff_3p_202604" />
 
             <field name="work_email">dinh.dai.duong@example.com</field>
         </record>
@@ -182,7 +183,7 @@
             <field name="period_type">monthly</field>
         </record>
 
-<record id="line_dept_p3_tc1_202604" model="hr.department.kpi.template.line">
+        <record id="line_dept_p3_tc1_202604" model="hr.department.kpi.template.line">
             <field name="department_kpi_id"
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_3p_202604" />
             <field name="name">TC1 - An Toàn</field>
@@ -281,9 +282,9 @@
                     <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
                         đảm bảo tiêu chuẩn</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết bị, công cụ dụng cụ thi công
-                        có kiểm định, kiểm tra định kỳ.Dàn giáo, dây đai, thang, máy cắt, khoan,
-                        máy hàn, xe cẩu, xe nâng… có kiểm định/ chứng nhận an toàn, kiểm tra định
-                        kỳ và còn hiệu lực</p>
+                        có kiểm định, kiểm tra định kỳ.Dàn giáo, dây đai, thang, máy cắt, khoan, máy
+                        hàn, xe cẩu, xe nâng… có kiểm định/ chứng nhận an toàn, kiểm tra định kỳ và
+                        còn hiệu lực</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -651,8 +652,7 @@
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Tiến độ</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Báo cáo đúng hạn, đầy đủ thông
-                        tin</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Báo cáo đúng hạn, đầy đủ thông tin</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
                     <p><strong>Kém:</strong> 1 lần</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần</p>
@@ -767,8 +767,8 @@
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
-                        đào tạo</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế
+                        hoạch đào tạo</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Đào tạo /người</p>
                     <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
                     <p><strong>Kém:</strong> &lt;80%</p>
@@ -796,10 +796,9 @@
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
-                        đào tạo</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chất lượng nhân sự đáp ứng nhu
-                        cầu</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế
+                        hoạch đào tạo</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chất lượng nhân sự đáp ứng nhu cầu</p>
                     <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
                     <p><strong>Kém:</strong> &lt;80%</p>
                     <p><strong>Xuất sắc:</strong> 100</p>
@@ -827,8 +826,7 @@
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Nội quy công ty</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công ty, nội quy công
-                        trình</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công ty, nội quy công trình</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 lần / tháng</p>
                     <p><strong>Kém:</strong> 2lần / tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 lần / tháng</p>
@@ -2783,9 +2781,9 @@
                     <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
                         đảm bảo tiêu chuẩn</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết bị, công cụ dụng cụ thi công
-                        có kiểm định, kiểm tra định kỳ.Dàn giáo, dây đai, thang, máy cắt, khoan,
-                        máy hàn, xe cẩu, xe nâng… có kiểm định/ chứng nhận an toàn, kiểm tra định
-                        kỳ và còn hiệu lực</p>
+                        có kiểm định, kiểm tra định kỳ.Dàn giáo, dây đai, thang, máy cắt, khoan, máy
+                        hàn, xe cẩu, xe nâng… có kiểm định/ chứng nhận an toàn, kiểm tra định kỳ và
+                        còn hiệu lực</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3112,8 +3110,7 @@
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Tiến độ</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Báo cáo đúng hạn, đầy đủ thông
-                        tin</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Báo cáo đúng hạn, đầy đủ thông tin</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
                     <p><strong>Kém:</strong> 1 lần</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần</p>
@@ -3226,10 +3223,9 @@
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch
-                        đào tạo</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chất lượng nhân sự đáp ứng nhu
-                        cầu</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế
+                        hoạch đào tạo</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chất lượng nhân sự đáp ứng nhu cầu</p>
                     <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
                     <p><strong>Kém:</strong> &lt;80%</p>
                     <p><strong>Xuất sắc:</strong> 100</p>
@@ -3256,8 +3252,7 @@
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo và Phẫm chất</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Nội quy công ty</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công ty, nội quy công
-                        trình</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công ty, nội quy công trình</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 lần / tháng</p>
                     <p><strong>Kém:</strong> 2lần / tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 lần / tháng</p>
