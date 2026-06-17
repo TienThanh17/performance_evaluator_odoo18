@@ -343,7 +343,7 @@
 
                                         <field name="scoring_formula_id"
                                             invisible="is_section or kpi_type != 'auto'"
-                                            options="{'no_create': True}" width="260px" />
+                                            options="{'no_create': True}" width="300px" />
 
                                         <field name="is_auto" column_invisible="1" />
                                         <field name="data_source_id"

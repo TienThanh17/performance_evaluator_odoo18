@@ -2373,7 +2373,7 @@ msgstr "Chuỗi hàng ngày chung"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__provider_key__generic_target_actual_bar
 msgid "Generic Target vs Actual"
-msgstr "Mục tiêu chung so với thực tế"
+msgstr "So sánh Mục tiêu và Thực tế"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.kpi.unit,name:custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_gioi_han_ps_chi_phi_2

@@ -805,13 +805,13 @@
                                             readonly="1"
                                             optional="hide"
                                             width="140px" />
-                                        <field name="scoring_formula_id"
-                                            readonly="1"
-                                            width="315px" />
                                         <field name="unit" optional="show"
                                             invisible="is_section or kpi_type != 'auto'"
                                             readonly="1"
                                             width="300px" />
+                                        <field name="scoring_formula_id"
+                                            readonly="1"
+                                            width="315px" />
                                         <field name="data_source_id" invisible="kpi_type != 'auto'"
                                             width="150px"
                                             readonly="not is_manager and not is_department_manager"

@@ -237,14 +237,14 @@
                                     <field name="data_source_id" optional="hide" readonly="1"
                                         invisible="is_section or dept_source_type != 'data_source'"
                                         width="160px" />
-                                    <field name="scoring_formula_id" optional="hide" readonly="1"
-                                        invisible="is_section"
-                                        width="320px" />
                                     <field name="manager_comment" optional="hide" width="200px"
                                         invisible="is_section" />
 
                                     <field name="unit" optional="show" readonly="1"
                                         invisible="is_section or kpi_type != 'auto'" width="280px" />
+                                    <field name="scoring_formula_id" optional="hide" readonly="1"
+                                        invisible="is_section"
+                                        width="320px" />
                                     <field name="target" readonly="1"
                                         invisible="is_section or kpi_type != 'auto'" width="100px" />
                                     <field name="actual"

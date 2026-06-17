@@ -93,7 +93,7 @@
                             <field name="kpi_line_ids" widget="kpi_template_tree_one2many"
                                 context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_department_line_form_popup', 'default_pillar_code': 'p3_department'}">
                                 <list editable="bottom" decoration-bf="is_section">
-                                    <field name="sequence" widget="kpi_template_tree_handle" />
+                                    <field name="sequence" widget="kpi_template_tree_handle" invisible="is_section"/>
                                     <field name="is_section" column_invisible="True" />
                                     <field name="child_template_rows_json" column_invisible="1" />
                                     <field name="child_template_line_count" column_invisible="1" />
