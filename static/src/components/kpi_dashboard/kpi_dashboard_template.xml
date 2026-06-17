@@ -151,7 +151,7 @@
             <div class="o_kpi_card_header">
               <span class="o_kpi_card_title">
                 <i class="fa fa-table"/>
- Detailed Evaluation Log</span>
+  P3.1.1 Individual KPI</span>
             </div>
             <div class="o_kpi_table_wrapper">
               <table class="o_kpi_table" t-if="state.data.quantitative_table.length">

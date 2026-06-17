@@ -148,13 +148,13 @@
                         <group string="Comments" invisible="is_section">
                             <group>
                                 <field name="employee_comment" widget="html"
-                                    readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                    readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                     options="{'resizable': false}"
                                     style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                             </group>
                             <group>
                                 <field name="manager_comment" widget="html"
-                                    readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"
+                                    readonly="not is_admin and (evaluation_state in ('cancel', 'completed') or (not is_manager and not is_department_manager))"
                                     options="{'resizable': false}"
                                     style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                             </group>
@@ -497,51 +497,56 @@
                                         <field name="employee_rating_binary"
                                             column_invisible="not parent.has_binary_kpi_p2_1"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_current_user or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             width="150px" />
+
                                         <field name="employee_rating_selection" widget="priority"
                                             column_invisible="not parent.has_rating_kpi_p2_1"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_current_user or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             width="150px" />
+
                                         <field name="employee_rating_score"
                                             column_invisible="not parent.has_score_kpi_p2_1"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_current_user or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             width="150px" />
 
+
                                         <field name="manager_rating_binary"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr)"
-                                            column_invisible="not parent.has_binary_kpi_p2_1 or (not parent.is_hr and not parent.is_department_manager)"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_hr)"
-                                            readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager and not is_hr"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr and not is_admin)"
+                                            column_invisible="not parent.has_binary_kpi_p2_1 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'manager_evaluating' or (not is_manager and not is_department_manager))"
                                             width="150px" />
 
                                         <field name="manager_rating_selection" widget="priority"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr)"
-                                            column_invisible="not parent.has_rating_kpi_p2_1 or (not parent.is_hr and not parent.is_department_manager)"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_hr)"
-                                            readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager and not is_hr"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr and not is_admin)"
+                                            column_invisible="not parent.has_rating_kpi_p2_1 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'manager_evaluating' or (not is_manager and not is_department_manager))"
                                             width="150px" />
 
                                         <field name="manager_rating_score"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr)"
-                                            column_invisible="not parent.has_score_kpi_p2_1 or (not parent.is_hr and not parent.is_department_manager)"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_hr)"
-                                            readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager and not is_hr"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr and not is_admin)"
+                                            column_invisible="not parent.has_score_kpi_p2_1 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'manager_evaluating' or (not is_manager and not is_department_manager))"
                                             width="150px" />
 
+
                                         <field name="employee_comment"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
                                             invisible="is_section"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             optional="hide"
                                             width="220px" />
+
                                         <field name="manager_comment"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"
                                             invisible="is_section"
+                                            readonly="not is_admin and (evaluation_state in ('cancel', 'completed') or (not is_manager and not is_department_manager))"
                                             optional="hide"
                                             width="220px" />
 
@@ -641,51 +646,56 @@
                                         <field name="employee_rating_binary"
                                             column_invisible="not parent.has_binary_kpi_p2_2"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_current_user or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             width="150px" />
+
                                         <field name="employee_rating_selection" widget="priority"
                                             column_invisible="not parent.has_rating_kpi_p2_2"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_current_user or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             width="150px" />
+
                                         <field name="employee_rating_score"
                                             column_invisible="not parent.has_score_kpi_p2_2"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_current_user or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             width="150px" />
 
+
                                         <field name="manager_rating_binary"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr)"
-                                            column_invisible="not parent.has_binary_kpi_p2_2 or (not parent.is_hr and not parent.is_department_manager)"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_hr)"
-                                            readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager and not is_hr"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr and not is_admin)"
+                                            column_invisible="not parent.has_binary_kpi_p2_2 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'manager_evaluating' or (not is_manager and not is_department_manager))"
                                             width="150px" />
 
                                         <field name="manager_rating_selection" widget="priority"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr)"
-                                            column_invisible="not parent.has_rating_kpi_p2_2 or (not parent.is_hr and not parent.is_department_manager)"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_hr)"
-                                            readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager and not is_hr"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr and not is_admin)"
+                                            column_invisible="not parent.has_rating_kpi_p2_2 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'manager_evaluating' or (not is_manager and not is_department_manager))"
                                             width="150px" />
 
                                         <field name="manager_rating_score"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr)"
-                                            column_invisible="not parent.has_score_kpi_p2_2 or (not parent.is_hr and not parent.is_department_manager)"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_hr)"
-                                            readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager and not is_hr"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr and not is_admin)"
+                                            column_invisible="not parent.has_score_kpi_p2_2 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'manager_evaluating' or (not is_manager and not is_department_manager))"
                                             width="150px" />
 
+
                                         <field name="employee_comment"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
                                             invisible="is_section"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             optional="hide"
                                             width="220px" />
+
                                         <field name="manager_comment"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"
                                             invisible="is_section"
+                                            readonly="not is_admin and (evaluation_state in ('cancel', 'completed') or (not is_manager and not is_department_manager))"
                                             optional="hide"
                                             width="220px" />
 
@@ -764,7 +774,7 @@
                                 <button name="action_compute_auto_kpi"
                                     type="object"
                                     string="Compute KPI"
-                                    invisible="state in ('completed', 'cancel')"
+                                    invisible="state in ('completed', 'cancel') or (not is_admin and not is_manager and not is_current_user)"
                                     class="oe_highlight" />
                                 <field name="evaluation_line_p3_individual_ids"
                                     widget="kpi_one2many"
@@ -812,57 +822,62 @@
                                             width="100px" />
                                         <field name="actual"
                                             invisible="is_section or kpi_type != 'auto'"
-                                            readonly="data_source_id and is_employee and not is_manager and not is_department_manager and not is_hr"
+                                            readonly="not is_admin and (is_hr or (data_source_id and is_employee and not is_manager and not is_department_manager))"
                                             width="100px" />
 
                                         <field name="employee_rating_binary"
-                                            column_invisible="not parent.has_binary_kpi_p3"
+                                            column_invisible="not parent.has_score_kpi_p3"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_current_user or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             width="150px" />
+
                                         <field name="employee_rating_selection" widget="priority"
                                             column_invisible="not parent.has_rating_kpi_p3"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_current_user or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             width="150px" />
+
                                         <field name="employee_rating_score"
                                             column_invisible="not parent.has_score_kpi_p3"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score'"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_current_user or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             width="150px" />
 
+
                                         <field name="manager_rating_binary"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr)"
-                                            column_invisible="not parent.has_binary_kpi_p3 or (not parent.is_hr and not parent.is_department_manager)"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_hr)"
-                                            readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager and not is_hr"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr and not is_admin)"
+                                            column_invisible="not parent.has_score_kpi_p3 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'manager_evaluating' or (not is_manager and not is_department_manager))"
                                             width="150px" />
 
                                         <field name="manager_rating_selection" widget="priority"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr)"
-                                            column_invisible="not parent.has_rating_kpi_p3 or (not parent.is_hr and not parent.is_department_manager)"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_hr)"
-                                            readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager and not is_hr"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr and not is_admin)"
+                                            column_invisible="not parent.has_rating_kpi_p3 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'manager_evaluating' or (not is_manager and not is_department_manager))"
                                             width="150px" />
 
                                         <field name="manager_rating_score"
-                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr)"
-                                            column_invisible="not parent.has_score_kpi_p3 or (not parent.is_hr and not parent.is_department_manager)"
-                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_hr)"
-                                            readonly="evaluation_state != 'manager_evaluating' and not is_manager and not is_department_manager and not is_hr"
+                                            invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr and not is_admin)"
+                                            column_invisible="not parent.has_score_kpi_p3 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
+                                            required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_admin)"
+                                            readonly="not is_admin and (evaluation_state != 'manager_evaluating' or (not is_manager and not is_department_manager))"
                                             width="150px" />
 
+
                                         <field name="employee_comment"
-                                            readonly="evaluation_state != 'self_evaluation' or not is_current_user"
                                             invisible="is_section"
+                                            readonly="not is_admin and (evaluation_state != 'self_evaluation' or not is_current_user)"
                                             optional="hide"
                                             width="220px" />
+
                                         <field name="manager_comment"
-                                            readonly="evaluation_state in ('cancel', 'completed') or not is_manager and not is_department_manager"
                                             invisible="is_section"
+                                            readonly="not is_admin and (evaluation_state in ('cancel', 'completed') or (not is_manager and not is_department_manager))"
                                             optional="hide"
                                             width="220px" />
 

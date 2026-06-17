@@ -234,6 +234,10 @@ class PerformanceEvaluation(models.Model):
         store=False,
     )
 
+    is_employee = fields.Boolean(
+        compute="_compute_role",
+        store=False,
+    )
     is_manager = fields.Boolean(
         compute="_compute_role",
         store=False,
@@ -242,10 +246,11 @@ class PerformanceEvaluation(models.Model):
         compute="_compute_role",
         store=False,
     )
-    is_employee = fields.Boolean(
+    is_admin = fields.Boolean(
         compute="_compute_role",
         store=False,
     )
+
     is_current_user = fields.Boolean(compute="_compute_is_current_user", store=False)
     is_department_manager = fields.Boolean(
         compute="_compute_is_department_manager", store=False
@@ -296,11 +301,15 @@ class PerformanceEvaluation(models.Model):
         is_employee = self.env.user.has_group(
             "custom_adecsol_hr_performance_evaluator.group_employee"
         )
+        is_admin = self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_admin"
+        )
 
         for rec in self:
             rec.is_manager = is_manager
             rec.is_hr = is_hr
             rec.is_employee = is_employee
+            rec.is_admin = is_admin
 
     @api.depends("employee_id.user_id")
     def _compute_is_current_user(self):
