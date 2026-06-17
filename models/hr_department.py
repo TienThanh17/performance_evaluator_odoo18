@@ -26,6 +26,7 @@ class HrDepartment(models.Model):
         string="Department KPI Score",
         compute="_compute_dept_kpi_score",
         help="Latest department KPI score from department performance evaluations.",
+        compute_sudo=True,
     )
 
     department_evaluation_ids = fields.One2many(
@@ -52,15 +53,15 @@ class HrDepartment(models.Model):
     #             rec.department_score = 0.0
     #             rec.department_level = False
 
-    @api.depends(
-        "department_evaluation_ids.dept_kpi_score",
-        "department_evaluation_ids.end_date",
-        "department_evaluation_ids.start_date",
-        "department_evaluation_ids.state",
-    )
+    # @api.depends(
+    #     "department_evaluation_ids.dept_kpi_score",
+    #     "department_evaluation_ids.end_date",
+    #     "department_evaluation_ids.start_date",
+    #     "department_evaluation_ids.state",
+    # )
     def _compute_dept_kpi_score(self):
         for dept in self:
-            evaluation = self.env["hr.department.performance.evaluation"].search(
+            evaluation = self.env["hr.department.performance.evaluation"].sudo().search(
                 [
                     ("department_id", "=", dept.id),
                     ("state", "!=", "cancel"),

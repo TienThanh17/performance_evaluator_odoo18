@@ -6,6 +6,7 @@ class HREmployee(models.Model):
     total_p3_individual_score = fields.Float(
         string="Individual KPI Score",
         compute="_compute_total_p3_individual_score",
+        compute_sudo=True, # Thêm dòng này
     )
 
     # 1. Thêm trường One2many để Odoo có thể theo dõi dữ liệu thay đổi
@@ -16,15 +17,15 @@ class HREmployee(models.Model):
     )
 
     # 2. Khai báo @api.depends dựa trên trường One2many
-    @api.depends(
-        "evaluation_ids.total_p3_individual",
-        "evaluation_ids.deadline",
-        "evaluation_ids.start_date",
-    )
+    # @api.depends(
+    #     "evaluation_ids.total_p3_individual",
+    #     "evaluation_ids.deadline",
+    #     "evaluation_ids.start_date",
+    # )
     def _compute_total_p3_individual_score(self):
         for employee in self:
             # Fetch the most recent performance evaluation for this employee
-            evaluation = self.env['hr.performance.evaluation'].search([
+            evaluation = self.env['hr.performance.evaluation'].sudo().search([
                 ('employee_id', '=', employee.id)
             ], order='start_date desc', limit=1)
 
