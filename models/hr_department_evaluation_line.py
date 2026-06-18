@@ -197,6 +197,19 @@ class HrDepartmentEvaluationLine(models.Model):
         compute="_compute_child_line_trace",
         store=False,
     )
+    evaluation_state = fields.Selection(
+        related="evaluation_id.state",
+        string="Evaluation State",
+        store=False,
+        readonly=True,
+    )
+    is_manager = fields.Boolean(related="evaluation_id.is_manager", store=False)
+    is_hr = fields.Boolean(related="evaluation_id.is_hr", store=False)
+    is_admin = fields.Boolean(related="evaluation_id.is_admin", store=False)
+    is_department_manager = fields.Boolean(
+        related="evaluation_id.is_department_manager",
+        store=False,
+    )
 
     def _get_chatter_tracked_fields(self, vals):
         return [

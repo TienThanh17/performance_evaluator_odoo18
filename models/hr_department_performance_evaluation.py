@@ -87,6 +87,22 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_rating_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
     has_score_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)
+    is_manager = fields.Boolean(
+        compute="_compute_role",
+        store=False,
+    )
+    is_hr = fields.Boolean(
+        compute="_compute_role",
+        store=False,
+    )
+    is_admin = fields.Boolean(
+        compute="_compute_role",
+        store=False,
+    )
+    is_department_manager = fields.Boolean(
+        compute="_compute_is_department_manager",
+        store=False,
+    )
 
     def _compute_dynamic_pillar_names(self):
         pillars = self.env['hr.evaluation.pillar'].sudo().search([
@@ -98,6 +114,37 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     def _compute_period_id(self):
         for rec in self:
             rec.period_id = rec.performance_report_id.period_id
+
+    # Xác định role của user hiện tại để form phòng ban khóa/mở field theo đúng nghiệp vụ.
+    @api.depends_context("uid")
+    def _compute_role(self):
+        # Kiểm tra group một lần cho toàn bộ batch để tránh lặp truy vấn không cần thiết.
+        is_manager = self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_manager"
+        )
+        is_hr = self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_hr"
+        )
+        is_admin = self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_admin"
+        )
+
+        for rec in self:
+            # Gán cờ kỹ thuật cho view dùng trong readonly/invisible expression.
+            rec.is_manager = is_manager
+            rec.is_hr = is_hr
+            rec.is_admin = is_admin
+
+    # Kiểm tra user hiện tại có phải quản lý trực tiếp của phòng ban trên phiếu hay không.
+    @api.depends("department_id.manager_id.user_id")
+    @api.depends_context("uid")
+    def _compute_is_department_manager(self):
+        for rec in self:
+            # So sánh trực tiếp record user để tránh xử lý thủ công theo id.
+            manager_user = rec.department_id.manager_id.user_id
+            rec.is_department_manager = bool(
+                manager_user and manager_user == self.env.user
+            )
 
     # Detect which manual scoring widgets must stay visible in the department grid.
     @api.depends(

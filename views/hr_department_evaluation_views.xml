@@ -8,55 +8,62 @@
                 <sheet>
                     <field name="is_section" invisible="1" />
                     <field name="is_auto" invisible="1" />
+                    <field name="is_manager" invisible="1" />
+                    <field name="is_hr" invisible="1" />
+                    <field name="is_admin" invisible="1" />
+                    <field name="evaluation_state" invisible="1" />
 
                     <div class="oe_title">
                         <h2 class="mb-1">
-                            <field name="name" placeholder="Key Performance Area" />
+                            <field name="name" placeholder="Key Performance Area" readonly="1" />
                         </h2>
                     </div>
 
                     <group string="Structure">
                         <group>
-                            <field name="pillar_id" options="{'no_create': True}" />
+                            <field name="pillar_id" options="{'no_create': True}" readonly="1" />
                         </group>
                         <group>
                             <field name="parent_line_id"
                                 domain="[('evaluation_id', '=', evaluation_id), ('id', '!=', id)]"
-                                options="{'no_create': True}" />
+                                options="{'no_create': True}" readonly="1" />
                         </group>
                     </group>
 
                     <group string="Assessment" invisible="is_section or kpi_type == 'auto'">
                         <group>
                             <field name="manual_scoring_type"
-                                invisible="kpi_type != 'manual'" />
+                                invisible="kpi_type != 'manual'" readonly="1" />
                             <label for="manager_rating_binary" string="Manager Rating"
                                 invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'" />
                             <field name="manager_rating_binary" nolabel="1" widget="radio"
-                                invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'" />
+                                invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'"
+                                readonly="1" />
 
                             <label for="manager_rating_selection" string="Manager Rating"
                                 invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'" />
                             <field name="manager_rating_selection" nolabel="1"
                                 widget="priority_onchange"
-                                invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'" />
+                                invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'"
+                                readonly="1" />
 
                             <label for="manager_rating_score" string="Manager Score"
                                 invisible="kpi_type != 'manual' or manual_scoring_type != 'score'" />
                             <field name="manager_rating_score" nolabel="1"
-                                invisible="kpi_type != 'manual' or manual_scoring_type != 'score'" />
+                                invisible="kpi_type != 'manual' or manual_scoring_type != 'score'"
+                                readonly="1" />
                         </group>
                         <group />
                     </group>
 
                     <group string="Target / Actual" invisible="is_section or kpi_type != 'auto'">
                         <group>
-                            <field name="target" />
-                            <field name="unit" invisible="kpi_type != 'auto'" />
+                            <field name="target" readonly="1" />
+                            <field name="unit" invisible="kpi_type != 'auto'" readonly="1" />
                         </group>
                         <group>
                             <field name="actual" placeholder="Actual value"
-                                readonly="is_auto and dept_source_type in ['data_source', 'child_kpi_average']" />
+                                readonly="not is_admin and not is_manager" />
                         </group>
                     </group>
 
@@ -71,10 +78,10 @@
 
                     <group string="KPI Info">
                         <group>
-                            <field name="kpi_type" invisible="is_section" />
+                            <field name="kpi_type" invisible="is_section" readonly="1" />
                             <field name="manual_scoring_type"
-                                invisible="kpi_type != 'manual' or is_section" />
-                            <field name="weight" />
+                                invisible="kpi_type != 'manual' or is_section" readonly="1" />
+                            <field name="weight" readonly="1" />
                             <field name="wipeout_if_child_zero"
                                 invisible="not is_section"
                                 readonly="1" />
@@ -82,11 +89,13 @@
                         <group invisible="kpi_type != 'auto' or is_section">
                             <field name="is_auto" readonly="1"
                                 invisible="kpi_type != 'auto'" />
-                            <field name="dept_source_type" invisible="kpi_type != 'auto'" />
+                            <field name="dept_source_type" invisible="kpi_type != 'auto'" readonly="1" />
                             <field name="data_source_id"
-                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
+                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'"
+                                readonly="1" />
                             <field name="scoring_formula_id"
-                                invisible="kpi_type != 'auto' or dept_source_type in ['child_kpi_average']" />
+                                invisible="kpi_type != 'auto' or dept_source_type in ['child_kpi_average']"
+                                readonly="1" />
                         </group>
                     </group>
 
@@ -97,12 +106,14 @@
 
                     <group string="Comments" invisible="is_section">
                         <field name="manager_comment" widget="html"
+                            readonly="not is_admin and not is_manager"
                             options="{'resizable': false}"
                             style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                     </group>
 
                     <group string="KPI Description" invisible="is_section">
                         <field name="description" widget="html" placeholder="KPI Description"
+                            readonly="1"
                             options="{'resizable': false}"
                             style="min-height: 100px; max-height: 100px; overflow-y: auto;" />
                     </group>
@@ -117,18 +128,21 @@
         <field name="arch" type="xml">
             <form string="Department Performance Evaluation">
                 <header>
+                    <field name="is_manager" invisible="1" />
+                    <field name="is_hr" invisible="1" />
+                    <field name="is_admin" invisible="1" />
                     <!-- <button name="action_archive_with_report" string="Archive" type="object"
                             invisible="not active"/>
                     <button name="action_unarchive_with_report" string="Unarchive" type="object"
                             class="oe_highlight"
                             invisible="active"/> -->
                     <button name="action_submit" string="Submit" type="object" class="oe_highlight"
-                        invisible="state != 'draft'" />
+                        invisible="state != 'draft' or (not is_admin and not is_manager)" />
                     <button name="action_approve" string="Approve" type="object"
                         class="oe_highlight"
-                        invisible="state != 'submitted'" />
+                        invisible="state != 'submitted' or (not is_admin and not is_manager)" />
                     <button name="action_cancel" string="Cancel" type="object"
-                        invisible="state in ('approved', 'cancel')" />
+                        invisible="state in ('approved', 'cancel') or (not is_admin and not is_manager)" />
                     <field name="state" widget="statusbar"
                         statusbar_visible="draft,submitted,approved" />
                 </header>
@@ -138,7 +152,7 @@
                         <button class="oe_stat_button" type="object"
                             name="action_open_department_dashboard"
                             icon="fa-bar-chart"
-                            invisible="not id">
+                            invisible="not id or (not is_admin and not is_manager)">
                             <div class="o_field_widget o_stat_info">
                                 <span class="o_stat_text">Dashboard</span>
                             </div>
@@ -151,13 +165,13 @@
                     </div>
                     <group>
                         <group>
-                            <field name="department_id" readonly="state != 'draft'" />
-                            <field name="department_kpi_id" readonly="state != 'draft'" />
-                            <field name="period_id" readonly="state != 'draft'" />
+                            <field name="department_id" readonly="1" />
+                            <field name="department_kpi_id" readonly="1" />
+                            <field name="period_id" readonly="1" />
                         </group>
                         <group>
-                            <field name="start_date" readonly="state != 'draft'" />
-                            <field name="end_date" readonly="state != 'draft'" />
+                            <field name="start_date" readonly="1" />
+                            <field name="end_date" readonly="1" />
                             <field name="period_status" widget="badge" readonly="1"
                                 decoration-info="period_status == 'upcoming'"
                                 decoration-success="period_status == 'ongoing'"
@@ -193,7 +207,7 @@
                             <button name="action_compute_auto_kpi" string="Compute KPI"
                                 type="object"
                                 class="oe_highlight"
-                                invisible="state in ('approved', 'cancel')" />
+                                invisible="state in ('approved', 'cancel') or (not is_admin and not is_manager)" />
                             <field name="evaluation_line_ids" widget="kpi_one2many"
                                 readonly="state in ('approved', 'cancel')"
                                 context="{'parent_field': 'evaluation_id', 'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_department_evaluation_line_form_popup', 'title_field': 'name'}">
@@ -217,12 +231,16 @@
 
                                     <field name="pillar_id"
                                         options="{'no_create': True}"
+                                        readonly="1"
                                         invisible="is_section"
+                                        width="200px"
                                         optional="hide" />
                                     <field name="parent_line_id"
                                         domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
                                         options="{'no_create': True}"
+                                        readonly="1"
                                         invisible="is_section"
+                                        width="200px"
                                         optional="hide" />
 
                                     <field name="kpi_type" readonly="1" invisible="is_section"
@@ -233,22 +251,23 @@
                                         width="150px" optional="hide" />
 
                                     <field name="dept_source_type" optional="hide" readonly="1"
-                                        invisible="is_section" width="140px" />
+                                        invisible="is_section" width="200px" />
                                     <field name="data_source_id" optional="hide" readonly="1"
                                         invisible="is_section or dept_source_type != 'data_source'"
-                                        width="160px" />
+                                        width="200px" />
                                     <field name="manager_comment" optional="hide" width="200px"
-                                        invisible="is_section" />
+                                        invisible="is_section"
+                                        readonly="not parent.is_admin and not parent.is_manager" />
 
                                     <field name="unit" optional="show" readonly="1"
-                                        invisible="is_section or kpi_type != 'auto'" width="280px" />
+                                        invisible="is_section or kpi_type != 'auto'" width="300px" />
                                     <field name="scoring_formula_id" optional="hide" readonly="1"
                                         invisible="is_section"
                                         width="320px" />
                                     <field name="target" readonly="1"
                                         invisible="is_section or kpi_type != 'auto'" width="100px" />
                                     <field name="actual"
-                                        readonly="is_auto and dept_source_type in ['data_source', 'child_kpi_average']"
+                                        readonly="not parent.is_admin and not parent.is_manager"
                                         invisible="is_section or kpi_type != 'auto'" width="100px" />
                                     <field name="wipeout_if_child_zero"
                                         invisible="not is_section"
@@ -264,17 +283,20 @@
                                         invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
                                         column_invisible="not parent.has_binary_kpi"
                                         width="140px"
+                                        readonly="1"
                                     />
                                     <field name="manager_rating_selection"
                                         string="Manager Rating" widget="priority_onchange"
                                         invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
                                         column_invisible="not parent.has_rating_kpi"
                                         width="120px"
+                                        readonly="1"
                                     />
                                     <field name="manager_rating_score" string="Manager Score"
                                         invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
                                         column_invisible="not parent.has_score_kpi"
                                         width="120px"
+                                        readonly="1"
                                     />
                                     <field name="weight" readonly="1" width="90px" />
 
@@ -288,6 +310,7 @@
 
                                     <button name="action_open_popup" type="object"
                                         icon="fa-pencil" title="Open Details"
+                                        invisible="not parent.is_admin and not parent.is_manager"
                                         width="70px"
                                     />
 
