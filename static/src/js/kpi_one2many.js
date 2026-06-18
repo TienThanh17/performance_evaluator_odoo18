@@ -283,8 +283,8 @@ export class KPIOne2ManyField extends X2ManyField {
 
     setup() {
         super.setup();
-        // Keep popup support available for x2many flows that call openRecord.
-        this.canOpenRecord = true;
+        // Disable row-click opening so users edit inline or use the explicit pencil button.
+        this.canOpenRecord = false;
         this.orm = useService("orm");
     }
 

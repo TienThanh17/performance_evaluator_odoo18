@@ -1,5 +1,6 @@
 /** @odoo-module **/
 import { Component, useState, useRef, onWillStart, onMounted, onWillUnmount, useEffect } from "@odoo/owl";
+import { loadBundle, loadJS } from "@web/core/assets";
 import { useService } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
@@ -120,22 +121,8 @@ function buildChartEData(trendData) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Chart.js CDN loader (reuse pattern from kpi_dashboard_page.js)
+// Chart.js loader
 // ─────────────────────────────────────────────────────────────────────────────
-let _chartJsPromise = null;
-function loadChartJs() {
-    if (typeof window.Chart !== "undefined") return Promise.resolve();
-    if (_chartJsPromise) return _chartJsPromise;
-    _chartJsPromise = new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js";
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-    });
-    return _chartJsPromise;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Default chart options helpers
 // ─────────────────────────────────────────────────────────────────────────────
@@ -321,11 +308,31 @@ export class DeptKpiDashboard extends Component {
             }
         };
 
+        this._loadChartAssets = async () => {
+            if (!window.Chart) {
+                try {
+                    await loadBundle("web.chartjs_lib");
+                } catch (bundleError) {
+                    console.warn(
+                        "DeptKpiDashboard: failed to load web.chartjs_lib bundle",
+                        bundleError
+                    );
+                }
+                if (!window.Chart) {
+                    await loadJS("/web/static/lib/Chart/Chart.js");
+                }
+            }
+
+            if (!window.ChartDataLabels) {
+                await loadJS("/survey/static/src/js/libs/chartjs-plugin-datalabels.js");
+            }
+        };
+
         onWillStart(async () => {
+            await this._loadChartAssets();
             const [isManager, isHR] = await Promise.all([
                 user.hasGroup(MANAGER_GROUP),
                 user.hasGroup(HR_GROUP),
-                loadChartJs(),
             ]);
             Object.assign(this.state, { isManager, isHR });
             await this._loadDepartments();
@@ -1204,6 +1211,7 @@ export class DeptKpiDashboard extends Component {
     }
 
     _renderDoughnutChart(canvas, chartInfo) {
+        const ChartDataLabels = window.ChartDataLabels;
         const Chart = window.Chart;
         const ctx = canvas?.getContext?.("2d");
         if (!ctx) return null;
@@ -1211,6 +1219,7 @@ export class DeptKpiDashboard extends Component {
         const labels = chartData.labels || [];
         return new Chart(ctx, {
             type: "doughnut",
+            plugins: ChartDataLabels ? [ChartDataLabels] : [],
             data: {
                 labels,
                 datasets: chartData.datasets || [],
@@ -1238,6 +1247,19 @@ export class DeptKpiDashboard extends Component {
                                 const label = labels[context.dataIndex] || context.label || "";
                                 return `${label}: ${context.parsed}`;
                             },
+                        },
+                    },
+                    datalabels: {
+                        display: true,
+                        color: "#ffffff",
+                        formatter: (value, ctx) => {
+                            if (value === 0) return "";
+                            const unit = ctx.dataset.unit || "";
+                            return `${value} ${unit}`.trim();
+                        },
+                        font: {
+                            weight: "bold",
+                            size: 14,
                         },
                     },
                 },

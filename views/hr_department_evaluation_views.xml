@@ -89,7 +89,8 @@
                         <group invisible="kpi_type != 'auto' or is_section">
                             <field name="is_auto" readonly="1"
                                 invisible="kpi_type != 'auto'" />
-                            <field name="dept_source_type" invisible="kpi_type != 'auto'" readonly="1" />
+                            <field name="dept_source_type" invisible="kpi_type != 'auto'"
+                                readonly="1" />
                             <field name="data_source_id"
                                 invisible="kpi_type != 'auto' or dept_source_type != 'data_source'"
                                 readonly="1" />
@@ -217,6 +218,8 @@
                                 >
                                     <field name="is_section" column_invisible="1" />
                                     <field name="is_auto" column_invisible="1" />
+                                    <field name="is_manager" column_invisible="1" />
+                                    <field name="is_admin" column_invisible="1" />
                                     <field name="dept_source_type" column_invisible="1" />
                                     <field name="child_line_rows_json" column_invisible="1" />
 
@@ -257,26 +260,22 @@
                                         width="200px" />
                                     <field name="manager_comment" optional="hide" width="200px"
                                         invisible="is_section"
-                                        readonly="not parent.is_admin and not parent.is_manager" />
+                                        readonly="not is_admin and not is_manager" />
 
                                     <field name="unit" optional="show" readonly="1"
-                                        invisible="is_section or kpi_type != 'auto'" width="300px" />
-                                    <field name="scoring_formula_id" optional="hide" readonly="1"
+                                        invisible="is_section or kpi_type != 'auto'" width="320px" />
+                                    <field name="scoring_formula_id" optional="show" readonly="1"
                                         invisible="is_section"
                                         width="320px" />
                                     <field name="target" readonly="1"
                                         invisible="is_section or kpi_type != 'auto'" width="100px" />
                                     <field name="actual"
-                                        readonly="not parent.is_admin and not parent.is_manager"
+                                        readonly="not is_admin and not is_manager"
                                         invisible="is_section or kpi_type != 'auto'" width="100px" />
                                     <field name="wipeout_if_child_zero"
                                         invisible="not is_section"
                                         optional="hide"
                                         readonly="1" width="120px" />
-                                    <!-- <field name="target_display" string="Target"
-                                         invisible="is_section or kpi_type != 'auto'" />
-                                     <field name="actual_display" string="Actual"
-                                         invisible="is_section or kpi_type != 'auto'" /> -->
 
                                     <field name="manager_rating_binary"
                                         string="Manager Rating (Y/N)"
