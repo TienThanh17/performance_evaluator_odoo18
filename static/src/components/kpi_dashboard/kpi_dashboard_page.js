@@ -71,6 +71,7 @@ export class KpiDashboard extends Component {
 
     setup() {
         this.orm = useService("orm");
+        this.actionService = useService("action");
 
         this.dashboardRootRef = useRef("dashboardRoot");
         this.radarRef = useRef("spiderChart");
@@ -423,6 +424,19 @@ export class KpiDashboard extends Component {
         if (!id || id === this.state.selectedEvaluationId) return;
         this.state.selectedEvaluationId = id;
         await this._loadDashboard();
+    }
+
+    onOpenEvaluationForm() {
+        if (!this.state.selectedEvaluationId) {
+            return;
+        }
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            res_model: "hr.performance.evaluation",
+            res_id: this.state.selectedEvaluationId,
+            views: [[false, "form"]],
+            target: "current",
+        });
     }
 
     // ── Computed helpers (called from template) ──────────────────────────────

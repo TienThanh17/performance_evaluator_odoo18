@@ -439,16 +439,5 @@
             </field>
         </record>
 
-        <!-- Action to Open KPI Form and List View -->
-        <record id="hr_kpi_action" model="ir.actions.act_window">
-            <field name="name">KPI</field>
-            <field name="res_model">hr.kpi.template</field>
-            <field name="view_mode">list,form</field>
-        </record>
-
-        <menuitem id="menu_kpi_form" name="KPI Employee Template" parent="menu_kpi_template"
-            sequence="10"
-            action="hr_kpi_action"
-            groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_hr" />
     </data>
 </odoo>

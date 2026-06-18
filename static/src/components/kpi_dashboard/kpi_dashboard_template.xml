@@ -39,6 +39,10 @@
                 <option t-att-value="ev.id" t-att-selected="ev.id === state.selectedEvaluationId" t-esc="evalOptionLabel(ev)"/>
               </t>
             </select>
+
+            <button class="o_kpi_open_eval_btn ms-2" t-on-click="onOpenEvaluationForm">
+              <i class="fa fa-file-text-o me-1"/> Open Evaluation
+            </button>
           </t>
         </div>
       </div>

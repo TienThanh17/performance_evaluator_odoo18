@@ -44,7 +44,6 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "data/kpi_period_seed.xml",
         "data/ir_cron_data.xml",
         # ============================== VIEWS =============================
-        "views/kpi_menu_views.xml",
         "views/res_config_settings_views.xml",
         "views/hr_kpi_period_views.xml",
         "views/hr_evaluation_master_views.xml",
@@ -64,6 +63,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "views/hr_score.xml",
         "views/hr_department.xml",
         "views/kpi_tree_dashboard_views.xml",
+        "views/kpi_menu_views.xml",
     ],
     "assets": {
         "web.assets_backend": [

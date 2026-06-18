@@ -23,8 +23,6 @@
                         <group>
                             <field name="name"/>
                             <field name="code"/>
-                            <!-- <field name="sequence"/>
-                            <field name="active"/> -->
                             <field name="description"/>
                         </group>
                     </group>
@@ -33,15 +31,4 @@
         </field>
     </record>
 
-    <record id="action_hr_evaluation_pillar" model="ir.actions.act_window">
-        <field name="name">Evaluation Pillars</field>
-        <field name="res_model">hr.evaluation.pillar</field>
-        <field name="view_mode">list,form</field>
-    </record>
-
-    <menuitem id="menu_hr_evaluation_pillar"
-              name="Evaluation Pillars"
-              parent="menu_kpi_configuration"
-              action="action_hr_evaluation_pillar"
-              sequence="45"/>
 </odoo>

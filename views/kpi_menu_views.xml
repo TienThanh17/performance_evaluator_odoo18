@@ -1,7 +1,189 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <menuitem id="performance_evaluator" name="KPI Performance Evaluator" sequence="1" web_icon="custom_adecsol_hr_performance_evaluator,static/description/icon.png"/>
-        <menuitem id="menu_kpi_template" name="KPI Template" parent="performance_evaluator" sequence="30"/>
+        <!-- Root and landing actions -->
+        <record id="action_performance_evaluation" model="ir.actions.act_window">
+            <field name="name">Performance Evaluation</field>
+            <field name="res_model">hr.performance.evaluation</field>
+            <field name="view_mode">kanban,list,form</field>
+            <field name="context">{'group_by': 'department_id', 'search_default_current_period': 1}</field>
+        </record>
+
+        <record id="action_kpi_individual_dashboard" model="ir.actions.client">
+            <field name="name">KPI Individual Dashboard</field>
+            <field name="tag">kpi_individual_dashboard</field>
+        </record>
+
+        <record id="action_open_default_kpi_home" model="ir.actions.server">
+                <field name="name">Open KPI Home</field>
+                <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_performance_evaluation" />
+                <field name="state">code</field>
+                <field name="code">
+# 1. Nếu là Admin hoặc HR - Mở KPI Tree Dashboard
+if env.user.has_group('custom_adecsol_hr_performance_evaluator.group_admin') or env.user.has_group('custom_adecsol_hr_performance_evaluator.group_hr'):
+    action = env.ref('custom_adecsol_hr_performance_evaluator.action_kpi_tree_dashboard').sudo().read()[0]
+
+# 2. Nếu là Manager - Mở KPI Department Dashboard
+elif env.user.has_group('custom_adecsol_hr_performance_evaluator.group_manager'):
+    action = env.ref('custom_adecsol_hr_performance_evaluator.action_kpi_department_dashboard').sudo().read()[0]
+
+# 3. Nếu là Employee thuần - Mở KPI Individual Dashboard
+elif env.user.has_group('custom_adecsol_hr_performance_evaluator.group_employee'):
+    action = env.ref('custom_adecsol_hr_performance_evaluator.action_kpi_individual_dashboard').sudo().read()[0]
+
+# 4. Fallback mặc định (Nếu user không thuộc các quyền trên)
+else:
+    action = env.ref('custom_adecsol_hr_performance_evaluator.action_performance_evaluation').sudo().read()[0]
+                </field>
+        </record>
+
+        <record id="action_kpi_tree_dashboard" model="ir.actions.client">
+            <field name="name">KPI Tree</field>
+            <field name="tag">kpi_tree_dashboard</field>
+            <field name="target">main</field>
+        </record>
+
+        <!-- Department entry actions -->
+        <record id="action_hr_department_performance_evaluation" model="ir.actions.act_window">
+            <field name="name">Department Performance Evaluations</field>
+            <field name="res_model">hr.department.performance.evaluation</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'search_default_group_by_period': 1}</field>
+        </record>
+
+        <record id="action_kpi_department_dashboard" model="ir.actions.client">
+            <field name="name">KPI Department Dashboard</field>
+            <field name="tag">kpi_department_dashboard</field>
+        </record>
+
+        <record id="action_hr_evaluation_3p_summary" model="ir.actions.act_window">
+            <field name="name">3P Summary</field>
+            <field name="res_model">hr.evaluation.3p.summary</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_hr_evaluation_3p_summary_search" />
+            <field name="context">{'search_default_group_period': 1}</field>
+        </record>
+
+        <!-- Template and configuration actions -->
+        <record id="hr_kpi_action" model="ir.actions.act_window">
+            <field name="name">KPI</field>
+            <field name="res_model">hr.kpi.template</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_hr_department_kpi" model="ir.actions.act_window">
+            <field name="name">Department KPIs</field>
+            <field name="res_model">hr.department.kpi.template</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_performance_evaluator_config" model="ir.actions.act_window">
+            <field name="name">Settings</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <field name="context">{'module': 'custom_adecsol_hr_performance_evaluator'}</field>
+        </record>
+
+        <record id="action_hr_kpi_unit" model="ir.actions.act_window">
+            <field name="name">KPI Units</field>
+            <field name="res_model">hr.kpi.unit</field>
+            <field name="view_mode">list</field>
+        </record>
+
+        <record id="action_hr_kpi_period" model="ir.actions.act_window">
+            <field name="name">KPI Periods</field>
+            <field name="res_model">hr.kpi.period</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_hr_kpi_data_source" model="ir.actions.act_window">
+            <field name="name">Data Sources</field>
+            <field name="res_model">hr.kpi.data.source</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_hr_evaluation_pillar" model="ir.actions.act_window">
+            <field name="name">Evaluation Pillars</field>
+            <field name="res_model">hr.evaluation.pillar</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_hr_kpi_dashboard_widget" model="ir.actions.act_window">
+            <field name="name">Dashboard Widgets</field>
+            <field name="res_model">hr.kpi.dashboard.widget</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_hr_kpi_dashboard_widget_search" />
+            <field name="context">{'search_default_group_by_dashboard_kind': 1}</field>
+        </record>
+
+        <menuitem id="performance_evaluator" name="KPI Performance Evaluator" sequence="1"
+            web_icon="custom_adecsol_hr_performance_evaluator,static/description/icon.png"
+            action="action_open_default_kpi_home" />
+
+        <menuitem id="menu_kpi_tree_dashboard" name="Dashboard" action="action_kpi_tree_dashboard"
+            parent="performance_evaluator" sequence="5"
+            groups="custom_adecsol_hr_performance_evaluator.group_hr" />
+
+        <menuitem id="kpi_department_menu" name="KPI Department" sequence="10"
+            parent="performance_evaluator" />
+        <menuitem id="department_performance_evaluation" name="KPI Department" sequence="10"
+            parent="kpi_department_menu" action="action_hr_department_performance_evaluation" />
+        <menuitem id="menu_kpi_department_dashboard" name="Dashboard"
+            sequence="20" parent="kpi_department_menu"
+            action="action_kpi_department_dashboard"
+            groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_hr" />
+        <menuitem id="menu_hr_evaluation_3p_summary"
+            name="3P Summary"
+            parent="kpi_department_menu"
+            action="action_hr_evaluation_3p_summary"
+            sequence="30" />
+
+        <menuitem id="kpi_employee_menu" name="KPI Employee" sequence="20"
+            parent="performance_evaluator" action="action_open_default_kpi_home" />
+        <menuitem id="performance_evaluation_menu" name="KPI Employee" sequence="10"
+            parent="kpi_employee_menu" action="action_performance_evaluation" />
+        <menuitem id="menu_kpi_individual_dashboard" name="Dashboard" sequence="20"
+            parent="kpi_employee_menu" action="action_kpi_individual_dashboard" />
+
+        <menuitem id="menu_kpi_template" name="KPI Template" parent="performance_evaluator" sequence="30" />
+        <menuitem id="menu_kpi_form" name="KPI Employee Template" parent="menu_kpi_template"
+            sequence="10"
+            action="hr_kpi_action"
+            groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_hr" />
+        <menuitem id="menu_kpi_department_form" name="KPI Department Template"
+            parent="menu_kpi_template" sequence="20"
+            action="action_hr_department_kpi" />
+
+        <menuitem id="menu_performance_evaluator_config"
+            name="Configuration"
+            parent="performance_evaluator"
+            sequence="100" />
+        <menuitem id="menu_performance_evaluator_settings"
+            name="Settings"
+            parent="menu_performance_evaluator_config"
+            action="action_performance_evaluator_config"
+            sequence="1" />
+        <menuitem id="menu_kpi_configuration" name="KPI Configuration" parent="menu_performance_evaluator_config"
+            groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_hr"
+            sequence="90" />
+        <menuitem id="menu_hr_kpi_unit"
+            name="KPI Units"
+            parent="menu_kpi_configuration"
+            groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_hr"
+            action="action_hr_kpi_unit"
+            sequence="5" />
+        <menuitem id="menu_kpi_period" name="KPI Periods" parent="menu_kpi_configuration"
+            action="action_hr_kpi_period" sequence="10" />
+        <menuitem id="menu_kpi_data_source" name="Data Sources" parent="menu_kpi_configuration"
+            action="action_hr_kpi_data_source" sequence="30" />
+        <menuitem id="menu_hr_evaluation_pillar"
+            name="Evaluation Pillars"
+            parent="menu_kpi_configuration"
+            action="action_hr_evaluation_pillar"
+            sequence="45" />
+        <menuitem id="menu_kpi_dashboard_widget" name="Dashboard Widgets"
+            parent="menu_kpi_configuration" action="action_hr_kpi_dashboard_widget" sequence="999" />
     </data>
 </odoo>

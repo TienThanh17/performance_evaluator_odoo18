@@ -175,17 +175,4 @@
         </field>
     </record>
 
-    <!-- ACTION (Cập nhật thêm search_view_id và default group by) -->
-    <record id="action_hr_kpi_dashboard_widget" model="ir.actions.act_window">
-        <field name="name">Dashboard Widgets</field>
-        <field name="res_model">hr.kpi.dashboard.widget</field>
-        <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="view_hr_kpi_dashboard_widget_search" />
-        <!-- Kích hoạt group_by mặc định thông qua context sử dụng tên filter tương ứng trong search
-        view -->
-        <field name="context">{'search_default_group_by_dashboard_kind': 1}</field>
-    </record>
-
-    <menuitem id="menu_kpi_dashboard_widget" name="Dashboard Widgets"
-        parent="menu_kpi_configuration" action="action_hr_kpi_dashboard_widget" sequence="999" />
 </odoo>

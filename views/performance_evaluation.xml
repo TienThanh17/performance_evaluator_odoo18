@@ -1015,27 +1015,5 @@
             </field>
         </record>
 
-        <!-- Action to Open Performance Evaluation List -->
-        <record id="action_performance_evaluation" model="ir.actions.act_window">
-            <field name="name">Performance Evaluation</field>
-            <field name="res_model">hr.performance.evaluation</field>
-            <field name="view_mode">kanban,list,form</field>
-            <field name="context">{'group_by': 'department_id', 'search_default_current_period': 1}</field>
-        </record>
-
-        <!-- Client Action for standalone KPI Dashboard page -->
-        <record id="action_kpi_individual_dashboard" model="ir.actions.client">
-            <field name="name">KPI Individual Dashboard</field>
-            <field name="tag">kpi_individual_dashboard</field>
-        </record>
-
-        <!-- Menu Item to Access Performance Evaluation -->
-        <menuitem id="kpi_employee_menu" name="KPI Employee" sequence="20"
-            parent="performance_evaluator" />
-        <menuitem id="performance_evaluation_menu" name="KPI Employee" sequence="10"
-            parent="kpi_employee_menu" action="action_performance_evaluation" />
-        <menuitem id="menu_kpi_individual_dashboard" name="Dashboard"
-            sequence="20" parent="kpi_employee_menu"
-            action="action_kpi_individual_dashboard" />
     </data>
 </odoo>
