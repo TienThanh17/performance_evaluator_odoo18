@@ -68,14 +68,14 @@
       </div>
 
           <!-- Card 2: KPI Tài chính -->
-      <div class="o_kpi_tree_metric_card card-amber" t-on-click="selectCompanyNode">
+          <!-- <div class="o_kpi_tree_metric_card card-amber" t-on-click="selectCompanyNode">
         <div class="metric-icon"><i class="fa fa-usd"/></div>
         <div class="metric-body">
           <div class="metric-label">KPI Tài chính</div>
           <div class="metric-value">—</div>
           <div class="metric-sub">Không có dữ liệu</div>
         </div>
-      </div>
+      </div> -->
 
           <!-- Card 3: KPI Hoạt động (REAL DATA — số nhân viên đạt + xuất sắc) -->
       <div class="o_kpi_tree_metric_card card-green" t-on-click="selectCompanyNode">
@@ -179,7 +179,7 @@
               <span class="pm-label">Nhân viên đạt:</span>
               <span class="pm-value" t-esc="state.selectedNode.data.pass_employee_count"/>
             </div>
-            <div class="panel-note">* Trend theo quý sẽ cập nhật sau</div>
+                <!-- <div class="panel-note">* Trend theo quý sẽ cập nhật sau</div> -->
           </t>
 
               <!-- ── Dept detail ── -->
@@ -196,7 +196,7 @@
               <span class="pm-label">KPI cá nhân trung bình:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_total_p3_individual)"/>
             </div>
-            <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div>
+                <!-- <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div> -->
           </t>
 
               <!-- ── Employee detail ── -->
@@ -210,16 +210,19 @@
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
             <div class="panel-metric">
+              <span class="pm-label">Tổng P2.1:</span>
+              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.total_p2_1)"/>
+            </div>
+            <div class="panel-metric">
+              <span class="pm-label">Tổng P2.2:</span>
+              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.total_p2_2)"/>
+            </div>
+            <div class="panel-metric">
               <span class="pm-label">Kết quả:</span>
               <span t-att-class="levelBadgeClass(state.selectedNode.data.performance_level)"
                     t-esc="state.selectedNode.data.performance_level || 'fail'"/>
             </div>
-            <div class="panel-metric">
-              <span class="pm-label">Trạng thái:</span>
-              <span t-att-class="stateBadgeClass(state.selectedNode.data.state)"
-                    t-esc="stateBadgeLabel(state.selectedNode.data.state)"/>
-            </div>
-            <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div>
+                <!-- <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div> -->
           </t>
 
         </div>

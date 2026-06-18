@@ -98,18 +98,18 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     min-width: 0;
 }
 
-// ── 5 Metric Cards ───────────────────────────────────────────────────────────
+// ── Metric Cards ─────────────────────────────────────────────────────────────
 .o_kpi_tree_metric_row {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
     flex-shrink: 0;
 
-    @media (max-width: 1200px) {
-        grid-template-columns: repeat(3, 1fr);
+    @media (max-width: 992px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    @media (max-width: 700px) {
-        grid-template-columns: repeat(2, 1fr);
+    @media (max-width: 576px) {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

@@ -1262,11 +1262,15 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
                 employees = []
                 for ev in employee_evals:
+                    # Lấy dữ liệu nhân viên và KPI phòng ban tương ứng để build node detail panel.
                     emp = ev.employee_id
                     emp_dept_eval = ev.dept_evaluation_id or dept_eval
                     emp_dept_kpi = (
                         emp_dept_eval.get_dept_kpi_score() if emp_dept_eval else 0.0
                     )
+                    # Giữ nguyên điểm theo thang cấu hình để frontend chỉ việc format hiển thị.
+                    total_p2_1 = float(ev.total_p2_1 or 0.0)
+                    total_p2_2 = float(ev.total_p2_2 or 0.0)
                     total_p3_individual = float(ev.total_p3_individual or 0.0)
                     total_p3_individual_scores.append(total_p3_individual)
                     employees.append(
@@ -1278,6 +1282,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "avatar_url": f"/web/image/hr.employee/{emp.id}/image_128"
                             if emp.id
                             else "",
+                            "total_p2_1": round(total_p2_1, 2),
+                            "total_p2_2": round(total_p2_2, 2),
                             "total_p3_individual": round(total_p3_individual, 2),
                             "dept_kpi_score": round(float(emp_dept_kpi), 2),
                             "performance_level": ev.performance_level or "fail",

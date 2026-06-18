@@ -836,8 +836,8 @@ class PerformanceEvaluationLine(models.Model):
                 score = score_base if val == "yes" else 0.0
 
             elif line.kpi_type == "manual" and line.manual_scoring_type == "score":
-                # Apply the same score selection rule for manual score KPI lines.
-                val = line.manager_rating_score or line.employee_rating_score or 0
+                # Float 0 is a valid manager score, so do not fall back with `or`.
+                val = line.employee_rating_binary if line.manager_rating_score is False else line.manager_rating_score
                 score = float(val)
 
             line.system_score = round(max(0.0, min(score, score_base)), 2)

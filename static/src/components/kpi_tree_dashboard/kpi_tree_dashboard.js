@@ -33,7 +33,7 @@ export class KpiTreeDashboard extends Component {
             loading: true,
             data: null, // response từ get_kpi_tree_data()
             selectedNode: null, // { type: 'company'|'dept'|'emp', id, data }
-            expandedDepts: new Set(), // Set of department id — MỞ HẾT khi load
+            expandedDepts: new Set(), // Set of department id đang mở employee
             selectedPeriod: null, // { start, end, label }
             showRiskModal: false,
             showMissingDataModal: false,
@@ -239,11 +239,9 @@ export class KpiTreeDashboard extends Component {
             );
             this.state.data = data;
 
-            // Mở hết tất cả phòng ban mặc định
+            // Mặc định chỉ hiển thị đến cấp phòng ban.
             if (data && data.departments) {
-                this.state.expandedDepts = new Set(
-                    data.departments.map((d) => d.id),
-                );
+                this.state.expandedDepts = new Set();
             }
 
             // Set kỳ đang chọn
@@ -292,6 +290,10 @@ export class KpiTreeDashboard extends Component {
         };
     };
 
+    getDepartmentById(deptId) {
+        return this.state.data?.departments?.find((dept) => dept.id === deptId);
+    }
+
     toggleDept = (deptId) => {
         const s = new Set(this.state.expandedDepts);
         const isExpanded = s.has(deptId);
@@ -303,6 +305,21 @@ export class KpiTreeDashboard extends Component {
             s.add(deptId);
         }
         this.state.expandedDepts = s;
+
+        // Nếu đang xem employee của chính phòng ban bị collapse thì chuyển về node phòng ban.
+        if (isExpanded && this.state.selectedNode?.type === "emp") {
+            const ownerDept = this.getDepartmentById(deptId);
+            const containsSelectedEmployee = (ownerDept?.employees || []).some(
+                (emp) => emp.employee_id === this.state.selectedNode.id,
+            );
+            if (containsSelectedEmployee) {
+                this.state.selectedNode = {
+                    type: "dept",
+                    id: ownerDept.id,
+                    data: { _type: "dept", ...ownerDept },
+                };
+            }
+        }
     };
 
     closePanel = () => {

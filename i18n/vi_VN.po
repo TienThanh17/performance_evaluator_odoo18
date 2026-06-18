@@ -2973,7 +2973,7 @@ msgstr "Loại KPI"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI Tài chính"
-msgstr "Tài chính KPI"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model,name:custom_adecsol_hr_performance_evaluator.model_hr_kpi_unit
@@ -4110,12 +4110,12 @@ msgstr "P3.1.1 Tổng"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_res_config_settings__p3_individual_weight_percent
 msgid "P3.1.1 Weight"
-msgstr "P3.1.1"
+msgstr "P3.1.1 Trọng số"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.res_config_settings_view_form_inherit_kpi_thresholds
 msgid "P3.1.1 and P3.1.2 weights must total exactly 100%."
-msgstr "trọng số P3.1.1 và P3.1.2 phải có tổng chính xác 100%."
+msgstr "Trọng số P3.1.1 và P3.1.2 phải có tổng bằng 100%."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -5275,7 +5275,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Số phòng ban:"
-msgstr "Số phòng cấm:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.kpi.data.source,name:custom_adecsol_hr_performance_evaluator.source_task_done_count
