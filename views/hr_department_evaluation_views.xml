@@ -364,9 +364,7 @@
             <list string="Department Performance Evaluations">
                 <field name="name" />
                 <field name="department_id" />
-                <field name="department_kpi_id" />
-                <field name="start_date" />
-                <field name="end_date" />
+                <field name="period_id" />
                 <field name="period_status" widget="badge"
                     decoration-info="period_status == 'upcoming'"
                     decoration-success="period_status == 'ongoing'"

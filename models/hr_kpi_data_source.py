@@ -77,7 +77,7 @@ class HrKpiDataSource(models.Model):
         string="Trường ngày lọc dữ liệu",
         domain="[('model_id', '=', model_id), ('ttype', 'in', ['date', 'datetime'])]",
         options="{'no_create': True}",
-        help="Chọn trường ngày (Date hoặc Datetime) dùng để đối chiếu với khoảng thời gian tính KPI.",
+        help="Chọn trường ngày (Date hoặc Datetime) dùng để đối chiếu với Kỳ đánh giá KPI.",
     )
 
     python_code = fields.Text(

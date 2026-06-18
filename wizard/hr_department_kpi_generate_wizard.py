@@ -181,12 +181,11 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             return
         self.deadline = self.period_id.date_end + relativedelta(days=5)
 
-    # Ensure the 3P summary exists and is refreshed for the generated period.
-    def _ensure_3p_summary(self):
+    # Ensure the 3P summary exists and is refreshed from the exact department evaluation being used.
+    def _ensure_3p_summary(self, department_evaluation):
         self.ensure_one()
-        return self.env["hr.evaluation.3p.summary"].ensure_summary_for_period(
-            self.department_id,
-            self.period_id,
+        return self.env["hr.evaluation.3p.summary"].ensure_summary_for_department_evaluation(
+            department_evaluation
         )
 
     # Generate department and individual evaluations, then build the matching 3P summary.
@@ -230,7 +229,9 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             limit=1,
         )
         if exists_dept_eval:
-            self._ensure_3p_summary()
+            # Nếu phiếu phòng ban đã tồn tại thì summary cũng phải bám chính record đó,
+            # không được tạo mới thủ công theo department/period chung chung.
+            self._ensure_3p_summary(exists_dept_eval)
             return {
                 "type": "ir.actions.client",
                 "tag": "display_notification",
@@ -350,7 +351,9 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             individual_evals._compute_pillar_totals()
             individual_evals._compute_performance_level()
 
-        self._ensure_3p_summary()
+        # Summary chỉ được tạo/làm mới sau khi phiếu phòng ban đã tồn tại và
+        # toàn bộ phiếu cá nhân của cùng kỳ đã sẵn sàng cho bước aggregate.
+        self._ensure_3p_summary(dept_eval)
 
         return {
             "type": "ir.actions.client",

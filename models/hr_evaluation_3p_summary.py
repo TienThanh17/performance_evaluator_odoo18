@@ -4,7 +4,7 @@ import json
 
 import xlsxwriter
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools import html2plaintext
 from xlsxwriter.utility import xl_rowcol_to_cell
 
@@ -19,20 +19,34 @@ class HrEvaluation3PSummary(models.Model):
     P2_2_EXPORT_COLUMN_COUNT = 16
 
     name = fields.Char(required=True, tracking=True, default="New")
+    department_evaluation_id = fields.Many2one(
+        "hr.department.performance.evaluation",
+        string="Department Evaluation",
+        tracking=True,
+        ondelete="cascade",
+    )
     department_id = fields.Many2one(
         "hr.department",
-        required=True,
-        ondelete="restrict",
-        tracking=True,
+        related="department_evaluation_id.department_id",
+        store=True,
+        readonly=True,
     )
     period_id = fields.Many2one(
         "hr.kpi.period",
-        required=True,
-        ondelete="restrict",
-        tracking=True,
+        related="department_evaluation_id.period_id",
+        store=True,
+        readonly=True,
     )
-    start_date = fields.Date(tracking=True)
-    end_date = fields.Date(tracking=True)
+    start_date = fields.Date(
+        related="department_evaluation_id.start_date",
+        store=True,
+        readonly=True,
+    )
+    end_date = fields.Date(
+        related="department_evaluation_id.end_date",
+        store=True,
+        readonly=True,
+    )
     state = fields.Selection(
         [("draft", "Draft"), ("done", "Done")],
         default="draft",
@@ -50,23 +64,53 @@ class HrEvaluation3PSummary(models.Model):
         for rec in self:
             rec.line_count = len(rec.line_ids)
 
-    @api.onchange("period_id")
-    def _onchange_period_id(self):
-        for rec in self:
-            if rec.period_id:
-                rec.start_date = rec.period_id.date_start
-                rec.end_date = rec.period_id.date_end
+    # Tìm phiếu KPI phòng ban phù hợp để summary luôn neo vào đúng bản ghi nguồn.
+    @api.model
+    def _resolve_department_evaluation(self, department, period):
+        department_id = department.id if hasattr(department, "id") else department
+        period_id = period.id if hasattr(period, "id") else period
+        if not department_id or not period_id:
+            return self.env["hr.department.performance.evaluation"]
 
+        # Ưu tiên phiếu mới nhất của cùng phòng ban và kỳ để giữ hành vi nhất quán
+        # với luồng generate summary hiện tại.
+        return self.env["hr.department.performance.evaluation"].search(
+            [
+                ("department_id", "=", department_id),
+                ("period_id", "=", period_id),
+                ("state", "!=", "cancel"),
+            ],
+            order="id desc",
+            limit=1,
+        )
+
+    # Chuẩn hóa vals create để bản summary mới luôn giữ liên kết Many2one với phiếu KPI phòng ban.
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get("period_id") and not vals.get("start_date"):
-                period = self.env["hr.kpi.period"].browse(vals["period_id"])
-                vals.setdefault("start_date", period.date_start)
-                vals.setdefault("end_date", period.date_end)
+            if not vals.get("department_evaluation_id"):
+                department_evaluation = self._resolve_department_evaluation(
+                    vals.get("department_id"),
+                    vals.get("period_id"),
+                )
+                if department_evaluation:
+                    vals["department_evaluation_id"] = department_evaluation.id
+
+            # Chặn tạo summary mồ côi vì toàn bộ field chính nay phụ thuộc phiếu KPI phòng ban.
+            if not vals.get("department_evaluation_id"):
+                raise ValidationError(
+                    _(
+                        "Please select a Department Evaluation before creating the 3P summary."
+                    )
+                )
+
             if not vals.get("name") or vals.get("name") == "New":
+                department_evaluation = self.env[
+                    "hr.department.performance.evaluation"
+                ].browse(vals["department_evaluation_id"])
                 vals["name"] = self._build_default_name(
-                    vals.get("department_id"), vals.get("period_id")
+                    department_evaluation.department_id.id,
+                    department_evaluation.period_id.id,
                 )
         return super().create(vals_list)
 
@@ -89,35 +133,72 @@ class HrEvaluation3PSummary(models.Model):
         self.write({"state": "draft"})
         return True
 
-    # Find or create the summary header for a department and KPI period.
+    # Find or create the summary header from a concrete department evaluation record.
     @api.model
-    def get_or_create_summary(self, department, period):
-        department_id = department.id if hasattr(department, "id") else department
-        period_id = period.id if hasattr(period, "id") else period
+    def get_or_create_summary_for_department_evaluation(self, department_evaluation):
+        if not department_evaluation:
+            raise UserError(
+                _("A Department Evaluation is required before creating the 3P summary.")
+            )
+
+        if isinstance(department_evaluation, int):
+            department_evaluation = self.env[
+                "hr.department.performance.evaluation"
+            ].browse(department_evaluation)
+
+        # Ưu tiên bản summary đã neo trực tiếp vào phiếu KPI phòng ban.
         summary = self.search(
-            [
-                ("department_id", "=", department_id),
-                ("period_id", "=", period_id),
-            ],
+            [("department_evaluation_id", "=", department_evaluation.id)],
             order="id desc",
             limit=1,
         )
         if summary:
             return summary
 
-        period_record = (
-            period
-            if hasattr(period, "date_start")
-            else self.env["hr.kpi.period"].browse(period_id)
+        # Tự nâng cấp dữ liệu cũ nếu trước đây summary chỉ lưu department/period mà chưa có link nguồn.
+        legacy_summary = self.search(
+            [
+                ("department_id", "=", department_evaluation.department_id.id),
+                ("period_id", "=", department_evaluation.period_id.id),
+            ],
+            order="id desc",
+            limit=1,
         )
+        if legacy_summary:
+            legacy_summary.write(
+                {"department_evaluation_id": department_evaluation.id}
+            )
+            return legacy_summary
+
+        # Chỉ tạo summary khi đã có phiếu KPI phòng ban thật sự, đúng với nghiệp vụ generate.
         return self.create(
             {
-                "department_id": department_id,
-                "period_id": period_id,
-                "start_date": period_record.date_start,
-                "end_date": period_record.date_end,
+                "department_evaluation_id": department_evaluation.id,
             }
         )
+
+    # Find or create the summary header for a department and KPI period.
+    @api.model
+    def get_or_create_summary(self, department, period):
+        department_evaluation = self._resolve_department_evaluation(department, period)
+        if not department_evaluation:
+            raise UserError(
+                _(
+                    "No active Department Evaluation was found for the selected department and period."
+                )
+            )
+        return self.get_or_create_summary_for_department_evaluation(
+            department_evaluation
+        )
+
+    # Ensure the summary exists and refreshes from a concrete department evaluation source.
+    @api.model
+    def ensure_summary_for_department_evaluation(self, department_evaluation):
+        summary = self.get_or_create_summary_for_department_evaluation(
+            department_evaluation
+        )
+        summary.action_aggregate()
+        return summary
 
     # Ensure the summary exists and refresh its lines from current evaluations.
     @api.model
@@ -126,18 +207,23 @@ class HrEvaluation3PSummary(models.Model):
         summary.action_aggregate()
         return summary
 
+    # Trả về phiếu KPI phòng ban đang liên kết trực tiếp với bản summary hiện tại.
     def _get_department_evaluation(self):
         self.ensure_one()
-        dept_eval = self.env["hr.department.performance.evaluation"].search(
-            [
-                ("department_id", "=", self.department_id.id),
-                ("period_id", "=", self.period_id.id),
-                ("state", "not in", ["draft", "cancel"]),
-            ],
-            order="id desc",
-            limit=1,
-        )
-        return dept_eval
+        return self.department_evaluation_id
+
+    # Mở dashboard phòng ban đúng phiếu KPI đang gắn với summary để người dùng giữ nguyên ngữ cảnh kỳ đánh giá.
+    def action_open_department_dashboard(self):
+        self.ensure_one()
+
+        # Chỉ cho phép mở dashboard khi summary đã liên kết với phiếu KPI phòng ban hợp lệ.
+        if not self.department_evaluation_id:
+            raise UserError(
+                _("Please select a Department Evaluation before opening the dashboard.")
+            )
+
+        # Tái sử dụng action client hiện hữu của phiếu KPI phòng ban để frontend tự chọn đúng evaluation.
+        return self.department_evaluation_id.action_open_department_dashboard()
 
     # Chuẩn hóa comment HTML thành plain text để snapshot export luôn ổn định.
     def _normalize_comment_text(self, value):

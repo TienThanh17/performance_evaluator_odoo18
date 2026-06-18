@@ -606,14 +606,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         Summary = self.env["hr.evaluation.3p.summary"].sudo()
         summary_line_map = {}
 
-        # Tìm bản summary mới nhất cùng phòng ban và kỳ để roster hiển thị đúng
-        # snapshot aggregate, không bị trộn với live score hiện tại.
-        if self.department_id and self.period_id:
+        # Tìm bản summary mới nhất đang neo trực tiếp vào phiếu KPI phòng ban này
+        # để roster hiển thị đúng snapshot aggregate của cùng kỳ.
+        if self.id:
             latest_summary = Summary.search(
-                [
-                    ("department_id", "=", self.department_id.id),
-                    ("period_id", "=", self.period_id.id),
-                ],
+                [("department_evaluation_id", "=", self.id)],
                 order="id desc",
                 limit=1,
             )

@@ -194,7 +194,7 @@ msgstr "Kết Quả 3P"
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_evaluation_3p_summary.py:0
 msgid "3P Summary - %s - %s"
-msgstr "Tóm tắt 3P - %s - %s"
+msgstr "Kết Quả 3P - %s - %s"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.kpi.unit,name:custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_1_gia_tri_du_an
@@ -1499,7 +1499,7 @@ msgstr "Mặc định"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.res_config_settings_view_form_inherit_kpi_thresholds
 msgid "Define how P3.1.1 and P3.1.2 contribute to the 3P summary total."
-msgstr "Xác định cách P3.1.1 và P3.1.2 đóng góp vào tổng tóm tắt 3P."
+msgstr "Xác định cách P3.1.1 và P3.1.2 đóng góp vào Kết Quả 3P."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.res_config_settings_view_form_inherit_kpi_thresholds
@@ -1534,12 +1534,12 @@ msgstr "Phòng ban"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model,name:custom_adecsol_hr_performance_evaluator.model_hr_evaluation_3p_summary
 msgid "Department 3P Summary"
-msgstr "Tóm tắt bộ phận 3P"
+msgstr "Kết quả 3P Phòng ban"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model,name:custom_adecsol_hr_performance_evaluator.model_hr_evaluation_3p_summary_line
 msgid "Department 3P Summary Line"
-msgstr "Dòng Tóm tắt Phòng ban 3P"
+msgstr "Dòng Kết quả 3P Phòng ban"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__dept_evaluation_id
@@ -4270,7 +4270,7 @@ msgstr "Hình ảnh Hiệu suất"
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_evaluation_3p_summary__period_id
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_evaluation_3p_summary_search
 msgid "Period"
-msgstr "Khoảng thời gian"
+msgstr "Kỳ đánh giá"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_performance_evaluation__period_status

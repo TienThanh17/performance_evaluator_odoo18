@@ -192,13 +192,10 @@
                         decoration-info="performance_level == 'excellent'"
                         decoration-success="performance_level == 'pass'"
                         decoration-danger="performance_level == 'fail'" />
-                    <field name="start_date" />
-                    <field name="end_date" />
                     <field name="period_status" widget="badge"
                         decoration-info="period_status == 'upcoming'"
                         decoration-success="period_status == 'ongoing'"
                         decoration-muted="period_status == 'closed'" />
-                    <!-- <field name="deadline" /> -->
                 </list>
             </field>
         </record>
