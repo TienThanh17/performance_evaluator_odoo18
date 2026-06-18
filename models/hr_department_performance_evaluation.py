@@ -17,6 +17,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     _name = "hr.department.performance.evaluation"
     _description = "Department Performance Evaluation"
     _inherit = ["mail.thread", "mail.activity.mixin"]
+    _order = "start_date desc, end_date desc, id desc"
 
     name = fields.Char(compute="_compute_name", store=True)
     department_id = fields.Many2one("hr.department", required=True, tracking=True)

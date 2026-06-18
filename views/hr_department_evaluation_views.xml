@@ -448,6 +448,8 @@
                     domain="[('active', '=', False)]" />
 
                 <group expand="1" string="Group By">
+                    <filter string="Period" name="group_by_period"
+                        context="{'group_by': 'period_id'}" />
                     <filter string="Department" name="group_by_department"
                         context="{'group_by': 'department_id'}" />
                     <filter string="Status" name="group_by_state"
@@ -463,7 +465,7 @@
         <field name="name">Department Performance Evaluations</field>
         <field name="res_model">hr.department.performance.evaluation</field>
         <field name="view_mode">list,form</field>
-        <field name="context">{'search_default_current_period': 1}</field>
+        <field name="context">{'search_default_group_by_period': 1}</field>
     </record>
 
     <!-- Client Action for KPI Department Dashboard page -->
