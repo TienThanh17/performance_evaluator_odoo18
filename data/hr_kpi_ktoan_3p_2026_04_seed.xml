@@ -9,8 +9,7 @@
         </record>
 
         <record id="job_kpi_ktoan_3p_1" model="hr.job">
-            <field name="name">
-                Kế toán</field>
+            <field name="name">Kế toán</field>
         </record>
 
         <record id="employee_ktoan_nguyen_ngoc_diep_3p_202604" model="hr.employee">

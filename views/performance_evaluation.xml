@@ -417,6 +417,7 @@
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
 
                                 <field name="job_id" readonly="1"
+                                    options="{'no_open': True, 'no_create': True}"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />
                                 <field name="manager_id" readonly="1"
                                     class="o_custom_input_field p-2 border border-gray-300 rounded-md" />

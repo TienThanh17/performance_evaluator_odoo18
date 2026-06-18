@@ -107,7 +107,8 @@
             <field name="name">Bộ tiêu chí 3P Trưởng phòng Kỹ thuật</field>
             <field name="department_id"
                 ref="custom_adecsol_hr_performance_evaluator.dept_pkt_ltd_3p_202604" />
-            <field name="job_id" eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.job_pkt_ltd_manager_202604')])]"/>
+            <field name="job_id"
+                eval="[(6, 0, [ref('custom_adecsol_hr_performance_evaluator.job_pkt_ltd_manager_202604')])]" />
             <field name="period_type">monthly</field>
         </record>
 
@@ -3399,7 +3400,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_vi_pham_thang_kiem_tra_2_lan_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">25</field>
             <field name="sequence">800</field>
         </record>
@@ -3418,7 +3419,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_vi_pham_thang_kiem_tra_2_lan_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.25</field>
             <field name="sequence">801</field>
             <field name="description" type="html">
@@ -3449,7 +3450,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_kiem_tra_2_lan_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.25</field>
             <field name="sequence">802</field>
             <field name="description" type="html">
@@ -3481,7 +3482,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_vi_pham_thang_kiem_tra_1_lan_than" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.25</field>
             <field name="sequence">803</field>
             <field name="description" type="html">
@@ -3514,7 +3515,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_vi_pham_han_muc_kiem_tra_bat_ky_t" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.25</field>
             <field name="sequence">804</field>
             <field name="description" type="html">
@@ -3545,7 +3546,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_loi_thiet_ke_1_du_an_viec" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">20</field>
             <field name="sequence">810</field>
         </record>
@@ -3563,7 +3564,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_loi_thiet_ke_1_du_an_viec" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.67</field>
             <field name="sequence">811</field>
             <field name="description" type="html">
@@ -3594,7 +3595,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_chon_sai_thiet_bi_1_du_an_viec" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.67</field>
             <field name="sequence">812</field>
             <field name="description" type="html">
@@ -3626,7 +3627,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_loi_thi_cong_khong_at_chat_luong_1_du" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6.66</field>
             <field name="sequence">813</field>
             <field name="description" type="html">
@@ -3657,7 +3658,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_khong_ap_dung_qui_trinh_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">15</field>
             <field name="sequence">820</field>
         </record>
@@ -3675,7 +3676,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_khong_ap_dung_qui_trinh_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3.75</field>
             <field name="sequence">821</field>
             <field name="description" type="html">
@@ -3705,7 +3706,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_phuong_an_giai_phap_thuc_hien_cong_viec" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_3_kem_1" />
             <field name="weight">3.75</field>
             <field name="sequence">822</field>
             <field name="description" type="html">
@@ -3733,7 +3734,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_1_kem_0" />
             <field name="weight">3.75</field>
             <field name="sequence">823</field>
             <field name="description" type="html">
@@ -3761,7 +3762,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_vi_pham_ko_thuc_hien_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3.75</field>
             <field name="sequence">824</field>
             <field name="description" type="html">
@@ -3790,7 +3791,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_tre_tien_o_du_an" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">15</field>
             <field name="sequence">830</field>
         </record>
@@ -3809,7 +3810,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_tre_tien_o_du_an" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">7.5</field>
             <field name="sequence">831</field>
             <field name="description" type="html">
@@ -3838,7 +3839,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_bao_cao_khong_kip_thoi_khong_at_y" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">7.5</field>
             <field name="sequence">832</field>
             <field name="description" type="html">
@@ -3867,7 +3868,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_gioi_han_ps_chi_phi_2" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">10</field>
             <field name="sequence">840</field>
         </record>
@@ -3885,7 +3886,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_gioi_han_ps_chi_phi_2" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">5.0</field>
             <field name="sequence">841</field>
             <field name="description" type="html">
@@ -3914,7 +3915,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_sai_lech_so_voi_thuc_te_thi_cong_2" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">5.0</field>
             <field name="sequence">842</field>
             <field name="description" type="html">
@@ -3944,7 +3945,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_nhan_su_at_yeu_cau_tong_so_nhan_vien_pho" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">10</field>
             <field name="sequence">850</field>
         </record>
@@ -3963,7 +3964,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_nhan_su_at_yeu_cau_tong_so_nhan_vien_pho" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5.0</field>
             <field name="sequence">851</field>
             <field name="description" type="html">
@@ -3993,7 +3994,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_so_lan_vi_pham_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_2" />
             <field name="weight">5.0</field>
             <field name="sequence">852</field>
             <field name="description" type="html">
@@ -4023,7 +4024,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_2_3_y_kien_san_pham" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5</field>
             <field name="sequence">860</field>
         </record>
@@ -4042,7 +4043,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_mgr_pkt_ltd_2_3_y_kien_san_pham" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5.0</field>
             <field name="sequence">861</field>
             <field name="description" type="html">

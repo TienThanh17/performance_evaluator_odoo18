@@ -48,7 +48,7 @@
                             <field
                                 name="data_source_id"
                                 readonly="1"
-                                invisible="dashboard_kind == 'department'"
+                                invisible="1"
                             />
                             <field
                                 name="provider_key"
@@ -153,7 +153,7 @@
                 <field name="dashboard_kind" />
                 <field name="department_ids" />
                 <field name="target_model" />
-                <field name="data_source_id" />
+                <field name="data_source_id" invisible="1"/>
                 <field name="department_micro_mode" />
 
                 <!-- Bộ lọc nhanh (Filters) -->

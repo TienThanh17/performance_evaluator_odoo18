@@ -193,11 +193,11 @@ class PerformanceEvaluation(models.Model):
     )
     manager_id = fields.Many2one(
         "hr.employee",
-        string="Manager",
+        string="Direct Manager",
         compute="_compute_employee_info",
         store=True,
         readonly=True,
-        help="The employee's manager (filled automatically).",
+        help="The employee's direct manager (filled automatically).",
     )
     job_id = fields.Many2one(
         "hr.job",

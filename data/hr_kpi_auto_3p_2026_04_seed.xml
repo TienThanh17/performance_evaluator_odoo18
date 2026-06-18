@@ -2784,15 +2784,18 @@
             <field name="code">auto_hut_thuoc_cong_trinh</field>
         </record>
         <record id="kpi_unit_auto_loi_lap_trinh" model="hr.kpi.unit">
-            <field name="name">Số lần phát sinh thay đổi viết lại chương trình cho một công đoạn nhiều hơn 1 lần trong 01 tháng.</field>
+            <field name="name">Số lần phát sinh thay đổi viết lại chương trình cho một công
+                đoạn nhiều hơn 1 lần trong 01 tháng.</field>
             <field name="code">auto_loi_lap_trinh</field>
         </record>
         <record id="kpi_unit_auto_loi_thi_cong" model="hr.kpi.unit">
-            <field name="name">Số lỗi thi công, cài đặt sữa chữa không đúng thiết kế gây ra hư hỏng, hoặc khách hàng phản ánh trong 01 tháng</field>
+            <field name="name">Số lỗi thi công, cài đặt sữa chữa không đúng thiết kế gây ra
+                hư hỏng, hoặc khách hàng phản ánh trong 01 tháng</field>
             <field name="code">auto_loi_thi_cong</field>
         </record>
         <record id="kpi_unit_auto_boc_bom_sai" model="hr.kpi.unit">
-            <field name="name">Số lần bốc BOM thiết bị không đúng tiêu chuẩn kỹ thuật, hàng hóa không thông dụng và giá cao bị cấp trên phản ánh</field>
+            <field name="name">Số lần bốc BOM thiết bị không đúng tiêu chuẩn kỹ thuật,
+                hàng hóa không thông dụng và giá cao bị cấp trên phản ánh</field>
             <field name="code">auto_boc_bom_sai</field>
         </record>
         <record id="kpi_unit_auto_khong_ap_dung_qt" model="hr.kpi.unit">
@@ -2882,7 +2885,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec10_202604" />
-            <field name="name">Trang bị đầy đủ đồ bảo hộ lao động khi làm việc tại công trường theo quy định</field>
+            <field name="name">Trang bị đầy đủ đồ bảo hộ lao động khi làm việc tại công trường theo
+                quy định</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -2890,14 +2894,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_khong_trang_bi_bao_ho" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
             <field name="sequence">101</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Trang thiết bị bảo hộ lao động</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Được trang bị đầy đủ đồ bảo hộ lao động</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị đầy đủ đồ bảo hộ lao động khi làm việc tại công trường theo quy định</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Được trang bị đầy đủ đồ bảo hộ
+                        lao động</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị đầy đủ đồ bảo hộ lao động
+                        khi làm việc tại công trường theo quy định</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -2918,14 +2924,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_thang_kt2_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
             <field name="sequence">102</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Trang thiết bị bảo hộ lao động</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất công việc thực hiện</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị bảo hộ lao động đầy đủ cho nhân viên, công nhân thi công</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Trang bị đầy đủ trang thiết bị
+                        an toàn đúng, đủ với tính chất công việc thực hiện</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị bảo hộ lao động đầy đủ cho
+                        nhân viên, công nhân thi công</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -2946,14 +2954,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_kiem_tra_2_lan_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
             <field name="sequence">103</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Trang thiết bị bảo hộ lao động</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công trường: an toàn, cấm hút thuốc.v.v..</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
+                        đảm bảo tiêu chuẩn</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công trường: an toàn, cấm
+                        hút thuốc.v.v..</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -2966,7 +2976,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec10_202604" />
-            <field name="name">Thiết bị, công cụ dụng cụ thi công có kiểm định, kiểm tra định kỳ và còn hiệu lực</field>
+            <field name="name">Thiết bị, công cụ dụng cụ thi công có kiểm định, kiểm tra định kỳ và
+                còn hiệu lực</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -2974,14 +2985,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_thang_kt1_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3</field>
             <field name="sequence">104</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Trang thiết bị bảo hộ lao động</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết bị, công cụ dụng cụ thi công có kiểm định, kiểm tra định kỳ và còn hiệu lực</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
+                        đảm bảo tiêu chuẩn</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết bị, công cụ dụng cụ thi công
+                        có kiểm định, kiểm tra định kỳ và còn hiệu lực</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3002,14 +3015,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_hang_muc" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3</field>
             <field name="sequence">105</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đảm bảo an toàn trong công việc</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Phân tích, đánh giá rủi ro, phương pháp làm việc an toàn khi thực hiện</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Lập bảng phân tích, đánh giá rủi ro, biện pháp phòng ngừa</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Phân tích, đánh giá rủi ro,
+                        phương pháp làm việc an toàn khi thực hiện</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Lập bảng phân tích, đánh giá rủi
+                        ro, biện pháp phòng ngừa</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3030,14 +3045,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_tai_nan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3</field>
             <field name="sequence">106</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đảm bảo an toàn trong công việc</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Đảm bảo nơi làm việc, công trường</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Không xảy ra tai nạn lao động tại nơi làm việc, công trường</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đảm bảo nơi làm việc, công
+                        trường</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Không xảy ra tai nạn lao động tại
+                        nơi làm việc, công trường</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3064,7 +3081,9 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec20_202604" />
-            <field name="name">Thực hiện công việc lập trình không đúng Control Panel hoặc lập bảng Control Panel không đúng yêu cầu của khách hàng dẫn đến phải sửa đổi chương trình/ cài đặt nhiều hơn 1 lần.</field>
+            <field name="name">Thực hiện công việc lập trình không đúng Control Panel hoặc lập bảng
+                Control Panel không đúng yêu cầu của khách hàng dẫn đến phải sửa đổi chương trình/
+                cài đặt nhiều hơn 1 lần.</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3072,14 +3091,18 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_loi_lap_trinh" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">7</field>
             <field name="sequence">201</field>
             <field name="description" type="html">
                 <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Lập trình hệ thống đúng yêu cầu của khách hàng</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản phẩm đạt chất lượng kỹ thuật</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc lập trình không đúng Control Panel hoặc lập bảng Control Panel không đúng yêu cầu của khách hàng dẫn đến phải sửa đổi chương trình/ cài đặt nhiều hơn 1 lần.</p>
+                    <p><strong>Mục tiêu chiến lược:</strong> Lập trình hệ thống đúng yêu cầu của
+                        khách hàng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
+                        phẩm đạt chất lượng kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc lập trình không
+                        đúng Control Panel hoặc lập bảng Control Panel không đúng yêu cầu của khách
+                        hàng dẫn đến phải sửa đổi chương trình/ cài đặt nhiều hơn 1 lần.</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
                     <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
                     <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
@@ -3092,7 +3115,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec20_202604" />
-            <field name="name">Thi công, lắp đặt cài đặt sửa chữa đúng nguyên lý, đúng kỹ thuật, đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</field>
+            <field name="name">Thi công, lắp đặt cài đặt sửa chữa đúng nguyên lý, đúng kỹ thuật,
+                đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3100,14 +3124,17 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_loi_thi_cong" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">7</field>
             <field name="sequence">202</field>
             <field name="description" type="html">
                 <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Thi công lắp đặt, cài đặt/ sửa chữa đạt tiêu chuẩn kỹ thuật, chất lượng</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Chất lượng lắp đặt, cài đặt, hiệu chỉnh</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thi công, lắp đặt cài đặt sửa chữa đúng nguyên lý, đúng kỹ thuật, đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</p>
+                    <p><strong>Mục tiêu chiến lược:</strong> Thi công lắp đặt, cài đặt/ sửa chữa đạt
+                        tiêu chuẩn kỹ thuật, chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Chất lượng lắp đặt, cài đặt,
+                        hiệu chỉnh</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thi công, lắp đặt cài đặt sửa chữa
+                        đúng nguyên lý, đúng kỹ thuật, đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
                     <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
                     <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
@@ -3120,7 +3147,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec20_202604" />
-            <field name="name">Bốc BOM thiết bị đúng tiêu chuẩn kỹ thuật, hàng hóa thông dụng giá cả phải chăng</field>
+            <field name="name">Bốc BOM thiết bị đúng tiêu chuẩn kỹ thuật, hàng hóa thông dụng giá cả
+                phải chăng</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3128,14 +3156,17 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_boc_bom_sai" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">6</field>
             <field name="sequence">203</field>
             <field name="description" type="html">
                 <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Bốc BOM thiết bị đúng tiêu chuẩn kỹ thuật, hàng hóa thông dụng, giá cả phải chăng</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> BOM thiết bị hàng hóa thông dụng giá hợp lý</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Bốc BOM thiết bị đúng tiêu chuẩn kỹ thuật, hàng hóa thông dụng giá cả phải chăng</p>
+                    <p><strong>Mục tiêu chiến lược:</strong> Bốc BOM thiết bị đúng tiêu chuẩn kỹ
+                        thuật, hàng hóa thông dụng, giá cả phải chăng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> BOM thiết bị hàng hóa thông
+                        dụng giá hợp lý</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Bốc BOM thiết bị đúng tiêu chuẩn kỹ
+                        thuật, hàng hóa thông dụng giá cả phải chăng</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
                     <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
                     <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
@@ -3170,14 +3201,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_khong_ap_dung_qt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">4</field>
             <field name="sequence">301</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Quy trình và quản lý chất lượng</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Áp dụng qui trình cho từng công đoạn của công việc</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Quy trình và quản lý An toàn,
+                        chất lượng, Kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Áp dụng qui trình cho từng công
+                        đoạn của công việc</p>
                     <p><strong>Mục tiêu 2026:</strong> 0</p>
                     <p><strong>Kém:</strong> 1</p>
                     <p><strong>Xuất sắc:</strong> 0</p>
@@ -3198,7 +3231,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_phuong_an" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_3_kem_1" />
             <field name="weight">4</field>
             <field name="sequence">302</field>
             <field name="description" type="html">
@@ -3226,7 +3259,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_so_lan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_1_kem_0" />
             <field name="weight">3</field>
             <field name="sequence">303</field>
             <field name="description" type="html">
@@ -3254,7 +3287,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_ko_th" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">4</field>
             <field name="sequence">304</field>
             <field name="description" type="html">
@@ -3288,7 +3321,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec40_202604" />
-            <field name="name">Thực hiện công việc nhanh chóng không ì ạch, không tập trung, chậm trễ tiến độ chung với dự án</field>
+            <field name="name">Thực hiện công việc nhanh chóng không ì ạch, không tập trung, chậm
+                trễ tiến độ chung với dự án</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3296,14 +3330,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_tre_tien_do" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">10</field>
             <field name="sequence">401</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Tiến độ hoàn thành công việc</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc nhanh chóng không ì ạch, không tập trung, chậm trễ tiến độ chung với dự án</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc nhanh chóng
+                        không ì ạch, không tập trung, chậm trễ tiến độ chung với dự án</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
                     <p><strong>Kém:</strong> 1</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần</p>
@@ -3324,7 +3359,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_bao_cao_khong_kip" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">5</field>
             <field name="sequence">402</field>
             <field name="description" type="html">
@@ -3358,7 +3393,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec50_202604" />
-            <field name="name">Thực hiện công việc không triệt để, dẫn đến thực hiện một công việc ở công trình nhiều hơn 1 lần</field>
+            <field name="name">Thực hiện công việc không triệt để, dẫn đến thực hiện một công việc ở
+                công trình nhiều hơn 1 lần</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3366,14 +3402,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_ps_chi_phi" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">3</field>
             <field name="sequence">501</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc không triệt để, dẫn đến thực hiện một công việc ở công trình nhiều hơn 1 lần</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc không triệt để,
+                        dẫn đến thực hiện một công việc ở công trình nhiều hơn 1 lần</p>
                     <p><strong>Mục tiêu 2026:</strong> 0.01</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
@@ -3394,14 +3431,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_sai_lech_thi_cong" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">3</field>
             <field name="sequence">502</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Khảo sát, đo đạc, thiết kế bản vẽ theo thực tế thi công dự án 100%</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Khảo sát, đo đạc, thiết kế bản vẽ
+                        theo thực tế thi công dự án 100%</p>
                     <p><strong>Mục tiêu 2026:</strong> 0.01</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
@@ -3414,7 +3452,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec50_202604" />
-            <field name="name">Thực tế thi công, Lập bảng quản lí hàng hóa, vật tư theo dự án hiệu quả</field>
+            <field name="name">Thực tế thi công, Lập bảng quản lí hàng hóa, vật tư theo dự án hiệu
+                quả</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3422,14 +3461,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_hao_hut_du_an" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">3</field>
             <field name="sequence">503</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực tế thi công, Lập bảng quản lí hàng hóa, vật tư theo dự án hiệu quả</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực tế thi công, Lập bảng quản lí
+                        hàng hóa, vật tư theo dự án hiệu quả</p>
                     <p><strong>Mục tiêu 2026:</strong> 0.01</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
@@ -3442,7 +3482,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec50_202604" />
-            <field name="name">Làm mất mát, thất thoát vật tư tại nơi làm việc</field>
+            <field name="name">Làm mất mát, thất thoát vật tư tại nơi làm việc</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3450,17 +3490,18 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_mat_mat_vat_tu" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3</field>
             <field name="sequence">504</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Làm mất mát, thất thoát vật tư tại nơi làm việc</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
-                    <p><strong>Kém:</strong> 1 Lần</p>
-                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Làm mất mát, thất thoát vật tư tại
+                        nơi làm việc</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
+                    <p><strong>Kém:</strong> 1 Lần</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
                 </div>
             </field>
         </record>
@@ -3470,7 +3511,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec50_202604" />
-            <field name="name">Cắt dây điện đúng kích thước, sai số cho phép theo quy định</field>
+            <field name="name">Cắt dây điện đúng kích thước, sai số cho phép theo quy định</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3478,14 +3519,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_sai_lech_thi_cong" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">3</field>
             <field name="sequence">505</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cắt dây điện đúng kích thước, sai số cho phép theo quy định</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cắt dây điện đúng kích thước, sai
+                        số cho phép theo quy định</p>
                     <p><strong>Mục tiêu 2026:</strong> 0.01</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
@@ -3520,13 +3562,14 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_pct_khoa_dt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">4</field>
             <field name="sequence">601</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo nhân sự</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch đào tạo</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế
+                        hoạch đào tạo</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Số khóa đào tạo /người</p>
                     <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
                     <p><strong>Kém:</strong> &lt;80%</p>
@@ -3548,13 +3591,14 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_pct_ns_dat_yc" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">4</field>
             <field name="sequence">602</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo nhân sự</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch đào tạo</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế
+                        hoạch đào tạo</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Chất lượng nhân sự đáp ứng nhu cầu</p>
                     <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
                     <p><strong>Kém:</strong> &lt;80%</p>
@@ -3568,7 +3612,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec60_202604" />
-            <field name="name">Training form fails ít nhất 01 lần/ tháng</field>
+            <field name="name">Training form fails ít nhất 01 lần/ tháng</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3576,17 +3620,19 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_training_form_fails" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_1_kem_0" />
             <field name="weight">3</field>
             <field name="sequence">603</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo nhân sự</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế hoạch đào tạo</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Training form fails ít nhất 01 lần/ tháng</p>
-                    <p><strong>Mục tiêu 2026:</strong> 1 lần/tháng</p>
-                    <p><strong>Kém:</strong> 0 lần/ tháng</p>
-                    <p><strong>Xuất sắc:</strong> 2 lần/ tháng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Đào tạo nhân viên theo kế
+                        hoạch đào tạo</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Training form fails ít nhất 01 lần/
+                        tháng</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1 lần/tháng</p>
+                    <p><strong>Kém:</strong> 0 lần/ tháng</p>
+                    <p><strong>Xuất sắc:</strong> 2 lần/ tháng</p>
                 </div>
             </field>
         </record>
@@ -3604,13 +3650,14 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_noi_quy" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_2" />
             <field name="weight">4</field>
             <field name="sequence">604</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Tuân thủ nội quy quy chế công ty</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Nội quy công ty, nội quy công trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Nội quy công ty, nội quy công
+                        trình</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công ty, nội quy công trình</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 lần / tháng</p>
                     <p><strong>Kém:</strong> 2lần / tháng</p>
@@ -3638,7 +3685,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_dept_auto_p3_sec70_202604" />
-            <field name="name">2 /3 ý kiến đánh giá đạt trong đó có 1 ý kiến khách hàng ( Cấp giám đốc nhà máy trở lên )</field>
+            <field name="name">2 /3 ý kiến đánh giá đạt trong đó có 1 ý kiến khách hàng ( Cấp giám
+                đốc nhà máy trở lên )</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
@@ -3646,14 +3694,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_y_kien_san_pham" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5</field>
             <field name="sequence">701</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Sản phẩm, Dịch vụ</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Tiêu chí đạt thẩm mỹ</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> 2 /3 ý kiến đánh giá đạt trong đó có 1 ý kiến khách hàng ( Cấp giám đốc nhà máy trở lên )</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> 2 /3 ý kiến đánh giá đạt trong đó
+                        có 1 ý kiến khách hàng ( Cấp giám đốc nhà máy trở lên )</p>
                     <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
                     <p><strong>Kém:</strong> &lt;80%</p>
                     <p><strong>Xuất sắc:</strong> 90%</p>
@@ -3682,7 +3731,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec10_202604" />
-            <field name="key_performance_area">Các thiết bị thi công phải đúng kỹ thuật, không sử dụng thiết bị hư hỏng làm ảnh hưởng đến chất lượng và thẩm mỹ.</field>
+            <field name="key_performance_area">Các thiết bị thi công phải đúng kỹ thuật, không sử
+                dụng thiết bị hư hỏng làm ảnh hưởng đến chất lượng và thẩm mỹ.</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -3690,14 +3740,17 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_thang_kt2_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3</field>
             <field name="sequence">801</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Trang thiết bị bảo hộ lao động</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công, công cụ, dụng cụ đảm bảo tiêu chuẩn an toàn</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Các thiết bị thi công phải đúng kỹ thuật, không sử dụng thiết bị hư hỏng làm ảnh hưởng đến chất lượng và thẩm mỹ.</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công, công cụ,
+                        dụng cụ đảm bảo tiêu chuẩn an toàn</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Các thiết bị thi công phải đúng kỹ
+                        thuật, không sử dụng thiết bị hư hỏng làm ảnh hưởng đến chất lượng và thẩm
+                        mỹ.</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3710,7 +3763,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec10_202604" />
-            <field name="key_performance_area">Trang bị đầy đủ đồ bảo hộ lao động khi làm việc tại công trường theo quy định</field>
+            <field name="key_performance_area">Trang bị đầy đủ đồ bảo hộ lao động khi làm việc tại
+                công trường theo quy định</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -3718,14 +3772,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_khong_trang_bi_bao_ho" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
             <field name="sequence">802</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Trang thiết bị bảo hộ lao động</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Được trang bị đầy đủ đồ bảo hộ lao động</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị đầy đủ đồ bảo hộ lao động khi làm việc tại công trường theo quy định</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Được trang bị đầy đủ đồ bảo hộ
+                        lao động</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị đầy đủ đồ bảo hộ lao động
+                        khi làm việc tại công trường theo quy định</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3738,7 +3794,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec10_202604" />
-            <field name="key_performance_area">Trang bị bảo hộ lao động đầy đủ cho nhân viên, công nhân thi công</field>
+            <field name="key_performance_area">Trang bị bảo hộ lao động đầy đủ cho nhân viên, công
+                nhân thi công</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -3746,14 +3803,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_thang_kt2_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
             <field name="sequence">803</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Trang thiết bị bảo hộ lao động</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Trang bị đầy đủ trang thiết bị an toàn đúng, đủ với tính chất công việc thực hiện</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị bảo hộ lao động đầy đủ cho nhân viên, công nhân thi công</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Trang bị đầy đủ trang thiết bị
+                        an toàn đúng, đủ với tính chất công việc thực hiện</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Trang bị bảo hộ lao động đầy đủ cho
+                        nhân viên, công nhân thi công</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3774,14 +3833,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_kiem_tra_2_lan_ngay" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
             <field name="sequence">804</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Trang thiết bị bảo hộ lao động</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công trường: an toàn, cấm hút thuốc.v.v..</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
+                        đảm bảo tiêu chuẩn</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Nội quy công trường: an toàn, cấm
+                        hút thuốc.v.v..</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3794,7 +3855,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec10_202604" />
-            <field name="key_performance_area">Thiết bị, công cụ dụng cụ thi công có kiểm định, kiểm tra định kỳ và còn hiệu lực</field>
+            <field name="key_performance_area">Thiết bị, công cụ dụng cụ thi công có kiểm định, kiểm
+                tra định kỳ và còn hiệu lực</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -3802,14 +3864,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_thang_kt1_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
             <field name="sequence">805</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Trang thiết bị bảo hộ lao động</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ đảm bảo tiêu chuẩn</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết bị, công cụ dụng cụ thi công có kiểm định, kiểm tra định kỳ và còn hiệu lực</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Thiết bị thi công cụ dụng cụ
+                        đảm bảo tiêu chuẩn</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thiết bị, công cụ dụng cụ thi công
+                        có kiểm định, kiểm tra định kỳ và còn hiệu lực</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3822,7 +3886,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec10_202604" />
-            <field name="key_performance_area">Không xảy ra tai nạn lao động tại nơi làm việc, công trường</field>
+            <field name="key_performance_area">Không xảy ra tai nạn lao động tại nơi làm việc, công
+                trường</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -3830,14 +3895,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_tai_nan_thang" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
             <field name="sequence">806</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đảm bảo an toàn trong công việc</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Không xảy ra nguy cơ tai nạn lao động tại công trình</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Không xảy ra tai nạn lao động tại nơi làm việc, công trường</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Không xảy ra nguy cơ tai nạn
+                        lao động tại công trình</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Không xảy ra tai nạn lao động tại
+                        nơi làm việc, công trường</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3850,7 +3917,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec10_202604" />
-            <field name="key_performance_area">Cấm tuyệt đối hút thuốc tại công trường</field>
+            <field name="key_performance_area">Cấm tuyệt đối hút thuốc tại công trường</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -3858,14 +3925,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_hut_thuoc_cong_trinh" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">2</field>
             <field name="sequence">807</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đảm bảo an toàn trong công việc</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Tuyệt đối không hút thuốc trong công trình</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cấm tuyệt đối hút thuốc tại công trường</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tuyệt đối không hút thuốc
+                        trong công trình</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cấm tuyệt đối hút thuốc tại công
+                        trường</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần / Tháng</p>
                     <p><strong>Kém:</strong> 1 Lần/Tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần / Tháng</p>
@@ -3891,7 +3960,9 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec20_202604" />
-            <field name="key_performance_area">Thực hiện công việc lập trình không đúng Control Panel hoặc lập bảng Control Panel không đúng yêu cầu của khách hàng dẫn đến phải sửa đổi chương trình/ cài đặt nhiều hơn 1 lần.</field>
+            <field name="key_performance_area">Thực hiện công việc lập trình không đúng Control
+                Panel hoặc lập bảng Control Panel không đúng yêu cầu của khách hàng dẫn đến phải sửa
+                đổi chương trình/ cài đặt nhiều hơn 1 lần.</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -3899,14 +3970,18 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_loi_lap_trinh" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">10</field>
             <field name="sequence">901</field>
             <field name="description" type="html">
                 <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Lập trình hệ thống đúng yêu cầu của khách hàng</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản phẩm đạt chất lượng kỹ thuật</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc lập trình không đúng Control Panel hoặc lập bảng Control Panel không đúng yêu cầu của khách hàng dẫn đến phải sửa đổi chương trình/ cài đặt nhiều hơn 1 lần.</p>
+                    <p><strong>Mục tiêu chiến lược:</strong> Lập trình hệ thống đúng yêu cầu của
+                        khách hàng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Sự hài lòng của khách hàng Sản
+                        phẩm đạt chất lượng kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc lập trình không
+                        đúng Control Panel hoặc lập bảng Control Panel không đúng yêu cầu của khách
+                        hàng dẫn đến phải sửa đổi chương trình/ cài đặt nhiều hơn 1 lần.</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
                     <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
                     <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
@@ -3919,7 +3994,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec20_202604" />
-            <field name="key_performance_area">Thi công, lắp đặt cài đặt sửa chữa đúng nguyên lý, đúng kỹ thuật, đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</field>
+            <field name="key_performance_area">Thi công, lắp đặt cài đặt sửa chữa đúng nguyên lý,
+                đúng kỹ thuật, đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -3927,14 +4003,17 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_loi_thi_cong" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">10</field>
             <field name="sequence">902</field>
             <field name="description" type="html">
                 <div>
-                    <p><strong>Mục tiêu chiến lược:</strong> Thi công lắp đặt, cài đặt/ sửa chữa đạt tiêu chuẩn kỹ thuật, chất lượng</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Chất lượng lắp đặt, cài đặt, hiệu chỉnh</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thi công, lắp đặt cài đặt sửa chữa đúng nguyên lý, đúng kỹ thuật, đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</p>
+                    <p><strong>Mục tiêu chiến lược:</strong> Thi công lắp đặt, cài đặt/ sửa chữa đạt
+                        tiêu chuẩn kỹ thuật, chất lượng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Chất lượng lắp đặt, cài đặt,
+                        hiệu chỉnh</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thi công, lắp đặt cài đặt sửa chữa
+                        đúng nguyên lý, đúng kỹ thuật, đúng bản vẽ, đảm bảo về thẩm mỹ kỹ thuật</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lỗi / DA/ Việc</p>
                     <p><strong>Kém:</strong> 1 Lỗi / DA/việc</p>
                     <p><strong>Xuất sắc:</strong> 0 Lỗi / DA/việc</p>
@@ -3968,14 +4047,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_khong_ap_dung_qt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">5</field>
             <field name="sequence">1001</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Quy trình và quản lý chất lượng</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Quy trình và quản lý An toàn, chất lượng, Kỹ thuật</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Áp dụng qui trình cho từng công đoạn của công việc</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Quy trình và quản lý An toàn,
+                        chất lượng, Kỹ thuật</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Áp dụng qui trình cho từng công
+                        đoạn của công việc</p>
                     <p><strong>Mục tiêu 2026:</strong> 0</p>
                     <p><strong>Kém:</strong> 1</p>
                     <p><strong>Xuất sắc:</strong> 0</p>
@@ -3996,7 +4077,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_phuong_an" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_3_kem_1" />
             <field name="weight">5</field>
             <field name="sequence">1002</field>
             <field name="description" type="html">
@@ -4024,7 +4105,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_ko_th" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">5</field>
             <field name="sequence">1003</field>
             <field name="description" type="html">
@@ -4057,7 +4138,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec40_202604" />
-            <field name="key_performance_area">Thực hiện công việc nhanh chóng không ì ạch, không tập trung, chậm trễ tiến độ chung với dự án</field>
+            <field name="key_performance_area">Thực hiện công việc nhanh chóng không ì ạch, không
+                tập trung, chậm trễ tiến độ chung với dự án</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4065,14 +4147,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_tre_tien_do" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">10</field>
             <field name="sequence">1101</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Tiến độ hoàn thành công việc</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Tiến độ thực hiện công việc</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc nhanh chóng không ì ạch, không tập trung, chậm trễ tiến độ chung với dự án</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc nhanh chóng
+                        không ì ạch, không tập trung, chậm trễ tiến độ chung với dự án</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
                     <p><strong>Kém:</strong> 1</p>
                     <p><strong>Xuất sắc:</strong> 0 Lần</p>
@@ -4093,7 +4176,7 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_bao_cao_khong_kip" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">5</field>
             <field name="sequence">1102</field>
             <field name="description" type="html">
@@ -4126,7 +4209,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
-            <field name="key_performance_area">Thực hiện công việc không triệt để, dẫn đến thực hiện một công việc ở công trình nhiều hơn 1 lần</field>
+            <field name="key_performance_area">Thực hiện công việc không triệt để, dẫn đến thực hiện
+                một công việc ở công trình nhiều hơn 1 lần</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4134,14 +4218,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_ps_chi_phi" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">3</field>
             <field name="sequence">1201</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc không triệt để, dẫn đến thực hiện một công việc ở công trình nhiều hơn 1 lần</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực hiện công việc không triệt để,
+                        dẫn đến thực hiện một công việc ở công trình nhiều hơn 1 lần</p>
                     <p><strong>Mục tiêu 2026:</strong> 0.01</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
@@ -4154,7 +4239,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
-            <field name="key_performance_area">Khảo sát, đo đạc, thiết kế bản vẽ theo thực tế thi công dự án 100%</field>
+            <field name="key_performance_area">Khảo sát, đo đạc, thiết kế bản vẽ theo thực tế thi
+                công dự án 100%</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4162,14 +4248,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_sai_lech_thi_cong" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">3</field>
             <field name="sequence">1202</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Khảo sát, đo đạc, thiết kế bản vẽ theo thực tế thi công dự án 100%</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Khảo sát, đo đạc, thiết kế bản vẽ
+                        theo thực tế thi công dự án 100%</p>
                     <p><strong>Mục tiêu 2026:</strong> 0.01</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
@@ -4182,7 +4269,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
-            <field name="key_performance_area">Thực tế thi công, Lập bảng quản lí hàng hóa, vật tư theo dự án hiệu quả</field>
+            <field name="key_performance_area">Thực tế thi công, Lập bảng quản lí hàng hóa, vật tư
+                theo dự án hiệu quả</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4190,14 +4278,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_hao_hut_du_an" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">3</field>
             <field name="sequence">1203</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực tế thi công, Lập bảng quản lí hàng hóa, vật tư theo dự án hiệu quả</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Thực tế thi công, Lập bảng quản lí
+                        hàng hóa, vật tư theo dự án hiệu quả</p>
                     <p><strong>Mục tiêu 2026:</strong> 0.01</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
@@ -4210,7 +4299,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
-            <field name="key_performance_area">Làm mất mát, thất thoát vật tư tại nơi làm việc</field>
+            <field name="key_performance_area">Làm mất mát, thất thoát vật tư tại nơi làm việc</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4218,17 +4307,18 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_mat_mat_vat_tu" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">3</field>
             <field name="sequence">1204</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Làm mất mát, thất thoát vật tư tại nơi làm việc</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
-                    <p><strong>Kém:</strong> 1 Lần</p>
-                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Làm mất mát, thất thoát vật tư tại
+                        nơi làm việc</p>
+                    <p><strong>Mục tiêu 2026:</strong> 0 Lần</p>
+                    <p><strong>Kém:</strong> 1 Lần</p>
+                    <p><strong>Xuất sắc:</strong> 0 Lần</p>
                 </div>
             </field>
         </record>
@@ -4238,7 +4328,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec50_202604" />
-            <field name="key_performance_area">Cắt dây điện đúng kích thước, sai số cho phép theo quy định</field>
+            <field name="key_performance_area">Cắt dây điện đúng kích thước, sai số cho phép theo
+                quy định</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4246,14 +4337,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_sai_lech_thi_cong" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_variance_target_1_kem_2" />
             <field name="weight">3</field>
             <field name="sequence">1205</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Giới hạn chi phí phát sinh thay đổi</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cắt dây điện đúng kích thước, sai số cho phép theo quy định</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Cắt dây điện đúng kích thước, sai
+                        số cho phép theo quy định</p>
                     <p><strong>Mục tiêu 2026:</strong> 0.01</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
@@ -4279,7 +4371,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec60_202604" />
-            <field name="key_performance_area">Tham dự đào tạo và nhận kết quả đào tạo theo kế hoạch đào tạo của phòng ban</field>
+            <field name="key_performance_area">Tham dự đào tạo và nhận kết quả đào tạo theo kế hoạch
+                đào tạo của phòng ban</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4287,14 +4380,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_pct_khoa_dt" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5</field>
             <field name="sequence">1301</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo nhân sự</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Tham gia 100% các buổi training do phòng ban tổ chức</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Tham dự đào tạo và nhận kết quả đào tạo theo kế hoạch đào tạo của phòng ban</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tham gia 100% các buổi
+                        training do phòng ban tổ chức</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Tham dự đào tạo và nhận kết quả đào
+                        tạo theo kế hoạch đào tạo của phòng ban</p>
                     <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
                     <p><strong>Kém:</strong> &lt;80%</p>
                     <p><strong>Xuất sắc:</strong> 100%</p>
@@ -4307,7 +4402,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec60_202604" />
-            <field name="key_performance_area">Tham gia training From fails ít nhất 01 lần/ tháng</field>
+            <field name="key_performance_area">Tham gia training From fails ít nhất 01 lần/ tháng</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4315,14 +4410,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_pct_ns_dat_yc" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_rate_target_80" />
             <field name="weight">5</field>
             <field name="sequence">1302</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Đào tạo nhân sự</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Tham gia 100% các buổi training do phòng ban tổ chức</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Tham gia training From fails ít nhất 01 lần/ tháng</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Tham gia 100% các buổi
+                        training do phòng ban tổ chức</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Tham gia training From fails ít
+                        nhất 01 lần/ tháng</p>
                     <p><strong>Mục tiêu 2026:</strong> &gt;80%</p>
                     <p><strong>Kém:</strong> &lt;80%</p>
                     <p><strong>Xuất sắc:</strong> 100%</p>
@@ -4335,7 +4432,7 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec60_202604" />
-            <field name="key_performance_area">Tuân thủ nội quy công ty, nội quy công trình</field>
+            <field name="key_performance_area">Tuân thủ nội quy công ty, nội quy công trình</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4343,14 +4440,16 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_vi_pham_noi_quy" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_2" />
             <field name="weight">5</field>
             <field name="sequence">1303</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Tuân thủ nội quy quy chế công ty</p>
-                    <p><strong>Yếu tố quyết định thành công:</strong> Nội quy công ty, nội quy công trình</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Tuân thủ nội quy công ty, nội quy công trình</p>
+                    <p><strong>Yếu tố quyết định thành công:</strong> Nội quy công ty, nội quy công
+                        trình</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Tuân thủ nội quy công ty, nội quy
+                        công trình</p>
                     <p><strong>Mục tiêu 2026:</strong> 0 lần / tháng</p>
                     <p><strong>Kém:</strong> 2lần / tháng</p>
                     <p><strong>Xuất sắc:</strong> 0 lần / tháng</p>
@@ -4376,7 +4475,8 @@
                 ref="custom_adecsol_hr_performance_evaluator.tpl_emp_kpi_auto_3p_202604" />
             <field name="parent_line_id"
                 ref="custom_adecsol_hr_performance_evaluator.line_emp_auto_p3_sec70_202604" />
-            <field name="key_performance_area">Không có phàn nàn từ khách hàng hoặc các cấp quản lý về chất lượng thẩm mỹ của dự án đang thực hiện</field>
+            <field name="key_performance_area">Không có phàn nàn từ khách hàng hoặc các cấp quản lý
+                về chất lượng thẩm mỹ của dự án đang thực hiện</field>
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
@@ -4384,14 +4484,15 @@
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_auto_phan_nan_tham_my" />
             <field name="scoring_formula_id"
-                ref="custom_adecsol_hr_performance_evaluator.formula_penalty_1pt" />
+                ref="custom_adecsol_hr_performance_evaluator.formula_step_target_0_kem_1" />
             <field name="weight">5</field>
             <field name="sequence">1401</field>
             <field name="description" type="html">
                 <div>
                     <p><strong>Mục tiêu chiến lược:</strong> Sản phẩm, Dịch vụ</p>
                     <p><strong>Yếu tố quyết định thành công:</strong> Tiêu chí đạt thẩm mỹ</p>
-                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Không có phàn nàn từ khách hàng hoặc các cấp quản lý về chất lượng thẩm mỹ của dự án đang thực hiện</p>
+                    <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Không có phàn nàn từ khách hàng
+                        hoặc các cấp quản lý về chất lượng thẩm mỹ của dự án đang thực hiện</p>
                     <p><strong>Mục tiêu 2026:</strong> 0</p>
                     <p><strong>Kém:</strong> 1</p>
                     <p><strong>Xuất sắc:</strong> 0</p>

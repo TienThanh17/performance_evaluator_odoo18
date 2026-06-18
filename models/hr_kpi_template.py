@@ -74,6 +74,10 @@ class HrKpiTemplate(models.Model):
         domain="[('department_id', '=', department_id), ('period_type', '=', period_type)]",
         ondelete="set null",
     )
+    department_template_count = fields.Integer(
+        compute="_compute_department_template_count",
+        string="Department Template Count",
+    )
     # Khai báo các field chứa tên động của từng Pillar
     pillar_p2_1_name = fields.Char(
         compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.1"
@@ -84,6 +88,31 @@ class HrKpiTemplate(models.Model):
     pillar_p3_ind_name = fields.Char(
         compute="_compute_dynamic_pillar_names", string="Tên Pillar P3"
     )
+
+    # Đếm số department KPI template cùng phòng ban để hiển thị trên smart button.
+    @api.depends("department_id")
+    def _compute_department_template_count(self):
+        department_ids = self.mapped("department_id").ids
+        counts_by_department = {}
+
+        # Gom số lượng theo phòng ban một lần để tránh search_count lặp lại theo từng record.
+        if department_ids:
+            grouped_data = self.env["hr.department.kpi.template"].read_group(
+                [("department_id", "in", department_ids)],
+                ["department_id"],
+                ["department_id"],
+            )
+            counts_by_department = {
+                group["department_id"][0]: group["department_id_count"]
+                for group in grouped_data
+                if group.get("department_id")
+            }
+
+        for rec in self:
+            # Nếu template chưa có phòng ban thì không có bản mẫu phòng ban liên quan để mở.
+            rec.department_template_count = counts_by_department.get(
+                rec.department_id.id, 0
+            )
 
     def _compute_dynamic_pillar_names(self):
         # Truy vấn database một lần để lấy tất cả các pillar cần thiết (Tối ưu hiệu suất)
@@ -272,3 +301,27 @@ class HrKpiTemplate(models.Model):
         if copied_lines:
             copied_lines._validate_normalized_3p_weight_structure()
         return new_parent
+
+    # Mở danh sách department KPI template cùng phòng ban; nếu chỉ có một record thì mở thẳng form.
+    def action_open_department_templates(self):
+        self.ensure_one()
+
+        # Chỉ lấy các department template dùng chung department với employee template hiện tại.
+        domain = [("department_id", "=", self.department_id.id)] if self.department_id else []
+        department_templates = self.env["hr.department.kpi.template"].search(domain)
+
+        # Dùng action gốc của module để giữ nguyên list/form view đã cấu hình sẵn.
+        action = self.env.ref(
+            "custom_adecsol_hr_performance_evaluator.action_hr_department_kpi"
+        ).read()[0]
+        action["domain"] = domain
+        action["context"] = {
+            "default_department_id": self.department_id.id if self.department_id else False,
+        }
+
+        # Nếu chỉ có đúng một bản mẫu thì điều hướng thẳng sang form để giảm một bước click.
+        if len(department_templates) == 1:
+            action["view_mode"] = "form"
+            action["res_id"] = department_templates.id
+
+        return action

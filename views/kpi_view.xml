@@ -166,6 +166,16 @@
                             context="{'default_kpi_id': id, 'default_department_id': department_id}" />
                     </header> -->
                     <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button"
+                                type="object"
+                                name="action_open_department_templates"
+                                icon="fa-sitemap">
+                                <field name="department_template_count"
+                                    string="Department Templates"
+                                    widget="statinfo" />
+                            </button>
+                        </div>
                         <!-- Use Odoo native grid to keep labels/fields aligned consistently -->
                         <group>
                             <group>

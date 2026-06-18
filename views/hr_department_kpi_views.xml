@@ -77,6 +77,16 @@
                         string="Generate Evaluations" type="action" class="btn-primary" />
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button"
+                            type="object"
+                            name="action_open_employee_templates"
+                            icon="fa-users">
+                            <field name="employee_template_count"
+                                string="Employee Templates"
+                                widget="statinfo" />
+                        </button>
+                    </div>
                     <group>
                         <group string="General Information">
                             <field name="name" />

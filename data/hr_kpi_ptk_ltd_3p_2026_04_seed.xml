@@ -2848,7 +2848,7 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.01</field>
+            <field name="target">1</field>
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_ptk_ltd_gioi_han_ps_chi_phi_2" />
             <field name="scoring_formula_id"
@@ -2861,7 +2861,7 @@
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Giảm thất thoát vật tư trong lập dự
                         toán</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1%</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
                 </div>
@@ -2877,7 +2877,7 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.01</field>
+            <field name="target">1</field>
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_ptk_ltd_sai_lech_so_voi_thuc_te_thi_cong_2" />
             <field name="scoring_formula_id"
@@ -2890,7 +2890,7 @@
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Khảo sát, đo đạc, thiết kế bản vẽ
                         theo thực tế thi công dự án 100%</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1%</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
                 </div>
@@ -3520,7 +3520,7 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.01</field>
+            <field name="target">1</field>
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_ptk_ltd_gioi_han_ps_chi_phi_2" />
             <field name="scoring_formula_id"
@@ -3533,7 +3533,7 @@
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Giảm thất thoát vật tư trong lập dự
                         toán</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1%</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
                 </div>
@@ -3550,7 +3550,7 @@
             <field name="pillar_id"
                 ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_individual" />
             <field name="kpi_type">auto</field>
-            <field name="target">0.01</field>
+            <field name="target">1</field>
             <field name="unit"
                 ref="custom_adecsol_hr_performance_evaluator.kpi_unit_ptk_ltd_sai_lech_so_voi_thuc_te_thi_cong_2" />
             <field name="scoring_formula_id"
@@ -3563,7 +3563,7 @@
                     <p><strong>Yếu tố quyết định thành công:</strong> Giảm chi phí tối thiểu</p>
                     <p><strong>Chỉ tiêu đánh giá (KPI):</strong> Khảo sát, đo đạc, thiết kế bản vẽ
                         theo thực tế thi công dự án 100%</p>
-                    <p><strong>Mục tiêu 2026:</strong> 0.01</p>
+                    <p><strong>Mục tiêu 2026:</strong> 1%</p>
                     <p><strong>Kém:</strong> &lt;2%, &gt;2%</p>
                     <p><strong>Xuất sắc:</strong> &lt;/= 1%</p>
                 </div>

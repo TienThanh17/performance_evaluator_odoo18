@@ -864,7 +864,7 @@ msgstr "Điểm trung bình"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__micro_chart_type__bar
 msgid "Bar"
-msgstr "Biểu đồ cột"
+msgstr "Biểu đồ Cột"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_evaluation_3p_summary_line__p1_base_salary
@@ -937,8 +937,8 @@ msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__macro_widget_type__radar_chart
-msgid "Biểu đồ radar"
-msgstr "Radar biểu đồ"
+msgid "Biểu đồ Radar"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_report__body
@@ -1446,7 +1446,7 @@ msgstr "Ngày kết thúc"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__date_granularity
 msgid "Date Granularity"
-msgstr "Chi tiết ngày"
+msgstr "Đơn vị thời gian"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_period__date_start
@@ -1831,7 +1831,7 @@ msgstr "Xong"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__micro_chart_type__doughnut
 msgid "Doughnut"
-msgstr "Donut"
+msgstr "Biểu đồ Vòng"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_department_performance_evaluation__state__draft
@@ -1857,7 +1857,7 @@ msgstr "NHÂN VIÊN"
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/dept_kpi_dashboard/dept_kpi_dashboard_template.xml:0
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/performance_dashboard/performance_dashboard_templates.xml:0
 msgid "EXCELLENT"
-msgstr "TUYỆT VỜI"
+msgstr "Xuất sắc"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -1949,7 +1949,7 @@ msgstr "Điểm nhân viên"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__employee_template_line_id
 msgid "Employee Template Line"
-msgstr "Dòng mẫu nhân viên"
+msgstr "Dòng KPI nhân viên"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -1995,10 +1995,7 @@ msgid ""
 "Employee template line '%(line)s' on widget '%(widget)s' must use a domain "
 "data source with count, sum, or average aggregation and a date field for the"
 " daily series provider."
-msgstr ""
-"Dòng mẫu nhân viên '%(line)s' trên widget '%(widget)s' phải dùng nguồn dữ "
-"liệu domain có phép tổng hợp đếm, tổng hoặc trung bình và có trường ngày cho"
-" nhà cung cấp chuỗi dữ liệu theo ngày."
+msgstr "Dòng KPI '%(line)s' trong widget '%(widget)s' phải có trường ngày và sử dụng kiểu tính Đếm, Tổng hoặc Trung bình để hiển thị dữ liệu theo ngày."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -2007,7 +2004,7 @@ msgid ""
 "Employee template line '%(line)s' on widget '%(widget)s' must use data "
 "source '%(source)s' for provider '%(provider)s'."
 msgstr ""
-"Dòng mẫu nhân viên '%(line)s' trên widget '%(widget)s' phải dùng nguồn dữ "
+"Dòng KPI mẫu nhân viên '%(line)s' trên widget '%(widget)s' phải dùng nguồn dữ "
 "liệu '%(source)s' cho provider '%(provider)s'."
 
 #. module: custom_adecsol_hr_performance_evaluator
@@ -2165,7 +2162,7 @@ msgstr ""
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_performance_evaluation__performance_level__excellent
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_performance_evaluation_search
 msgid "Excellent"
-msgstr "Tuyệt vời"
+msgstr "Xuất sắc"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__attendance_expected_days
@@ -2222,7 +2219,7 @@ msgstr "Mẫu KPI của nhân viên"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__filter_domain
 msgid "Filter Domain"
-msgstr "Lọc miền"
+msgstr "Bộ lọc"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__final_score_badge_text
@@ -2285,7 +2282,7 @@ msgstr "Người theo dõi (Đối tác)"
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__activity_type_icon
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_report__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr "Phông chữ biểu tượng tuyệt vời, ví dụ: nhiệm vụ fa"
+msgstr "Font awesome icon, ví dụ: fa-tasks"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -2368,7 +2365,7 @@ msgstr "Tạo đánh giá cho nhân viên trong bộ phận này."
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__provider_key__generic_domain_daily_series
 msgid "Generic Daily Series"
-msgstr "Chuỗi hàng ngày chung"
+msgstr "Biểu đồ dữ liệu theo ngày"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__provider_key__generic_target_actual_bar
@@ -2714,7 +2711,7 @@ msgstr "Là trưởng phòng"
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_template_line__is_section
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__is_section
 msgid "Is Section"
-msgstr "Phần là"
+msgstr "Là Phần"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_evaluation_3p_summary_line__job_id
@@ -2746,7 +2743,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__kpi_behavior
 msgid "KPI Behavior"
-msgstr "Hành vi KPI"
+msgstr "Tính Chất KPI"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -3243,7 +3240,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__micro_chart_type__line
 msgid "Line"
-msgstr "Dòng"
+msgstr "Biểu đồ Dòng"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_evaluation_3p_summary__line_count
@@ -3298,7 +3295,7 @@ msgstr "ĐÁNH GIÁ CỦA trưởng phòng"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_dashboard_widget_form
 msgid "Macro Config"
-msgstr "Cấu hình macro"
+msgstr "Cấu hình biểu đồ tổng hợp"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_dashboard_widget_search
@@ -3330,6 +3327,10 @@ msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__manager_id
+msgid "Direct Manager"
+msgstr "Quản lý trực tiếp"
+
+#. module: custom_adecsol_hr_performance_evaluator
 #: model:res.groups,name:custom_adecsol_hr_performance_evaluator.group_manager
 msgid "Manager"
 msgstr "Trưởng phòng"
@@ -3476,7 +3477,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__measure_field_id
 msgid "Measure Field"
-msgstr "Trường đo"
+msgstr "Trường đo lường"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi_template__message_has_error
@@ -3521,7 +3522,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_dashboard_widget_form
 msgid "Micro Config"
-msgstr "Cấu hình vi mô"
+msgstr "Cấu hình biểu đồ KPI"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_dashboard_widget_search
@@ -3557,7 +3558,7 @@ msgid ""
 "Micro widget '%s' using the daily series provider must define a KPI "
 "Behavior."
 msgstr ""
-"Micro widget '%s' dùng provider chuỗi dữ liệu theo ngày phải khai báo Hành "
+"Micro widget '%s' dùng Loại dữ liệu Biểu đồ dữ liệu theo ngày phải khai báo Hành "
 "vi KPI."
 
 #. module: custom_adecsol_hr_performance_evaluator
@@ -4418,7 +4419,7 @@ msgstr "Tiến độ (%)"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__provider_key
 msgid "Provider"
-msgstr "Nhà cung cấp"
+msgstr "Loại dữ liệu"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -4555,7 +4556,7 @@ msgstr "Không cho phép phân cấp dòng KPI đệ quy."
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__name
 msgid "Reference"
-msgstr "Tham khảo"
+msgstr "Mã đánh giá"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -4885,12 +4886,12 @@ msgstr "Trường hợp đặc biệt"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__provider_key__special_engine_attendance_overview
 msgid "Special Case: Attendance Overview"
-msgstr "Trường hợp đặc biệt: Tổng quan về chấm công"
+msgstr "Trường hợp đặc biệt: Đi làm đầy đủ"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__provider_key__special_engine_punctuality
 msgid "Special Case: Check-in"
-msgstr "Trường hợp đặc biệt: Đăng ký"
+msgstr "Trường hợp đặc biệt: Chấm công"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_template_line__is_special_scoring
@@ -4903,7 +4904,7 @@ msgstr "Ghi điểm đặc biệt"
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_performance_report.py:0
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__micro_chart_type__stacked_bar
 msgid "Stacked Bar"
-msgstr "Thanh xếp chồng"
+msgstr "Biểu đồ Cột chồng"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -5501,8 +5502,8 @@ msgstr "Vị trí công việc của nhân viên (được điền tự động)
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__manager_id
-msgid "The employee's manager (filled automatically)."
-msgstr "trưởng phòng của nhân viên (được điền tự động)."
+msgid "The employee's direct manager (filled automatically)."
+msgstr "Quản lý trực tiếp của nhân viên (được điền tự động)."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__evaluation_id
@@ -6076,7 +6077,7 @@ msgstr "Trọng số dùng cho điểm KPI phòng ban <b>P3.1.2</b>."
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__widget_class
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_dashboard_widget_search
 msgid "Widget Class"
-msgstr "Lớp Widget"
+msgstr "Loại biểu đồ"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_dashboard_widget_search
@@ -6121,7 +6122,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.kpi.dashboard.widget,name:custom_adecsol_hr_performance_evaluator.widget_individual_score_trend
 msgid "Xu hướng điểm P3.1.1 cá nhân"
-msgstr "Xu hướng điểm"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_evaluation_3p_summary_form

@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 
 class HrDepartmentKpiTemplate(models.Model):
@@ -29,15 +29,66 @@ class HrDepartmentKpiTemplate(models.Model):
     kpi_line_ids = fields.One2many(
         "hr.department.kpi.template.line", "department_kpi_id"
     )
+    employee_template_count = fields.Integer(
+        compute="_compute_employee_template_count",
+        string="Employee Template Count",
+    )
 
     # Khai báo các field chứa tên động của từng Pillar
     pillar_p3_dept_name = fields.Char(compute="_compute_dynamic_pillar_names")
+
+    # Đếm số employee KPI template cùng phòng ban để hiển thị trên smart button.
+    @api.depends("department_id")
+    def _compute_employee_template_count(self):
+        department_ids = self.mapped("department_id").ids
+        counts_by_department = {}
+
+        # Gom số lượng theo phòng ban một lần để tránh query lặp cho từng record.
+        if department_ids:
+            grouped_data = self.env["hr.kpi.template"].read_group(
+                [("department_id", "in", department_ids)],
+                ["department_id"],
+                ["department_id"],
+            )
+            counts_by_department = {
+                group["department_id"][0]: group["department_id_count"]
+                for group in grouped_data
+                if group.get("department_id")
+            }
+
+        for rec in self:
+            # Nếu chưa gán phòng ban thì không có employee template liên kết để mở.
+            rec.employee_template_count = counts_by_department.get(rec.department_id.id, 0)
 
     def _compute_dynamic_pillar_names(self):
         pillars = self.env['hr.evaluation.pillar'].sudo().search([
             ('code', 'in', ['p3_department'])
         ])
         self.pillar_p3_dept_name = pillars.name or ""
+
+    # Mở danh sách employee KPI template cùng phòng ban; nếu chỉ có một record thì mở thẳng form.
+    def action_open_employee_templates(self):
+        self.ensure_one()
+
+        # Chỉ lấy các employee template dùng chung department với department template hiện tại.
+        domain = [("department_id", "=", self.department_id.id)] if self.department_id else []
+        employee_templates = self.env["hr.kpi.template"].search(domain)
+
+        # Tái sử dụng action chuẩn của employee template để giữ nguyên list/form view hiện có.
+        action = self.env.ref(
+            "custom_adecsol_hr_performance_evaluator.hr_kpi_action"
+        ).read()[0]
+        action["domain"] = domain
+        action["context"] = {
+            "default_department_id": self.department_id.id if self.department_id else False,
+        }
+
+        # Nếu chỉ có một bản mẫu thì điều hướng thẳng sang form thay vì đi qua list.
+        if len(employee_templates) == 1:
+            action["view_mode"] = "form"
+            action["res_id"] = employee_templates.id
+
+        return action
 
     # Validate normalized 3P weights once on the final x2many state of each template.
     def _validate_kpi_line_weight_batch(self):
