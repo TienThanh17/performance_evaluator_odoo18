@@ -1,7 +1,9 @@
 import io
+import re
 import base64
 import pytz
 import xlsxwriter
+import html
 from markupsafe import Markup
 from datetime import datetime, time, timedelta
 
@@ -12,7 +14,7 @@ class HrPerformanceReport(models.Model):
     _name = "hr.performance.report"
     _description = "Performance Report"
     _inherit = ["mail.thread", "mail.activity.mixin"]
-    _order = 'start_date desc, end_date desc'
+    _order = "start_date desc, end_date desc"
     # _rec_name = 'department_name'
 
     # Fields
@@ -152,7 +154,8 @@ class HrPerformanceReport(models.Model):
                                 if line.unit
                                 else (
                                     score_unit.id
-                                    if line.dept_source_type == "child_kpi_average" and score_unit
+                                    if line.dept_source_type == "child_kpi_average"
+                                    and score_unit
                                     else False
                                 ),
                                 "is_auto": line.is_auto,
@@ -239,7 +242,13 @@ class HrPerformanceReport(models.Model):
     def write(self, vals):
         res = super(HrPerformanceReport, self).write(vals)
         # Fields to sync down to each linked hr.performance.evaluation
-        employee_sync_fields = {"active", "period_id", "start_date", "end_date", "deadline"}
+        employee_sync_fields = {
+            "active",
+            "period_id",
+            "start_date",
+            "end_date",
+            "deadline",
+        }
         employee_sync_vals = {k: vals[k] for k in employee_sync_fields if k in vals}
         dept_sync_fields = {"active", "period_id", "start_date", "end_date", "deadline"}
         dept_sync_vals = {k: vals[k] for k in dept_sync_fields if k in vals}
@@ -396,9 +405,59 @@ class HrPerformanceReport(models.Model):
                 if is_sunday:
                     task_str = "CN"
                 elif events:
-                    # Tạo bullet point cho các công việc
-                    task_str = "\n".join([f"- {event.name}" for event in events])
+                    task_lines = []
+                    for event in events:
+                        # 1. Thêm tên công việc (Bullet point cha)
+                        task_lines.append(f"- {event.name}")
 
+                        # 2. Xử lý nội dung mô tả (Giữ nguyên cấu trúc dòng & list)
+                        if event.description:
+                            raw_desc = event.description
+
+                            # Bước A: Xóa bỏ thẻ hình ảnh <img>
+                            raw_desc = re.sub(
+                                r"<img[^>]*>", "", raw_desc, flags=re.IGNORECASE
+                            )
+
+                            # Bước B: Map các thẻ kết thúc dòng/block thành \n
+                            # FIX TẠI ĐÂY: Thêm </li> để xử lý Bullet point sinh ra từ editor của Odoo
+                            raw_desc = re.sub(
+                                r"<br\s*/?>", "\n", raw_desc, flags=re.IGNORECASE
+                            )
+                            raw_desc = re.sub(
+                                r"</p>|</div>|</li>",
+                                "\n",
+                                raw_desc,
+                                flags=re.IGNORECASE,
+                            )
+
+                            # Bước C: Dọn sạch mọi thẻ HTML còn sót lại (<ul>, <ol>, <li>, <b>, <i>...)
+                            clean_desc = re.sub(r"<[^>]+>", "", raw_desc)
+
+                            # Bước D: Giải mã ký tự HTML (&nbsp;, &amp;...)
+                            clean_desc = html.unescape(clean_desc)
+
+                            # Bước E: Duyệt từng dòng
+                            for line in clean_desc.split("\n"):
+                                stripped_line = line.strip()
+
+                                if stripped_line:
+                                    # Nếu người dùng đã tự gõ ký hiệu list (- hoặc *) thì chỉ thụt lề
+                                    if stripped_line.startswith(("-", "*", "•")):
+                                        task_lines.append(f"    {stripped_line}")
+                                    else:
+                                        # Nếu là dòng chữ bình thường hoặc <li> đã bị xóa thẻ, thêm bullet con
+                                        task_lines.append(f"    • {stripped_line}")
+                                # else:
+                                    # Giữ nguyên dòng trống để Excel hiển thị cách đoạn
+                                    # task_lines.append("")
+
+                    # Dọn dẹp các dòng trống dư thừa ở cuối Event để ô Excel không bị khoảng trắng thừa phía dưới
+                    while task_lines and task_lines[-1] == "":
+                        task_lines.pop()
+
+                    # Ghép tất cả lại bằng dấu xuống dòng cho Excel
+                    task_str = "\n".join(task_lines)
                     # Lấy giờ bắt đầu sớm nhất và giờ kết thúc trễ nhất
                     min_start = pytz.utc.localize(events[0].start).astimezone(user_tz)
                     max_stop = pytz.utc.localize(events[-1].stop).astimezone(user_tz)
@@ -426,9 +485,7 @@ class HrPerformanceReport(models.Model):
         workbook.close()
         output.seek(0)
 
-        file_name = (
-            f"Bao_Cao_Cong_Viec_{self.period_type}_{self.start_date}_to_{self.end_date}.xlsx"
-        )
+        file_name = f"Bao_Cao_Cong_Viec_{self.period_type}_{self.start_date}_to_{self.end_date}.xlsx"
         attachment = self.env["ir.attachment"].create(
             {
                 "name": file_name,
@@ -476,8 +533,7 @@ class HrPerformanceReport(models.Model):
             "section_type": "chart_row",
             "layout": layout,
             "sequence": min(item["sequence"] for item in active_items),
-            "key": "report_row_%s"
-            % "_".join(item["key"] for item in active_items),
+            "key": "report_row_%s" % "_".join(item["key"] for item in active_items),
             "items": active_items,
         }
 
@@ -586,8 +642,10 @@ class HrPerformanceReport(models.Model):
             "deadline": str(self.deadline) if self.deadline else False,
             "active": bool(self.active),
         }
-        period_label = self.period_id.name if self.period_id else (
-            str(self.start_date) if self.start_date else ""
+        period_label = (
+            self.period_id.name
+            if self.period_id
+            else (str(self.start_date) if self.start_date else "")
         )
         if not evalids:
             report_sections = self._build_report_sections(
@@ -666,19 +724,14 @@ class HrPerformanceReport(models.Model):
             else 0.0
         )
         pass_count = sum(
-            1
-            for ev in evaluations
-            if ev.performance_level in ("pass", "excellent")
+            1 for ev in evaluations if ev.performance_level in ("pass", "excellent")
         )
 
         # ── 2. Task summary ────────────────────────────────────────────────────
         task_summary = {"names": emp_names, "total_tasks": [], "done_tasks": []}
         for ev in evaluations:
             line = ev.evaluation_line_ids.filtered(
-                lambda l: (
-                    not l.is_section
-                    and l.kpi_type == "auto"
-                )
+                lambda l: not l.is_section and l.kpi_type == "auto"
             )
             if not line or not ev.employee_id or not ev.start_date or not ev.end_date:
                 task_summary["total_tasks"].append(0)
@@ -713,10 +766,7 @@ class HrPerformanceReport(models.Model):
         }
         for ev in evaluations:
             line = ev.evaluation_line_ids.filtered(
-                lambda l: (
-                    not l.is_section
-                    and l.kpi_type == "auto"
-                )
+                lambda l: not l.is_section and l.kpi_type == "auto"
             )
             if not line or not ev.start_date or not ev.end_date:
                 attendance_summary["worked_days"].append(0)
@@ -741,10 +791,7 @@ class HrPerformanceReport(models.Model):
         late_summary = {"names": emp_names, "late_count": []}
         for ev in evaluations:
             line = ev.evaluation_line_ids.filtered(
-                lambda l: (
-                    not l.is_section
-                    and l.kpi_type == "auto"
-                )
+                lambda l: not l.is_section and l.kpi_type == "auto"
             )
             if not line or not ev.start_date or not ev.end_date:
                 late_summary["late_count"].append(0)

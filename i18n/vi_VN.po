@@ -6098,7 +6098,7 @@ msgstr "Điểm liệt chỉ số con"
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/dept_kpi_dashboard/dept_kpi_dashboard_template.xml:0
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/performance_dashboard/performance_dashboard_templates.xml:0
 msgid "Work Report"
-msgstr "Báo cáo công việc"
+msgstr "Xuất báo cáo công việc"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__attendance_worked_days
