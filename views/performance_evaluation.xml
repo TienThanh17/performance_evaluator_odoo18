@@ -796,10 +796,6 @@
                                             widget="kpi_description_icon"
                                             invisible="is_section"
                                             optional="show" width="100px" />
-                                        <field name="parent_dept_evaluation_line_id" optional="hide"
-                                            invisible="is_section"
-                                            readonly="1"
-                                            width="150px" />
                                         <field name="kpi_type" invisible="is_section"
                                             readonly="1"
                                             width="130px" />

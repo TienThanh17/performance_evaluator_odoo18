@@ -557,23 +557,6 @@ class PerformanceEvaluation(models.Model):
                 continue
             record.state = "cancel"
 
-    # Dựng lại mapping từ department KPI template line sang department evaluation line để reset giữ đúng liên kết P3 phòng ban.
-    def _get_dept_eval_line_map_for_reset(self):
-        self.ensure_one()
-
-        # Nếu phiếu không gắn với department evaluation thì không cần map line cha phòng ban.
-        if not self.dept_evaluation_id:
-            return {}
-
-        dept_eval_line_by_template_line = {}
-
-        # Chỉ lấy các line có liên kết về department KPI template line để tái sử dụng đúng như luồng generate ban đầu.
-        for line in self.dept_evaluation_id.sudo().evaluation_line_ids:
-            if line.department_kpi_line_id:
-                dept_eval_line_by_template_line[line.department_kpi_line_id.id] = line.id
-
-        return dept_eval_line_by_template_line
-
     # Chuẩn bị bộ giá trị tạo mới phiếu đánh giá từ cùng seed data ban đầu để phục vụ reset an toàn.
     def _prepare_reset_evaluation_vals(self):
         self.ensure_one()
@@ -598,14 +581,8 @@ class PerformanceEvaluation(models.Model):
                 _("The KPI template period type no longer matches this evaluation.")
             )
 
-        # Dựng lại mapping line phòng ban trước khi tạo mới để các line phụ thuộc P3 tiếp tục nối đúng record cha.
-        dept_eval_line_by_template_line = self._get_dept_eval_line_map_for_reset()
-
         # Dùng cùng helper generate line tree để bảo toàn cấu trúc section, parent-child và scoring metadata.
-        line_cmds = self._prepare_evaluation_line_commands_from_template(
-            self.kpi_id,
-            dept_eval_line_by_template_line=dept_eval_line_by_template_line,
-        )
+        line_cmds = self._prepare_evaluation_line_commands_from_template(self.kpi_id)
 
         # Giữ lại toàn bộ seed data cốt lõi của phiếu cũ nhưng không mang theo các điểm/chú thích đã chấm nhầm.
         return {
@@ -843,9 +820,7 @@ class PerformanceEvaluation(models.Model):
     # ------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------
-    def _prepare_evaluation_line_commands_from_template(
-        self, kpi, dept_eval_line_by_template_line=None
-    ):
+    def _prepare_evaluation_line_commands_from_template(self, kpi):
         """Build one2many commands for evaluation_line_ids from KPI template lines.
 
         - Preserves hierarchy preorder from the template tree.
@@ -854,7 +829,6 @@ class PerformanceEvaluation(models.Model):
         self.ensure_one()
         if not kpi:
             return []
-        dept_eval_line_by_template_line = dept_eval_line_by_template_line or {}
 
         # Lấy template lines theo preorder đã chuẩn hoá để evaluation tree giữ nguyên hình dạng.
         template_lines = kpi.get_hierarchy_ordered_lines()
@@ -898,16 +872,11 @@ class PerformanceEvaluation(models.Model):
                 )
                 continue
 
-            parent_dept_line = line.parent_dept_line_id
             commands.append(
                 fields.Command.create(
                     {
                         "kpi_line_id": line.id,
                         "parent_template_line_id": line.parent_line_id.id,
-                        "parent_dept_line_id": parent_dept_line.id,
-                        "parent_dept_evaluation_line_id": dept_eval_line_by_template_line.get(
-                            parent_dept_line.id
-                        ),
                         "sequence": line.sequence,
                         "pillar_id": line.pillar_id.id,
                         "key_performance_area": line.key_performance_area,

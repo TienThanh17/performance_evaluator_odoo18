@@ -280,11 +280,6 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
                 "evaluation_line_ids": dept_line_cmds,
             }
         )
-        dept_eval_line_by_template_line = {
-            line.department_kpi_line_id.id: line.id
-            for line in dept_eval.evaluation_line_ids
-            if line.department_kpi_line_id
-        }
 
         count = 0
         individual_evals = self.env["hr.performance.evaluation"]
@@ -328,7 +323,6 @@ class HrDepartmentKpiGenerateWizard(models.TransientModel):
             )
             line_cmds = scratch._prepare_evaluation_line_commands_from_template(
                 employee_template,
-                dept_eval_line_by_template_line=dept_eval_line_by_template_line,
             )
             evaluation = Evaluation.create(
                 {

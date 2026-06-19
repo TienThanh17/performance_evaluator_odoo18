@@ -50,20 +50,6 @@ class PerformanceEvaluationLine(models.Model):
         index=True,
         help="The KPI template line this evaluation line comes from (for traceability).",
     )
-    parent_dept_line_id = fields.Many2one(
-        "hr.department.kpi.template.line",
-        string="Parent Department KPI Template",
-        ondelete="set null",
-        index=True,
-        help="The department KPI template line linked to this employee KPI line.",
-    )
-    parent_dept_evaluation_line_id = fields.Many2one(
-        "hr.department.evaluation.line",
-        string="Parent Department KPI",
-        ondelete="set null",
-        index=True,
-        help="The department evaluation line generated for the same period.",
-    )
     parent_template_line_id = fields.Many2one(
         "hr.kpi.template.line",
         string="Parent Template Line",
@@ -577,7 +563,6 @@ class PerformanceEvaluationLine(models.Model):
                 "data_source_id": False,
                 "scoring_formula_id": False,
                 "is_auto": False,
-                "parent_dept_line_id": False,
             }
 
         # Với KPI leaf, snapshot toàn bộ cấu hình nghiệp vụ cốt lõi từ template line.
@@ -594,7 +579,6 @@ class PerformanceEvaluationLine(models.Model):
             "data_source_id": template_line.data_source_id.id or False,
             "scoring_formula_id": template_line.scoring_formula_id.id or False,
             "is_auto": bool(template_line.is_auto),
-            "parent_dept_line_id": template_line.parent_dept_line_id.id or False,
         }
 
     # Bổ sung snapshot mặc định từ template line để mọi luồng create đều giữ dữ liệu lịch sử ổn định.

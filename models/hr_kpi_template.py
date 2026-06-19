@@ -187,25 +187,6 @@ class HrKpiTemplate(models.Model):
 
         return True
 
-    # @api.constrains("kpi_line_ids")
-    # def _check_total_weight(self):
-    #     for kpi in self:
-    #         valid_lines = kpi.kpi_line_ids.filtered(lambda l: not l.is_section)
-    #         total_weight = sum(valid_lines.mapped("weight"))
-    #         if valid_lines and abs(total_weight - 100.0) > 0.1:
-    #             raise ValidationError(
-    #                 _(
-    #                     "The total weight of all KPI lines must equal exactly 100. The current total is %s."
-    #                 )
-    #                 % round(total_weight, 2)
-    #             )
-
-    @api.constrains("department_kpi_id", "kpi_line_ids")
-    def _check_kpi_line_parent_dept_lines(self):
-        for kpi in self:
-            kpi.kpi_line_ids._validate_parent_dept_line_consistency(
-                parent_kpi=kpi.department_kpi_id
-            )
 
     # Trả về danh sách field one2many có thể gửi command làm thay đổi KPI lines.
     def _get_weight_validation_line_fields(self):

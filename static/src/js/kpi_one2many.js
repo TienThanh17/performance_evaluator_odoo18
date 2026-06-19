@@ -5,12 +5,6 @@ import { makeContext } from "@web/core/context";
 import { X2ManyField, x2ManyField } from "@web/views/fields/x2many/x2many_field";
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { useService } from "@web/core/utils/hooks";
-import { onMounted, onPatched, onWillPatch } from "@odoo/owl";
-import {
-    parseChildKpiRows,
-    renderChildKpiMatrixGrid,
-    renderChildTemplateMatrixGrid,
-} from "./kpi_child_matrix_utils";
 
 /**
  * KPI list renderer:
@@ -31,15 +25,6 @@ export class KPIListRenderer extends ListRenderer {
 //        console.log("KPIListRenderer setup 1:", { section_field: context.section_field, title_field: context.title_field });
 //        console.log("KPIListRenderer setup 2:", { discriminant: this.discriminant, titleField: this.titleField });
         this.scrollSnapshot = null;
-        onWillPatch(() => {
-            this.captureScrollPosition({ force: false });
-            this.removeChildKpiRows();
-        });
-        onMounted(() => this.renderChildKpiRows());
-        onPatched(() => {
-            this.renderChildKpiRows();
-            this.restoreScrollPosition();
-        });
     }
 
     onClickSortColumn(column) {
@@ -171,73 +156,6 @@ export class KPIListRenderer extends ListRenderer {
         } finally {
             this.restoreScrollPosition();
         }
-    }
-
-    getChildKpiRows(record) {
-        return parseChildKpiRows(record.data?.child_line_rows_json);
-    }
-
-    getChildTemplateRows(record) {
-        return parseChildKpiRows(record.data?.child_template_rows_json);
-    }
-
-    removeChildKpiRows() {
-        const tbody = this.tableRef?.el?.querySelector("tbody");
-        if (!tbody) {
-            return;
-        }
-        tbody.querySelectorAll(".o_kpi_child_inline_row").forEach((row) => row.remove());
-    }
-
-    renderChildKpiRows() {
-        const tbody = this.tableRef?.el?.querySelector("tbody");
-        if (!tbody || this.props.list?.isGrouped) {
-            return;
-        }
-        this.removeChildKpiRows();
-
-        for (const record of this.props.list.records || []) {
-            if (this.isSection(record)) {
-                continue;
-            }
-            const childRows = this.getChildKpiRows(record);
-            const childTemplateRows = childRows.length ? [] : this.getChildTemplateRows(record);
-            if (!childRows.length && !childTemplateRows.length) {
-                continue;
-            }
-
-            const parentRow = [...tbody.querySelectorAll("tr.o_data_row")].find(
-                (row) => row.dataset.id === String(record.id)
-            );
-            if (!parentRow) {
-                continue;
-            }
-
-            const matrixRow = this.makeChildKpiMatrixRow({
-                childRows,
-                childTemplateRows,
-                colSpan: parentRow.children.length || 1,
-            });
-            parentRow.insertAdjacentElement("afterend", matrixRow);
-        }
-    }
-
-    makeChildKpiMatrixRow({ childRows = [], childTemplateRows = [], colSpan = 1 }) {
-        const tr = document.createElement("tr");
-        tr.className = "o_kpi_child_inline_row o_kpi_child_inline_data_row";
-
-        const td = document.createElement("td");
-        td.colSpan = colSpan;
-        td.className = "o_kpi_child_inline_cell";
-        tr.appendChild(td);
-
-        if (childRows.length) {
-            renderChildKpiMatrixGrid(td, childRows);
-        } else {
-            renderChildTemplateMatrixGrid(td, childTemplateRows);
-        }
-
-        return tr;
     }
 
     getRowClass(record) {

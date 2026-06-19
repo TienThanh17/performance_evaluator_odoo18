@@ -1,5 +1,3 @@
-import json
-
 from markupsafe import Markup, escape
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
@@ -13,7 +11,6 @@ from .kpi_type_utils import (
 
 DEPARTMENT_SOURCE_TYPE_SELECTION = [
     ("manual", "Manual Actual Input"),
-    ("child_kpi_average", "Average From Child KPIs"),
     ("data_source", "Automatic Data Source"),
 ]
 
@@ -179,24 +176,6 @@ class HrDepartmentEvaluationLine(models.Model):
         compute="_compute_display",
         store=False,
     )
-    
-    # link to individual evaluation line
-    child_evaluation_line_ids = fields.One2many(
-        "hr.performance.evaluation.line",
-        "parent_dept_evaluation_line_id",
-        string="Child KPI Lines",
-        readonly=True,
-    )
-    child_evaluation_line_count = fields.Integer(
-        string="Child KPI Count",
-        compute="_compute_child_line_trace",
-        store=False,
-    )
-    child_line_rows_json = fields.Text(
-        string="Child KPI Rows JSON",
-        compute="_compute_child_line_trace",
-        store=False,
-    )
     evaluation_state = fields.Selection(
         related="evaluation_id.state",
         string="Evaluation State",
@@ -305,51 +284,6 @@ class HrDepartmentEvaluationLine(models.Model):
             )
             parent.message_post(body=body, subtype_xmlid="mail.mt_note")
 
-    @api.depends(
-        "child_evaluation_line_ids",
-        "child_evaluation_line_ids.kpi_line_id",
-        "child_evaluation_line_ids.key_performance_area",
-        "child_evaluation_line_ids.final_rating",
-        "child_evaluation_line_ids.weight",
-        "child_evaluation_line_ids.evaluation_id",
-        "child_evaluation_line_ids.evaluation_id.name",
-        "child_evaluation_line_ids.evaluation_id.employee_id",
-        "child_evaluation_line_ids.evaluation_id.employee_id.name",
-    )
-    def _compute_child_line_trace(self):
-        for line in self:
-            child_lines = line.child_evaluation_line_ids.filtered(
-                lambda l: not l.is_section
-            ).sorted(
-                key=lambda l: (
-                    l.key_performance_area or "",
-                    l.evaluation_id.employee_id.name or "",
-                    l.sequence or 0,
-                    l.id or 0,
-                )
-            )
-            line.child_evaluation_line_count = len(child_lines)
-            if not child_lines:
-                line.child_line_rows_json = "[]"
-                continue
-            child_rows = []
-            for child_line in child_lines:
-                evaluation = child_line.evaluation_id
-                employee = evaluation.employee_id
-                child_rows.append(
-                    {
-                        "employee": employee.name or "",
-                        "employee_id": employee.id or False,
-                        "child_kpi": child_line.key_performance_area or "",
-                        "child_kpi_id": child_line.kpi_line_id.id or False,
-                        "weight": child_line.weight or 0.0,
-                        "final_rating": child_line.final_rating or 0.0,
-                        "evaluation": evaluation.display_name or evaluation.name or "",
-                        "evaluation_id": evaluation.id or False,
-                    }
-                )
-            line.child_line_rows_json = json.dumps(child_rows, ensure_ascii=False)
-
     # Trả về thang điểm chuẩn duy nhất của dòng KPI phòng ban.
     def _get_score_base(self):
         self.ensure_one()
@@ -367,12 +301,6 @@ class HrDepartmentEvaluationLine(models.Model):
 
     # Đọc bộ field snapshot từ template line phòng ban để lưu cứng vào evaluation line khi khởi tạo.
     def _build_template_snapshot_vals(self, template_line):
-        score_unit = self.env.ref(
-            "custom_adecsol_hr_performance_evaluator.kpi_unit_score",
-            raise_if_not_found=False,
-        )
-        score_base = self.env["res.config.settings"].get_score_scale_base()
-
         # Với section row, chỉ snapshot dữ liệu hiển thị và rule tổng hợp, không giữ config auto kỹ thuật.
         if template_line.is_section:
             return {
@@ -399,15 +327,8 @@ class HrDepartmentEvaluationLine(models.Model):
             "description": getattr(template_line, "description", False),
             "kpi_type": template_line.kpi_type,
             "manual_scoring_type": template_line.manual_scoring_type,
-            "target": score_base
-            if template_line.dept_source_type == "child_kpi_average"
-            else template_line.target,
-            "unit": template_line.unit.id
-            or (
-                score_unit.id
-                if template_line.dept_source_type == "child_kpi_average" and score_unit
-                else False
-            ),
+            "target": template_line.target,
+            "unit": template_line.unit.id or False,
             "weight": template_line.weight,
             "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
             "is_auto": bool(template_line.is_auto),

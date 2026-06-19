@@ -452,16 +452,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
                         "manual_scoring_type": line.manual_scoring_type,
-                        "target": score_base
-                        if line.dept_source_type == "child_kpi_average"
-                        else line.target,
-                        "unit": line.unit.id
-                        or (
-                            score_unit.id
-                            if line.dept_source_type == "child_kpi_average"
-                            and score_unit
-                            else False
-                        ),
+                        "target": line.target,
+                        "unit": line.unit.id or False,
                         "weight": line.weight,
                         "wipeout_if_child_zero": bool(line.wipeout_if_child_zero),
                         "dept_source_type": line.dept_source_type or "manual",

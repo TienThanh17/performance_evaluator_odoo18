@@ -516,12 +516,13 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 // ── 4 Bottom Panels ───────────────────────────────────────────────────────────
 .o_kpi_tree_panels {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    /* FIX: Sử dụng minmax(0, 1fr) để ép các cột bằng nhau tuyệt đối */
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
     flex-shrink: 0;
 
     @media (max-width: 1100px) {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     @media (max-width: 640px) {
         grid-template-columns: 1fr;

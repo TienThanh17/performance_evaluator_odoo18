@@ -95,14 +95,9 @@
                                 invisible="kpi_type != 'auto' or dept_source_type != 'data_source'"
                                 readonly="1" />
                             <field name="scoring_formula_id"
-                                invisible="kpi_type != 'auto' or dept_source_type in ['child_kpi_average']"
+                                invisible="kpi_type != 'auto'"
                                 readonly="1" />
                         </group>
-                    </group>
-
-                    <group string="Child KPI Lines" invisible="child_evaluation_line_count == 0">
-                        <field name="child_line_rows_json" widget="kpi_child_matrix"
-                            readonly="1" nolabel="1" colspan="2" />
                     </group>
 
                     <group string="Comments" invisible="is_section">
@@ -221,7 +216,6 @@
                                     <field name="is_manager" column_invisible="1" />
                                     <field name="is_admin" column_invisible="1" />
                                     <field name="dept_source_type" column_invisible="1" />
-                                    <field name="child_line_rows_json" column_invisible="1" />
 
                                     <field name="name" string="Title" readonly="1"
                                         width="500px" />

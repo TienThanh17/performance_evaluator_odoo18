@@ -146,18 +146,9 @@ class HrPerformanceReport(models.Model):
                                 "name": line.name,
                                 "kpi_type": line.kpi_type,
                                 "manual_scoring_type": line.manual_scoring_type,
-                                "target": score_base
-                                if line.dept_source_type == "child_kpi_average"
-                                else line.target,
+                                "target": line.target,
                                 "weight": line.weight,
-                                "unit": line.unit.id
-                                if line.unit
-                                else (
-                                    score_unit.id
-                                    if line.dept_source_type == "child_kpi_average"
-                                    and score_unit
-                                    else False
-                                ),
+                                "unit": line.unit.id if line.unit else False,
                                 "is_auto": line.is_auto,
                                 "is_section": line.is_section,
                             }

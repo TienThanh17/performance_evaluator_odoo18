@@ -192,10 +192,6 @@
               <span class="pm-label">Nhân viên:</span>
               <span class="pm-value" t-esc="state.selectedNode.data.employee_count"/>
             </div>
-            <div class="panel-metric">
-              <span class="pm-label">KPI cá nhân trung bình:</span>
-              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.avg_total_p3_individual)"/>
-            </div>
                 <!-- <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div> -->
           </t>
 

@@ -1,5 +1,3 @@
-import json
-
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -46,7 +44,6 @@ class HrDepartmentKpiTemplateLine(models.Model):
     dept_source_type = fields.Selection(
         [
             ("manual", "Manual Actual Input"),
-            ("child_kpi_average", "Average From Child KPIs"),
             ("data_source", "Automatic Data Source"),
         ],
         string="Department Source Type",
@@ -106,21 +103,6 @@ class HrDepartmentKpiTemplateLine(models.Model):
         string="Child Lines",
         ondelete='cascade',
     )
-    child_template_line_ids = fields.One2many(
-        "hr.kpi.template.line",
-        "parent_dept_line_id",
-        string="Child KPI Template Lines",
-        readonly=True,
-    )
-    child_template_line_count = fields.Integer(
-        string="Child KPI Template Count",
-        compute="_compute_child_template_line_trace",
-    )
-    child_template_rows_json = fields.Text(
-        string="Child KPI Template Rows JSON",
-        compute="_compute_child_template_line_trace",
-    )
-
     # Resolve the pillar configured by the current tab context.
     def _get_default_pillar_from_context(self):
         pillar_code = (
@@ -144,57 +126,6 @@ class HrDepartmentKpiTemplateLine(models.Model):
         if default_pillar:
             defaults["pillar_id"] = default_pillar.id
         return defaults
-
-    # Build the trace table used to inspect linked employee template lines.
-    @api.depends(
-        "child_template_line_ids",
-        "child_template_line_ids.kpi_id",
-        "child_template_line_ids.kpi_id.name",
-        "child_template_line_ids.kpi_id.job_id",
-        "child_template_line_ids.kpi_id.job_id.name",
-        "child_template_line_ids.key_performance_area",
-        "child_template_line_ids.weight",
-        "child_template_line_ids.target",
-        "child_template_line_ids.unit",
-        "child_template_line_ids.unit.code",
-        "child_template_line_ids.unit.name",
-        "child_template_line_ids.is_section",
-    )
-    def _compute_child_template_line_trace(self):
-        for line in self:
-            # Chỉ hiển thị trace của các KPI con thực sự chấm điểm để bảng ma trận dễ đọc hơn.
-            child_lines = line.child_template_line_ids.filtered(
-                lambda child: not child.is_section
-            ).sorted(
-                key=lambda child: (
-                    child.kpi_id.name or "",
-                    child.sequence or 0,
-                    child.key_performance_area or "",
-                    child.id or 0,
-                )
-            )
-            line.child_template_line_count = len(child_lines)
-            if not child_lines:
-                line.child_template_rows_json = "[]"
-                continue
-
-            child_rows = []
-            for child_line in child_lines:
-                # Ghép danh sách job position thành một chuỗi ổn định để UI trace hiển thị đúng với many2many.
-                kpi_template = child_line.kpi_id
-                job_names = ", ".join(sorted(kpi_template.job_id.mapped("name")))
-                child_rows.append(
-                    {
-                        "kpi_template_id": kpi_template.id or False,
-                        "kpi_template": kpi_template.name or "",
-                        "job_name": job_names,
-                        "child_kpi_id": child_line.id or False,
-                        "child_kpi": child_line.key_performance_area or "",
-                        "weight": child_line.weight or 0.0,
-                        "target_display": child_line.target_display or "",
-                    }
-                )
-            line.child_template_rows_json = json.dumps(child_rows, ensure_ascii=False)
 
     # Keep the technical display type aligned with the section flag.
     @api.depends("is_section")
@@ -410,22 +341,17 @@ class HrDepartmentKpiTemplateLine(models.Model):
     # Resolve the default unit for automatic department lines.
     def _get_default_unit(self):
         self.ensure_one()
-        if self.dept_source_type == "child_kpi_average":
-            code = "score"
-        elif self.dept_source_type == "data_source" and self.data_source_id:
+        if self.dept_source_type == "data_source" and self.data_source_id:
             code = self.data_source_id.get_unit_id()
         else:
             code = False
         return self._get_unit_by_code(code) if code else False
 
-    # Refresh the unit and child-average target when the source config changes.
+    # Đồng bộ lại unit hiển thị khi cấu hình nguồn dữ liệu của KPI phòng ban thay đổi.
     @api.onchange("dept_source_type", "data_source_id")
     def _onchange_unit(self):
-        score_base = self.env["res.config.settings"].get_score_scale_base()
         for rec in self:
             rec.unit = rec._get_default_unit()
-            if rec.dept_source_type == "child_kpi_average":
-                rec.target = score_base
 
     # Return the formula configured on the department template line.
     def get_effective_formula(self):
@@ -452,8 +378,8 @@ class HrDepartmentKpiTemplateLine(models.Model):
         for rec in self:
             rec.is_auto = bool(
                 rec.kpi_type == "auto"
-                and rec.dept_source_type in ("child_kpi_average", "data_source")
-                and (rec.dept_source_type == "child_kpi_average" or rec.data_source_id)
+                and rec.dept_source_type == "data_source"
+                and rec.data_source_id
             )
 
     # Validate the target only for auto department KPI lines.

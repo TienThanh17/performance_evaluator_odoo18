@@ -23,10 +23,6 @@
                                 <field name="kpi_id" invisible="1" />
                                 <field name="pillar_id" options="{'no_create': True}" />
                                 <field name="parent_line_id" options="{'no_create': True}" />
-                                <!-- <field name="parent_dept_line_id"
-                                    domain="[('department_kpi_id', '=', parent_dept_kpi_id)]"
-                                    options="{'no_create': True}"
-                                    invisible="not parent_dept_kpi_id" /> -->
                                 <field name="kpi_type" invisible="is_section" />
                                 <field name="manual_scoring_type"
                                     invisible="is_section or kpi_type != 'manual'" />
@@ -338,11 +334,6 @@
                                             domain="[('kpi_id', '=', parent.id), ('id', '!=', id)]"
                                             options="{'no_create': True}"
                                             invisible="is_section"
-                                            optional="show" width="150px" />
-                                        <field name="parent_dept_line_id"
-                                            domain="[('department_kpi_id', '=', parent_dept_kpi_id)]"
-                                            options="{'no_create': True}"
-                                            invisible="is_section or not parent_dept_kpi_id"
                                             optional="show" width="150px" /> -->
 
 

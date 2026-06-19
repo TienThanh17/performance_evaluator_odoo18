@@ -51,11 +51,6 @@ class HrKpiTemplateLine(models.Model):
         related="kpi_id.department_kpi_id",
         store=False,
     )
-    parent_dept_line_id = fields.Many2one(
-        "hr.department.kpi.template.line",
-        string="Parent Department KPI",
-        help="Department KPI template line linked to this employee KPI line.",
-    )
     pillar_id = fields.Many2one(
         "hr.evaluation.pillar",
         string="Pillar",
@@ -471,11 +466,6 @@ class HrKpiTemplateLine(models.Model):
                     )
                 )
 
-    # Validate the optional department KPI link used for bottom-up mapping.
-    @api.constrains("parent_dept_line_id", "kpi_id", "is_section")
-    def _check_parent_dept_line(self):
-        self._validate_parent_dept_line_consistency()
-
     # Keep parent-child relations inside the same employee KPI template.
     @api.constrains("parent_line_id", "kpi_id", "pillar_id")
     def _check_parent_line(self):
@@ -502,35 +492,6 @@ class HrKpiTemplateLine(models.Model):
                         _("Recursive KPI line hierarchy is not allowed.")
                     )
                 ancestor = ancestor.parent_line_id
-
-    # Validate that the employee line links to a real scorable department template line.
-    def _validate_parent_dept_line_consistency(self, parent_kpi=None):
-        for rec in self:
-            parent_line = rec.parent_dept_line_id
-            if not parent_line:
-                continue
-            # if rec.is_section:
-            #     raise ValidationError(
-            #         _("Section lines cannot be linked to department KPI lines.")
-            #     )
-            # if parent_line.is_section:
-            #     raise ValidationError(
-            #         _("Please select a KPI item, not a department section.")
-            #     )
-
-            parent_dept_kpi = parent_kpi or rec.kpi_id.department_kpi_id
-            if not parent_dept_kpi:
-                raise ValidationError(
-                    _(
-                        "Please select a parent Department KPI Template before linking department KPI lines."
-                    )
-                )
-            if parent_line.department_kpi_id != parent_dept_kpi:
-                raise ValidationError(
-                    _(
-                        "The selected department KPI line must belong to the parent Department KPI Template."
-                    )
-                )
 
     # Trả về độ sâu hierarchy của dòng hiện tại để roll-up weight từ lá lên gốc.
     def _get_hierarchy_depth(self):
