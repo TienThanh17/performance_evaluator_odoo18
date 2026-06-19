@@ -35,7 +35,7 @@
                                 <field name="scoring_formula_id"
                                     invisible="is_section or kpi_type != 'auto'"
                                     options="{'no_create': True}" />
-                                <field name="weight" />
+                                <field name="weight" readonly="is_section" />
 
                                 <field name="wipeout_if_child_zero"
                                     invisible="not is_section" />
@@ -139,7 +139,7 @@
                         optional="hide"
                         width="100px" />
 
-                    <field name="weight" width="80px" />
+                    <field name="weight" width="80px" readonly="is_section" />
                     <field name="wipeout_if_child_zero"
                         invisible="not is_section"
                         optional="hide" width="100px" />
@@ -241,10 +241,12 @@
                                     </div>
 
                                     <div class="o_perf_summary_body o_perf_summary_body_right">
-                                        <div class="o_perf_summary_title">Evaluation Results</div>
-                                        <div class="text-muted mt-2" style="font-size: 14px;">
-                                            Calculated when this KPI template is used in an
-                                            evaluation.
+                                        <div class="o_perf_summary_title">Total Weight</div>
+                                        <div class="o_perf_summary_score">
+                                            <span class="o_perf_label">P2.1 Total Weight</span>
+                                            <span class="o_perf_value">
+                                                <field name="total_weight_p2_1" />
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -299,10 +301,12 @@
                                     </div>
 
                                     <div class="o_perf_summary_body o_perf_summary_body_right">
-                                        <div class="o_perf_summary_title">Evaluation Results</div>
-                                        <div class="text-muted mt-2" style="font-size: 14px;">
-                                            Calculated when this KPI template is used in an
-                                            evaluation.
+                                        <div class="o_perf_summary_title">Total Weight</div>
+                                        <div class="o_perf_summary_score">
+                                            <span class="o_perf_label">P2.2 Total Weight</span>
+                                            <span class="o_perf_value">
+                                                <field name="total_weight_p2_2" />
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -364,7 +368,7 @@
                                             invisible="is_section or kpi_type != 'auto'"
                                             width="100px" />
 
-                                        <field name="weight" width="80px" />
+                                        <field name="weight" width="80px" readonly="is_section" />
                                         <field name="wipeout_if_child_zero"
                                             invisible="not is_section"
                                             optional="hide" width="100px" />
@@ -425,10 +429,12 @@
                                     </div>
 
                                     <div class="o_perf_summary_body o_perf_summary_body_right">
-                                        <div class="o_perf_summary_title">Evaluation Results</div>
-                                        <div class="text-muted mt-2" style="font-size: 14px;">
-                                            Calculated when this KPI template is used in an
-                                            evaluation.
+                                        <div class="o_perf_summary_title">Total Weight</div>
+                                        <div class="o_perf_summary_score">
+                                            <span class="o_perf_label">P3.1.1 Total Weight</span>
+                                            <span class="o_perf_value">
+                                                <field name="total_weight_p3_individual" />
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

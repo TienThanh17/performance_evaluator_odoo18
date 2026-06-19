@@ -88,6 +88,21 @@ class HrKpiTemplate(models.Model):
     pillar_p3_ind_name = fields.Char(
         compute="_compute_dynamic_pillar_names", string="Tên Pillar P3"
     )
+    total_weight_p2_1 = fields.Float(
+        compute="_compute_total_weight_by_pillar",
+        string="P2.1 Total Weight",
+        store=False,
+    )
+    total_weight_p2_2 = fields.Float(
+        compute="_compute_total_weight_by_pillar",
+        string="P2.2 Total Weight",
+        store=False,
+    )
+    total_weight_p3_individual = fields.Float(
+        compute="_compute_total_weight_by_pillar",
+        string="P3 Individual Total Weight",
+        store=False,
+    )
 
     # Đếm số department KPI template cùng phòng ban để hiển thị trên smart button.
     @api.depends("department_id")
@@ -132,6 +147,28 @@ class HrKpiTemplate(models.Model):
             rec.pillar_p2_2_name = pillar_dict.get("p2_2", "P2.2")
             rec.pillar_p3_ind_name = pillar_dict.get(
                 "p3_individual", "P3.1.1 KPI Cá Nhân"
+            )
+
+    # Tính tổng weight top-level của từng pillar để UI hiển thị nhanh phần tổng phân bổ hiện tại.
+    @api.depends(
+        "kpi_line_ids.weight",
+        "kpi_line_ids.parent_line_id",
+        "kpi_line_ids.pillar_code",
+    )
+    def _compute_total_weight_by_pillar(self):
+        for rec in self:
+            # Chỉ cộng các line top-level để tránh cộng trùng toàn bộ subtree của section.
+            root_lines = rec.kpi_line_ids.filtered(lambda line: not line.parent_line_id)
+            rec.total_weight_p2_1 = sum(
+                root_lines.filtered(lambda line: line.pillar_code == "p2_1").mapped("weight")
+            )
+            rec.total_weight_p2_2 = sum(
+                root_lines.filtered(lambda line: line.pillar_code == "p2_2").mapped("weight")
+            )
+            rec.total_weight_p3_individual = sum(
+                root_lines.filtered(
+                    lambda line: line.pillar_code == "p3_individual"
+                ).mapped("weight")
             )
 
     # Kiểm tra template KPI này có áp dụng được cho nhân viên theo phòng ban và vị trí hay không.
@@ -181,13 +218,13 @@ class HrKpiTemplate(models.Model):
             "kpi_line_p3_individual_ids",
         )
 
-    # Validate normalized 3P weights một lần trên trạng thái cuối cùng của template.
+    # Đồng bộ weight section một lần trên trạng thái cuối cùng của template.
     def _validate_kpi_line_weight_batch(self):
-        # Luôn gom từ kpi_line_ids để validator nhìn thấy toàn bộ cây line còn lại
+        # Luôn gom từ kpi_line_ids để helper nhìn thấy toàn bộ cây line còn lại
         # sau khi Odoo xử lý xong batch command của các tab.
         line_records = self.mapped("kpi_line_ids")
         if line_records:
-            line_records._validate_normalized_3p_weight_structure()
+            line_records._refresh_weight_structure()
 
     # Dời normalized 3P validation lên parent create để child line không validate
     # giữa chừng khi form tạo mới gửi nhiều one2many commands cùng lúc.
@@ -208,7 +245,7 @@ class HrKpiTemplate(models.Model):
             self.with_context(skip_normalized_3p_weight_validation=True),
         ).create(vals_list)
 
-        # Chỉ validate một lần trên trạng thái cuối cùng của template vừa tạo.
+        # Chỉ refresh weight một lần trên trạng thái cuối cùng của template vừa tạo.
         records._validate_kpi_line_weight_batch()
         return records
 
@@ -231,7 +268,7 @@ class HrKpiTemplate(models.Model):
             self.with_context(skip_normalized_3p_weight_validation=True),
         ).write(vals)
 
-        # Sau khi command list hoàn tất, validate đúng trên trạng thái cuối.
+        # Sau khi command list hoàn tất, refresh đúng trên trạng thái cuối.
         self._validate_kpi_line_weight_batch()
         return res
 
@@ -297,9 +334,9 @@ class HrKpiTemplate(models.Model):
             line_map[source_line.id] = copied_line.id
             copied_lines |= copied_line
 
-        # Validate the fully duplicated tree only once after all nodes exist.
+        # Đồng bộ lại weight section của cây copy sau khi toàn bộ node đã tồn tại.
         if copied_lines:
-            copied_lines._validate_normalized_3p_weight_structure()
+            copied_lines._refresh_weight_structure()
         return new_parent
 
     # Mở danh sách department KPI template cùng phòng ban; nếu chỉ có một record thì mở thẳng form.

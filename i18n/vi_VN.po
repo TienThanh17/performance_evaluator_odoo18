@@ -4171,7 +4171,7 @@ msgstr "Mẫu KPI của Phòng Phụ huynh"
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_template_line__parent_line_id
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__parent_line_id
 msgid "Parent Line"
-msgstr "Dòng cha"
+msgstr "Danh mục cha"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__parent_template_line_id

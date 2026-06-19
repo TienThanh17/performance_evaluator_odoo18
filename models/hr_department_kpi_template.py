@@ -36,6 +36,11 @@ class HrDepartmentKpiTemplate(models.Model):
 
     # Khai báo các field chứa tên động của từng Pillar
     pillar_p3_dept_name = fields.Char(compute="_compute_dynamic_pillar_names")
+    total_weight_p3_department = fields.Float(
+        compute="_compute_total_weight_by_pillar",
+        string="P3 Department Total Weight",
+        store=False,
+    )
 
     # Đếm số employee KPI template cùng phòng ban để hiển thị trên smart button.
     @api.depends("department_id")
@@ -66,6 +71,14 @@ class HrDepartmentKpiTemplate(models.Model):
         ])
         self.pillar_p3_dept_name = pillars.name or ""
 
+    # Tính tổng weight top-level của pillar phòng ban để UI hiển thị tổng phân bổ hiện tại.
+    @api.depends("kpi_line_ids.weight", "kpi_line_ids.parent_line_id")
+    def _compute_total_weight_by_pillar(self):
+        for rec in self:
+            # Chỉ cộng các line top-level để tránh cộng trùng subtree của section phòng ban.
+            root_lines = rec.kpi_line_ids.filtered(lambda line: not line.parent_line_id)
+            rec.total_weight_p3_department = sum(root_lines.mapped("weight"))
+
     # Mở danh sách employee KPI template cùng phòng ban; nếu chỉ có một record thì mở thẳng form.
     def action_open_employee_templates(self):
         self.ensure_one()
@@ -90,13 +103,13 @@ class HrDepartmentKpiTemplate(models.Model):
 
         return action
 
-    # Validate normalized 3P weights once on the final x2many state of each template.
+    # Đồng bộ weight section một lần trên trạng thái x2many cuối cùng của template.
     def _validate_kpi_line_weight_batch(self):
         # Gom toàn bộ line còn lại của các template hiện tại để validator kiểm tra
         # trên trạng thái cuối cùng sau khi batch command đã chạy xong.
         line_records = self.mapped("kpi_line_ids")
         if line_records:
-            line_records._validate_normalized_3p_weight_structure()
+            line_records._refresh_weight_structure()
 
     # Dời normalized 3P validation lên parent create để child line không validate
     # giữa chừng khi form tạo mới gửi nhiều one2many commands cùng lúc.
@@ -115,7 +128,7 @@ class HrDepartmentKpiTemplate(models.Model):
             self.with_context(skip_normalized_3p_weight_validation=True),
         ).create(vals_list)
 
-        # Chỉ validate một lần trên trạng thái cuối cùng của từng template vừa tạo.
+        # Chỉ refresh weight một lần trên trạng thái cuối cùng của từng template vừa tạo.
         records._validate_kpi_line_weight_batch()
         return records
 
@@ -136,7 +149,7 @@ class HrDepartmentKpiTemplate(models.Model):
             self.with_context(skip_normalized_3p_weight_validation=True),
         ).write(vals)
 
-        # Sau khi command list hoàn tất, validate đúng trên trạng thái cuối.
+        # Sau khi command list hoàn tất, refresh đúng trên trạng thái cuối.
         self._validate_kpi_line_weight_batch()
         return res
 
@@ -180,7 +193,7 @@ class HrDepartmentKpiTemplate(models.Model):
             line_map[source_line.id] = copied_line.id
             copied_lines |= copied_line
 
-        # Validate the fully duplicated tree only once after all nodes exist.
+        # Đồng bộ lại weight section của cây copy sau khi toàn bộ node đã tồn tại.
         if copied_lines:
-            copied_lines._validate_normalized_3p_weight_structure()
+            copied_lines._refresh_weight_structure()
         return new_parent

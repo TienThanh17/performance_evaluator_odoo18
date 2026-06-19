@@ -6,12 +6,10 @@ from odoo.exceptions import ValidationError
 from .kpi_type_utils import (
     KPI_TYPE_SELECTION,
     MANUAL_SCORING_TYPE_SELECTION,
-    NORMALIZED_3P_PILLAR_CODES,
     P3_PILLAR_CODES,
     get_manual_scoring_type_required_message,
 )
 
-WEIGHT_TOLERANCE = 0.0001
 SEQUENCE_STEP = 10
 
 
@@ -520,8 +518,49 @@ class HrDepartmentKpiTemplateLine(models.Model):
                     )
                 ancestor = ancestor.parent_line_id
 
-    # Validate normalized 3P weights after user-driven create/write operations.
-    def _validate_normalized_3p_weight_structure(self):
+    # Trả về độ sâu hierarchy của dòng hiện tại để roll-up weight từ lá lên gốc.
+    def _get_hierarchy_depth(self):
+        self.ensure_one()
+        depth = 0
+        current = self.parent_line_id
+        while current:
+            depth += 1
+            current = current.parent_line_id
+        return depth
+
+    # Tính lại weight cho mọi section trong các department template bị ảnh hưởng dựa trên direct child hiện tại.
+    def _recompute_section_weights(self):
+        if self.env.context.get("skip_section_weight_rollup"):
+            return
+
+        templates = self.mapped("department_kpi_id")
+        for template in templates:
+            section_lines = template.kpi_line_ids.filtered("is_section").sorted(
+                lambda line: (
+                    -line._get_hierarchy_depth(),
+                    line.sequence or 0,
+                    line.id or 0,
+                )
+            )
+
+            # Roll-up từ section sâu nhất để section cha luôn lấy đúng weight mới nhất của section con.
+            for section in section_lines:
+                direct_children = section.child_line_ids.filtered(
+                    lambda line: line.department_kpi_id == template
+                )
+                child_weight_total = sum(direct_children.mapped("weight"))
+
+                # Ghi nội bộ bằng super write để tránh lặp lại luồng roll-up.
+                super(
+                    HrDepartmentKpiTemplateLine,
+                    section.with_context(
+                        skip_section_weight_rollup=True,
+                        skip_hierarchy_sequence_sync=True,
+                    ),
+                ).write({"weight": child_weight_total})
+
+    # Chỉ giữ ràng buộc không cho weight âm sau khi section weight đã được hệ thống roll-up.
+    def _validate_non_negative_weight(self):
         if self.env.context.get("install_mode") or self.env.context.get(
             "skip_normalized_3p_weight_validation"
         ):
@@ -529,52 +568,17 @@ class HrDepartmentKpiTemplateLine(models.Model):
 
         templates = self.mapped("department_kpi_id")
         for template in templates:
-            for pillar_code in NORMALIZED_3P_PILLAR_CODES:
-                lines = template.kpi_line_ids.filtered(
-                    lambda line: line.pillar_code == pillar_code
-                )
-                if not lines:
-                    continue
+            # Chỉ chặn weight âm; tổng root và parent-child total không còn bị ràng buộc.
+            negative_weight_line = template.kpi_line_ids.filtered(
+                lambda line: line.weight < 0.0
+            )[:1]
+            if negative_weight_line:
+                raise ValidationError(_("Weight cannot be negative for KPI lines."))
 
-                negative_weight_line = lines.filtered(lambda line: line.weight < 0.0)[
-                    :1
-                ]
-                if negative_weight_line:
-                    raise ValidationError(
-                        _("Weight cannot be negative for normalized 3P KPI lines.")
-                    )
-
-                root_lines = lines.filtered(lambda line: not line.parent_line_id)
-                root_total = sum(root_lines.mapped("weight"))
-                if root_lines and abs(root_total - 100.0) > WEIGHT_TOLERANCE:
-                    raise ValidationError(
-                        _(
-                            "The total weight of root lines in pillar %(pillar)s must be exactly 100. Current total: %(total)s."
-                        )
-                        % {
-                            "pillar": pillar_code,
-                            "total": f"{root_total:g}",
-                        }
-                    )
-
-                for parent in lines.filtered(lambda line: line.child_line_ids):
-                    child_lines = parent.child_line_ids.filtered(
-                        lambda line: line.pillar_code == parent.pillar_code
-                    )
-                    if not child_lines:
-                        continue
-                    child_total = sum(child_lines.mapped("weight"))
-                    if abs(child_total - parent.weight) > WEIGHT_TOLERANCE:
-                        raise ValidationError(
-                            _(
-                                "The total weight of child lines under '%(line)s' must equal the parent weight %(parent_weight)s. Current total: %(child_total)s."
-                            )
-                            % {
-                                "line": parent.name,
-                                "parent_weight": f"{parent.weight:g}",
-                                "child_total": f"{child_total:g}",
-                            }
-                        )
+    # Đồng bộ weight section và chỉ giữ lại validate weight âm cho toàn bộ department template liên quan.
+    def _refresh_weight_structure(self):
+        self._recompute_section_weights()
+        self._validate_non_negative_weight()
 
     # Chuẩn hóa cờ wipeout để chỉ section row mới giữ được cấu hình này.
     def _reset_wipeout_flag_on_leaf_rows(self):
@@ -621,7 +625,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 old_scope_keys + self._get_sequence_scope_keys()
             )
         self._reset_wipeout_flag_on_leaf_rows()
-        self._validate_normalized_3p_weight_structure()
+        self._refresh_weight_structure()
         return res
 
     # Normalize section rows and validate normalized 3P trees after creation.
@@ -655,7 +659,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
             # Auto-place new lines at the end of their root or parent subtree block.
             rec._move_subtree_to_parent_end()
         records._reset_wipeout_flag_on_leaf_rows()
-        records._validate_normalized_3p_weight_structure()
+        records._refresh_weight_structure()
         return records
 
     def unlink(self):
@@ -663,8 +667,8 @@ class HrDepartmentKpiTemplateLine(models.Model):
         # vì sau super().unlink() self đã không còn tồn tại.
         templates = self.mapped("department_kpi_id")
         res = super().unlink()
-        # Validate trên state hoàn chỉnh sau khi các line đã bị xóa thật sự.
-        templates.kpi_line_ids._validate_normalized_3p_weight_structure()
+        # Đồng bộ lại weight section trên state cuối sau khi các line đã bị xóa thật sự.
+        templates.kpi_line_ids._refresh_weight_structure()
         return res
 
     def action_open_popup(self):

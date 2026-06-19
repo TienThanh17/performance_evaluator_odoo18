@@ -227,55 +227,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         self.ensure_one()
         return self.env["res.config.settings"].get_score_scale_base()
 
-    # Validate that normalized 3P roots and children preserve the expected weight tree.
-    @api.constrains(
-        "evaluation_line_ids",
-        "evaluation_line_ids.weight",
-        "evaluation_line_ids.parent_line_id",
-        "evaluation_line_ids.pillar_id",
-    )
-    def _check_normalized_3p_weight_structure(self):
-        if self.env.context.get("skip_normalized_3p_weight_validation"):
-            return
-        for record in self:
-            for pillar_code in NORMALIZED_3P_PILLAR_CODES:
-                pillar_lines = record.evaluation_line_ids.filtered(
-                    lambda line: line.pillar_code == pillar_code
-                )
-                if not pillar_lines:
-                    continue
-
-                root_lines = pillar_lines.filtered(lambda line: not line.parent_line_id)
-                root_weight = sum(root_lines.mapped("weight"))
-                if abs(root_weight - 100.0) > 0.01:
-                    raise ValidationError(
-                        _(
-                            "The total root weight of pillar %(pillar)s must be 100, but got %(weight)s."
-                        )
-                        % {
-                            "pillar": pillar_code,
-                            "weight": f"{root_weight:.2f}",
-                        }
-                    )
-
-                for parent_line in pillar_lines.filtered("child_line_ids"):
-                    direct_children = parent_line.child_line_ids.filtered(
-                        lambda line: line.pillar_code == pillar_code
-                    )
-                    if not direct_children:
-                        continue
-                    child_weight = sum(direct_children.mapped("weight"))
-                    if abs(child_weight - (parent_line.weight or 0.0)) > 0.01:
-                        raise ValidationError(
-                            _(
-                                "The child weight total of '%(line)s' must equal %(expected)s, but got %(actual)s."
-                            )
-                            % {
-                                "line": parent_line.name or parent_line.display_name,
-                                "expected": f"{(parent_line.weight or 0.0):.2f}",
-                                "actual": f"{child_weight:.2f}",
-                            }
-                        )
+    # Đồng bộ weight section và chỉ giữ lại validate weight âm cho evaluation line.
+    def _refresh_evaluation_line_weight_structure(self):
+        line_records = self.mapped("evaluation_line_ids")
+        if line_records:
+            line_records._refresh_weight_structure()
 
     def action_compute_auto_kpi(self):
         engine = self.env["hr.kpi.engine"]
@@ -359,8 +315,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 self.with_context(skip_normalized_3p_weight_validation=True),
             ).write(vals)
             self._rebuild_line_hierarchy_from_template()
+            self._refresh_evaluation_line_weight_structure()
             self._recompute_line_scores_after_hierarchy_rebuild()
-            self._check_normalized_3p_weight_structure()
         else:
             res = super().write(vals)
         if "active" in vals and not self.env.context.get("skip_report_active_sync"):
@@ -553,8 +509,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             self.with_context(skip_normalized_3p_weight_validation=True),
         ).create(vals_list)
         records._rebuild_line_hierarchy_from_template()
+        records._refresh_evaluation_line_weight_structure()
         records._recompute_line_scores_after_hierarchy_rebuild()
-        records._check_normalized_3p_weight_structure()
         return records
 
     def get_dashboard_data(self):

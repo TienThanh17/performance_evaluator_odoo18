@@ -698,6 +698,63 @@ class PerformanceEvaluationLine(models.Model):
             )
         return sum(child_lines.mapped("final_rating")) / len(child_lines)
 
+    # Trả về độ sâu hierarchy của evaluation line để roll-up weight section từ lá lên gốc.
+    def _get_hierarchy_depth(self):
+        self.ensure_one()
+        depth = 0
+        current = self.parent_line_id
+        while current:
+            depth += 1
+            current = current.parent_line_id
+        return depth
+
+    # Tính lại weight cho mọi section line của các phiếu cá nhân bị ảnh hưởng dựa trên direct child hiện tại.
+    def _recompute_section_weights(self):
+        if self.env.context.get("skip_section_weight_rollup"):
+            return
+
+        evaluations = self.mapped("evaluation_id")
+        for evaluation in evaluations:
+            section_lines = evaluation.evaluation_line_ids.filtered("is_section").sorted(
+                lambda line: (
+                    -line._get_hierarchy_depth(),
+                    line.sequence or 0,
+                    line.id or 0,
+                )
+            )
+
+            # Roll-up section sâu nhất trước để section cha luôn nhìn thấy weight mới nhất của con.
+            for section in section_lines:
+                direct_children = section.child_line_ids.filtered(
+                    lambda line: line.evaluation_id == evaluation
+                    and line.pillar_id == section.pillar_id
+                )
+                child_weight_total = sum(direct_children.mapped("weight"))
+
+                # Ghi nội bộ bằng super write để tránh re-enter luồng refresh và score recompute.
+                super(
+                    PerformanceEvaluationLine,
+                    section.with_context(
+                        skip_section_weight_rollup=True,
+                        skip_score_tree_recompute=True,
+                    ),
+                ).write({"weight": child_weight_total})
+
+    # Chỉ giữ ràng buộc không cho weight âm trên evaluation line.
+    def _validate_non_negative_weight(self):
+        evaluations = self.mapped("evaluation_id")
+        for evaluation in evaluations:
+            negative_weight_line = evaluation.evaluation_line_ids.filtered(
+                lambda line: line.weight < 0.0
+            )[:1]
+            if negative_weight_line:
+                raise ValidationError(_("Weight cannot be negative for KPI lines."))
+
+    # Đồng bộ weight section và validate weight âm cho toàn bộ phiếu cá nhân liên quan.
+    def _refresh_weight_structure(self):
+        self._recompute_section_weights()
+        self._validate_non_negative_weight()
+
     # Format the target and actual previews only for auto KPI lines.
     @api.depends("target", "actual", "kpi_type", "unit", "unit.code", "unit.name")
     def _compute_display(self):
@@ -1148,6 +1205,7 @@ class PerformanceEvaluationLine(models.Model):
 
         records = super().create(vals_list)
         affected_lines = records | records.mapped("parent_line_id")
+        affected_lines._refresh_weight_structure()
         affected_lines._recompute_score_tree()
         return records
 
@@ -1176,87 +1234,9 @@ class PerformanceEvaluationLine(models.Model):
         # Mirror employee manual ratings into manager fields during self evaluation saves.
         vals = self._mirror_employee_to_manager_vals(vals, vals_before=vals_before)
 
-        is_superuser = self.env.is_superuser()
-
-        if not is_superuser:
-            user = self.env.user
-
-            # Block all edits on canceled or completed evaluations.
-            if any(
-                line.evaluation_id.state in ["cancel", "completed"] for line in self
-            ):
-                raise UserError(
-                    _("You cannot modify lines of a canceled or completed evaluation.")
-                )
-
-            # Compute role flags once so future permission rules can reuse them.
-            is_manager_group = user.has_group(
-                "custom_adecsol_hr_performance_evaluator.group_manager"
-            )
-            is_own_evaluation = all(
-                line.evaluation_id.employee_id.user_id == user for line in self
-            )
-
-            # Split employee-facing and manager-facing fields for permission checks.
-            manager_fields = {
-                "manager_rating_binary",
-                "manager_rating_selection",
-                "manager_rating_score",
-                "manager_comment",
-            }
-            employee_fields = {
-                "employee_rating_binary",
-                "employee_rating_selection",
-                "employee_rating_score",
-                "employee_comment",
-            }
-
-            # Detect which side of the form the user actively edited.
-            editing_employee_fields = bool(
-                employee_fields.intersection(vals_before.keys())
-            )
-            editing_manager_fields = bool(
-                manager_fields.intersection(vals_before.keys())
-            )
-
-            # =====================================================================
-            # LOGIC 1: if the user edits employee-side fields
-            # =====================================================================
-            # if editing_employee_fields:
-            #     if not is_own_evaluation:
-            #         raise UserError(
-            #             _(
-            #                 "Only the employee being evaluated can edit self-rating and comments."
-            #             )
-            #         )
-
-            #     if any(line.evaluation_id.state != "self_evaluation" for line in self):
-            #         raise UserError(
-            #             _(
-            #                 "Employee fields can only be edited in the Self Evaluation state."
-            #             )
-            #         )
-
-            # =====================================================================
-            # LOGIC 2: if the user edits manager-side fields
-            # =====================================================================
-            # if editing_manager_fields:
-            #     if not is_manager_group:
-            #         raise UserError(
-            #             _(
-            #                 "You do not have the required Manager access to edit manager fields."
-            #             )
-            #         )
-
-            #     if any(line.evaluation_id.state != "manager_evaluating" for line in self):
-            #         raise UserError(
-            #             _(
-            #                 "Manager rating is only editable in the Manager Evaluating state."
-            #             )
-            #         )
-
         res = super().write(vals)
         affected_lines = self | parent_lines_before | self.mapped("parent_line_id")
+        affected_lines._refresh_weight_structure()
         affected_lines._recompute_score_tree()
 
         # Refresh an old evaluation when a line is moved to another evaluation.
@@ -1266,6 +1246,20 @@ class PerformanceEvaluationLine(models.Model):
             evaluation._compute_performance_level()
         if snapshot_by_line:
             self._post_parent_chatter_audit(tracked_fields, snapshot_by_line)
+        return res
+
+    # Đồng bộ lại weight section và score tree sau khi xóa line khỏi phiếu cá nhân.
+    def unlink(self):
+        evaluations = self.mapped("evaluation_id")
+        parent_lines = self.mapped("parent_line_id")
+        res = super().unlink()
+        affected_lines = evaluations.mapped("evaluation_line_ids") | parent_lines
+        if affected_lines:
+            affected_lines._refresh_weight_structure()
+            affected_lines._recompute_score_tree()
+        else:
+            evaluations._compute_pillar_totals()
+            evaluations._compute_performance_level()
         return res
 
     def action_open_popup(self):

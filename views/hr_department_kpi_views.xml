@@ -30,7 +30,7 @@
                             <field name="scoring_formula_id"
                                 invisible="is_section or kpi_type != 'auto'"
                                 options="{'no_create': True}" />
-                            <field name="weight" />
+                            <field name="weight" readonly="is_section" />
                             <field name="wipeout_if_child_zero"
                                 invisible="not is_section" />
                         </group>
@@ -142,7 +142,7 @@
 
                                     <field name="target" string="Target"
                                         invisible="is_section or kpi_type != 'auto'" width="100px" />
-                                    <field name="weight" width="80px" />
+                                    <field name="weight" width="80px" readonly="is_section" />
                                     <field name="wipeout_if_child_zero"
                                         invisible="not is_section"
                                         optional="hide" width="100px" />
@@ -201,10 +201,12 @@
                                 </div>
 
                                 <div class="o_perf_summary_body o_perf_summary_body_right">
-                                    <div class="o_perf_summary_title">Evaluation Results</div>
-                                    <div class="text-muted mt-2" style="font-size: 14px;">
-                                        Calculated when this KPI template is used in a department
-                                        evaluation.
+                                    <div class="o_perf_summary_title">Total Weight</div>
+                                    <div class="o_perf_summary_score">
+                                        <span class="o_perf_label">P3.1.2 Total Weight</span>
+                                        <span class="o_perf_value">
+                                            <field name="total_weight_p3_department" />
+                                        </span>
                                     </div>
                                 </div>
                             </div>
