@@ -112,6 +112,7 @@ class PerformanceEvaluationLine(models.Model):
         string="Pillar Code",
         store=True,
         readonly=True,
+        compute_sudo=True,
     )
     key_performance_area = fields.Char(
         string="Key Performance Area",
@@ -1141,7 +1142,7 @@ class PerformanceEvaluationLine(models.Model):
         default_pillar_code = self.env.context.get("default_pillar_code")
         default_pillar = False
         if default_pillar_code:
-            default_pillar = self.env["hr.evaluation.pillar"].search(
+            default_pillar = self.env["hr.evaluation.pillar"].sudo().search(
                 [("code", "=", default_pillar_code)],
                 limit=1,
             )

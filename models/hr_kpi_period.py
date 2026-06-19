@@ -14,7 +14,6 @@ class HrKpiPeriod(models.Model):
             ("quarterly", "Hàng quý"),
             ("biannual", "Nửa năm"),
             ("yearly", "Hàng năm"),
-            ("custom", "Tùy chỉnh"),
         ],
         required=True,
         default="monthly",

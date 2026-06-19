@@ -557,6 +557,108 @@ class PerformanceEvaluation(models.Model):
                 continue
             record.state = "cancel"
 
+    # Dựng lại mapping từ department KPI template line sang department evaluation line để reset giữ đúng liên kết P3 phòng ban.
+    def _get_dept_eval_line_map_for_reset(self):
+        self.ensure_one()
+
+        # Nếu phiếu không gắn với department evaluation thì không cần map line cha phòng ban.
+        if not self.dept_evaluation_id:
+            return {}
+
+        dept_eval_line_by_template_line = {}
+
+        # Chỉ lấy các line có liên kết về department KPI template line để tái sử dụng đúng như luồng generate ban đầu.
+        for line in self.dept_evaluation_id.sudo().evaluation_line_ids:
+            if line.department_kpi_line_id:
+                dept_eval_line_by_template_line[line.department_kpi_line_id.id] = line.id
+
+        return dept_eval_line_by_template_line
+
+    # Chuẩn bị bộ giá trị tạo mới phiếu đánh giá từ cùng seed data ban đầu để phục vụ reset an toàn.
+    def _prepare_reset_evaluation_vals(self):
+        self.ensure_one()
+
+        # KPI template phải còn tồn tại để hệ thống có thể dựng lại line tree như lúc khởi tạo ban đầu.
+        if not self.kpi_id:
+            raise UserError(
+                _("The KPI template is missing, so the evaluation cannot be recreated.")
+            )
+
+        # Chặn reset nếu template hiện tại không còn khớp với scope nhân viên sau các thay đổi cơ cấu.
+        if not self.kpi_id.matches_employee(self.employee_id):
+            raise UserError(
+                _(
+                    "The selected KPI template no longer matches the employee's department or job position scope."
+                )
+            )
+
+        # Chặn reset nếu chu kỳ của template không còn đồng bộ với chu kỳ đang lưu trên phiếu.
+        if self.period_type and self.kpi_id.period_type != self.period_type:
+            raise UserError(
+                _("The KPI template period type no longer matches this evaluation.")
+            )
+
+        # Dựng lại mapping line phòng ban trước khi tạo mới để các line phụ thuộc P3 tiếp tục nối đúng record cha.
+        dept_eval_line_by_template_line = self._get_dept_eval_line_map_for_reset()
+
+        # Dùng cùng helper generate line tree để bảo toàn cấu trúc section, parent-child và scoring metadata.
+        line_cmds = self._prepare_evaluation_line_commands_from_template(
+            self.kpi_id,
+            dept_eval_line_by_template_line=dept_eval_line_by_template_line,
+        )
+
+        # Giữ lại toàn bộ seed data cốt lõi của phiếu cũ nhưng không mang theo các điểm/chú thích đã chấm nhầm.
+        return {
+            "employee_id": self.employee_id.id,
+            "kpi_id": self.kpi_id.id,
+            "period_id": self.period_id.id if self.period_id else False,
+            "start_date": self.start_date,
+            "end_date": self.end_date,
+            "deadline": self.deadline,
+            "performance_report_id": self.performance_report_id.id or False,
+            "dept_evaluation_id": self.dept_evaluation_id.id or False,
+            "evaluation_line_ids": line_cmds,
+        }
+
+    # Xóa cứng phiếu hiện tại và tạo lại phiếu mới tinh cho chính nhân viên trong kỳ đang diễn ra.
+    def action_reset_evaluation(self):
+        self.ensure_one()
+
+        # Chỉ cho phép reset khi phiếu vẫn còn ở bước tự đánh giá để tránh làm lệch luồng manager review.
+        if self.state != "self_evaluation":
+            raise UserError(
+                _("You can only reset evaluations in self evaluation state.")
+            )
+
+        # Chỉ cho phép reset trong kỳ đang diễn ra đúng theo yêu cầu nghiệp vụ.
+        if self.period_status != "ongoing":
+            raise UserError(_("You can only reset evaluations in an ongoing period."))
+
+        # Chỉ chính nhân viên sở hữu phiếu mới được tự reset phiếu của mình.
+        # if not self.is_current_user:
+        #     raise UserError(_("You can only reset your own evaluation."))
+
+        # Chuẩn bị trước toàn bộ dữ liệu tạo mới; nếu bước này lỗi thì phiếu cũ vẫn còn nguyên.
+        new_evaluation_vals = self._prepare_reset_evaluation_vals()
+
+        # Tạo mới trước để đảm bảo chỉ xóa phiếu cũ khi việc recreate đã thành công hoàn toàn.
+        new_evaluation = self.env["hr.performance.evaluation"].sudo().create(
+            new_evaluation_vals
+        )
+
+        # Xóa cứng phiếu cũ bằng sudo có kiểm soát vì nhân viên không có quyền unlink trực tiếp.
+        self.sudo().unlink()
+
+        # Mở ngay form của phiếu mới để người dùng tiếp tục chấm lại mà không cần tìm kiếm thủ công.
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Performance Evaluation"),
+            "res_model": "hr.performance.evaluation",
+            "res_id": new_evaluation.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
     @api.depends(
         "evaluation_line_ids",
         "evaluation_line_ids.final_rating",
@@ -856,15 +958,6 @@ class PerformanceEvaluation(models.Model):
 
     @api.onchange("kpi_id")
     def _onchange_kpi_id(self):
-        # if not self.kpi_id:
-        #     return
-        #
-        #     # GUARD: Chỉ rebuild khi kpi_id thực sự được user thay đổi.
-        #     # _origin.kpi_id là giá trị đang lưu trong DB.
-        #     # Nếu bằng nhau → onchange đang fire spuriously (lúc save/reload) → bỏ qua.
-        # if self._origin.kpi_id and self._origin.kpi_id.id == self.kpi_id.id:
-        #     return
-
         if self.kpi_id:
             self.evaluation_line_ids = (
                 self._prepare_evaluation_line_commands_from_template(self.kpi_id)

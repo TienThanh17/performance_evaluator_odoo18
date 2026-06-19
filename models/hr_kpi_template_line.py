@@ -135,8 +135,8 @@ class HrKpiTemplateLine(models.Model):
             (self.env.context.get("default_pillar_code") or "").strip().lower()
         )
         if not pillar_code:
-            return self.env["hr.evaluation.pillar"]
-        return self.env["hr.evaluation.pillar"].search(
+            return self.env["hr.evaluation.pillar"].sudo()
+        return self.env["hr.evaluation.pillar"].sudo().search(
             [("code", "=", pillar_code)],
             limit=1,
         )

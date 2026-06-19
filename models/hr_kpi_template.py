@@ -285,13 +285,13 @@ class HrKpiTemplate(models.Model):
         for pillar_id in sorted(
             pillar_groups,
             key=lambda current_id: (
-                self.env["hr.evaluation.pillar"].browse(current_id).sequence
+                self.env["hr.evaluation.pillar"].sudo().browse(current_id).sequence
                 if current_id
                 else -1,
                 current_id or 0,
             ),
         ):
-            scope_lines = self.env["hr.kpi.template.line"].browse(
+            scope_lines = self.env["hr.kpi.template.line"].sudo().browse(
                 [line.id for line in pillar_groups[pillar_id]]
             )
             if not scope_lines:
@@ -303,7 +303,7 @@ class HrKpiTemplate(models.Model):
                 ._get_hierarchy_ordered_lines(scope_lines=scope_lines)
                 .ids
             )
-        return self.env["hr.kpi.template.line"].browse(ordered_ids)
+        return self.env["hr.kpi.template.line"].sudo().browse(ordered_ids)
 
     # Duplicate the KPI template and rebuild its line tree on the new record.
     def copy(self, default=None):

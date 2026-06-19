@@ -343,6 +343,11 @@
                             groups="custom_adecsol_hr_performance_evaluator.group_manager"
                             class="btn-danger"
                             invisible="state == 'cancel'" />
+                        <button name="action_reset_evaluation" type="object" class="btn-danger"
+                            string="Delete and Create New"
+                            groups="custom_adecsol_hr_performance_evaluator.group_employee"
+                            invisible="state != 'self_evaluation' or period_status != 'ongoing' or not is_current_user"
+                            confirm="This will permanently delete the current evaluation and create a new blank one. Do you want to continue?" />
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
