@@ -176,11 +176,7 @@ class HrPerformanceReport(models.Model):
         """Send a reminder to employees before the deadline."""
         today = fields.Date.context_today(self)
 
-        # 1. Deactivate reports where the deadline has passed
-        # expired_reports = self.search([("active", "=", True), ("deadline", "<", today)])
-        # expired_reports.write({"active": False})
-
-        # 2. Send reminders for upcoming deadlines
+        # Send reminders for upcoming deadlines
         reminder_days_str = (
             self.env["ir.config_parameter"]
             .sudo()
@@ -199,16 +195,54 @@ class HrPerformanceReport(models.Model):
         base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
 
         for report in reports:
-            # Send email
-            # report.action_send_email()
-
             # Iterate through each evaluation to send individual links
             for evaluation in report.evaluation_ids:
-                partner = evaluation.employee_id.user_id.partner_id
-                if not partner:
+                # Bỏ qua nếu phiếu đánh giá đã hoàn thành hoặc bị hủy
+                if evaluation.state in ["completed", "cancel"]:
+                    continue
+
+                emp = evaluation.employee_id
+
+                # 1. Lấy Partner ID của nhân viên
+                emp_partner_id = emp.work_contact_id.id or (
+                    emp.user_id.partner_id.id if emp.user_id else False
+                )
+
+                # 2. Lấy Partner ID của Quản lý phòng ban (Manager)
+                manager_partner_id = False
+                department_manager = emp.department_id.manager_id
+                if department_manager:
+                    manager_partner_id = department_manager.work_contact_id.id or (
+                        department_manager.user_id.partner_id.id
+                        if department_manager.user_id
+                        else False
+                    )
+
+                # 3. Gom danh sách người nhận DỰA THEO STATE
+                partner_ids_to_notify = []
+
+                # Nếu đang ở bước Tự đánh giá -> Gửi cho cả Nhân viên và Quản lý
+                if evaluation.state == "self_evaluation":
+                    if emp_partner_id:
+                        partner_ids_to_notify.append(emp_partner_id)
+                    if (
+                        manager_partner_id
+                        and manager_partner_id not in partner_ids_to_notify
+                    ):
+                        partner_ids_to_notify.append(manager_partner_id)
+
+                # Nếu đang ở bước Quản lý đánh giá -> CHỈ gửi cho Quản lý
+                elif evaluation.state == "manager_evaluating":
+                    if manager_partner_id:
+                        partner_ids_to_notify.append(manager_partner_id)
+
+                # Bỏ qua nếu không tìm thấy ai để gửi (tránh lỗi)
+                if not partner_ids_to_notify:
                     continue
 
                 record_url = f"{base_url}/web#id={evaluation.id}&model=hr.performance.evaluation&view_type=form"
+
+                # Bạn có thể tùy biến lại nội dung tin nhắn cho phù hợp với người nhận nếu muốn
                 msg_body = _(
                     """
                     <strong>Announcement:</strong> The deadline for this evaluation report will end in %s days (%s). Please complete it on time.
@@ -222,12 +256,13 @@ class HrPerformanceReport(models.Model):
                     """
                 ) % (reminder_days, report.deadline.strftime("%d/%m/%Y"), record_url)
 
+                # 4. Gửi thông báo tới danh sách đã phân loại
                 evaluation.message_post(
                     body=Markup(msg_body),
                     subject="Review deadline reminder",
                     message_type="notification",
                     subtype_xmlid="mail.mt_note",
-                    partner_ids=[partner.id],
+                    partner_ids=partner_ids_to_notify,
                 )
 
     def write(self, vals):
@@ -440,8 +475,8 @@ class HrPerformanceReport(models.Model):
                                         # Nếu là dòng chữ bình thường hoặc <li> đã bị xóa thẻ, thêm bullet con
                                         task_lines.append(f"    • {stripped_line}")
                                 # else:
-                                    # Giữ nguyên dòng trống để Excel hiển thị cách đoạn
-                                    # task_lines.append("")
+                                # Giữ nguyên dòng trống để Excel hiển thị cách đoạn
+                                # task_lines.append("")
 
                     # Dọn dẹp các dòng trống dư thừa ở cuối Event để ô Excel không bị khoảng trắng thừa phía dưới
                     while task_lines and task_lines[-1] == "":

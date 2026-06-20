@@ -122,10 +122,6 @@ else:
             web_icon="custom_adecsol_hr_performance_evaluator,static/description/icon.png"
             action="action_open_default_kpi_home" />
 
-        <menuitem id="menu_kpi_tree_dashboard" name="Dashboard" action="action_kpi_tree_dashboard"
-            parent="performance_evaluator" sequence="5"
-            groups="custom_adecsol_hr_performance_evaluator.group_hr" />
-
         <menuitem id="kpi_department_menu" name="KPI Department" sequence="10"
             parent="performance_evaluator" />
         <menuitem id="department_performance_evaluation" name="KPI Department" sequence="10"

@@ -34,6 +34,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "data/hr_kpi_scoring_formula_data.xml",
         "data/hr_kpi_data_source_data.xml",
         # "demo/hr_kpi_it_3p_2026_04_seed(use_for_staging).xml",
+        # commment hr_kpi_it_3p_2026_04_seed.xml để tránh bị trùng dữ liệu có sẵn của adecsol
         "data/hr_kpi_it_3p_2026_04_seed.xml",
         "data/hr_kpi_ktoan_3p_2026_04_seed.xml",
         "data/hr_kpi_auto_3p_2026_04_seed.xml",
@@ -55,6 +56,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "views/hr_kpi_scoring_formula_test_wizard_views.xml",
         "views/kpi_generate_wizard_views.xml",
         "views/hr_department_kpi_generate_wizard_views.xml",
+        "views/performance_evaluation_approve_wizard_views.xml",
         "views/kpi_view.xml",
         "views/hr_department_kpi_views.xml",
         "views/performance_evaluation.xml",

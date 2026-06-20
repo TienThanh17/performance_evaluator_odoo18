@@ -544,12 +544,99 @@ class PerformanceEvaluation(models.Model):
                 )
 
     def action_approve(self):
+        # Hoàn tất phiếu đánh giá sau khi đã qua bước manager evaluating.
+        self.ensure_one()
         for record in self:
+            # Chỉ cho phép approve khi phiếu đang ở đúng trạng thái chờ quản lý đánh giá.
             if record.state != "manager_evaluating":
                 raise UserError(
                     _("You can only approve evaluations in manager evaluating state.")
                 )
+            # Chuyển phiếu sang trạng thái hoàn tất.
             record.state = "completed"
+        return True
+
+    # Mở wizard để người duyệt chọn danh sách người nhận thông báo trước khi hoàn tất phiếu.
+    def action_open_approve_wizard(self):
+        self.ensure_one()
+
+        # Chặn mở wizard nếu phiếu không còn ở bước manager evaluating.
+        if self.state != "manager_evaluating":
+            raise UserError(
+                _("You can only approve evaluations in manager evaluating state.")
+            )
+
+        # Mở popup wizard và truyền phiếu hiện tại qua context để wizard xử lý tiếp.
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Approve Evaluation"),
+            "res_model": "performance.evaluation.approve.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_evaluation_id": self.id,
+            },
+        }
+
+    # Tạo subject mặc định cho thông báo hoàn tất đánh giá để các luồng có thể tái sử dụng thống nhất.
+    def _get_approval_notification_subject(self):
+        self.ensure_one()
+        return _("Performance Evaluation Approved")
+
+    # Tạo nội dung HTML mặc định cho thông báo hoàn tất đánh giá và hiển thị trên wizard để người dùng chỉnh sửa.
+    def _get_approval_notification_body_html(self):
+        self.ensure_one()
+
+        # Tạo link trực tiếp đến phiếu đánh giá để người nhận mở nhanh từ thông báo hoặc email.
+        base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
+        record_url = f"{base_url}/web#id={self.id}&model={self._name}&view_type=form"
+
+        # Dựng sẵn nội dung mặc định theo ngữ cảnh phiếu đã được duyệt hoàn tất.
+        return Markup(
+            _(
+                "<p>Hello,</p>"
+                "<p>The performance evaluation for <b>%(employee_name)s</b> has been approved.</p>"
+                "<ul>"
+                "<li><b>Status:</b> Completed</li>"
+                "<li><b>Period:</b> %(period)s</li>"
+                "</ul>"
+                "<div style='margin-top: 20px;'>"
+                "<a href='%(url)s' "
+                "style='background-color: #714B67; padding: 8px 16px; color: #FFFFFF; "
+                "text-decoration: none; border-radius: 4px; font-weight: bold; "
+                "display: inline-block;'>View Evaluation</a>"
+                "</div>"
+            )
+        ) % {
+            "employee_name": self.employee_id.name,
+            "period": self.period_id.name if self.period_id else "N/A",
+            "url": record_url,
+        }
+
+    # Gửi thông báo hoàn tất đánh giá đến các đối tượng được chọn từ wizard.
+    def _send_approval_notification(self, users, body_html=None, subject=None):
+        for record in self:
+            # Chỉ giữ lại các user có partner để hệ thống có thể tạo notification/email.
+            partner_ids = users.mapped("partner_id").ids
+            if not partner_ids:
+                continue
+
+            # Nếu caller không truyền nội dung/tiêu đề tùy biến thì dùng mẫu mặc định của hệ thống.
+            notification_body = (
+                body_html or record._get_approval_notification_body_html()
+            )
+            notification_subject = (
+                subject or record._get_approval_notification_subject()
+            )
+
+            # Post vào chatter để vừa lưu lịch sử vừa gửi notify cho người nhận đã chọn.
+            record.message_post(
+                body=notification_body,
+                subject=notification_subject,
+                partner_ids=partner_ids,
+                message_type="comment",
+                subtype_xmlid="mail.mt_comment",
+            )
 
     def action_cancel(self):
         for record in self:
@@ -619,8 +706,8 @@ class PerformanceEvaluation(models.Model):
         new_evaluation_vals = self._prepare_reset_evaluation_vals()
 
         # Tạo mới trước để đảm bảo chỉ xóa phiếu cũ khi việc recreate đã thành công hoàn toàn.
-        new_evaluation = self.env["hr.performance.evaluation"].sudo().create(
-            new_evaluation_vals
+        new_evaluation = (
+            self.env["hr.performance.evaluation"].sudo().create(new_evaluation_vals)
         )
 
         # Xóa cứng phiếu cũ bằng sudo có kiểm soát vì nhân viên không có quyền unlink trực tiếp.
@@ -861,9 +948,7 @@ class PerformanceEvaluation(models.Model):
                             "target": 0.0,
                             "unit": False,
                             "weight": line.weight,
-                            "wipeout_if_child_zero": bool(
-                                line.wipeout_if_child_zero
-                            ),
+                            "wipeout_if_child_zero": bool(line.wipeout_if_child_zero),
                             "data_source_id": False,
                             "scoring_formula_id": False,
                             "is_auto": False,
@@ -936,7 +1021,7 @@ class PerformanceEvaluation(models.Model):
         """Compute Actual for auto KPI lines based on their template data source."""
         engine = self.env["hr.kpi.engine"]
         for evaluation in self:
-            if evaluation.state in ['cancel', 'completed']:
+            if evaluation.state in ["cancel", "completed"]:
                 continue
             if not evaluation.employee_id:
                 continue
@@ -1058,7 +1143,9 @@ class PerformanceEvaluation(models.Model):
             rows.append(
                 {
                     "id": line.id,
-                    "kpi_title": line.key_performance_area or line.display_name or _("KPI"),
+                    "kpi_title": line.key_performance_area
+                    or line.display_name
+                    or _("KPI"),
                     "employee_comment": self._normalize_comment_text(
                         line.employee_comment
                     ),
@@ -1122,9 +1209,7 @@ class PerformanceEvaluation(models.Model):
             "pillar_p2_1_name": evaluation.pillar_p2_1_name or "P2.1",
             "pillar_p2_2_name": evaluation.pillar_p2_2_name or "P2.2",
             "pillar_p3_ind_name": evaluation.pillar_p3_ind_name or "P3 Individual",
-            "pillar_p3_dept_name": (
-                dept_eval.pillar_p3_dept_name or "P3 Department"
-            )
+            "pillar_p3_dept_name": (dept_eval.pillar_p3_dept_name or "P3 Department")
             if dept_eval
             else "P3 Department",
             "period_id": evaluation.period_id.id if evaluation.period_id else False,
@@ -1179,7 +1264,7 @@ class PerformanceEvaluation(models.Model):
                     "unit_measure": unit_text,
                     "target": target_text,
                     "actual": actual_text,
-                    "final_score": round(final, 2)
+                    "final_score": round(final, 2),
                 }
             )
         return rows
