@@ -1203,12 +1203,16 @@ class HrKpiDashboardChartService(models.AbstractModel):
             line, source, chart_type
         )
 
+    # Xây dữ liệu biểu đồ theo từng ngày từ một domain source tổng quát,
+    # hỗ trợ count/sum/avg và có thể hiển thị dạng cộng dồn hoặc giá trị theo ngày.
     def _build_generic_domain_daily_series(
         self, evaluation, line, source, widget, chart_type, dashboard_kind
     ):
         # Daily series chỉ chạy được khi line snapshot còn giữ domain source hợp lệ.
         if not source:
             return False
+        # Chỉ xử lý cho source kiểu domain, có phép tổng hợp phù hợp
+        # và có field ngày để phân bucket dữ liệu theo từng ngày.
         if (
             source.source_type != "domain"
             or source.aggregation not in ("count", "sum", "avg")
@@ -1220,61 +1224,82 @@ class HrKpiDashboardChartService(models.AbstractModel):
             )
             return False
 
+        # Lấy model động từ cấu hình source; nếu model không tồn tại thì dừng an toàn.
         model = self.env.get(source.model_name)
         if model is None:
             return False
 
+        # Sinh đầy đủ danh sách ngày trong kỳ đánh giá để luôn có trục X liên tục.
         day_range = self._build_day_range(evaluation.start_date, evaluation.end_date)
         if not day_range:
             return False
 
+        # Build domain theo employee và khoảng ngày của evaluation để lấy record nguồn.
         domain = source._build_domain(
             source.domain_numerator,
             evaluation.employee_id.sudo(),
             evaluation.start_date,
             evaluation.end_date,
         )
+        # Đọc toàn bộ record phù hợp domain rồi chuẩn bị metadata cần cho việc nhóm theo ngày.
         records = model.sudo().search(domain)
         date_field_name = source.date_field_id.name
         date_field_type = source.date_field_id.ttype
         tz = self._get_employee_tz(evaluation.employee_id)
 
+        # Khởi tạo cấu trúc chứa dữ liệu theo từng ngày; mỗi ngày giữ một list
+        # để sau đó có thể sum hoặc avg tùy kiểu aggregation.
         data_by_day = {day: [] for day in day_range}
         sum_field = source.sum_avg_field_id.name if source.sum_avg_field_id else None
 
+        # Duyệt từng record nguồn, ép field ngày về đúng "ngày local" của nhân viên
+        # rồi nhét giá trị vào bucket tương ứng.
         for record in records:
             value = record[date_field_name]
             bucket_day = self._coerce_record_day(value, date_field_type, tz)
+            # Bỏ qua record có ngày nằm ngoài khoảng biểu đồ sau khi convert timezone/date.
             if bucket_day not in data_by_day:
                 continue
+            # Với count, mỗi record đóng góp 1 đơn vị vào ngày tương ứng.
             if source.aggregation == "count":
                 data_by_day[bucket_day].append(1)
+            # Với sum/avg, chỉ lấy field số khi record thực sự có giá trị.
             elif sum_field and record[sum_field] not in (False, None):
                 data_by_day[bucket_day].append(float(record[sum_field]))
 
+        # Maintenance chart hiển thị giá trị từng ngày.
+        # Các dashboard còn lại hiển thị dạng lũy kế để thấy tiến độ tích dần theo kỳ.
         is_maintenance = widget.kpi_behavior == "maintenance"
         final_values = []
         running_total = 0.0
+        # Chốt giá trị cuối cùng cho từng ngày dựa trên dữ liệu đã gom bucket.
         for day in day_range:
             day_records = data_by_day[day]
+            # Ngày không có dữ liệu thì đưa về 0 để biểu đồ không bị đứt mạch.
             if not day_records:
                 daily_val = 0.0
+            # count và sum đều cộng toàn bộ giá trị trong ngày.
             elif source.aggregation in ("count", "sum"):
                 daily_val = sum(day_records)
+            # avg lấy trung bình cộng các giá trị trong ngày.
             else:
                 daily_val = sum(day_records) / len(day_records)
 
+            # Maintenance giữ nguyên giá trị từng ngày, không cộng dồn.
             if is_maintenance:
                 final_values.append(round(daily_val, 2))
+            # Các loại còn lại cộng dồn để biểu diễn tiến độ tích lũy qua từng ngày.
             else:
                 running_total += daily_val
                 final_values.append(round(running_total, 2))
 
+        # Format nhãn trục X và dựng dataset chính cho chart.
         labels = [self._format_day_label(day) for day in day_range]
         dataset = {
             "label": self._line_title(line, source),
             "data": final_values,
         }
+        # Với line chart thì bổ sung option hiển thị mềm hơn cho đường biểu diễn.
         if chart_type == "line":
             dataset.update(
                 {
@@ -1285,7 +1310,9 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 }
             )
 
+        # Dataset đầu tiên luôn là dữ liệu actual đã tính ở trên.
         datasets = [dataset]
+        # Nếu KPI line có target thì thêm một đường ngang cố định để user so sánh.
         if line.target:
             target_val = float(line.target)
             datasets.append(
@@ -1302,6 +1329,7 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 }
             )
 
+        # Trả về payload chuẩn cho frontend render chart và note hiển thị target.
         return {
             "chart_data": {
                 "labels": labels,

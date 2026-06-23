@@ -48,6 +48,32 @@
     min-height: 42px !important;
 }
 
+.o_employee_rating_text {
+    color: #0f766e !important;
+
+    .o_input,
+    .form-check-label,
+    .o_priority,
+    .o_field_widget,
+    span,
+    label {
+        color: inherit !important;
+    }
+}
+
+.o_manager_rating_text {
+    color: #b45309 !important;
+
+    .o_input,
+    .form-check-label,
+    .o_priority,
+    .o_field_widget,
+    span,
+    label {
+        color: inherit !important;
+    }
+}
+
 .o_kpi_child_inline_row {
     td.o_kpi_child_inline_cell {
         padding: 0 !important;

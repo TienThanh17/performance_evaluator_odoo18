@@ -4,11 +4,22 @@ import { registry } from "@web/core/registry";
 import { Component, xml, useRef } from "@odoo/owl";
 import { usePopover } from "@web/core/popover/popover_hook";
 
+const WIPEOUT_WARNING_MESSAGE =
+    "When any KPI in this section scores 0, the entire section will also score 0.";
+
 // 1. Component con để hiển thị giao diện chứa nội dung HTML
 class HtmlPopoverContent extends Component {
     static template = xml`
         <div class="p-2" style="max-width: 450px; font-size: 0.95em; border: 1px solid #000000;">
             <t t-out="props.htmlContent"/>
+        </div>
+    `;
+}
+
+class TextPopoverContent extends Component {
+    static template = xml`
+        <div class="p-2" style="max-width: 320px; font-size: 0.95em; border: 1px solid #000000;">
+            <t t-esc="props.textContent"/>
         </div>
     `;
 }
@@ -59,4 +70,41 @@ class KpiDescriptionIcon extends Component {
 // 3. Đăng ký widget vào hệ thống
 registry.category("fields").add("kpi_description_icon", {
     component: KpiDescriptionIcon,
+});
+
+class KpiWipeoutWarningIcon extends Component {
+    static template = xml`
+        <div t-if="showWarning" class="text-start">
+            <i class="fa fa-exclamation-triangle text-warning"
+               t-ref="icon"
+               t-on-mouseenter="onMouseEnter"
+               t-on-mouseleave="onMouseLeave"
+               style="cursor: help; font-size: 1rem;"/>
+        </div>
+    `;
+
+    setup() {
+        this.iconRef = useRef("icon");
+        this.popover = usePopover(TextPopoverContent, { position: "top" });
+    }
+
+    get showWarning() {
+        return Boolean(this.props.record.data[this.props.name]);
+    }
+
+    onMouseEnter(ev) {
+        this.popover.open(ev.currentTarget, {
+            textContent: WIPEOUT_WARNING_MESSAGE,
+        });
+    }
+
+    onMouseLeave() {
+        if (this.popover) {
+            this.popover.close();
+        }
+    }
+}
+
+registry.category("fields").add("kpi_wipeout_warning_icon", {
+    component: KpiWipeoutWarningIcon,
 });

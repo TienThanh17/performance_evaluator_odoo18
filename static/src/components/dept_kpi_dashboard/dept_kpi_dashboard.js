@@ -491,7 +491,7 @@ export class DeptKpiDashboard extends Component {
                 "hr.department.performance.evaluation",
                 [["department_id", "=", departmentId]],
                 ["id", "name", "department_id", "start_date", "end_date",
-                //    "department_score", "department_level",
+                    //    "department_score", "department_level",
                     "state", 'dept_kpi_score'],
                 { order: "start_date desc", limit: 24 }
             );
@@ -581,29 +581,36 @@ export class DeptKpiDashboard extends Component {
     }
 
     async approveAllEvaluations() {
-        const evalIds = (this.reportDashboard?.evaluations || [])
-            .filter((ev) => ev.state === "manager_evaluating")
-            .map((ev) => ev.id);
-        if (!evalIds.length || this.state.approvingAll) {
+        const deptEvaluationId = this.state.selectedEvaluationId;
+        if (!deptEvaluationId || !this.approvableCount || this.state.approvingAll) {
             return;
         }
         this.state.approvingAll = true;
         try {
-            await this.orm.call("hr.performance.evaluation", "action_approve", [evalIds]);
-            const evaluation = this.state.evaluations.find(
-                (item) => item.id === this.state.selectedEvaluationId
+            const action = await this.orm.call(
+                "hr.performance.evaluation",
+                "action_open_approve_all_wizard_by_dept_evaluation",
+                [],
+                { dept_evaluation_id: deptEvaluationId }
             );
-            if (evaluation && this.state.selectedDepartmentId) {
-                await this._loadDashboardData(this.state.selectedDepartmentId, evaluation);
-            }
-            this.notification.add(_t("All manager evaluations were approved."), {
-                type: "success",
+            await this.actionService.doAction(action, {
+                onClose: async (closeInfo) => {
+                    if (!closeInfo?.approved) {
+                        return;
+                    }
+                    const evaluation = this.state.evaluations.find(
+                        (item) => item.id === this.state.selectedEvaluationId
+                    );
+                    if (evaluation && this.state.selectedDepartmentId) {
+                        await this._loadDashboardData(this.state.selectedDepartmentId, evaluation);
+                    }
+                },
             });
         } catch (error) {
             this.notification.add(
                 error?.data?.message ||
-                    error?.message ||
-                    _t("Could not approve evaluations."),
+                error?.message ||
+                _t("Could not open batch approval."),
                 { type: "danger" }
             );
         } finally {
@@ -612,7 +619,7 @@ export class DeptKpiDashboard extends Component {
     }
 
     openEvaluation(evalId) {
-        this.actionService.doAction({
+       this.actionService.doAction({
             type: "ir.actions.act_window",
             res_model: "hr.performance.evaluation",
             res_id: evalId,
@@ -662,8 +669,8 @@ export class DeptKpiDashboard extends Component {
         } catch (error) {
             this.notification.add(
                 error?.data?.message ||
-                    error?.message ||
-                    _t("Could not load evaluation comments."),
+                error?.message ||
+                _t("Could not load evaluation comments."),
                 { type: "danger" }
             );
             this.closeCommentPopup();
@@ -1030,34 +1037,34 @@ export class DeptKpiDashboard extends Component {
             plugins: [
                 ...(targetLine
                     ? [
-                          {
-                              id: `fullWidthTargetLine_${chartInfo.widget_id || "bar"}`,
-                              afterDatasetsDraw: (chart) => {
-                                  if (chart.$targetLineHidden) {
-                                      return;
-                                  }
-                                  const {
-                                      ctx: chartCtx,
-                                      chartArea,
-                                      scales: { y },
-                                  } = chart;
-                                  if (!chartArea || !y) {
-                                      return;
-                                  }
+                        {
+                            id: `fullWidthTargetLine_${chartInfo.widget_id || "bar"}`,
+                            afterDatasetsDraw: (chart) => {
+                                if (chart.$targetLineHidden) {
+                                    return;
+                                }
+                                const {
+                                    ctx: chartCtx,
+                                    chartArea,
+                                    scales: { y },
+                                } = chart;
+                                if (!chartArea || !y) {
+                                    return;
+                                }
 
-                                  const yPos = y.getPixelForValue(targetLine.value);
-                                  chartCtx.save();
-                                  chartCtx.beginPath();
-                                  chartCtx.moveTo(chartArea.left, yPos);
-                                  chartCtx.lineTo(chartArea.right, yPos);
-                                  chartCtx.lineWidth = 1.5;
-                                  chartCtx.strokeStyle = targetLine.color || C_RED;
-                                  chartCtx.setLineDash(targetLine.dash || [6, 6]);
-                                  chartCtx.stroke();
-                                  chartCtx.restore();
-                              },
-                          },
-                      ]
+                                const yPos = y.getPixelForValue(targetLine.value);
+                                chartCtx.save();
+                                chartCtx.beginPath();
+                                chartCtx.moveTo(chartArea.left, yPos);
+                                chartCtx.lineTo(chartArea.right, yPos);
+                                chartCtx.lineWidth = 1.5;
+                                chartCtx.strokeStyle = targetLine.color || C_RED;
+                                chartCtx.setLineDash(targetLine.dash || [6, 6]);
+                                chartCtx.stroke();
+                                chartCtx.restore();
+                            },
+                        },
+                    ]
                     : []),
                 referenceLinePlugin,
             ],
@@ -1569,8 +1576,8 @@ export class DeptKpiDashboard extends Component {
                             score >= excellent
                                 ? C_BLUE + "cc"
                                 : score >= passed
-                                  ? C_GREEN + "cc"
-                                  : C_RED + "cc"
+                                    ? C_GREEN + "cc"
+                                    : C_RED + "cc"
                         ),
                         borderColor: scores.map((score) =>
                             score >= excellent ? C_BLUE : score >= passed ? C_GREEN : C_RED

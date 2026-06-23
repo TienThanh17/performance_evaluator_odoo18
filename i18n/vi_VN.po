@@ -721,7 +721,7 @@ msgstr "Tất cả các phòng ban"
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/dept_kpi_dashboard/dept_kpi_dashboard.js:0
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/performance_dashboard/performance_dashboard_form.js:0
 msgid "All manager evaluations were approved."
-msgstr "Tất cả các đánh giá của trưởng phòng đều được phê duyệt."
+msgstr "Tất cả các Trưởng phòng đánh giá đều được phê duyệt."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -1935,22 +1935,22 @@ msgstr "Tên nhân viên"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup
 msgid "Employee Rating"
-msgstr "Xếp hạng nhân viên"
+msgstr "Nhân viên tự chấm"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup
 msgid "Employee Rating (0-5)"
-msgstr "Xếp hạng nhân viên (0-5)"
+msgstr "Nhân viên tự chấm"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup
 msgid "Employee Score"
-msgstr "Điểm nhân viên"
+msgstr "Nhân viên tự chấm"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__employee_template_line_id
 msgid "Employee Template Line"
-msgstr "Dòng KPI nhân viên"
+msgstr "Dòng mẫu KPI nhân viên"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
@@ -3241,7 +3241,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__micro_chart_type__line
 msgid "Line"
-msgstr "Biểu đồ Dòng"
+msgstr "Biểu đồ Dây"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_evaluation_3p_summary__line_count
@@ -3291,7 +3291,7 @@ msgstr ""
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/dept_kpi_dashboard/dept_kpi_dashboard_template.xml:0
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/performance_dashboard/performance_dashboard_templates.xml:0
 msgid "MANAGER EVALUATING"
-msgstr "ĐÁNH GIÁ CỦA trưởng phòng"
+msgstr "Trưởng phòng đánh giá"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_dashboard_widget_form
@@ -3352,14 +3352,14 @@ msgstr "Đã chỉnh sửa trình quản lý"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_performance_evaluation__state__manager_evaluating
 msgid "Manager Evaluating"
-msgstr "Đánh giá của trưởng phòng"
+msgstr "Trưởng phòng đánh giá"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_evaluation_line_form_popup
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_performance_evaluation_form
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup
 msgid "Manager Rating"
-msgstr "Xếp hạng của trưởng phòng"
+msgstr "Trưởng Phòng Chấm"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__manager_rating_selection
@@ -3389,17 +3389,17 @@ msgstr "Trưởng Phòng Chấm"
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_performance_evaluation_form
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_performance_evaluation_line_form_popup
 msgid "Manager Score"
-msgstr "Điểm Trưởng Phòng Chấm"
+msgstr "Trưởng Phòng Chấm"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__manager_rating_binary
 msgid "Manager assessment for Binary KPIs (Yes/No)."
-msgstr "Đánh giá của trưởng phòng về KPI nhị phân (Có/Không)."
+msgstr "Trưởng phòng đánh giá về KPI nhị phân (Có/Không)."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__manager_rating_selection
 msgid "Manager assessment for Rating KPIs (0–5)."
-msgstr "Đánh giá của trưởng phòng về Xếp hạng KPI (0–5)."
+msgstr "Trưởng phòng đánh giá về Xếp hạng KPI (0–5)."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__manager_comment
@@ -3418,7 +3418,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/performance_evaluation_line.py:0
 msgid "Manager rating selection must be between 0 and 5."
-msgstr "Lựa chọn xếp hạng của trưởng phòng phải nằm trong khoảng từ 0 đến 5."
+msgstr "Lựa chọn phải nằm trong khoảng từ 0 đến 5."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__manager_rating_score
@@ -5946,7 +5946,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.kpi.data.source,name:custom_adecsol_hr_performance_evaluator.source_task_on_time_rate
 msgid "Tỷ lệ task đúng hạn"
-msgstr "Tỷ lệ Task đúng hạn"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python

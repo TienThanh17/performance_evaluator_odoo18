@@ -266,10 +266,6 @@
                                     <field name="actual"
                                         readonly="not is_admin and not is_manager"
                                         invisible="is_section or kpi_type != 'auto'" width="100px" />
-                                    <field name="wipeout_if_child_zero"
-                                        invisible="not is_section"
-                                        optional="hide"
-                                        readonly="1" width="120px" />
 
                                     <field name="manager_rating_binary"
                                         string="Manager Rating (Y/N)"
@@ -292,6 +288,14 @@
                                         readonly="1"
                                     />
                                     <field name="weight" readonly="1" width="90px" />
+                                    <field name="wipeout_if_child_zero"
+                                        column_invisible="True" />
+                                    <field name="wipeout_if_child_zero"
+                                        string=""
+                                        widget="kpi_wipeout_warning_icon"
+                                        invisible="not is_section or not wipeout_if_child_zero"
+                                        optional="show"
+                                        readonly="1" width="100px" />
 
                                     <field name="final_score_badge_class" column_invisible="1" />
                                     <field name="final_score_badge_text" string="Score" readonly="1"

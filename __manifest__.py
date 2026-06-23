@@ -57,6 +57,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "views/kpi_generate_wizard_views.xml",
         "views/hr_department_kpi_generate_wizard_views.xml",
         "views/performance_evaluation_approve_wizard_views.xml",
+        "views/performance_evaluation_approve_all_wizard_views.xml",
         "views/kpi_view.xml",
         "views/hr_department_kpi_views.xml",
         "views/performance_evaluation.xml",

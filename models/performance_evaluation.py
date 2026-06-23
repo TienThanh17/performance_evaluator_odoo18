@@ -255,6 +255,10 @@ class PerformanceEvaluation(models.Model):
     is_department_manager = fields.Boolean(
         compute="_compute_is_department_manager", store=False
     )
+    can_approve_all = fields.Boolean(
+        compute="_compute_can_approve_all",
+        store=False,
+    )
 
     # Khai báo các field chứa tên động của từng Pillar
     pillar_p2_1_name = fields.Char(
@@ -330,6 +334,33 @@ class PerformanceEvaluation(models.Model):
                 rec.is_department_manager = manager_user == self.env.user
             else:
                 rec.is_department_manager = False
+
+    # Xác định có nên hiển thị nút duyệt hàng loạt theo phòng ban cho người dùng hiện tại hay không.
+    @api.depends("dept_evaluation_id")
+    @api.depends_context("uid")
+    def _compute_can_approve_all(self):
+        # Chỉ nhóm quản lý hoặc admin mới cần thấy nút approve hàng loạt.
+        can_manage_approval = self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_manager"
+        ) or self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_admin"
+        )
+
+        for rec in self:
+            # Ẩn nút ngay nếu record chưa gắn department evaluation hoặc user không có quyền duyệt.
+            if not can_manage_approval or not rec.dept_evaluation_id:
+                rec.can_approve_all = False
+                continue
+
+            # Kiểm tra trong cùng department evaluation còn phiếu nào đang chờ manager duyệt hay không.
+            rec.can_approve_all = bool(
+                self.search_count(
+                    [
+                        ("dept_evaluation_id", "=", rec.dept_evaluation_id.id),
+                        ("state", "=", "manager_evaluating"),
+                    ]
+                )
+            )
 
     @api.depends("start_date", "end_date")
     def _compute_period_status(self):
@@ -544,16 +575,33 @@ class PerformanceEvaluation(models.Model):
                 )
 
     def action_approve(self):
-        # Hoàn tất phiếu đánh giá sau khi đã qua bước manager evaluating.
+        # Hoàn tất một phiếu đánh giá bằng cách tái sử dụng logic approve hàng loạt để đồng nhất validation.
         self.ensure_one()
-        for record in self:
-            # Chỉ cho phép approve khi phiếu đang ở đúng trạng thái chờ quản lý đánh giá.
-            if record.state != "manager_evaluating":
-                raise UserError(
-                    _("You can only approve evaluations in manager evaluating state.")
+        self.action_approve_batch()
+        return True
+
+    # Hoàn tất nhiều phiếu đánh giá cùng lúc sau khi xác thực tất cả vẫn còn ở bước manager evaluating.
+    def action_approve_batch(self):
+        # Chặn gọi rỗng để tránh trả về thành công giả khi wizard/context bị thiếu dữ liệu.
+        if not self:
+            raise UserError(_("No evaluations were found to approve."))
+
+        # Thu thập các phiếu không còn hợp lệ để fail fast trước khi ghi trạng thái.
+        invalid_records = self.filtered(
+            lambda record: record.state != "manager_evaluating"
+        )
+        if invalid_records:
+            # Hiển thị một danh sách ngắn tên phiếu để người dùng biết bản ghi nào đã đổi trạng thái.
+            invalid_names = ", ".join(invalid_records.mapped("display_name")[:5])
+            raise UserError(
+                _(
+                    "These evaluations can no longer be approved because they are no longer in manager evaluating state: %s"
                 )
-            # Chuyển phiếu sang trạng thái hoàn tất.
-            record.state = "completed"
+                % invalid_names
+            )
+
+        # Chỉ khi toàn bộ record hợp lệ mới chuyển đồng loạt sang completed.
+        self.write({"state": "completed"})
         return True
 
     # Mở wizard để người duyệt chọn danh sách người nhận thông báo trước khi hoàn tất phiếu.
@@ -577,6 +625,101 @@ class PerformanceEvaluation(models.Model):
                 "default_evaluation_id": self.id,
             },
         }
+
+    # Trả về danh sách phiếu cùng department evaluation đang chờ manager duyệt dựa trên phiếu hiện tại.
+    def _get_department_approvable_evaluations(self):
+        self.ensure_one()
+
+        # Nếu phiếu hiện tại chưa gắn department evaluation thì không thể suy ra scope approve hàng loạt.
+        if not self.dept_evaluation_id:
+            return self.browse()
+
+        # Gom toàn bộ phiếu của cùng department evaluation đang ở bước manager evaluating.
+        return self.search(
+            [
+                ("dept_evaluation_id", "=", self.dept_evaluation_id.id),
+                ("state", "=", "manager_evaluating"),
+            ]
+        )
+
+    # Dựng action mở wizard approve hàng loạt để form view và OWL dashboard cùng tái sử dụng một flow.
+    @api.model
+    def _build_approve_all_wizard_action(self, evaluations, dept_evaluation):
+        # Bảo vệ luồng nếu caller truyền lên danh sách rỗng hoặc department evaluation không còn tồn tại.
+        if not evaluations or not dept_evaluation:
+            raise UserError(
+                _("No manager evaluations were found for this department evaluation.")
+            )
+
+        # Lấy form view cụ thể của wizard để action client có đủ metadata khi mở popup từ OWL.
+        wizard_view = self.env.ref(
+            "custom_adecsol_hr_performance_evaluator.view_performance_evaluation_approve_all_wizard_form"
+        )
+
+        # Mở wizard batch và truyền toàn bộ evaluation id qua context để wizard hiển thị và xác nhận.
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Approve Evaluations"),
+            "res_model": "performance.evaluation.approve.all.wizard",
+            "view_mode": "form",
+            "view_id": wizard_view.id,
+            "views": [(wizard_view.id, "form")],
+            "target": "new",
+            "context": {
+                "default_department_id": dept_evaluation.department_id.id,
+                "default_dept_evaluation_id": dept_evaluation.id,
+                "default_evaluation_ids": evaluations.ids,
+            },
+        }
+
+    # Mở wizard approve hàng loạt từ form phiếu hiện tại theo phòng ban của phiếu đó.
+    def action_open_approve_all_wizard(self):
+        self.ensure_one()
+
+        # Lấy toàn bộ phiếu cùng department evaluation còn ở bước manager evaluating để đưa vào wizard.
+        evaluations = self._get_department_approvable_evaluations()
+        if not evaluations:
+            raise UserError(
+                _("No manager evaluations were found for this department evaluation.")
+            )
+
+        # Tái sử dụng cùng action builder để đảm bảo form và OWL luôn mở cùng một wizard.
+        return self._build_approve_all_wizard_action(
+            evaluations, self.dept_evaluation_id
+        )
+
+    # Mở wizard approve hàng loạt từ OWL dashboard dựa trên department evaluation đang được chọn.
+    @api.model
+    def action_open_approve_all_wizard_by_dept_evaluation(self, dept_evaluation_id):
+        # Chặn request thiếu department evaluation để trả lỗi business rõ ràng cho giao diện OWL.
+        if not dept_evaluation_id:
+            raise UserError(
+                _("Please select a department evaluation before approving.")
+            )
+
+        # Kiểm tra department evaluation còn tồn tại rồi mới tìm batch evaluations.
+        dept_evaluation = (
+            self.env["hr.department.performance.evaluation"]
+            .browse(dept_evaluation_id)
+            .exists()
+        )
+        if not dept_evaluation:
+            raise UserError(_("The selected department evaluation could not be found."))
+
+        # Tìm toàn bộ phiếu trong cùng department evaluation đang chờ manager duyệt.
+        evaluations = self.search(
+            [
+                ("dept_evaluation_id", "=", dept_evaluation.id),
+                ("state", "=", "manager_evaluating"),
+            ]
+        )
+        if not evaluations:
+            raise UserError(
+                _("No manager evaluations were found for this department evaluation.")
+            )
+
+        # Trả về đúng wizard batch dùng chung với form view.
+        return self._build_approve_all_wizard_action(evaluations, dept_evaluation)
 
     # Tạo subject mặc định cho thông báo hoàn tất đánh giá để các luồng có thể tái sử dụng thống nhất.
     def _get_approval_notification_subject(self):
@@ -612,6 +755,15 @@ class PerformanceEvaluation(models.Model):
             "period": self.period_id.name if self.period_id else "N/A",
             "url": record_url,
         }
+
+    # Trả về danh sách user mặc định cần nhận thông báo khi phiếu được duyệt hoàn tất.
+    def _get_default_approval_notification_users(self):
+        self.ensure_one()
+
+        # Gộp nhân viên được đánh giá và quản lý trực tiếp để tái sử dụng đồng nhất cho single và batch approve.
+        return (self.employee_id.user_id | self.manager_id.user_id).filtered(
+            lambda user: user.active and not user.share
+        )
 
     # Gửi thông báo hoàn tất đánh giá đến các đối tượng được chọn từ wizard.
     def _send_approval_notification(self, users, body_html=None, subject=None):

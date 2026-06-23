@@ -42,16 +42,20 @@
                             <group>
 
                                 <label for="employee_rating_binary" string="Employee Rating"
+                                    class="o_employee_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'" />
                                 <field name="employee_rating_binary" nolabel="1"
+                                    class="o_employee_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'binary'"
                                     required="kpi_type == 'manual' and manual_scoring_type == 'binary'"
                                     widget="radio"
                                     readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
 
                                 <label for="manager_rating_binary" string="Manager Rating"
+                                    class="o_manager_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr)" />
                                 <field name="manager_rating_binary" nolabel="1"
+                                    class="o_manager_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr)"
                                     required="kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_hr)"
                                     widget="radio"
@@ -59,35 +63,43 @@
 
                                 <label for="employee_rating_selection"
                                     string="Employee Rating (0-5)"
+                                    class="o_employee_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'" />
                                 <field name="employee_rating_selection" nolabel="1"
+                                    class="o_employee_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'rating'"
                                     required="kpi_type == 'manual' and manual_scoring_type == 'rating'"
                                     widget="priority_onchange"
                                     readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
 
                                 <label for="manager_rating_selection" string="Manager Rating"
+                                    class="o_manager_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr)" />
                                 <field name="manager_rating_selection" nolabel="1"
+                                    class="o_manager_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr)"
                                     required="kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_hr)"
                                     widget="priority_onchange"
                                     readonly="evaluation_state in ('completed', 'cancel') or (not is_manager and not is_department_manager and not is_hr)" />
 
                                 <label for="employee_rating_score" string="Employee Score"
+                                    class="o_employee_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'score'" />
-                                <div class="o_row"
+                                <div class="o_row o_employee_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'score'">
                                     <field name="employee_rating_score" nolabel="1"
+                                        class="o_employee_rating_text"
                                         required="kpi_type == 'manual' and manual_scoring_type == 'score'"
                                         readonly="evaluation_state != 'self_evaluation' or not is_current_user" />
                                 </div>
 
                                 <label for="manager_rating_score" string="Manager Score"
+                                    class="o_manager_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr)" />
-                                <div class="o_row"
+                                <div class="o_row o_manager_rating_text"
                                     invisible="kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr)">
                                     <field name="manager_rating_score" nolabel="1"
+                                        class="o_manager_rating_text"
                                         invisible="not is_department_manager and not is_hr"
                                         required="kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_hr)"
                                         readonly="evaluation_state in ('completed', 'cancel') or (not is_manager and not is_department_manager and not is_hr)" />
@@ -325,6 +337,7 @@
                     <!-- Other form fields here -->
                     <header>
                         <!-- State field to show the current state -->
+                        <field name="can_approve_all" invisible="1" />
                         <field name="state" widget="statusbar"
                             statusbar_visible="self_evaluation,manager_evaluating,completed" />
 
@@ -336,6 +349,12 @@
                         <button name="action_open_approve_wizard" type="object" string="Approve"
                             groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_admin"
                             invisible="state != 'manager_evaluating'"
+                            class="oe_highlight" />
+
+                        <button name="action_open_approve_all_wizard" type="object"
+                            string="Approve All"
+                            groups="custom_adecsol_hr_performance_evaluator.group_manager,custom_adecsol_hr_performance_evaluator.group_admin"
+                            invisible="not can_approve_all"
                             class="oe_highlight" />
 
                         <button name="action_cancel" type="object" string="Cancel"
@@ -498,6 +517,7 @@
                                             width="140px" />
 
                                         <field name="employee_rating_binary"
+                                            class="o_employee_rating_text"
                                             column_invisible="not parent.has_binary_kpi_p2_1"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_current_user or is_admin)"
@@ -505,6 +525,7 @@
                                             width="150px" />
 
                                         <field name="employee_rating_selection" widget="priority"
+                                            class="o_employee_rating_text"
                                             column_invisible="not parent.has_rating_kpi_p2_1"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_current_user or is_admin)"
@@ -512,6 +533,7 @@
                                             width="150px" />
 
                                         <field name="employee_rating_score"
+                                            class="o_employee_rating_text"
                                             column_invisible="not parent.has_score_kpi_p2_1"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_current_user or is_admin)"
@@ -520,6 +542,7 @@
 
 
                                         <field name="manager_rating_binary"
+                                            class="o_manager_rating_text"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr and not is_admin)"
                                             column_invisible="not parent.has_binary_kpi_p2_1 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_admin)"
@@ -527,6 +550,7 @@
                                             width="150px" />
 
                                         <field name="manager_rating_selection" widget="priority"
+                                            class="o_manager_rating_text"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr and not is_admin)"
                                             column_invisible="not parent.has_rating_kpi_p2_1 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_admin)"
@@ -534,6 +558,7 @@
                                             width="150px" />
 
                                         <field name="manager_rating_score"
+                                            class="o_manager_rating_text"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr and not is_admin)"
                                             column_invisible="not parent.has_score_kpi_p2_1 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_admin)"
@@ -556,6 +581,14 @@
                                         <field name="weight"
                                             readonly="1"
                                             width="80px" />
+                                        <field name="wipeout_if_child_zero"
+                                            column_invisible="True" />
+                                        <field name="wipeout_if_child_zero"
+                                            string=""
+                                            widget="kpi_wipeout_warning_icon"
+                                            invisible="not is_section or not wipeout_if_child_zero"
+                                            optional="show"
+                                            width="100px" />
                                         <field name="final_rating_badge_text" readonly="1"
                                             string="Score" widget="badge"
                                             decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
@@ -647,6 +680,7 @@
                                             width="140px" />
 
                                         <field name="employee_rating_binary"
+                                            class="o_employee_rating_text"
                                             column_invisible="not parent.has_binary_kpi_p2_2"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_current_user or is_admin)"
@@ -654,6 +688,7 @@
                                             width="150px" />
 
                                         <field name="employee_rating_selection" widget="priority"
+                                            class="o_employee_rating_text"
                                             column_invisible="not parent.has_rating_kpi_p2_2"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_current_user or is_admin)"
@@ -661,6 +696,7 @@
                                             width="150px" />
 
                                         <field name="employee_rating_score"
+                                            class="o_employee_rating_text"
                                             column_invisible="not parent.has_score_kpi_p2_2"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_current_user or is_admin)"
@@ -669,6 +705,7 @@
 
 
                                         <field name="manager_rating_binary"
+                                            class="o_manager_rating_text"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr and not is_admin)"
                                             column_invisible="not parent.has_binary_kpi_p2_2 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_admin)"
@@ -676,6 +713,7 @@
                                             width="150px" />
 
                                         <field name="manager_rating_selection" widget="priority"
+                                            class="o_manager_rating_text"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr and not is_admin)"
                                             column_invisible="not parent.has_rating_kpi_p2_2 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_admin)"
@@ -683,6 +721,7 @@
                                             width="150px" />
 
                                         <field name="manager_rating_score"
+                                            class="o_manager_rating_text"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr and not is_admin)"
                                             column_invisible="not parent.has_score_kpi_p2_2 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_admin)"
@@ -705,6 +744,14 @@
                                         <field name="weight"
                                             readonly="1"
                                             width="80px" />
+                                                                                    <field name="wipeout_if_child_zero"
+                                            column_invisible="True" />
+                                        <field name="wipeout_if_child_zero"
+                                            string=""
+                                            widget="kpi_wipeout_warning_icon"
+                                            invisible="not is_section or not wipeout_if_child_zero"
+                                            optional="show"
+                                            width="100px" />
                                         <field name="final_rating_badge_text" readonly="1"
                                             string="Score" widget="badge"
                                             decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"
@@ -825,6 +872,7 @@
                                             width="100px" />
 
                                         <field name="employee_rating_binary"
+                                            class="o_employee_rating_text"
                                             column_invisible="not parent.has_score_kpi_p3"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary'"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_current_user or is_admin)"
@@ -832,6 +880,7 @@
                                             width="150px" />
 
                                         <field name="employee_rating_selection" widget="priority"
+                                            class="o_employee_rating_text"
                                             column_invisible="not parent.has_rating_kpi_p3"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating'"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_current_user or is_admin)"
@@ -839,6 +888,7 @@
                                             width="150px" />
 
                                         <field name="employee_rating_score"
+                                            class="o_employee_rating_text"
                                             column_invisible="not parent.has_score_kpi_p3"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score'"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_current_user or is_admin)"
@@ -847,6 +897,7 @@
 
 
                                         <field name="manager_rating_binary"
+                                            class="o_manager_rating_text"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'binary' or (not is_department_manager and not is_hr and not is_admin)"
                                             column_invisible="not parent.has_score_kpi_p3 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'binary' and (is_department_manager or is_admin)"
@@ -854,6 +905,7 @@
                                             width="150px" />
 
                                         <field name="manager_rating_selection" widget="priority"
+                                            class="o_manager_rating_text"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'rating' or (not is_department_manager and not is_hr and not is_admin)"
                                             column_invisible="not parent.has_rating_kpi_p3 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'rating' and (is_department_manager or is_admin)"
@@ -861,6 +913,7 @@
                                             width="150px" />
 
                                         <field name="manager_rating_score"
+                                            class="o_manager_rating_text"
                                             invisible="is_section or kpi_type != 'manual' or manual_scoring_type != 'score' or (not is_department_manager and not is_hr and not is_admin)"
                                             column_invisible="not parent.has_score_kpi_p3 or (not parent.is_department_manager and not parent.is_hr and not parent.is_admin)"
                                             required="not is_section and kpi_type == 'manual' and manual_scoring_type == 'score' and (is_department_manager or is_admin)"
@@ -883,6 +936,14 @@
                                         <field name="weight"
                                             readonly="1"
                                             width="80px" />
+                                                                                    <field name="wipeout_if_child_zero"
+                                            column_invisible="True" />
+                                        <field name="wipeout_if_child_zero"
+                                            string=""
+                                            widget="kpi_wipeout_warning_icon"
+                                            invisible="not is_section or not wipeout_if_child_zero"
+                                            optional="show"
+                                            width="100px" />
                                         <field name="final_rating_badge_text" readonly="1"
                                             string="Score" widget="badge"
                                             decoration-info="final_rating_badge_class == 'o_kpi_badge_excellent'"

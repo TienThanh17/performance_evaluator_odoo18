@@ -37,9 +37,7 @@ class PerformanceEvaluationApproveWizard(models.TransientModel):
         )
         if evaluation.exists():
             # Điền sẵn danh sách người nhận phổ biến để người duyệt chỉ cần tinh chỉnh nếu cần.
-            default_users = (
-                evaluation.employee_id.user_id | evaluation.manager_id.user_id
-            ).filtered(lambda user: user.active and not user.share)
+            default_users = evaluation._get_default_approval_notification_users()
             values["notify_user_ids"] = [(6, 0, default_users.ids)]
 
             # Đổ sẵn nội dung notify mặc định lên wizard để người dùng có thể xem và chỉnh sửa.

@@ -137,8 +137,12 @@
 
                     <field name="weight" width="80px" readonly="is_section" />
                     <field name="wipeout_if_child_zero"
-                        invisible="not is_section"
-                        optional="hide" width="100px" />
+                        column_invisible="True" />
+                    <field name="wipeout_if_child_zero"
+                        string=""
+                        widget="kpi_wipeout_warning_icon"
+                        invisible="not is_section or not wipeout_if_child_zero"
+                        optional="show" width="100px" />
                     <button name="action_open_popup" type="object"
                         icon="fa-pencil" title="Open Details"
                         width="40px" />
@@ -361,8 +365,12 @@
 
                                         <field name="weight" width="80px" readonly="is_section" />
                                         <field name="wipeout_if_child_zero"
-                                            invisible="not is_section"
-                                            optional="hide" width="100px" />
+                                            column_invisible="True" />
+                                        <field name="wipeout_if_child_zero"
+                                            string=""
+                                            widget="kpi_wipeout_warning_icon"
+                                            invisible="not is_section or not wipeout_if_child_zero"
+                                            optional="show" width="100px" />
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
                                             width="40px" />

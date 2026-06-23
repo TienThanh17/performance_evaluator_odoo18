@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <record id="source_task_done_count" model="hr.kpi.data.source">
             <field name="name">Số task hoàn thành</field>
             <field name="code">task_done_count</field>
@@ -11,7 +11,7 @@
             <field name="aggregation">count</field>
             <field name="user_field_id"
                 search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
-            <field name="domain_numerator">[('done_date', '!=', False), ('project_id', '!=', False)]</field>
+            <field name="domain_numerator">[('state', '=', '1_done'), ('project_id', '!=', False)]</field>
             <field name="date_field_id"
                 search="[('model', '=', 'project.task'), ('name', '=', 'date_deadline')]" />
         </record>
@@ -26,7 +26,7 @@
             <field name="aggregation">ratio</field>
             <field name="user_field_id"
                 search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
-            <field name="domain_numerator">[('done_date', '!=', False), ('project_id', '!=', False)]</field>
+            <field name="domain_numerator">[('state', '=', '1_done'), ('project_id', '!=', False)]</field>
             <field name="domain_denominator">[('project_id', '!=', False)]</field>
             <field name="date_field_id"
                 search="[('model', '=', 'project.task'), ('name', '=', 'date_deadline')]" />
@@ -38,8 +38,7 @@
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
 
             <field name="source_type">system</field>
-            <field name="description">Đếm số ngày làm việc có check-in hợp lệ (Được quản lý bởi hệ
-                thống).</field>
+            <field name="description">Đếm số ngày làm việc có check-in hợp lệ.</field>
         </record>
 
         <!-- <record id="source_attendance_on_time_days" model="hr.kpi.data.source">
@@ -69,8 +68,7 @@ result = max(present_days - late_days, 0.0)
             <field name="code">attendance_late_days</field>
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
             <field name="source_type">system</field>
-            <field name="description">Đếm số ngày nhân viên đi muộn trong kỳ theo lịch làm việc và
-                grace minutes (Hệ thống tự động tính).</field>
+            <field name="description">Đếm số ngày nhân viên đi muộn trong kỳ theo lịch làm việc.</field>
         </record>
     </data>
 </odoo>
