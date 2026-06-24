@@ -38,7 +38,7 @@ class HrKpiTemplateLine(models.Model):
         string="Unit",
         ondelete="restrict",
     )
-    weight = fields.Float(string="Weight", default=10.0)
+    weight = fields.Float(string="Weight", default=0.0)
     kpi_id = fields.Many2one(
         "hr.kpi.template",
         string="KPI Template",

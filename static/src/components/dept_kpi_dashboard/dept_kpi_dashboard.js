@@ -918,7 +918,7 @@ export class DeptKpiDashboard extends Component {
             }
             return {
                 backgroundColor: C_BLUE,
-                borderRadius: 6,
+                borderRadius: 0,
                 maxBarThickness: 42,
                 ...dataset,
             };
@@ -1105,7 +1105,7 @@ export class DeptKpiDashboard extends Component {
                     (index === 0 ? "rgba(3, 103, 176, 0.88)" : "rgba(148, 163, 184, 0.55)"),
                 borderColor: dataset.borderColor || (index === 0 ? C_BLUE : C_SLATE),
                 borderWidth: 1,
-                borderRadius: 6,
+                borderRadius: 0,
                 borderSkipped: false,
                 maxBarThickness: 42,
                 ...dataset,
@@ -1355,7 +1355,7 @@ export class DeptKpiDashboard extends Component {
                             v >= 50 ? C_BLUE : C_AMBER
                     ),
                     borderWidth: 1,
-                    borderRadius: 5,
+                    borderRadius: 0,
                 }],
             },
             options: {
@@ -1583,7 +1583,7 @@ export class DeptKpiDashboard extends Component {
                             score >= excellent ? C_BLUE : score >= passed ? C_GREEN : C_RED
                         ),
                         borderWidth: 1,
-                        borderRadius: 5,
+                        borderRadius: 0,
                     },
                 ],
             },
@@ -1649,7 +1649,7 @@ export class DeptKpiDashboard extends Component {
                         borderColor: C_GREEN,
                         borderWidth: 1,
                         stack: "tasks",
-                        borderRadius: 4,
+                        borderRadius: 0,
                     },
                     {
                         label: _t("Pending"),
@@ -1658,7 +1658,7 @@ export class DeptKpiDashboard extends Component {
                         borderColor: C_AMBER,
                         borderWidth: 1,
                         stack: "tasks",
-                        borderRadius: 4,
+                        borderRadius: 0,
                     },
                 ],
             },
@@ -1847,7 +1847,7 @@ export class DeptKpiDashboard extends Component {
                             (_, index) => POINT_COLORS[index % POINT_COLORS.length]
                         ),
                         borderWidth: 1,
-                        borderRadius: 4,
+                        borderRadius: 0,
                     },
                 ],
             },

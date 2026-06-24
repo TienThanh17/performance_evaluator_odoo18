@@ -888,7 +888,7 @@ export class KpiDashboard extends Component {
             }
             return {
                 backgroundColor: COLOR_BLUE,
-                borderRadius: 6,
+                borderRadius: 0,
                 maxBarThickness: 42,
                 ...dataset,
             };
@@ -1075,7 +1075,7 @@ export class KpiDashboard extends Component {
                     (index === 0 ? "rgba(3, 103, 176, 0.88)" : "rgba(148, 163, 184, 0.55)"),
                 borderColor: dataset.borderColor || (index === 0 ? COLOR_BLUE : "#94a3b8"),
                 borderWidth: 1,
-                borderRadius: 6,
+                borderRadius: 0,
                 borderSkipped: false,
                 maxBarThickness: 48,
                 ...dataset,

@@ -217,7 +217,10 @@
             <field name="name">hr.performance.evaluation.kanban</field>
             <field name="model">hr.performance.evaluation</field>
             <field name="arch" type="xml">
-                <kanban class="custom_eval_kanban">
+                <kanban class="custom_eval_kanban" group_create="false"
+                    group_edit="false"
+                    group_delete="false"
+                    quick_create="false">
                     <field name="name" />
                     <field name="employee_id" />
                     <field name="total_p3_individual" />
@@ -744,7 +747,7 @@
                                         <field name="weight"
                                             readonly="1"
                                             width="80px" />
-                                                                                    <field name="wipeout_if_child_zero"
+                                        <field name="wipeout_if_child_zero"
                                             column_invisible="True" />
                                         <field name="wipeout_if_child_zero"
                                             string=""
@@ -936,7 +939,7 @@
                                         <field name="weight"
                                             readonly="1"
                                             width="80px" />
-                                                                                    <field name="wipeout_if_child_zero"
+                                        <field name="wipeout_if_child_zero"
                                             column_invisible="True" />
                                         <field name="wipeout_if_child_zero"
                                             string=""
