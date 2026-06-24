@@ -538,7 +538,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 for rec in self:
                     # Khi chỉ đổi parent, đưa subtree về cuối block của parent mới để UI không bị lệch.
                     rec._move_subtree_to_parent_end()
-            else:
+            elif not self.env.context.get("skip_hierarchy_batch_normalization"):
                 # Khi người dùng kéo thả đổi sequence, rebuild lại scope để child không rơi xuống section khác.
                 self._normalize_current_hierarchy_scopes()
 

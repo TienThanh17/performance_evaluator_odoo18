@@ -207,6 +207,22 @@ class HrKpiTemplate(models.Model):
         if line_records:
             line_records._refresh_weight_structure()
 
+    # Chuẩn hóa hierarchy sequence một lần trên trạng thái cuối cùng của toàn bộ KPI template.
+    def _normalize_kpi_line_hierarchy_batch(self):
+        line_model = self.env["hr.kpi.template.line"]
+        for template in self:
+            pillar_groups = {}
+            for line in template.kpi_line_ids:
+                # Gom line theo từng pillar để mỗi tab tree chỉ rebuild đúng scope của nó.
+                pillar_id = line.pillar_id.id or False
+                pillar_groups.setdefault(pillar_id, line_model.browse())
+                pillar_groups[pillar_id] |= line
+
+            for scope_lines in pillar_groups.values():
+                # Sau khi batch command hoàn tất, chỉ normalize một lần trên state cuối.
+                if scope_lines:
+                    scope_lines[:1]._normalize_hierarchy_sequence(scope_lines=scope_lines)
+
     # Dời normalized 3P validation lên parent create để child line không validate
     # giữa chừng khi form tạo mới gửi nhiều one2many commands cùng lúc.
     @api.model_create_multi
@@ -225,6 +241,9 @@ class HrKpiTemplate(models.Model):
             HrKpiTemplate,
             self.with_context(skip_normalized_3p_weight_validation=True),
         ).create(vals_list)
+
+        # Chốt lại hierarchy trước để tree sequence được cố định trên trạng thái cuối cùng.
+        records._normalize_kpi_line_hierarchy_batch()
 
         # Chỉ refresh weight một lần trên trạng thái cuối cùng của template vừa tạo.
         records._validate_kpi_line_weight_batch()
@@ -246,8 +265,14 @@ class HrKpiTemplate(models.Model):
         # commands, bao gồm cả write/unlink chạy nối tiếp trong cùng transaction.
         res = super(
             HrKpiTemplate,
-            self.with_context(skip_normalized_3p_weight_validation=True),
+            self.with_context(
+                skip_normalized_3p_weight_validation=True,
+                skip_hierarchy_batch_normalization=True,
+            ),
         ).write(vals)
+
+        # Sau khi command list hoàn tất, rebuild hierarchy đúng một lần trên trạng thái cuối.
+        self._normalize_kpi_line_hierarchy_batch()
 
         # Sau khi command list hoàn tất, refresh đúng trên trạng thái cuối.
         self._validate_kpi_line_weight_batch()

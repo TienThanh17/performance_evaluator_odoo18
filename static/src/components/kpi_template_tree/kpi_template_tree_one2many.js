@@ -206,27 +206,26 @@ class KpiTemplateTreeListRenderer extends KPIListRenderer {
     }
 
     async sortDrop(dataRowId, params) {
-        const { element } = params;
-        await this.props.list.leaveEditMode();
-        element.classList.remove("o_row_draggable");
-        try {
-            this.resequencePromise = this.props.list.model.mutex.exec(() =>
-                this.resequenceTemplateTree(String(dataRowId), params),
-            );
-            await this.resequencePromise;
-        } finally {
-            element.classList.add("o_row_draggable");
+        const isValidDrop = await this.guardTemplateTreeDrop(
+            String(dataRowId),
+            params,
+        );
+        if (!isValidDrop) {
+            return;
         }
+
+        // Delegate the actual handle write back to Odoo's native list resequence flow.
+        await super.sortDrop(dataRowId, params);
     }
 
-    async resequenceTemplateTree(movedLocalId, { previous }) {
+    async guardTemplateTreeDrop(movedLocalId, params) {
         const list = this.props.list;
         const records = [...(list.records || [])];
         const { recordByLocalId, recordByResId } = this.getRecordMaps(records);
         const movedRecord = recordByLocalId.get(String(movedLocalId));
         if (!movedRecord) {
             await this.restoreListOrder();
-            return;
+            return false;
         }
 
         const parentResId = this.getParentResId(movedRecord);
@@ -237,21 +236,19 @@ class KpiTemplateTreeListRenderer extends KPIListRenderer {
         const movedBlock = blockByMemberId.get(String(movedLocalId));
         if (!movedBlock) {
             await this.restoreListOrder();
-            return;
+            return false;
         }
 
         if (siblingBlocks.length <= 1) {
             await this.restoreListOrder();
-            return;
+            return false;
         }
 
-        // Match Odoo's native resequence contract: the drop target is the block
-        // immediately before the placeholder, calculated before removing the moved block.
-        const normalizedPrevious = this.getSortableSibling(previous, "previous");
-        const fromIndex = siblingBlocks.findIndex(
-            (block) => block.rootLocalId === movedBlock.rootLocalId,
+        // Resolve the actual row before the placeholder so validation uses a stable DOM anchor.
+        const normalizedPrevious = this.getSortableSibling(
+            params.previous,
+            "previous",
         );
-        let toIndex = 0;
 
         if (normalizedPrevious) {
             const previousLocalId = String(normalizedPrevious.dataset.id || "");
@@ -262,68 +259,22 @@ class KpiTemplateTreeListRenderer extends KPIListRenderer {
                 if (!previousBlock || previousBlock.parentResId !== parentResId) {
                     this.showInvalidMoveWarning();
                     await this.restoreListOrder();
-                    return;
+                    return false;
                 }
                 if (previousBlock.rootLocalId === movedBlock.rootLocalId) {
                     await this.restoreListOrder();
-                    return;
+                    return false;
                 }
-
-                const targetIndex = siblingBlocks.findIndex(
-                    (block) => block.rootLocalId === previousBlock.rootLocalId,
-                );
-                toIndex = fromIndex > targetIndex ? targetIndex + 1 : targetIndex;
             }
         } else if (parentResId) {
             this.showInvalidMoveWarning();
             await this.restoreListOrder();
-            return;
+            return false;
         }
 
-        const reorderedBlocks = [...siblingBlocks];
-        const [movedSiblingBlock] = reorderedBlocks.splice(fromIndex, 1);
-        reorderedBlocks.splice(toIndex, 0, movedSiblingBlock);
-        const oldRootOrder = siblingBlocks
-            .map((block) => block.rootLocalId)
-            .join(",");
-        const newRootOrder = reorderedBlocks
-            .map((block) => block.rootLocalId)
-            .join(",");
-        if (oldRootOrder === newRootOrder) {
-            await this.restoreListOrder();
-            return;
-        }
-
-        const reorderedSegment = [];
-        for (const block of reorderedBlocks) {
-            reorderedSegment.push(...block.rows);
-        }
-
-        const segmentStart = siblingBlocks[0].start;
-        const segmentEnd = siblingBlocks[siblingBlocks.length - 1].end;
-        const reorderedRecords = [
-            ...records.slice(0, segmentStart),
-            ...reorderedSegment,
-            ...records.slice(segmentEnd + 1),
-        ];
-
-        const updates = [];
-        for (const [index, record] of reorderedRecords.entries()) {
-            const newSequence = (index + 1) * 10;
-            if (Number(record.data.sequence || 0) === newSequence) {
-                continue;
-            }
-            updates.push(
-                record._update(
-                    { sequence: newSequence },
-                    // { withoutParentUpdate: true, withoutOnchange: true },
-                    { withoutOnchange: true },
-                ),
-            );
-        }
-
-        await Promise.all(updates);
-        await this.restoreListOrder();
+        // Frontend only guards invalid drops; backend will normalize the canonical tree order.
+        params.previous = normalizedPrevious || null;
+        return true;
     }
 }
 

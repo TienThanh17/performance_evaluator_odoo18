@@ -110,7 +110,7 @@
                     </control>
 
                     <field name="sequence" widget="kpi_template_tree_handle" width="30px"
-                        invisible="is_section" />
+                       />
 
                     <field name="is_section" column_invisible="True" />
                     <field name="pillar_code" column_invisible="True" />
@@ -333,7 +333,7 @@
                                     context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p3_individual'}">
                                     <list editable="bottom" decoration-bf="is_section">
                                         <field name="sequence" widget="kpi_template_tree_handle"
-                                            invisible="is_section" />
+                                            />
                                         <field name="is_section" column_invisible="True" />
                                         <field name="pillar_code" column_invisible="True" />
                                         <field name="data_source_code" column_invisible="True" />

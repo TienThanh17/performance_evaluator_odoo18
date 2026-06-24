@@ -111,6 +111,14 @@ class HrDepartmentKpiTemplate(models.Model):
         if line_records:
             line_records._refresh_weight_structure()
 
+    # Chuẩn hóa hierarchy sequence một lần trên trạng thái cuối cùng của department KPI template.
+    def _normalize_kpi_line_hierarchy_batch(self):
+        for template in self:
+            scope_lines = template.kpi_line_ids
+            # Department template chỉ có một hierarchy scope theo chính parent template hiện tại.
+            if scope_lines:
+                scope_lines[:1]._normalize_hierarchy_sequence(scope_lines=scope_lines)
+
     # Dời normalized 3P validation lên parent create để child line không validate
     # giữa chừng khi form tạo mới gửi nhiều one2many commands cùng lúc.
     @api.model_create_multi
@@ -127,6 +135,9 @@ class HrDepartmentKpiTemplate(models.Model):
             HrDepartmentKpiTemplate,
             self.with_context(skip_normalized_3p_weight_validation=True),
         ).create(vals_list)
+
+        # Chốt lại hierarchy trước để tree sequence được cố định trên trạng thái cuối cùng.
+        records._normalize_kpi_line_hierarchy_batch()
 
         # Chỉ refresh weight một lần trên trạng thái cuối cùng của từng template vừa tạo.
         records._validate_kpi_line_weight_batch()
@@ -146,8 +157,14 @@ class HrDepartmentKpiTemplate(models.Model):
         # commands, bao gồm cả write/unlink chạy nối tiếp trong cùng transaction.
         res = super(
             HrDepartmentKpiTemplate,
-            self.with_context(skip_normalized_3p_weight_validation=True),
+            self.with_context(
+                skip_normalized_3p_weight_validation=True,
+                skip_hierarchy_batch_normalization=True,
+            ),
         ).write(vals)
+
+        # Sau khi command list hoàn tất, rebuild hierarchy đúng một lần trên trạng thái cuối.
+        self._normalize_kpi_line_hierarchy_batch()
 
         # Sau khi command list hoàn tất, refresh đúng trên trạng thái cuối.
         self._validate_kpi_line_weight_batch()
