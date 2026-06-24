@@ -3464,12 +3464,6 @@ msgid "Manual scoring type must be empty for auto KPI lines."
 msgstr "Loại tính điểm thủ công phải trống đối với các dòng KPI tự động."
 
 #. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_template_line__score_max_display
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__score_max_display
-msgid "Max Score"
-msgstr "Điểm tối đa"
-
-#. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_kpi_dashboard_chart_service.py:0
 msgid "Measure"

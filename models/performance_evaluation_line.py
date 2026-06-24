@@ -139,11 +139,6 @@ class PerformanceEvaluationLine(models.Model):
         default=False,
         help="Stored snapshot of the template wipeout rule so historical evaluations do not change when the template is updated later.",
     )
-    score_max_display = fields.Char(
-        string="Max Score",
-        compute="_compute_score_max_display",
-        store=False,
-    )
 
     is_auto = fields.Boolean(
         string="Auto Compute",
@@ -456,17 +451,6 @@ class PerformanceEvaluationLine(models.Model):
     def _compute_auto(self):
         for rec in self:
             rec.is_auto = bool(rec.kpi_type == "auto" and rec.data_source_id)
-
-    # Hiển thị nhãn thang điểm cố định cho manual score KPI.
-    @api.depends("kpi_type", "manual_scoring_type")
-    def _compute_score_max_display(self):
-        for rec in self:
-            rec.score_max_display = (
-                "/ 100 pts"
-                if rec.kpi_type == "manual"
-                and rec.manual_scoring_type == "score"
-                else ""
-            )
 
     @api.depends(
         "kpi_type",
@@ -932,19 +916,6 @@ class PerformanceEvaluationLine(models.Model):
     # ------------------------------------------------------------------
     # onchange
     # ------------------------------------------------------------------
-    # @api.onchange('kpi_type')
-    # def _onchange_kpi_type(self):
-    #     if self.kpi_line_id:
-    #         return
-    #
-    #     self.actual = 0.0
-    #     self.employee_rating_binary = False
-    #     self.manager_rating_binary = False
-    #     self.employee_rating_selection = False
-    #     self.manager_rating_selection = False
-    #     self.employee_rating_score = 0
-    #     self.manager_rating_score = 0
-
     @api.onchange(
         "employee_rating_binary",
         "employee_rating_selection",

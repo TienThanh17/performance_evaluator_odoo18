@@ -634,33 +634,6 @@ class HrKpiEngine(models.AbstractModel):
         return round(min(hours), 2) if hours else 8.0
 
     @api.model
-    def get_attendance_period_metrics(self, employee, kpi_line, date_from, date_to):
-        """Trả về metrics tổng hợp cho nguồn dữ liệu attendance theo kỳ.
-
-        Dashboard/report chỉ đọc breakdown; actual KPI vẫn phải đi qua compute()
-        để engine có một nguồn sự thật duy nhất cho giá trị trả về.
-
-        Returns:
-            dict với các key:
-                value               (float)  — KPI actual theo đúng data source của line
-                expected_work_days  (float)  — ngày phải đi làm (đã trừ lễ)
-                worked_days         (float)
-                approved_leave_days (float)
-                public_holiday_days (float)
-                unpaid_leave_days   (float)
-                has_unpaid_leave    (bool)
-        """
-        if not employee or not kpi_line or not date_from or not date_to:
-            return dict(_EMPTY_METRICS, value=0.0)
-
-        # Tính breakdown một lần từ helper dùng chung để dashboard không tự nhân bản logic.
-        metrics = self._get_attendance_period_metrics_data(employee, date_from, date_to)
-
-        # Lấy actual qua compute() để caller luôn thấy đúng giá trị theo data source đang chọn.
-        value = self.compute(employee, kpi_line, date_from, date_to)
-        return dict(metrics, value=value)
-
-    @api.model
     def get_attendance_worked_dates(self, employee, date_from, date_to):
         """Trả về per-day attendance status để vẽ calendar heatmap trên dashboard.
 

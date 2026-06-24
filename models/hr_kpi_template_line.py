@@ -68,11 +68,6 @@ class HrKpiTemplateLine(models.Model):
         "parent_line_id",
         string="Child Lines",
     )
-    score_max_display = fields.Char(
-        string="Max Score",
-        compute="_compute_score_max_display",
-        store=False,
-    )
     description = fields.Html(string="Description", sanitize=True)
     data_source_id = fields.Many2one(
         "hr.kpi.data.source",
@@ -175,16 +170,6 @@ class HrKpiTemplateLine(models.Model):
     def _compute_auto(self):
         for rec in self:
             rec.is_auto = bool(rec.kpi_type == "auto" and rec.data_source_id)
-
-    # Hiển thị nhãn thang điểm cố định cho manual score KPI.
-    @api.depends("kpi_type", "manual_scoring_type")
-    def _compute_score_max_display(self):
-        for rec in self:
-            rec.score_max_display = (
-                "/ 100 pts"
-                if rec.kpi_type == "manual" and rec.manual_scoring_type == "score"
-                else ""
-            )
 
     # Flag template lines that use non-linear auto scoring formulas.
     @api.depends("kpi_type", "scoring_formula_id", "scoring_formula_id.formula_type")
