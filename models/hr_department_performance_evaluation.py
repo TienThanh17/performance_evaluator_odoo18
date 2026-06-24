@@ -506,6 +506,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         return records
 
     def get_dashboard_data(self):
+        # Dựng toàn bộ payload dashboard phòng ban từ chính phiếu KPI phòng ban,
+        # không phụ thuộc vào helper của hr.performance.report nữa.
         self.ensure_one()
         chart_service = self.env["hr.kpi.dashboard.chart.service"]
 
@@ -538,14 +540,11 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
         # Lấy ID các dự án liên quan
         project_ids = period_tasks.mapped("project_id").ids
-        report_dashboard = {}
-        if self.performance_report_id:
-            report_dashboard = self.performance_report_id.with_context(
-                active_test=False
-            ).get_report_dashboard_data()
-            report_dashboard = self._enrich_report_dashboard_with_3p_summary_snapshot(
-                report_dashboard
-            )
+        # Tự build payload roster/report charts ngay trên model phòng ban.
+        report_dashboard = self._build_report_dashboard_payload()
+        report_dashboard = self._enrich_report_dashboard_with_3p_summary_snapshot(
+            report_dashboard
+        )
 
         period_label = (
             self.period_id.name
@@ -589,6 +588,442 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             "quantitative_table": quantitative_table,
         }
         return result
+
+    # Dựng 1 chart item theo đúng contract frontend của report dashboard.
+    def _build_report_chart_item(
+        self,
+        key,
+        sequence,
+        measure_field,
+        default_title,
+        badge,
+        badge_tone,
+        dot_tone,
+    ):
+        return {
+            "section_type": "chart_item",
+            "widget_id": 0,
+            "key": key,
+            "sequence": sequence,
+            "measure_field": measure_field,
+            "title": default_title,
+            "badge": badge,
+            "badge_tone": badge_tone,
+            "dot_tone": dot_tone,
+        }
+
+    # Gom nhiều chart item thành một hàng hiển thị trong report dashboard.
+    def _build_report_chart_row(self, items, layout):
+        # Loại bỏ các item rỗng để frontend không phải tự phòng thủ thêm.
+        active_items = [item for item in items if item]
+        if not active_items:
+            return False
+        return {
+            "section_type": "chart_row",
+            "layout": layout,
+            "sequence": min(item["sequence"] for item in active_items),
+            "key": "report_row_%s" % "_".join(item["key"] for item in active_items),
+            "items": active_items,
+        }
+
+    # Build cấu trúc section mà OWL dashboard phòng ban đang render lại.
+    def _build_report_sections(self, context_data):
+        sections = []
+
+        # Dựng hàng biểu đồ đầu tiên: điểm KPI cá nhân và task summary.
+        sections_row_top = self._build_report_chart_row(
+            [
+                self._build_report_chart_item(
+                    "report_score_bar",
+                    120,
+                    "report_score_bar",
+                    _("Individual KPI Score by Employee"),
+                    "Bar",
+                    "blue",
+                    "blue",
+                ),
+                self._build_report_chart_item(
+                    "report_task_summary",
+                    130,
+                    "report_task_summary",
+                    _("Completed Tasks by Employee"),
+                    _("Stacked Bar"),
+                    "green",
+                    "green",
+                ),
+            ],
+            "2col",
+        )
+        if sections_row_top:
+            sections.append(sections_row_top)
+
+        # Dựng hàng biểu đồ thứ hai: attendance và late count.
+        sections_row_bottom = self._build_report_chart_row(
+            [
+                self._build_report_chart_item(
+                    "report_attendance",
+                    140,
+                    "report_attendance",
+                    _("Attendance — Days Present"),
+                    "Doughnut",
+                    "blue",
+                    "blue",
+                ),
+                self._build_report_chart_item(
+                    "report_late_summary",
+                    150,
+                    "report_late_summary",
+                    _("Punctuality — Late Count by Employee"),
+                    "Line",
+                    "red",
+                    "red",
+                ),
+            ],
+            "13col",
+        )
+        if sections_row_bottom:
+            sections.append(sections_row_bottom)
+
+        # Giữ nguyên section KPI định tính để frontend không cần đổi template.
+        if context_data["qualitative_charts"]:
+            sections.append(
+                {
+                    "section_type": "qualitative_grid",
+                    "widget_id": 0,
+                    "key": "report_qualitative",
+                    "sequence": 160,
+                    "measure_field": "report_qualitative",
+                    "title": _("Qualitative KPIs — Employee Comparison"),
+                    "charts": context_data["qualitative_charts"],
+                }
+            )
+
+        return sorted(
+            sections,
+            key=lambda section: (
+                section.get("sequence", 0),
+                section.get("widget_id", 0),
+                section.get("key", ""),
+            ),
+        )
+
+    # Lấy tập phiếu KPI cá nhân dùng cho report dashboard của phòng ban.
+    def _get_report_dashboard_evaluations(self):
+        self.ensure_one()
+        Evaluation = self.env["hr.performance.evaluation"].sudo().with_context(
+            active_test=False
+        )
+        domain = [
+            ("department_id", "=", self.department_id.id),
+            ("start_date", "=", self.start_date),
+            ("end_date", "=", self.end_date),
+            ("state", "!=", "cancel"),
+        ]
+
+        # Nếu có performance report thì thêm điều kiện để payload bám đúng batch hiện có.
+        if self.performance_report_id:
+            domain.append(
+                ("performance_report_id", "=", self.performance_report_id.id)
+            )
+
+        evaluations = Evaluation.search(domain, order="employee_id asc, id asc")
+
+        # Ưu tiên các phiếu đã link trực tiếp vào dept_evaluation hiện tại.
+        linked_evaluations = evaluations.filtered(
+            lambda evaluation: evaluation.dept_evaluation_id == self
+        )
+        if linked_evaluations:
+            # Bổ sung thêm các phiếu chưa được backfill dept_evaluation_id để dashboard
+            # cũ không bị thiếu người khi dữ liệu lịch sử chưa được chuẩn hóa hết.
+            fallback_evaluations = evaluations.filtered(
+                lambda evaluation: not evaluation.dept_evaluation_id
+            )
+            return (linked_evaluations | fallback_evaluations).sorted(
+                key=lambda evaluation: (
+                    evaluation.employee_id.name or "",
+                    evaluation.id,
+                )
+            )
+
+        return evaluations
+
+    # Chuẩn hóa danh sách nhân viên và roster rows cho report dashboard.
+    def _get_report_dashboard_employee_rows(self, evaluations):
+        self.ensure_one()
+        employees = []
+        evaluation_rows = []
+
+        for evaluation in evaluations:
+            # Build payload gọn cho biểu đồ điểm KPI cá nhân.
+            employees.append(
+                {
+                    "id": evaluation.employee_id.id if evaluation.employee_id else 0,
+                    "name": evaluation.employee_id.name if evaluation.employee_id else "?",
+                    "score": round(float(evaluation.total_p3_individual or 0.0), 2),
+                    "level": evaluation.performance_level or "fail",
+                    "eval_id": evaluation.id,
+                }
+            )
+
+            # Giữ nguyên schema roster row để frontend hiện tại không cần đổi.
+            evaluation_rows.append(
+                {
+                    "id": evaluation.id,
+                    "employee_id": (
+                        [evaluation.employee_id.id, evaluation.employee_id.name]
+                        if evaluation.employee_id
+                        else False
+                    ),
+                    "job_id": (
+                        [evaluation.job_id.id, evaluation.job_id.name]
+                        if evaluation.job_id
+                        else False
+                    ),
+                    "total_p3_individual": round(
+                        float(evaluation.total_p3_individual or 0.0),
+                        2,
+                    ),
+                    "performance_level": evaluation.performance_level or False,
+                    "state": evaluation.state or False,
+                    "name": evaluation.name or "",
+                    "comment_count": evaluation.get_comment_count(),
+                }
+            )
+
+        return employees, evaluation_rows
+
+    # Tổng hợp số task completed/pending theo từng nhân viên trong roster.
+    def _get_report_dashboard_task_summary(self, evaluations, employee_names):
+        self.ensure_one()
+        task_summary = {
+            "names": employee_names,
+            "total_tasks": [],
+            "done_tasks": [],
+        }
+        Task = self.env["project.task"].sudo()
+
+        for evaluation in evaluations:
+            # Chỉ dùng KPI auto thực sự có dòng dữ liệu để suy ra task metrics.
+            auto_lines = evaluation.evaluation_line_ids.filtered(
+                lambda line: not line.is_section and line.kpi_type == "auto"
+            )
+            if (
+                not auto_lines
+                or not evaluation.employee_id
+                or not evaluation.start_date
+                or not evaluation.end_date
+            ):
+                task_summary["total_tasks"].append(0)
+                task_summary["done_tasks"].append(0)
+                continue
+
+            # Không có user nội bộ thì không thể map sang project.task.
+            user = evaluation.employee_id.user_id
+            if not user:
+                task_summary["total_tasks"].append(0)
+                task_summary["done_tasks"].append(0)
+                continue
+
+            # Đếm task theo cùng rule cũ để giữ số liệu nhất quán với dashboard legacy.
+            base_domain = [
+                ("user_ids", "in", user.id),
+                ("date_deadline", ">=", evaluation.start_date),
+                ("date_deadline", "<=", evaluation.end_date),
+                ("project_id", "!=", False),
+            ]
+            total_tasks = Task.search_count(base_domain)
+            done_tasks = Task.search_count(
+                base_domain + [("stage_id.is_done_stage", "=", True)]
+            )
+            task_summary["total_tasks"].append(total_tasks)
+            task_summary["done_tasks"].append(done_tasks)
+
+        return task_summary
+
+    # Tổng hợp attendance theo từng nhân viên trong roster.
+    def _get_report_dashboard_attendance_summary(self, evaluations, employee_names):
+        self.ensure_one()
+        attendance_summary = {
+            "names": employee_names,
+            "worked_days": [],
+            "expected_work_days": 0,
+        }
+        engine = self.env["hr.kpi.engine"]
+
+        for evaluation in evaluations:
+            # Attendance chỉ có ý nghĩa khi phiếu có KPI auto và đủ mốc kỳ đánh giá.
+            auto_lines = evaluation.evaluation_line_ids.filtered(
+                lambda line: not line.is_section and line.kpi_type == "auto"
+            )
+            if not auto_lines or not evaluation.start_date or not evaluation.end_date:
+                attendance_summary["worked_days"].append(0)
+                continue
+
+            # Lấy metrics attendance cùng rule đang dùng ở report dashboard cũ.
+            metrics = engine.get_attendance_period_metrics(
+                evaluation.employee_id,
+                auto_lines[0],
+                evaluation.start_date,
+                evaluation.end_date,
+            )
+            metrics = metrics or {}
+            attendance_summary["worked_days"].append(
+                float(metrics.get("worked_days", 0))
+            )
+
+            # Mọi nhân viên trong cùng kỳ dùng chung expected_work_days nên chỉ cần
+            # ghi nhận một lần đầu tiên có dữ liệu.
+            if not attendance_summary["expected_work_days"]:
+                attendance_summary["expected_work_days"] = float(
+                    metrics.get("expected_work_days", 0)
+                )
+
+        return attendance_summary
+
+    # Tổng hợp số lần đi trễ theo từng nhân viên trong roster.
+    def _get_report_dashboard_late_summary(self, evaluations, employee_names):
+        self.ensure_one()
+        late_summary = {"names": employee_names, "late_count": []}
+        engine = self.env["hr.kpi.engine"]
+
+        for evaluation in evaluations:
+            # Late count dùng cùng KPI auto context với dashboard legacy.
+            auto_lines = evaluation.evaluation_line_ids.filtered(
+                lambda line: not line.is_section and line.kpi_type == "auto"
+            )
+            if not auto_lines or not evaluation.start_date or not evaluation.end_date:
+                late_summary["late_count"].append(0)
+                continue
+
+            # Tính số lần đi trễ theo khoảng kỳ của từng nhân viên.
+            late_value = engine.compute(
+                evaluation.employee_id,
+                auto_lines[0],
+                evaluation.start_date,
+                evaluation.end_date,
+            )
+            late_summary["late_count"].append(int(late_value or 0))
+
+        return late_summary
+
+    # Dựng danh sách chart KPI định tính theo nhóm KPI name/khu vực hiệu suất.
+    def _get_report_dashboard_qualitative_charts(self, evaluations):
+        self.ensure_one()
+        qualitative_map = {}
+
+        for evaluation in evaluations:
+            # Gom tất cả KPI manual theo tên KPI để dashboard so sánh giữa nhân viên.
+            employee_name = evaluation.employee_id.name if evaluation.employee_id else "?"
+            rating_lines = evaluation.evaluation_line_ids.filtered(
+                lambda line: not line.is_section and line.kpi_type == "manual"
+            )
+            for line in rating_lines:
+                kpi_name = line.key_performance_area or line.name or "KPI"
+                if kpi_name not in qualitative_map:
+                    qualitative_map[kpi_name] = {}
+                qualitative_map[kpi_name][employee_name] = round(
+                    float(line.final_rating or 0.0),
+                    2,
+                )
+
+        qualitative_charts = []
+        for kpi_name, employee_scores in qualitative_map.items():
+            qualitative_charts.append(
+                {
+                    "kpi_name": kpi_name,
+                    "labels": list(employee_scores.keys()),
+                    "scores": list(employee_scores.values()),
+                }
+            )
+
+        return qualitative_charts
+
+    # Tự build payload report dashboard ngay trên model phòng ban.
+    def _build_report_dashboard_payload(self):
+        self.ensure_one()
+        settings = self.env["res.config.settings"]
+        score_scale = settings.get_score_scale_info()
+        threshold_excellent, threshold_pass = settings.get_thresholds()
+        evaluations = self._get_report_dashboard_evaluations()
+        employees, evaluation_rows = self._get_report_dashboard_employee_rows(
+            evaluations
+        )
+        employee_names = [employee["name"] for employee in employees]
+        total_employees = len(evaluations)
+        avg_score = (
+            round(
+                sum(
+                    float(evaluation.total_p3_individual or 0.0)
+                    for evaluation in evaluations
+                )
+                / total_employees,
+                2,
+            )
+            if total_employees
+            else 0.0
+        )
+
+        # Đếm số nhân viên đạt pass/excellent theo cùng rule cũ.
+        pass_count = sum(
+            1
+            for evaluation in evaluations
+            if evaluation.performance_level in ("pass", "excellent")
+        )
+
+        # Dựng các khối dữ liệu chart/roster mà frontend đang tiêu thụ.
+        task_summary = self._get_report_dashboard_task_summary(
+            evaluations,
+            employee_names,
+        )
+        attendance_summary = self._get_report_dashboard_attendance_summary(
+            evaluations,
+            employee_names,
+        )
+        late_summary = self._get_report_dashboard_late_summary(
+            evaluations,
+            employee_names,
+        )
+        qualitative_charts = self._get_report_dashboard_qualitative_charts(
+            evaluations
+        )
+        report_sections = self._build_report_sections(
+            {
+                "avg_score": avg_score,
+                "pass_count": pass_count,
+                "total_employees": total_employees,
+                "period_label": self.period_id.name if self.period_id else "",
+                "evaluations": evaluation_rows,
+                "qualitative_charts": qualitative_charts,
+            }
+        )
+
+        return {
+            "report_id": self.performance_report_id.id if self.performance_report_id else False,
+            "department_id": self.department_id.id if self.department_id else False,
+            "department_name": self.department_id.name or "",
+            "period_id": self.period_id.id if self.period_id else False,
+            "period_name": self.period_id.name if self.period_id else "",
+            "period_type": self.period_type or "",
+            "start_date": str(self.start_date) if self.start_date else False,
+            "end_date": str(self.end_date) if self.end_date else False,
+            "deadline": str(self.deadline) if self.deadline else False,
+            "active": bool(self.active),
+            "score_scale": score_scale,
+            "thresholds": {
+                "excellent": threshold_excellent,
+                "pass": threshold_pass,
+            },
+            "total_employees": total_employees,
+            "avg_score": avg_score,
+            "pass_count": pass_count,
+            "employees": employees,
+            "evaluations": evaluation_rows,
+            "task_summary": task_summary,
+            "attendance_summary": attendance_summary,
+            "late_summary": late_summary,
+            "qualitative_charts": qualitative_charts,
+            "report_sections": report_sections,
+        }
 
     # Bơm thêm các cột snapshot 3P vào Team Roster payload của dashboard phòng ban.
     def _enrich_report_dashboard_with_3p_summary_snapshot(self, report_dashboard):

@@ -72,7 +72,6 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "web.assets_backend": [
             "custom_adecsol_hr_performance_evaluator/static/src/scss/performance_badges.scss",
             "custom_adecsol_hr_performance_evaluator/static/src/scss/performance_evaluation.scss",
-            "custom_adecsol_hr_performance_evaluator/static/src/components/performance_dashboard/performance_dashboard.scss",
             "custom_adecsol_hr_performance_evaluator/static/src/components/kpi_dashboard/kpi_dashboard.scss",
             "custom_adecsol_hr_performance_evaluator/static/src/components/dept_kpi_dashboard/dept_kpi_dashboard.scss",
             "custom_adecsol_hr_performance_evaluator/static/src/utils/kpi_helpers.js",
@@ -83,10 +82,8 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
             "custom_adecsol_hr_performance_evaluator/static/src/js/kpi_template_tree_one2many.js",
             "custom_adecsol_hr_performance_evaluator/static/src/js/evaluation_one2many.js",
             "custom_adecsol_hr_performance_evaluator/static/src/js/priority_with_onchange.js",
-            "custom_adecsol_hr_performance_evaluator/static/src/components/performance_dashboard/performance_dashboard_form.js",
             "custom_adecsol_hr_performance_evaluator/static/src/js/kpi_description_custom_widget.js",
             "custom_adecsol_hr_performance_evaluator/static/src/components/kpi_template_tree/kpi_template_tree_one2many.xml",
-            "custom_adecsol_hr_performance_evaluator/static/src/components/performance_dashboard/performance_dashboard_templates.xml",
             "custom_adecsol_hr_performance_evaluator/static/src/components/kpi_dashboard/kpi_dashboard_template.xml",
             "custom_adecsol_hr_performance_evaluator/static/src/components/dept_kpi_dashboard/dept_kpi_dashboard.js",
             "custom_adecsol_hr_performance_evaluator/static/src/components/dept_kpi_dashboard/dept_kpi_dashboard_template.xml",
