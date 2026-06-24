@@ -48,7 +48,6 @@ const PERIOD_LABELS = {
 const COLOR_BLUE = "#3b82f6";
 const COLOR_GREEN = "#22c55e";
 const COLOR_RED = "#ef4444";
-const COLOR_INDIGO = "#6366f1";
 
 // Group that grants manager-level access
 const MANAGER_GROUP = "custom_adecsol_hr_performance_evaluator.group_manager";

@@ -74,18 +74,6 @@
             <field name="sequence">10</field>
         </record>
 
-        <record id="widget_individual_micro_attendance_present_days" model="hr.kpi.dashboard.widget">
-            <field name="name">Số ngày đi làm thực tế</field>
-            <field name="dashboard_kind">individual</field>
-            <field name="widget_class">micro</field>
-            <field name="target_model">evaluation</field>
-            <field name="provider_key">special_engine_attendance_overview</field>
-            <field name="micro_chart_type">doughnut</field>
-            <field name="employee_template_line_id" ref="line_emp_p3_tc1_item3_202604"/>
-            <field name="department_ids" eval="[(6, 0, [ref('dept_it_3p_202604')])]"/>
-            <field name="sequence">15</field>
-        </record>
-
         <record id="widget_individual_micro_attendance_late_days" model="hr.kpi.dashboard.widget">
             <field name="name">Số ngày đi muộn</field>
             <field name="dashboard_kind">individual</field>

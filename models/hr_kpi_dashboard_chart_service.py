@@ -190,13 +190,6 @@ class HrKpiDashboardChartService(models.AbstractModel):
                 "is_special_case": True,
                 "special_case_source": "models/hr_kpi_engine.py",
             },
-            "special_engine_attendance_overview": {
-                "builder": self._build_special_engine_attendance_overview,
-                "default_chart_type": "doughnut",
-                "allowed_chart_types": {"doughnut"},
-                "is_special_case": True,
-                "special_case_source": "models/hr_kpi_engine.py",
-            },
         }
 
     # Resolve employee KPI line từ selector template line của micro widget trên dashboard cá nhân.
@@ -1390,57 +1383,6 @@ class HrKpiDashboardChartService(models.AbstractModel):
                     "max": math.ceil(expected_hour) + 1.5,
                     "stepSize": 0.25,
                 },
-            },
-        }
-
-    def _build_special_engine_attendance_overview(
-        self, evaluation, line, source, widget, chart_type, dashboard_kind
-    ):
-        engine = self.env["hr.kpi.engine"]
-        metrics = engine.get_attendance_period_metrics(
-            evaluation.employee_id,
-            line,
-            evaluation.start_date,
-            evaluation.end_date,
-        )
-        worked = float(metrics.get("worked_days") or 0.0)
-        expected = float(metrics.get("expected_work_days") or 0.0)
-        absent = max(expected - worked, 0.0)
-        return {
-            "chart_data": {
-                "labels": [_("Days Present"), _("Days Absent")],
-                "datasets": [
-                    {
-                        "label": (source.name if source else False) or _("Attendance"),
-                        "data": [round(worked, 2), round(absent, 2)],
-                        "backgroundColor": ["#3b82f6", "#e2e8f0"],
-                        "borderWidth": 0,
-                        "hoverOffset": 4,
-                    }
-                ],
-                "target_center_text": self._format_number(expected),
-            },
-            "chart_meta": {
-                "center_value": self._format_number(expected),
-                "center_label": _("Total Days"),
-                "legend_rows": [
-                    {
-                        "label": _("Days Present"),
-                        "value": self._format_number(worked),
-                        "color": "#3b82f6",
-                    },
-                    {
-                        "label": _("Days Absent"),
-                        "value": self._format_number(absent),
-                        "color": "#e2e8f0",
-                    },
-                ],
-                "note": _("Target: %s") % self._format_value_with_unit(line, line.target),
-                "calendar": engine.get_attendance_worked_dates(
-                    evaluation.employee_id,
-                    evaluation.start_date,
-                    evaluation.end_date,
-                ),
             },
         }
 

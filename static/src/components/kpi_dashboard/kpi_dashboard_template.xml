@@ -153,9 +153,7 @@
         <div  class="o_kpi_row" style="margin-top: 20px;">
           <div class="o_kpi_card o_kpi_table_card o_kpi_card_full">
             <div class="o_kpi_card_header">
-              <span class="o_kpi_card_title">
-                <i class="fa fa-table"/>
-  P3.1.1 Individual KPI</span>
+              <span class="o_kpi_card_title"> <i class="fa fa-table"/> P3.1.1 Individual KPI</span>
             </div>
             <div class="o_kpi_table_wrapper">
               <table class="o_kpi_table" t-if="state.data.quantitative_table.length">

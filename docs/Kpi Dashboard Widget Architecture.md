@@ -26,7 +26,6 @@ Dưới đây là đặc tả nghiệp vụ (Business Logic) và cách triển k
   - `generic_target_actual_bar`: dựng biểu đồ Target vs Actual cho đúng 1 dòng KPI, hỗ trợ `bar` hoặc `doughnut`.
   - `generic_domain_daily_series`: dựng chuỗi dữ liệu theo ngày từ `data_source` dạng domain, yêu cầu source có `date_field` và `aggregation` thuộc `count/sum/avg`; dữ liệu có thể chạy theo kiểu `cumulative` hoặc `maintenance` tùy `kpi_behavior`.
   - `special_engine_punctuality`: dựng line chart giờ check-in từng ngày bằng engine chấm công.
-  - `special_engine_attendance_overview`: dựng doughnut chart tổng quan ngày đi làm/vắng mặt bằng engine chấm công.
 
 ### CASE 2: Individual + Macro (Dashboard Cá nhân - Nhìn toàn cảnh phong độ)
 - **Business Need:** Nhân viên muốn nhìn bức tranh tổng thể: "Năng lực cốt lõi của mình đang mạnh/yếu ở đâu?", "Phong độ 6 tháng qua của mình thế nào?", hoặc "Tháng này mình đang đứng thứ mấy trong phòng?".

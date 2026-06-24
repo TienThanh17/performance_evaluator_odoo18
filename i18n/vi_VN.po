@@ -4885,11 +4885,6 @@ msgid "Special Case"
 msgstr "Trường hợp đặc biệt"
 
 #. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__provider_key__special_engine_attendance_overview
-msgid "Special Case: Attendance Overview"
-msgstr "Trường hợp đặc biệt: Đi làm đầy đủ"
-
-#. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__provider_key__special_engine_punctuality
 msgid "Special Case: Check-in"
 msgstr "Trường hợp đặc biệt: Chấm công"

@@ -10,10 +10,6 @@ MICRO_PROVIDER_SELECTION = [
     ("generic_target_actual_bar", "Generic Target vs Actual"),
     ("generic_domain_daily_series", "Generic Daily Series"),
     ("special_engine_punctuality", "Special Case: Check-in"),
-    (
-        "special_engine_attendance_overview",
-        "Special Case: Attendance Overview",
-    ),
 ]
 
 MICRO_CHART_TYPE_SELECTION = [
@@ -47,7 +43,6 @@ INDIVIDUAL_PROVIDER_ALLOWED_CHART_TYPES = {
     "generic_target_actual_bar": {"line", "bar", "doughnut", "stacked_bar"},
     "generic_domain_daily_series": {"line", "bar"},
     "special_engine_punctuality": {"line"},
-    "special_engine_attendance_overview": {"doughnut"},
 }
 
 DEPARTMENT_MICRO_ALLOWED_CHART_TYPES = {
@@ -629,7 +624,6 @@ class HrKpiDashboardWidget(models.Model):
         # Các provider attendance đặc thù cần line mang đúng source code để engine và chart semantics nhất quán.
         required_source_code = {
             "special_engine_punctuality": "attendance_late_days",
-            "special_engine_attendance_overview": "attendance_present_days",
         }.get(self.provider_key)
         if required_source_code and (not source or source.code != required_source_code):
             raise ValidationError(
