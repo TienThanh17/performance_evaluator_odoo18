@@ -1059,6 +1059,29 @@ class PerformanceEvaluation(models.Model):
     # ------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------
+    # Tính target khởi tạo cho evaluation line dựa trên template line và context kỳ đánh giá hiện tại.
+    def _resolve_template_line_target(self, template_line):
+        self.ensure_one()
+
+        # Chỉ override target cho KPI attendance present vì target phải bám số ngày làm việc kỳ vọng của kỳ.
+        source = getattr(template_line, "data_source_id", False)
+        if not source or source.code != "attendance_present_days":
+            return template_line.target
+
+        # Nếu phiếu chưa có đủ ngữ cảnh nhân viên hoặc thời gian thì giữ target từ template để tránh target rỗng.
+        if not self.employee_id or not self.start_date or not self.end_date:
+            return template_line.target
+
+        # Dùng cùng engine metrics để target luôn khớp expected_work_days của kỳ đánh giá thực tế.
+        metrics = self.env["hr.kpi.engine"].get_attendance_period_metrics(
+            self.employee_id,
+            template_line,
+            self.start_date,
+            self.end_date,
+        )
+        return float(metrics.get("expected_work_days") or 0.0)
+
+    # Build one2many commands từ template line sang evaluation line và resolve target theo nghiệp vụ.
     def _prepare_evaluation_line_commands_from_template(self, kpi):
         """Build one2many commands for evaluation_line_ids from KPI template lines.
 
@@ -1109,6 +1132,8 @@ class PerformanceEvaluation(models.Model):
                 )
                 continue
 
+            # Resolve target động cho các KPI attendance cần target phụ thuộc vào kỳ đánh giá cụ thể.
+            resolved_target = self._resolve_template_line_target(line)
             commands.append(
                 fields.Command.create(
                     {
@@ -1120,7 +1145,7 @@ class PerformanceEvaluation(models.Model):
                         "description": getattr(line, "description", False),
                         "kpi_type": line.kpi_type,
                         "manual_scoring_type": line.manual_scoring_type,
-                        "target": line.target,
+                        "target": resolved_target,
                         "unit": line.unit.id or False,
                         "weight": line.weight,
                         "wipeout_if_child_zero": bool(line.wipeout_if_child_zero),

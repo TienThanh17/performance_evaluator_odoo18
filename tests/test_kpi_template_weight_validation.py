@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+from odoo import fields
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
 
@@ -248,3 +251,79 @@ class TestKpiTemplateWeightValidation(TransactionCase):
 
         self.assertEqual(section.weight, 22.0)
         self.assertEqual(section_command[2]["weight"], 22.0)
+
+    # KPI attendance present phải map target động theo expected_work_days của kỳ đánh giá.
+    def test_employee_evaluation_generation_resolves_attendance_present_target(self):
+        template = self._create_template("Attendance Present Target Template")
+        present_source = self.env.ref(
+            "custom_adecsol_hr_performance_evaluator.source_attendance_present_days"
+        )
+        self.KpiLine.create(
+            {
+                "kpi_id": template.id,
+                "key_performance_area": "Attendance Present",
+                "pillar_id": self.p3_individual.id,
+                "kpi_type": "auto",
+                "weight": 100.0,
+                "target": 5.0,
+                "data_source_id": present_source.id,
+                "unit": present_source.unit_id.id,
+            }
+        )
+
+        evaluation = self.Evaluation.new(
+            {
+                "employee_id": self.employee.id,
+                "start_date": fields.Date.from_string("2026-06-01"),
+                "end_date": fields.Date.from_string("2026-06-30"),
+            }
+        )
+
+        # Stub engine metrics để verify mapping target dùng expected_work_days thay vì target template.
+        with patch.object(
+            type(self.env["hr.kpi.engine"]),
+            "get_attendance_period_metrics",
+            return_value={"expected_work_days": 22.0},
+        ):
+            commands = evaluation._prepare_evaluation_line_commands_from_template(
+                template
+            )
+
+        leaf_command = next(
+            command
+            for command in commands
+            if isinstance(command[2], dict)
+            and command[2].get("key_performance_area") == "Attendance Present"
+        )
+        self.assertEqual(leaf_command[2]["target"], 22.0)
+
+    # KPI khác attendance present vẫn phải giữ target gốc từ template khi generate evaluation.
+    def test_employee_evaluation_generation_keeps_regular_template_target(self):
+        template = self._create_template("Regular Target Template")
+        self.KpiLine.create(
+            {
+                "kpi_id": template.id,
+                "key_performance_area": "Regular KPI",
+                "pillar_id": self.p3_individual.id,
+                "kpi_type": "auto",
+                "weight": 100.0,
+                "target": 12.0,
+            }
+        )
+
+        evaluation = self.Evaluation.new(
+            {
+                "employee_id": self.employee.id,
+                "start_date": fields.Date.from_string("2026-06-01"),
+                "end_date": fields.Date.from_string("2026-06-30"),
+            }
+        )
+        commands = evaluation._prepare_evaluation_line_commands_from_template(template)
+
+        leaf_command = next(
+            command
+            for command in commands
+            if isinstance(command[2], dict)
+            and command[2].get("key_performance_area") == "Regular KPI"
+        )
+        self.assertEqual(leaf_command[2]["target"], 12.0)

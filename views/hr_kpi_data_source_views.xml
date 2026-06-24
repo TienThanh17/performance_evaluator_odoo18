@@ -30,7 +30,7 @@
 
                     <group>
                         <group name="basic_info" string="Thông tin chung">
-                            <field name="code" />
+                            <field name="code" readonly="source_type == 'system'"/>
                             <field name="unit_id" />
                             <field name="description" />
                             <field name="active" widget="boolean_toggle" />

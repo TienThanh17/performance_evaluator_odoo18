@@ -19,26 +19,35 @@ class HrKpiEngine(models.AbstractModel):
     _name = "hr.kpi.engine"
     _description = "HR KPI Engine"
 
+    # Tính actual KPI từ đúng data source và dùng compute() làm entrypoint duy nhất.
     @api.model
     def compute(self, employee, kpi_line, date_from, date_to):
         """Return computed KPI actual (float) for an employee in a date range.
 
         Backward compatible: for manual KPIs returns 0.0 (caller keeps existing actual).
         """
-        employee = employee.sudo()
-        kpi_line = kpi_line.sudo()
+        employee = employee.sudo() if employee else employee
+        kpi_line = kpi_line.sudo() if kpi_line else kpi_line
         if not employee or not kpi_line:
             return 0.0
 
         source = getattr(kpi_line, "data_source_id", False)
+        if not source:
+            return 0.0
+
         # TRƯỜNG HỢP 1: Nguồn dữ liệu từ Hệ thống (Hardcode đặc thù ở Backend)
         if source.source_type == "system":
-            # Xử lý cho KPI "Số ngày đi làm thực tế"
+            # Xử lý KPI số ngày đi làm thực tế bằng bucket worked_days dùng chung.
             if source.code == "attendance_present_days":
-                metrics = self.get_attendance_period_metrics(
+                return self.compute_attendance_period_value_with_metrics(
                     employee, kpi_line, date_from, date_to
                 )
-                return float(metrics.get("worked_days") or 0.0)
+
+            # Xử lý KPI số ngày nghỉ không lương bằng bucket unpaid_leave_days.
+            elif source.code == "attendance_unpaid_leave_days":
+                return self.compute_attendance_unpaid_leave_days_value(
+                    employee, kpi_line, date_from, date_to
+                )
 
             # Xử lý cho KPI "Đi muộn"
             elif source.code == "attendance_late_days":
@@ -68,30 +77,6 @@ class HrKpiEngine(models.AbstractModel):
             return source.execute(employee, date_from, date_to, line=kpi_line)
 
         return 0.0
-
-    @api.model
-    def compute_with_metrics(self, employee, kpi_line, date_from, date_to):
-        """Compute KPI actual and optionally return extra metrics.
-
-        Why: context changes inside compute() are not observable by the caller because
-        compute() only returns a float. For some data sources we also need
-        intermediate metrics for scoring/debug.
-
-        Returns:
-            (value: float, metrics: dict|False)
-        """
-        kpi_line = kpi_line.sudo() if kpi_line else kpi_line
-        if not kpi_line:
-            return 0.0, False
-
-        source = getattr(kpi_line, "data_source_id", False)
-        if source == "attendance_period":
-            value, metrics = self.compute_attendance_period_value_with_metrics(
-                employee, kpi_line, date_from, date_to
-            )
-            return value, metrics
-
-        return self.compute(employee, kpi_line, date_from, date_to), False
 
     # ------------------------------------------------------------
     # Helpers
@@ -253,10 +238,9 @@ class HrKpiEngine(models.AbstractModel):
         # )
         return violation_count
 
+    # Tính toàn bộ bucket attendance theo kỳ để mọi KPI/report tái sử dụng cùng logic.
     @api.model
-    def compute_attendance_period_value_with_metrics(
-        self, employee, kpi_line, date_from, date_to
-    ):
+    def _get_attendance_period_metrics_data(self, employee, date_from, date_to):
         """Tính số ngày phải đi làm, nghỉ có phép, nghỉ không phép trong khoảng thời gian.
 
         Nguyên tắc thiết kế (quan trọng):
@@ -284,27 +268,28 @@ class HrKpiEngine(models.AbstractModel):
             expected_work_days = worked_days + approved_leave_days + unpaid_leave_days
 
         Returns:
-            (value: float, metrics: dict)
+            dict
         """
-        empty = (0.0, dict(_EMPTY_METRICS))
+        empty_metrics = dict(_EMPTY_METRICS)
 
-        if not employee or not kpi_line or not date_from or not date_to:
-            return empty
+        # Chặn sớm các input không hợp lệ để caller luôn nhận dict đầy đủ key.
+        if not employee or not date_from or not date_to:
+            return empty_metrics
 
         employee = employee.sudo()
-        kpi_line = kpi_line.sudo()
 
         d_from = fields.Date.to_date(date_from)
         d_to = fields.Date.to_date(date_to)
         if not d_from or not d_to or d_from > d_to:
-            return empty
+            return empty_metrics
 
         calendar = employee.resource_calendar_id
         if not calendar:
-            return empty
+            return empty_metrics
 
         tz = self._get_tz(employee)
 
+        # Tạo datetime local cho batch API để tránh lệch ngày đầu/cuối kỳ vì timezone.
         # Tạo datetime bounds có timezone theo local của employee.
         # Lý do: _get_work_days_data_batch dùng timezone_datetime() bên trong,
         # nếu truyền naive thì nó gắn UTC → lệch ngày với employee ở VN (+7).
@@ -334,7 +319,7 @@ class HrKpiEngine(models.AbstractModel):
             expected_raw = 0.0
 
         if expected_raw <= 0:
-            return empty
+            return empty_metrics
 
         # ------------------------------------------------------------------
         # Bước 2: worked_days — đếm ngày có mặt đủ theo duration_days
@@ -360,6 +345,7 @@ class HrKpiEngine(models.AbstractModel):
             )
         )
 
+        # Gom ngày có check-in theo local date để mỗi ngày chỉ được tính một lần.
         worked_dates = set()
         for att in attendances:
             if not att.check_in:
@@ -409,6 +395,7 @@ class HrKpiEngine(models.AbstractModel):
                 )
             )
 
+            # Cộng từng leave theo cùng hệ quy chiếu compute_leaves=False như expected_raw.
             for lv in validated_leaves:
                 # Clamp leave vào khoảng [d_from, d_to]
                 lf = max(fields.Date.to_date(lv.request_date_from), d_from)
@@ -460,6 +447,7 @@ class HrKpiEngine(models.AbstractModel):
             # Interval trả về cho resource False (global)
             global_intervals = leave_intervals.get(False, [])
 
+            # Chuẩn hóa interval lễ thành tập hợp local dates để không đếm lặp cùng ngày.
             # Đếm working days bị block bởi các interval lễ
             # Dùng _get_days_data cần day_total; đơn giản hơn: đếm distinct dates
             holiday_dates = set()
@@ -529,13 +517,31 @@ class HrKpiEngine(models.AbstractModel):
             "unpaid_leave_days": unpaid_leave_days,
             "has_unpaid_leave": has_unpaid_leave,
         }
+        return metrics
 
-        value = self._value_or_percentage(
-            kpi_line=kpi_line,
-            numerator=unpaid_leave_days,
-            denominator=expected_display,  # % tính trên nền đã trừ lễ (đúng với UI)
-        )
-        return value, metrics
+    # Trả về actual KPI cho nguồn attendance_present_days bằng worked_days.
+    @api.model
+    def compute_attendance_period_value_with_metrics(
+        self, employee, kpi_line, date_from, date_to
+    ):
+        """Return worked_days for attendance period KPIs."""
+        del kpi_line
+
+        # Lấy trực tiếp bucket worked_days từ helper dùng chung để compute() luôn trả raw value.
+        metrics = self._get_attendance_period_metrics_data(employee, date_from, date_to)
+        return float(metrics.get("worked_days") or 0.0)
+
+    # Trả về actual KPI cho nguồn attendance_unpaid_leave_days bằng unpaid_leave_days.
+    @api.model
+    def compute_attendance_unpaid_leave_days_value(
+        self, employee, kpi_line, date_from, date_to
+    ):
+        """Return unpaid_leave_days for attendance period KPIs."""
+        del kpi_line
+
+        # Lấy trực tiếp bucket unpaid_leave_days từ helper dùng chung để tránh tính lại logic.
+        metrics = self._get_attendance_period_metrics_data(employee, date_from, date_to)
+        return float(metrics.get("unpaid_leave_days") or 0.0)
 
     # ============================================================
     # Dashboard breakdown methods (per-day / per-period data
@@ -631,12 +637,12 @@ class HrKpiEngine(models.AbstractModel):
     def get_attendance_period_metrics(self, employee, kpi_line, date_from, date_to):
         """Trả về metrics tổng hợp cho nguồn dữ liệu attendance theo kỳ.
 
-        Tái sử dụng hoàn toàn compute_attendance_period_value_with_metrics — dashboard
-        chỉ format/render, không tự tính toán lại.
+        Dashboard/report chỉ đọc breakdown; actual KPI vẫn phải đi qua compute()
+        để engine có một nguồn sự thật duy nhất cho giá trị trả về.
 
         Returns:
             dict với các key:
-                value               (float)  — KPI actual (unpaid_leave_days hoặc %)
+                value               (float)  — KPI actual theo đúng data source của line
                 expected_work_days  (float)  — ngày phải đi làm (đã trừ lễ)
                 worked_days         (float)
                 approved_leave_days (float)
@@ -647,12 +653,11 @@ class HrKpiEngine(models.AbstractModel):
         if not employee or not kpi_line or not date_from or not date_to:
             return dict(_EMPTY_METRICS, value=0.0)
 
-        value, metrics = self.compute_attendance_period_value_with_metrics(
-            employee, kpi_line, date_from, date_to
-        )
-        if not metrics:
-            return dict(_EMPTY_METRICS, value=0.0)
+        # Tính breakdown một lần từ helper dùng chung để dashboard không tự nhân bản logic.
+        metrics = self._get_attendance_period_metrics_data(employee, date_from, date_to)
 
+        # Lấy actual qua compute() để caller luôn thấy đúng giá trị theo data source đang chọn.
+        value = self.compute(employee, kpi_line, date_from, date_to)
         return dict(metrics, value=value)
 
     @api.model

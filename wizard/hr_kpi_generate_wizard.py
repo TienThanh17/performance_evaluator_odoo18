@@ -127,7 +127,13 @@ class HrKpiGenerateWizard(models.TransientModel):
         count = 0
         for emp in valid_employees:
             scratch = Evaluation.new(
-                {"kpi_id": self.kpi_id.id, "period_id": self.period_id.id}
+                {
+                    "kpi_id": self.kpi_id.id,
+                    "employee_id": emp.id,
+                    "period_id": self.period_id.id,
+                    "start_date": self.start_date,
+                    "end_date": self.end_date,
+                }
             )
             line_cmds = scratch._prepare_evaluation_line_commands_from_template(
                 self.kpi_id

@@ -41,34 +41,20 @@
             <field name="description">Đếm số ngày làm việc có check-in hợp lệ.</field>
         </record>
 
-        <!-- <record id="source_attendance_on_time_days" model="hr.kpi.data.source">
-            <field name="name">Số ngày chấm công đúng giờ</field>
-            <field name="code">attendance_on_time_days</field>
-            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
-            <field name="source_type">python</field>
-            <field name="description">Đếm số ngày vừa đi làm vừa không đi muộn trong kỳ.</field>
-            <field name="python_code"><![CDATA[
-engine = env["hr.kpi.engine"]
-worked_dates = engine.get_attendance_worked_dates(employee, start_date, end_date)
-present_days = float(sum(1 for item in worked_dates if item.get("status") == "present"))
-late_days = float(
-    engine.compute_late_arrival_value(
-        employee,
-        False,
-        start_date,
-        end_date,
-    ) or 0.0
-)
-result = max(present_days - late_days, 0.0)
-            ]]></field>
-        </record> -->
-
         <record id="source_attendance_late_days" model="hr.kpi.data.source">
             <field name="name">Số ngày đi muộn</field>
             <field name="code">attendance_late_days</field>
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
             <field name="source_type">system</field>
             <field name="description">Đếm số ngày nhân viên đi muộn trong kỳ theo lịch làm việc.</field>
+        </record>
+
+        <record id="source_attendance_unpaid_leave_days" model="hr.kpi.data.source">
+            <field name="name">Số ngày nghỉ không lương</field>
+            <field name="code">attendance_unpaid_leave_days</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_day" />
+            <field name="source_type">system</field>
+            <field name="description">Tổng số ngày nghỉ không hưởng lương của nhân viên trong kỳ đánh giá.</field>
         </record>
     </data>
 </odoo>
