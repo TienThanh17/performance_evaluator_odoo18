@@ -98,11 +98,6 @@ class HrKpiTemplateLine(models.Model):
         compute="_compute_auto",
         store=True,
     )
-    is_special_scoring = fields.Boolean(
-        string="Special Scoring",
-        compute="_compute_is_special_scoring",
-        store=False,
-    )
     is_section = fields.Boolean(default=False)
     display_type = fields.Selection(
         [
@@ -171,20 +166,6 @@ class HrKpiTemplateLine(models.Model):
         for rec in self:
             rec.is_auto = bool(rec.kpi_type == "auto" and rec.data_source_id)
 
-    # Flag template lines that use non-linear auto scoring formulas.
-    @api.depends("kpi_type", "scoring_formula_id", "scoring_formula_id.formula_type")
-    def _compute_is_special_scoring(self):
-        for rec in self:
-            # effective_formula_type = (
-            #     rec.scoring_formula_id.formula_type if rec.scoring_formula_id else False
-            # )
-            # rec.is_special_scoring = bool(
-            #     rec.kpi_type == "auto"
-            #     and effective_formula_type
-            #     and effective_formula_type != "linear"
-            # )
-            rec.is_special_scoring = False
-
     # Resolve the default display unit from the selected data source.
     def _get_unit_by_code(self, code):
         return self.env["hr.kpi.unit"].search([("code", "=", code)], limit=1)
@@ -247,16 +228,6 @@ class HrKpiTemplateLine(models.Model):
             ("kpi_id", "=", kpi_id),
             ("pillar_id", "=", pillar_id or False),
         ]
-
-    # Collect the current scope keys for every line in the recordset.
-    def _get_sequence_scope_keys(self):
-        scope_keys = []
-        for rec in self:
-            # Skip incomplete in-memory rows that do not belong to a template yet.
-            if not rec.kpi_id:
-                continue
-            scope_keys.append(rec._get_sequence_scope_key())
-        return scope_keys
 
     # Fetch every line that belongs to the same hierarchy scope as the current line.
     def _get_sequence_scope_lines(self):
@@ -368,24 +339,6 @@ class HrKpiTemplateLine(models.Model):
                 skip_normalized_3p_weight_validation=True,
             ).write({"sequence": new_sequence})
 
-    # Normalize every affected scope once after create/write operations.
-    def _normalize_hierarchy_scopes(self, scope_keys):
-        unique_scope_keys = []
-        for scope_key in scope_keys:
-            if not scope_key or not scope_key[0] or scope_key in unique_scope_keys:
-                continue
-            unique_scope_keys.append(scope_key)
-
-        for scope_key in unique_scope_keys:
-            # Search by scope key so old and new scopes are both cleaned after reparenting.
-            scope_lines = self.search(
-                self._get_sequence_scope_domain_from_key(scope_key),
-                order="sequence, id",
-            )
-            if not scope_lines:
-                continue
-            scope_lines[:1]._normalize_hierarchy_sequence(scope_lines=scope_lines)
-
     # Move the current subtree to the end of its new parent block or to the end of the root block.
     def _move_subtree_to_parent_end(self, scope_lines=None):
         self.ensure_one()
@@ -435,6 +388,30 @@ class HrKpiTemplateLine(models.Model):
             scope_lines=scope_lines,
             ordered_lines=self.browse(ordered_ids),
         )
+
+    # Chuẩn hóa lại mọi scope hiện tại trong recordset để child luôn nằm liền mạch dưới đúng parent.
+    def _normalize_current_hierarchy_scopes(self):
+        unique_scope_keys = []
+        for rec in self:
+            # Bỏ qua row chưa đủ scope hoặc row hiển thị phụ không tham gia cây KPI thực.
+            if rec.display_type or not rec.kpi_id:
+                continue
+
+            # Gom scope hiện tại theo template + pillar để chỉ rebuild mỗi scope một lần.
+            scope_key = rec._get_sequence_scope_key()
+            if not scope_key or not scope_key[0] or scope_key in unique_scope_keys:
+                continue
+            unique_scope_keys.append(scope_key)
+
+        for scope_key in unique_scope_keys:
+            # Nạp toàn bộ scope hiện tại rồi rebuild preorder theo parent_line_id thực tế.
+            scope_lines = self.search(
+                self._get_sequence_scope_domain_from_key(scope_key),
+                order="sequence, id",
+            )
+            if not scope_lines:
+                continue
+            scope_lines[:1]._normalize_hierarchy_sequence(scope_lines=scope_lines)
 
     # Validate the target only for auto KPI lines that use numeric goals.
     @api.constrains("kpi_type", "target")
@@ -595,23 +572,19 @@ class HrKpiTemplateLine(models.Model):
         if self.env.context.get("skip_hierarchy_sequence_sync"):
             return super().write(vals)
 
-        affected_scope_fields = {"sequence", "parent_line_id", "pillar_id", "kpi_id"}
-        old_scope_keys = self._get_sequence_scope_keys()
+        # Chỉ các thay đổi đụng vào thứ tự/cấu trúc cây mới cần rebuild hierarchy order.
+        hierarchy_sync_fields = {"sequence", "parent_line_id", "pillar_id", "kpi_id"}
         res = super().write(vals)
 
-        # if affected_scope_fields.intersection(vals):
-        #     if "parent_line_id" in vals and "sequence" not in vals:
-        #         for rec in self:
-        #             # Nếu người dùng đổi parent mà không kéo thả explicit sequence,
-        #             # line/subtree sẽ được dời về cuối block của parent mới để giữ
-        #             # tree order tự nhiên và không chen vào giữa sibling cũ.
-        #             rec._move_subtree_to_parent_end()
+        if hierarchy_sync_fields.intersection(vals):
+            if "parent_line_id" in vals and "sequence" not in vals:
+                for rec in self:
+                    # Khi chỉ đổi parent, đưa subtree về cuối block của parent mới để UI không bị lệch.
+                    rec._move_subtree_to_parent_end()
+            else:
+                # Khi người dùng kéo thả đổi sequence, rebuild lại scope để child không rơi xuống section khác.
+                self._normalize_current_hierarchy_scopes()
 
-        #     # Sau các thay đổi ảnh hưởng tới scope/thứ tự, phải chuẩn hóa lại cả scope
-        #     # cũ lẫn scope mới để subtree không bị đứt khúc trong flattened sequence.
-        #     self._normalize_hierarchy_scopes(
-        #         old_scope_keys + self._get_sequence_scope_keys()
-        #     )
         self._reset_wipeout_flag_on_leaf_rows()
         self._refresh_weight_structure()
         return res

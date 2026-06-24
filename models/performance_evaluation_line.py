@@ -216,14 +216,7 @@ class PerformanceEvaluationLine(models.Model):
         digits=(16, 1),
         help="System-calculated score based on rules for the selected KPI type and the 100-point KPI scale.",
     )
-    # Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).
-    is_special_scoring = fields.Boolean(
-        string="Special Scoring",
-        compute="_compute_is_special_scoring",
-        store=True,
-        help="Technical flag: True when scoring uses a custom rule (not Target vs Actual ratio).",
-    )
-
+    
     # ------------------------------------------------------------
     # Self vs Manager rating
     # ------------------------------------------------------------
@@ -451,23 +444,6 @@ class PerformanceEvaluationLine(models.Model):
     def _compute_auto(self):
         for rec in self:
             rec.is_auto = bool(rec.kpi_type == "auto" and rec.data_source_id)
-
-    @api.depends(
-        "kpi_type",
-        "scoring_formula_id",
-        "scoring_formula_id.formula_type",
-    )
-    # Flag evaluation lines that use non-linear auto scoring formulas.
-    def _compute_is_special_scoring(self):
-        for rec in self:
-            effective_formula_type = (
-                rec.scoring_formula_id.formula_type if rec.scoring_formula_id else False
-            )
-            rec.is_special_scoring = bool(
-                rec.kpi_type == "auto"
-                and effective_formula_type
-                and effective_formula_type != "linear"
-            )
 
     @api.depends("is_section")
     def _compute_display_type(self):

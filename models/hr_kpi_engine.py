@@ -543,6 +543,15 @@ class HrKpiEngine(models.AbstractModel):
         metrics = self._get_attendance_period_metrics_data(employee, date_from, date_to)
         return float(metrics.get("unpaid_leave_days") or 0.0)
 
+    @api.model
+    def get_attendance_expected_work_days(self, employee, kpi_line, date_from, date_to):
+        """Return expected_work_days for attendance period KPIs."""
+        del kpi_line
+
+        # Lấy trực tiếp bucket expected_work_days từ helper dùng chung để tránh tính lại logic.
+        metrics = self._get_attendance_period_metrics_data(employee, date_from, date_to)
+        return float(metrics.get("expected_work_days") or 0.0)
+
     # ============================================================
     # Dashboard breakdown methods (per-day / per-period data
     # cho từng dashboard usage, dùng chung logic với compute*)

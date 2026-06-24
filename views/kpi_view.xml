@@ -54,7 +54,7 @@
 
                         <group invisible="is_section">
                             <group string="Target"
-                                invisible="kpi_type != 'auto' or is_special_scoring">
+                                invisible="kpi_type != 'auto'">
                                 <div class="d-flex align-items-center gap-2">
                                     <i class="fa fa-exclamation-triangle text-danger"
                                         title="The target is automatically calculated when the evaluation is created, based on the expected work days of the corresponding month. Changes to the template target will not affect the generated evaluation."

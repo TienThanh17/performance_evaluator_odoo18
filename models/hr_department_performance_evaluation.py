@@ -1505,7 +1505,6 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     ("evaluation_id", "in", evals.ids),
                     ("is_section", "=", False),
                     ("is_auto", "=", True),
-                    ("is_special_scoring", "=", False),
                     ("kpi_type", "=", "auto"),
                     ("actual", "=", False),
                 ],

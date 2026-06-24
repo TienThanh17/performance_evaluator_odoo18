@@ -4875,12 +4875,6 @@ msgid "Special Case: Check-in"
 msgstr "Trường hợp đặc biệt: Chấm công"
 
 #. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_template_line__is_special_scoring
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__is_special_scoring
-msgid "Special Scoring"
-msgstr "Ghi điểm đặc biệt"
-
-#. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_performance_report.py:0
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__micro_chart_type__stacked_bar
@@ -5355,15 +5349,6 @@ msgid ""
 msgstr ""
 "Cờ kỹ thuật: True khi đánh giá của quản lý khác đánh giá của nhân viên (hoặc"
 " được đặt khi đánh giá của nhân viên đang trống)."
-
-#. module: custom_adecsol_hr_performance_evaluator
-#: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__is_special_scoring
-msgid ""
-"Technical flag: True when scoring uses a custom rule (not Target vs Actual "
-"ratio)."
-msgstr ""
-"Cờ kỹ thuật: True khi việc chấm điểm dùng quy tắc tùy chỉnh (không phải tỷ "
-"lệ Mục tiêu so với Thực tế)."
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_scoring_profile__template_count

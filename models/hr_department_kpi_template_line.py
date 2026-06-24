@@ -146,16 +146,6 @@ class HrDepartmentKpiTemplateLine(models.Model):
             return [("id", "=", False)]
         return [("department_kpi_id", "=", department_kpi_id)]
 
-    # Collect the current scope keys for every line in the recordset.
-    def _get_sequence_scope_keys(self):
-        scope_keys = []
-        for rec in self:
-            # Skip incomplete in-memory rows that do not belong to a template yet.
-            if not rec.department_kpi_id:
-                continue
-            scope_keys.append(rec._get_sequence_scope_key())
-        return scope_keys
-
     # Fetch every line that belongs to the same hierarchy scope as the current line.
     def _get_sequence_scope_lines(self):
         self.ensure_one()
@@ -261,24 +251,6 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 skip_normalized_3p_weight_validation=True,
             ).write({"sequence": new_sequence})
 
-    # Normalize every affected scope once after create/write operations.
-    def _normalize_hierarchy_scopes(self, scope_keys):
-        unique_scope_keys = []
-        for scope_key in scope_keys:
-            if not scope_key or not scope_key[0] or scope_key in unique_scope_keys:
-                continue
-            unique_scope_keys.append(scope_key)
-
-        for scope_key in unique_scope_keys:
-            # Search by scope key so old and new scopes are both cleaned after reparenting.
-            scope_lines = self.search(
-                self._get_sequence_scope_domain_from_key(scope_key),
-                order="sequence, id",
-            )
-            if not scope_lines:
-                continue
-            scope_lines[:1]._normalize_hierarchy_sequence(scope_lines=scope_lines)
-
     # Move the current subtree to the end of its new parent block or to the end of the root block.
     def _move_subtree_to_parent_end(self, scope_lines=None):
         self.ensure_one()
@@ -328,6 +300,30 @@ class HrDepartmentKpiTemplateLine(models.Model):
             scope_lines=scope_lines,
             ordered_lines=self.browse(ordered_ids),
         )
+
+    # Chuẩn hóa lại mọi scope hiện tại trong recordset để child luôn nằm liền mạch dưới đúng parent.
+    def _normalize_current_hierarchy_scopes(self):
+        unique_scope_keys = []
+        for rec in self:
+            # Bỏ qua row chưa đủ scope hoặc row hiển thị phụ không tham gia cây KPI thực.
+            if rec.display_type or not rec.department_kpi_id:
+                continue
+
+            # Gom scope hiện tại theo department template để chỉ rebuild mỗi scope một lần.
+            scope_key = rec._get_sequence_scope_key()
+            if not scope_key or not scope_key[0] or scope_key in unique_scope_keys:
+                continue
+            unique_scope_keys.append(scope_key)
+
+        for scope_key in unique_scope_keys:
+            # Nạp toàn bộ scope hiện tại rồi rebuild preorder theo parent_line_id thực tế.
+            scope_lines = self.search(
+                self._get_sequence_scope_domain_from_key(scope_key),
+                order="sequence, id",
+            )
+            if not scope_lines:
+                continue
+            scope_lines[:1]._normalize_hierarchy_sequence(scope_lines=scope_lines)
 
     # Compute the default unit based on the department source type.
     def _get_unit_by_code(self, code):
@@ -533,23 +529,19 @@ class HrDepartmentKpiTemplateLine(models.Model):
         if self.env.context.get("skip_hierarchy_sequence_sync"):
             return super().write(normalized_vals)
 
-        affected_scope_fields = {"sequence", "parent_line_id", "department_kpi_id"}
-        old_scope_keys = self._get_sequence_scope_keys()
+        # Chỉ các thay đổi đụng vào thứ tự/cấu trúc cây mới cần rebuild hierarchy order.
+        hierarchy_sync_fields = {"sequence", "parent_line_id", "department_kpi_id"}
         res = super().write(normalized_vals)
 
-        if affected_scope_fields.intersection(normalized_vals):
-            if (
-                "parent_line_id" in normalized_vals
-                and "sequence" not in normalized_vals
-            ):
+        if hierarchy_sync_fields.intersection(normalized_vals):
+            if "parent_line_id" in normalized_vals and "sequence" not in normalized_vals:
                 for rec in self:
-                    # Reparenting without an explicit drag sequence should append to the new parent block.
+                    # Khi chỉ đổi parent, đưa subtree về cuối block của parent mới để UI không bị lệch.
                     rec._move_subtree_to_parent_end()
+            else:
+                # Khi người dùng kéo thả đổi sequence, rebuild lại scope để child không rơi xuống section khác.
+                self._normalize_current_hierarchy_scopes()
 
-            # Normalize both previous and current scopes so moved subtrees remain contiguous.
-            self._normalize_hierarchy_scopes(
-                old_scope_keys + self._get_sequence_scope_keys()
-            )
         self._reset_wipeout_flag_on_leaf_rows()
         self._refresh_weight_structure()
         return res

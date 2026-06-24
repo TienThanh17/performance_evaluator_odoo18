@@ -1073,13 +1073,13 @@ class PerformanceEvaluation(models.Model):
             return template_line.target
 
         # Dùng cùng engine metrics để target luôn khớp expected_work_days của kỳ đánh giá thực tế.
-        metrics = self.env["hr.kpi.engine"].get_attendance_period_metrics(
+        expected_work_days = self.env["hr.kpi.engine"].get_attendance_expected_work_days(
             self.employee_id,
             template_line,
             self.start_date,
             self.end_date,
         )
-        return float(metrics.get("expected_work_days") or 0.0)
+        return expected_work_days
 
     # Build one2many commands từ template line sang evaluation line và resolve target theo nghiệp vụ.
     def _prepare_evaluation_line_commands_from_template(self, kpi):
