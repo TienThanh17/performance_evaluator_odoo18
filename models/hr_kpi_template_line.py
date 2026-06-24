@@ -45,12 +45,6 @@ class HrKpiTemplateLine(models.Model):
         required=True,
         ondelete="cascade",
     )
-    parent_dept_kpi_id = fields.Many2one(
-        "hr.department.kpi.template",
-        string="Parent Department KPI Template",
-        related="kpi_id.department_kpi_id",
-        store=False,
-    )
     pillar_id = fields.Many2one(
         "hr.evaluation.pillar",
         string="Pillar",
@@ -84,6 +78,9 @@ class HrKpiTemplateLine(models.Model):
         "hr.kpi.data.source",
         string="Data Source",
         ondelete="set null",
+    )
+    data_source_code = fields.Char(
+        related="data_source_id.code", string="Data Source Code"
     )
     scoring_formula_id = fields.Many2one(
         "hr.kpi.scoring.formula",
@@ -123,6 +120,27 @@ class HrKpiTemplateLine(models.Model):
         readonly=False,
     )
     sequence = fields.Integer(default=10)
+    target_explain = fields.Html(compute="_compute_target_explain", string="Explain")
+
+    @api.depends("kpi_type", "data_source_code", "is_section")
+    def _compute_target_explain(self):
+        for rec in self:
+            # Mặc định gán rỗng (không hiện gì cả)
+            rec.target_explain = False
+            # Chỉ hiển thị Icon HTML khi thỏa mãn đúng điều kiện
+            if (
+                not rec.is_section
+                and rec.kpi_type == "auto"
+                and rec.data_source_code == "attendance_present_days"
+            ):
+                # Tách text giải thích ra riêng bằng kỹ thuật nối chuỗi ()
+                title_text = _(
+                    "The target is automatically calculated when the evaluation is created, "
+                    "based on the expected work days of the corresponding month. "
+                    "Changes to the template target will not affect the generated evaluation."
+                )
+                # Gán vào HTML cực kỳ ngắn gọn
+                rec.target_explain = f'<i class="fa fa-exclamation-triangle text-danger" title="{title_text}"></i>'
 
     # Resolve the pillar configured by the current tab context.
     def _get_default_pillar_from_context(self):
@@ -131,9 +149,13 @@ class HrKpiTemplateLine(models.Model):
         )
         if not pillar_code:
             return self.env["hr.evaluation.pillar"].sudo()
-        return self.env["hr.evaluation.pillar"].sudo().search(
-            [("code", "=", pillar_code)],
-            limit=1,
+        return (
+            self.env["hr.evaluation.pillar"]
+            .sudo()
+            .search(
+                [("code", "=", pillar_code)],
+                limit=1,
+            )
         )
 
     # Prefill pillar_id so popup and inline creation inherit the tab pillar.
@@ -521,8 +543,9 @@ class HrKpiTemplateLine(models.Model):
             # Tính từ section sâu nhất trước để section cha luôn đọc được weight mới nhất của section con.
             for section in section_lines:
                 direct_children = section.child_line_ids.filtered(
-                    lambda line: line.kpi_id == template
-                    and line.pillar_id == section.pillar_id
+                    lambda line: (
+                        line.kpi_id == template and line.pillar_id == section.pillar_id
+                    )
                 )
                 child_weight_total = sum(direct_children.mapped("weight"))
 

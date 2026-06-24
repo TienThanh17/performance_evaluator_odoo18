@@ -4157,15 +4157,6 @@ msgid "Parent Department KPI"
 msgstr "KPI của Phòng Phụ huynh"
 
 #. module: custom_adecsol_hr_performance_evaluator
-#. odoo-python
-#: code:addons/custom_adecsol_hr_performance_evaluator/models/hr_kpi_template.py:0
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_template__department_kpi_id
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_template_line__parent_dept_kpi_id
-#: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation_line__parent_dept_line_id
-msgid "Parent Department KPI Template"
-msgstr "Mẫu KPI của Phòng Phụ huynh"
-
-#. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__parent_line_id
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi_template_line__parent_line_id
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_template_line__parent_line_id

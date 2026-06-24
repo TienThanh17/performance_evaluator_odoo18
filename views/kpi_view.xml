@@ -16,7 +16,6 @@
                         </div>
 
                         <field name="is_section" invisible="1" />
-                        <field name="parent_dept_kpi_id" invisible="1" />
 
                         <group>
                             <group string="KPI Info">
@@ -41,13 +40,28 @@
                                 <field name="is_auto" readonly="1"
                                     invisible="kpi_type != 'auto'" />
                                 <field name="data_source_id" invisible="kpi_type != 'auto'" />
+                                <div class="text-warning small"
+                                    invisible="kpi_type != 'auto' or data_source_code != 'attendance_present_days'">
+                                    <i class="fa fa-exclamation-triangle text-danger me-1"
+                                        title="The target is automatically calculated when the evaluation is created, based on the expected work days of the corresponding month. Changes to the template target will not affect the generated evaluation." />
+                                    <span>The target is automatically calculated when the evaluation
+                                        is created, based on the expected work days of the
+                                        corresponding month. Changes to the template target will not
+                                        affect the generated evaluation.</span>
+                                </div>
                             </group>
                         </group>
 
                         <group invisible="is_section">
                             <group string="Target"
                                 invisible="kpi_type != 'auto' or is_special_scoring">
-                                <field name="target" />
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-exclamation-triangle text-danger"
+                                        title="The target is automatically calculated when the evaluation is created, based on the expected work days of the corresponding month. Changes to the template target will not affect the generated evaluation."
+                                        invisible="data_source_code != 'attendance_present_days'" />
+                                    <field name="target" />
+
+                                </div>
                             </group>
                         </group>
 
@@ -100,7 +114,6 @@
 
                     <field name="is_section" column_invisible="True" />
                     <field name="pillar_code" column_invisible="True" />
-                    <field name="parent_dept_kpi_id" column_invisible="True" />
 
                     <field name="key_performance_area" string="Title" width="300px" />
 
@@ -142,7 +155,7 @@
                         string=""
                         widget="kpi_wipeout_warning_icon"
                         invisible="not is_section or not wipeout_if_child_zero"
-                        optional="show" width="100px" />
+                        optional="show" width="50px" />
                     <button name="action_open_popup" type="object"
                         icon="fa-pencil" title="Open Details"
                         width="40px" />
@@ -319,11 +332,11 @@
                                     widget="kpi_template_tree_one2many"
                                     context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_line_form_popup', 'title_field': 'key_performance_area', 'default_pillar_code': 'p3_individual'}">
                                     <list editable="bottom" decoration-bf="is_section">
-                                        <field name="sequence" widget="kpi_template_tree_handle" invisible="is_section"/>
+                                        <field name="sequence" widget="kpi_template_tree_handle"
+                                            invisible="is_section" />
                                         <field name="is_section" column_invisible="True" />
                                         <field name="pillar_code" column_invisible="True" />
-
-                                        <field name="parent_dept_kpi_id" column_invisible="True" />
+                                        <field name="data_source_code" column_invisible="True" />
 
                                         <field name="key_performance_area" string="Title"
                                             width="450px" />
@@ -362,6 +375,10 @@
                                         <field name="target" string="Target"
                                             invisible="is_section or kpi_type != 'auto'"
                                             width="100px" />
+                                        <field name="target_explain"
+                                            invisible="data_source_code != 'attendance_present_days'"
+                                            widget="html" nolabel="1"
+                                            width="30px" />
 
                                         <field name="weight" width="80px" readonly="is_section" />
                                         <field name="wipeout_if_child_zero"
@@ -370,7 +387,7 @@
                                             string=""
                                             widget="kpi_wipeout_warning_icon"
                                             invisible="not is_section or not wipeout_if_child_zero"
-                                            optional="show" width="100px" />
+                                            optional="show" width="50px" />
                                         <button name="action_open_popup" type="object"
                                             icon="fa-pencil" title="Open Details"
                                             width="40px" />
