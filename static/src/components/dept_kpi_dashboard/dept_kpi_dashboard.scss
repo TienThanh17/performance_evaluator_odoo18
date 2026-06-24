@@ -235,6 +235,261 @@ $dept-shadow-hover:  0 6px 24px rgba(3, 103, 176, 0.18);
 
   .pd-roster-section {
     margin-top: 4px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+
+    .pd-roster-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid #f3f4f6;
+
+      h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+      }
+
+      .pd-btn-approve-all {
+        height: 34px;
+        padding: 0 14px;
+        border: none;
+        border-radius: 8px;
+        background: #22c55e;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+
+        &:hover:not(:disabled) {
+          background: #16a34a;
+          box-shadow: 0 4px 10px rgba(34, 197, 94, 0.22);
+          transform: translateY(-1px);
+        }
+
+        &:disabled {
+          background: #d1d5db;
+          color: #6b7280;
+          cursor: not-allowed;
+          box-shadow: none;
+          transform: none;
+        }
+      }
+    }
+
+    table.pd-table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead th {
+        padding: 10px 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: #9ca3af;
+        background: #fafafa;
+        border-bottom: 1px solid #f3f4f6;
+        text-align: left;
+      }
+
+      tbody tr {
+        border-bottom: 1px solid #f9fafb;
+        transition: background 0.15s;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &:hover {
+          background: #f9fafb;
+        }
+
+        td {
+          padding: 12px 20px;
+          vertical-align: middle;
+          font-size: 13px;
+          color: #374151;
+        }
+      }
+    }
+
+    .pd-employee-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pd-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #f0f0f0;
+    }
+
+    .pd-emp-name {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .pd-employee-link {
+      color: #3b82f6;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+      cursor: pointer;
+
+      &:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+      }
+    }
+
+    .pd-emp-id {
+      font-weight: 600;
+      color: #374151;
+      font-size: 13px;
+    }
+
+    .pd-score-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .pd-score-num {
+        font-weight: 700;
+        font-size: 14px;
+        color: #111827;
+        min-width: 28px;
+      }
+
+      .pd-progress-bar-wrap {
+        flex: 1;
+        height: 7px;
+        background: #e5e7eb;
+        border-radius: 99px;
+        overflow: hidden;
+        min-width: 70px;
+        max-width: 110px;
+
+        .pd-progress-bar-fill {
+          height: 100%;
+          border-radius: 99px;
+          background: linear-gradient(90deg, #3b5bdb, #4dabf7);
+          transition: width 0.6s ease;
+        }
+      }
+    }
+
+    .pd-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: #f3f4f6;
+      color: #6b7280;
+      border: 1px solid #e5e7eb;
+
+      &.badge-pass {
+        background: #f0fdf4;
+        color: #16a34a;
+        border-color: #bbf7d0;
+      }
+
+      &.badge-excellent {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+      }
+
+      &.badge-fail {
+        background: #fff1f2;
+        color: #be123c;
+        border-color: #fecdd3;
+      }
+    }
+
+    .pd-action-btn {
+      width: 30px;
+      height: 30px;
+      border: none;
+      background: #f3f4f6;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6b7280;
+      font-size: 14px;
+      transition: background 0.2s, color 0.2s;
+
+      &:hover {
+        background: #e0e7ff;
+        color: #3b5bdb;
+      }
+    }
+
+    .pd-manager-eval-status {
+      color: $dept-amber;
+    }
+
+    .pd-completed-status {
+      color: $dept-green-light;
+    }
+
+    .pd-cancel-status {
+      color: $dept-red;
+    }
+
+    .pd-btn-attention {
+      color: #f59e0b;
+      font-weight: bold;
+
+      i.fa-chevron-right {
+        animation: bounceRight 1.5s infinite;
+      }
+    }
+
+    @keyframes bounceRight {
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      50% {
+        transform: translateX(5px);
+      }
+    }
+
+    .pd-empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #9ca3af;
+      font-size: 14px;
+
+      i {
+        font-size: 36px;
+        margin-bottom: 10px;
+        display: block;
+      }
+    }
   }
 }
 

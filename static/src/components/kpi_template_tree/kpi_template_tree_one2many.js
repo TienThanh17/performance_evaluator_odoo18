@@ -9,7 +9,7 @@ import { x2ManyField } from "@web/views/fields/x2many/x2many_field";
 import { ListArchParser } from "@web/views/list/list_arch_parser";
 import { Component, onWillRender } from "@odoo/owl";
 
-import { KPIOne2ManyField, KPIListRenderer } from "./kpi_one2many";
+import { KPIOne2ManyField, KPIListRenderer } from "../../js/kpi_one2many";
 
 export class KpiTemplateTreeHandleField extends Component {
     static template = "web.HandleField";

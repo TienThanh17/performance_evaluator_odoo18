@@ -528,4 +528,3 @@ class HrPerformanceReport(models.Model):
             "url": f"/web/content/{attachment.id}?download=true",
             "target": "self",
         }
-
