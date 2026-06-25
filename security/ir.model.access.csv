@@ -47,6 +47,7 @@ access_hr_evaluation_3p_summary_line_manager,access.hr.evaluation.3p.summary.lin
 access_hr_evaluation_3p_summary_line_hr,access.hr.evaluation.3p.summary.line.hr,model_hr_evaluation_3p_summary_line,custom_adecsol_hr_performance_evaluator.group_hr,1,1,1,1
 access_hr_evaluation_3p_summary_line_accounting,access.hr.evaluation.3p.summary.line.accounting,model_hr_evaluation_3p_summary_line,custom_adecsol_hr_performance_evaluator.group_accounting,1,1,0,0
 access_hr_evaluation_3p_summary_line_admin,access.hr.evaluation.3p.summary.line.admin,model_hr_evaluation_3p_summary_line,custom_adecsol_hr_performance_evaluator.group_admin,1,1,1,1
+access_hr_job_accounting,access.hr.job.accounting,hr.model_hr_job,custom_adecsol_hr_performance_evaluator.group_accounting,1,1,0,0
 access_hr_kpi_period_employee,hr.kpi.period employee,model_hr_kpi_period,custom_adecsol_hr_performance_evaluator.group_employee,1,0,0,0
 access_hr_kpi_period_manager,hr.kpi.period manager,model_hr_kpi_period,custom_adecsol_hr_performance_evaluator.group_manager,1,0,0,0
 access_hr_kpi_period_hr,hr.kpi.period hr,model_hr_kpi_period,custom_adecsol_hr_performance_evaluator.group_hr,1,1,1,1

@@ -444,6 +444,7 @@ class HrEvaluation3PSummary(models.Model):
             (p3_individual_score * p3_individual_weight)
             + (p3_department_score * p3_department_weight)
         ) / 100
+        standard_amount_vals = manual_input_vals or {}
 
         # Trả về snapshot hoàn chỉnh để summary line không bị đổi khi source live thay đổi về sau.
         return {
@@ -451,13 +452,17 @@ class HrEvaluation3PSummary(models.Model):
             "job_id": evaluation.job_id.id,
             "evaluation_id": evaluation.id,
             "dept_evaluation_id": linked_dept_eval.id if linked_dept_eval else False,
-            "p1_base_salary": manual_input_vals.get("p1_base_salary", 0.0),
-            "p1_allowance": manual_input_vals.get("p1_allowance", 0.0),
+            "p1_base_salary": standard_amount_vals.get("p1_base_salary", 0.0),
+            "p1_allowance": standard_amount_vals.get("p1_allowance", 0.0),
+            "p2_1_base_amount": standard_amount_vals.get("p2_1_base_amount", 0.0),
             "p2_1_score_raw": p2_1_score,
+            "p2_2_base_amount": standard_amount_vals.get("p2_2_base_amount", 0.0),
             "p2_2_score_raw": p2_2_score,
             "p3_individual_score": p3_individual_score,
             "p3_department_score": p3_department_score,
+            "p3_1_base_amount": standard_amount_vals.get("p3_1_base_amount", 0.0),
             "p3_1_score": p3_1_score,
+            "p3_2_base_amount": standard_amount_vals.get("p3_2_base_amount", 0.0),
             "p3_2_revenue": manual_input_vals.get("p3_2_revenue", 0.0),
             "excel_export_snapshot": json.dumps(export_snapshot, ensure_ascii=False),
         }
@@ -503,9 +508,19 @@ class HrEvaluation3PSummary(models.Model):
 
         # Không có line cũ thì khởi tạo sẵn bộ giá trị tay mặc định cho bản ghi mới.
         if not matched_line:
+            standard_amount_vals = self.env[
+                "hr.evaluation.3p.summary.line"
+            ]._build_standard_amount_vals(
+                job=evaluation.job_id,
+                employee=evaluation.employee_id,
+            )
             return False, {
-                "p1_base_salary": 0.0,
-                "p1_allowance": 0.0,
+                "p1_base_salary": standard_amount_vals.get("p1_base_salary", 0.0),
+                "p1_allowance": standard_amount_vals.get("p1_allowance", 0.0),
+                "p2_1_base_amount": standard_amount_vals.get("p2_1_base_amount", 0.0),
+                "p2_2_base_amount": standard_amount_vals.get("p2_2_base_amount", 0.0),
+                "p3_1_base_amount": standard_amount_vals.get("p3_1_base_amount", 0.0),
+                "p3_2_base_amount": standard_amount_vals.get("p3_2_base_amount", 0.0),
                 "p3_2_revenue": 0.0,
             }
 
@@ -513,6 +528,10 @@ class HrEvaluation3PSummary(models.Model):
         return matched_line, {
             "p1_base_salary": matched_line.p1_base_salary,
             "p1_allowance": matched_line.p1_allowance,
+            "p2_1_base_amount": matched_line.p2_1_base_amount,
+            "p2_2_base_amount": matched_line.p2_2_base_amount,
+            "p3_1_base_amount": matched_line.p3_1_base_amount,
+            "p3_2_base_amount": matched_line.p3_2_base_amount,
             "p3_2_revenue": matched_line.p3_2_revenue,
         }
 
@@ -1248,13 +1267,37 @@ class HrEvaluation3PSummaryLine(models.Model):
         default=0.0,
         help="Responsibility or professional allowance. Filled by accounting.",
     )
+    p2_1_base_amount = fields.Float(
+        string="P2.1 - Standard Amount",
+        digits=(16, 0),
+        default=0.0,
+        help="Reusable standard amount copied from the job position and editable by accounting.",
+    )
     p2_1_score_raw = fields.Float(string="P2.1")
+    p2_2_base_amount = fields.Float(
+        string="P2.2 - Standard Amount",
+        digits=(16, 0),
+        default=0.0,
+        help="Reusable standard amount copied from the job position and editable by accounting.",
+    )
     p2_2_score_raw = fields.Float(string="P2.2")
     p3_individual_score = fields.Float(string="P3.1.1")
     p3_department_score = fields.Float(string="P3.1.2")
+    p3_1_base_amount = fields.Float(
+        string="P3.1 - Standard Amount",
+        digits=(16, 0),
+        default=0.0,
+        help="Reusable standard amount copied from the job position and editable by accounting.",
+    )
     p3_1_score = fields.Float(string="P3.1", default=0.0)
+    p3_2_base_amount = fields.Float(
+        string="P3.2 - Standard Amount",
+        digits=(16, 0),
+        default=0.0,
+        help="Reusable standard amount copied from the job position and editable by accounting.",
+    )
     p3_2_revenue = fields.Float(
-        string="P3.2 - Revenue",
+        string="P3.2",
         digits=(16, 0),
         default=0.0,
         help="Revenue coefficient. Filled by accounting.",
@@ -1263,3 +1306,92 @@ class HrEvaluation3PSummaryLine(models.Model):
         string="Excel Export Snapshot",
         help="Stored JSON snapshot used by the Excel export to keep historical rows stable.",
     )
+
+    # Xác định job nguồn ưu tiên theo job truyền vào, sau đó rơi về job trên nhân viên để tái sử dụng định mức.
+    @api.model
+    def _resolve_standard_amount_job(self, employee=False, job=False):
+        # Nếu caller đã truyền job rõ ràng thì dùng ngay để tránh lookup dư thừa.
+        if job:
+            return job
+
+        # Khi job trống nhưng đã có nhân viên thì tái sử dụng job mặc định của nhân viên.
+        if employee and employee.job_id:
+            return employee.job_id
+
+        # Không tìm được nguồn thì trả record rỗng để caller tự fallback về 0.
+        return self.env["hr.job"]
+
+    # Dựng bộ giá trị định mức chuẩn để tái dùng cho onchange, create và aggregate.
+    @api.model
+    def _build_standard_amount_vals(self, employee=False, job=False):
+        # Chuẩn hóa lại job nguồn để mọi luồng đều dùng cùng một logic lấy mặc định.
+        resolved_job = self._resolve_standard_amount_job(employee=employee, job=job)
+
+        # Trả về dict cố định để caller có thể merge trực tiếp vào vals/create/update.
+        return {
+            "p1_base_salary": resolved_job.x_p11_standard_amount or 0.0,
+            "p1_allowance": resolved_job.x_p12_standard_amount or 0.0,
+            "p2_1_base_amount": resolved_job.x_p21_standard_amount or 0.0,
+            "p2_2_base_amount": resolved_job.x_p22_standard_amount or 0.0,
+            "p3_1_base_amount": resolved_job.x_p31_standard_amount or 0.0,
+            "p3_2_base_amount": resolved_job.x_p32_standard_amount or 0.0,
+        }
+
+    # Đồng bộ job nguồn và 4 định mức chuẩn khi người dùng đổi nhân viên hoặc vị trí trên giao diện.
+    @api.onchange("employee_id", "job_id")
+    def _onchange_standard_amount_source(self):
+        for line in self:
+            # Tìm job nguồn ưu tiên theo vị trí đang chọn, nếu thiếu thì lấy từ nhân viên.
+            resolved_job = line._resolve_standard_amount_job(
+                employee=line.employee_id,
+                job=line.job_id,
+            )
+
+            # Tự điền lại job nếu nhân viên đã có vị trí nhưng dòng chưa gắn để người dùng không phải chọn 2 lần.
+            if resolved_job and not line.job_id:
+                line.job_id = resolved_job
+
+            # Đồng bộ toàn bộ bộ định mức để kế toán có thể chỉnh tiếp từ giá trị mặc định mới nhất.
+            for field_name, value in line._build_standard_amount_vals(
+                employee=line.employee_id,
+                job=resolved_job,
+            ).items():
+                line[field_name] = value
+
+    # Bổ sung định mức mặc định từ job cho các luồng tạo record không đi qua form onchange.
+    @api.model_create_multi
+    def create(self, vals_list):
+        prepared_vals_list = []
+        tracked_fields = {
+            "p1_base_salary",
+            "p1_allowance",
+            "p2_1_base_amount",
+            "p2_2_base_amount",
+            "p3_1_base_amount",
+            "p3_2_base_amount",
+        }
+
+        for vals in vals_list:
+            # Sao chép vals để tránh mutate trực tiếp dữ liệu đầu vào từ caller.
+            prepared_vals = dict(vals)
+            employee = self.env["hr.employee"].browse(prepared_vals["employee_id"]) if prepared_vals.get("employee_id") else self.env["hr.employee"]
+            job = self.env["hr.job"].browse(prepared_vals["job_id"]) if prepared_vals.get("job_id") else self.env["hr.job"]
+
+            # Tự gắn job từ nhân viên nếu caller chưa truyền nhưng hồ sơ nhân viên đã có vị trí.
+            resolved_job = self._resolve_standard_amount_job(employee=employee, job=job)
+            if resolved_job and not prepared_vals.get("job_id"):
+                prepared_vals["job_id"] = resolved_job.id
+
+            # Chỉ điền những field còn thiếu để không đè dữ liệu tay hoặc dữ liệu aggregate đã preserve.
+            standard_amount_vals = self._build_standard_amount_vals(
+                employee=employee,
+                job=resolved_job,
+            )
+            for field_name in tracked_fields:
+                if field_name not in prepared_vals:
+                    prepared_vals[field_name] = standard_amount_vals[field_name]
+
+            prepared_vals_list.append(prepared_vals)
+
+        # Gọi super sau khi đã chuẩn hóa xong để ORM lưu record với bộ định mức đầy đủ.
+        return super().create(prepared_vals_list)

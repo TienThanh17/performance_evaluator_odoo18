@@ -102,6 +102,10 @@
                 <field name="job_id" readonly="1"/>
                 <field name="p1_base_salary"/>
                 <field name="p1_allowance"/>
+                <field name="p2_1_base_amount"/>
+                <field name="p2_2_base_amount"/>
+                <field name="p3_1_base_amount"/>
+                <field name="p3_2_base_amount"/>
                 <field name="p3_2_revenue"/>
                 <field name="p2_1_score_raw" readonly="1" optional="show"/>
                 <field name="p2_2_score_raw" readonly="1" optional="show"/>

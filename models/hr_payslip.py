@@ -8,9 +8,13 @@ class HrPayslip(models.Model):
     PAYROLL_3P_INPUT_FIELD_MAP = {
         "P1_BASE": "p1_base_salary",
         "P1_ALLOW": "p1_allowance",
+        "P21_AMOUNT": "p2_1_base_amount",
         "P21_SCORE": "p2_1_score_raw",
+        "P22_AMOUNT": "p2_2_base_amount",
         "P22_SCORE": "p2_2_score_raw",
+        "P31_AMOUNT": "p3_1_base_amount",
         "P31_SCORE": "p3_1_score",
+        "P32_AMOUNT": "p3_2_base_amount",
         "P32_REVENUE": "p3_2_revenue",
     }
 

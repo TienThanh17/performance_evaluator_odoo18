@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_hr_job_form_inherit_3p_standard_amounts" model="ir.ui.view">
+            <field name="name">hr.job.form.inherit.3p.standard.amounts</field>
+            <field name="model">hr.job</field>
+            <field name="inherit_id" ref="hr.view_hr_job_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/notebook" position="inside">
+                    <page string="3P Standard Amounts"
+                        groups="custom_adecsol_hr_performance_evaluator.group_accounting">
+                        <!-- Outer group with col="3" displays the 3 sections side-by-side on wide
+                        screens -->
+                        <group col="3">
+
+                            <!-- Section 1: P1 (Position) -->
+                            <group string="P1: Position Standards" col="2">
+                                <field name="x_p11_standard_amount" />
+                                <field name="x_p12_standard_amount" />
+                            </group>
+
+                            <!-- Section 2: P2 (Person) -->
+                            <group string="P2: Person Standards" col="2">
+                                <field name="x_p21_standard_amount" />
+                                <field name="x_p22_standard_amount" />
+                            </group>
+
+                            <!-- Section 3: P3 (Performance) -->
+                            <group string="P3: Performance Standards" col="2">
+                                <field name="x_p31_standard_amount" />
+                                <field name="x_p32_standard_amount" />
+                            </group>
+
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

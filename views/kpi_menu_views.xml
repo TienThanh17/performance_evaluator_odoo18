@@ -73,6 +73,13 @@ else:
             <field name="context">{'search_default_filter_done': 1, 'search_default_group_period': 1}</field>
         </record>
 
+        <record id="action_hr_job_3p_accounting" model="ir.actions.act_window">
+            <field name="name">3P Standard Amounts</field>
+            <field name="res_model">hr.job</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{}</field>
+        </record>
+
         <!-- Template and configuration actions -->
         <record id="hr_kpi_action" model="ir.actions.act_window">
             <field name="name">KPI</field>
@@ -150,6 +157,12 @@ else:
             action="action_hr_evaluation_3p_summary_accounting"
             sequence="35"
             groups="custom_adecsol_hr_performance_evaluator.group_accounting,custom_adecsol_hr_performance_evaluator.group_hr,custom_adecsol_hr_performance_evaluator.group_admin" />
+        <menuitem id="menu_hr_job_3p_accounting"
+            name="3P Standard Amounts"
+            parent="kpi_department_menu"
+            action="action_hr_job_3p_accounting"
+            sequence="36"
+            groups="custom_adecsol_hr_performance_evaluator.group_accounting" />
 
         <menuitem id="kpi_employee_menu" name="KPI Employee" sequence="20"
             parent="performance_evaluator" action="action_open_default_kpi_home" />
