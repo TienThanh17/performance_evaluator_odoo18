@@ -42,7 +42,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "data/hr_kpi_pkt_ltd_3p_2026_04_seed.xml",
         "data/hr_kpi_ptk_ltd_3p_2026_04_seed.xml",
         "data/hr_kpi_manager_pkt_ltd_3p_seed.xml",
-        # "data/hr_kpi_dashboard_widget_seed.xml",
+        "data/hr_kpi_dashboard_widget_seed.xml",
         "data/kpi_period_seed.xml",
         "data/ir_cron_data.xml",
         # ============================== VIEWS =============================

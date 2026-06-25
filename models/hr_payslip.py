@@ -18,6 +18,12 @@ class HrPayslip(models.Model):
         "P32_REVENUE": "p3_2_revenue",
     }
 
+    # Quy đổi điểm P3.1 thang 100 trên summary line về hệ số payroll cuối cùng.
+    @api.model
+    def _compute_p3_1_payroll_coefficient(self, p3_1_score):
+        # Summary line lưu P3.1 ở thang 100 nên payroll chỉ cần đưa về hệ số 0..1.
+        return float(p3_1_score or 0.0) / 100.0
+
     # Tìm dòng 3P phù hợp nhất cho nhân viên và kỳ lương hiện tại để bơm input vào payroll.
     @api.model
     def _get_matching_3p_summary_line(self, contract, date_from, date_to):
@@ -68,10 +74,15 @@ class HrPayslip(models.Model):
             return {}
 
         # Chỉ expose các field lương 3P đã được business chốt để tránh lẫn dữ liệu không phục vụ payroll.
-        return {
+        amounts = {
             input_code: float(getattr(summary_line, field_name, 0.0) or 0.0)
             for input_code, field_name in self.PAYROLL_3P_INPUT_FIELD_MAP.items()
         }
+        # Quy đổi riêng P3.1 về hệ số payroll vì field hiển thị trên Odoo đang giữ theo thang 100.
+        amounts["P31_SCORE"] = self._compute_p3_1_payroll_coefficient(
+            summary_line.p3_1_score
+        )
+        return amounts
 
     # Bổ sung amount cho payroll inputs từ summary 3P để salary rules OCA payroll tính lương được ngay.
     @api.model

@@ -5051,13 +5051,13 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_evaluation_3p_summary_line__summary_id
 msgid "Summary"
-msgstr "Tóm tắt"
+msgstr "Kết Quả"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_evaluation_3p_summary__line_ids
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_evaluation_3p_summary_form
 msgid "Summary Lines"
-msgstr "Dòng tóm tắt"
+msgstr "Dòng Kết Quả"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_data_source__source_type__system

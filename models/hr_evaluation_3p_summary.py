@@ -413,17 +413,14 @@ class HrEvaluation3PSummary(models.Model):
             return 0.5
         return 0
 
-    # Chuẩn bị dữ liệu một dòng tổng hợp 3P và chốt snapshot export đúng theo kỳ aggregate hiện tại.
-    def _prepare_summary_line_vals(
+    # Chuẩn bị bộ field hệ thống cần recompute cho một dòng tổng hợp 3P.
+    def _prepare_summary_line_system_vals(
         self,
         evaluation,
         dept_evaluation,
         p3_individual_weight,
         p3_department_weight,
-        manual_input_vals=None,
     ):
-        # Chuẩn hóa bộ dữ liệu nhập tay để line mới luôn giữ được giá trị kế toán đã nhập trước đó.
-        manual_input_vals = manual_input_vals or {}
         linked_dept_eval = evaluation.dept_evaluation_id or dept_evaluation
         export_snapshot = self._build_excel_export_snapshot(
             evaluation, linked_dept_eval
@@ -440,38 +437,58 @@ class HrEvaluation3PSummary(models.Model):
         p3_department_score = (
             linked_dept_eval.dept_kpi_score if linked_dept_eval else 0.0
         )
-        p3_1_score = (
-            (p3_individual_score * p3_individual_weight)
-            + (p3_department_score * p3_department_weight)
+        # Tính tổng trọng số P3.1 trước khi quy đổi sang hệ số cuối cùng.
+        p3_total_weight = (
+            (p3_individual_score * (p3_individual_weight/100))
+            + (p3_department_score * (p3_department_weight/100))
         ) / 100
-        standard_amount_vals = manual_input_vals or {}
+        # Quy đổi theo rule hệ số chuẩn, sau đó nhân 100 để Odoo hiển thị theo thang 100.
+        p3_1_score = self._compute_p3_coefficient_value(p3_total_weight) * 100
 
-        # Trả về snapshot hoàn chỉnh để summary line không bị đổi khi source live thay đổi về sau.
+        # Chỉ trả về các field phát sinh từ evaluation để action_aggregate có thể write an toàn
+        # mà không ghi đè các field kế toán nhập tay.
         return {
             "employee_id": evaluation.employee_id.id,
             "job_id": evaluation.job_id.id,
             "evaluation_id": evaluation.id,
             "dept_evaluation_id": linked_dept_eval.id if linked_dept_eval else False,
-            "p1_base_salary": standard_amount_vals.get("p1_base_salary", 0.0),
-            "p1_allowance": standard_amount_vals.get("p1_allowance", 0.0),
-            "p2_1_base_amount": standard_amount_vals.get("p2_1_base_amount", 0.0),
             "p2_1_score_raw": p2_1_score,
-            "p2_2_base_amount": standard_amount_vals.get("p2_2_base_amount", 0.0),
             "p2_2_score_raw": p2_2_score,
             "p3_individual_score": p3_individual_score,
             "p3_department_score": p3_department_score,
-            "p3_1_base_amount": standard_amount_vals.get("p3_1_base_amount", 0.0),
             "p3_1_score": p3_1_score,
-            "p3_2_base_amount": standard_amount_vals.get("p3_2_base_amount", 0.0),
-            "p3_2_revenue": manual_input_vals.get("p3_2_revenue", 0.0),
             "excel_export_snapshot": json.dumps(export_snapshot, ensure_ascii=False),
         }
 
-    # Gom line hiện tại theo phiếu KPI và nhân viên để aggregate lại mà vẫn nhận diện đúng line cũ.
+    # Chuẩn bị dữ liệu đầy đủ cho line mới, gồm field hệ thống và default manual ban đầu từ hr.job.
+    def _prepare_summary_line_create_vals(
+        self,
+        evaluation,
+        dept_evaluation,
+        p3_individual_weight,
+        p3_department_weight,
+    ):
+        # Dựng phần dữ liệu hệ thống trước để line mới có đủ snapshot KPI cần thiết.
+        create_vals = self._prepare_summary_line_system_vals(
+            evaluation,
+            dept_evaluation,
+            p3_individual_weight,
+            p3_department_weight,
+        )
+
+        # Chỉ line mới mới nhận default manual ban đầu; line cũ sẽ do kế toán tự quản lý.
+        create_vals.update(
+            self.env["hr.evaluation.3p.summary.line"]._build_standard_amount_vals(
+                job=evaluation.job_id,
+                employee=evaluation.employee_id,
+            )
+        )
+        return create_vals
+
+    # Gom line hiện tại theo evaluation để aggregate lại mà vẫn nhận diện đúng line cũ.
     def _get_existing_line_match_maps(self):
         self.ensure_one()
         existing_lines_by_evaluation = {}
-        existing_lines_by_employee = {}
 
         # Lập chỉ mục toàn bộ line hiện hữu để tái sử dụng khi cập nhật snapshot mới.
         for line in self.line_ids:
@@ -479,61 +496,7 @@ class HrEvaluation3PSummary(models.Model):
             if line.evaluation_id:
                 existing_lines_by_evaluation[line.evaluation_id.id] = line
 
-            # Giữ thêm map theo nhân viên để cứu dữ liệu cũ khi evaluation bị thay thế hoặc trước đây chưa link đủ.
-            if line.employee_id:
-                existing_lines_by_employee[line.employee_id.id] = line
-
-        return existing_lines_by_evaluation, existing_lines_by_employee
-
-    # Tìm line cũ phù hợp nhất và lấy lại bộ dữ liệu kế toán cần giữ qua các lần aggregate.
-    def _get_preserved_manual_input(
-        self,
-        evaluation,
-        existing_lines_by_evaluation,
-        existing_lines_by_employee,
-        used_line_ids,
-    ):
-        self.ensure_one()
-        matched_line = existing_lines_by_evaluation.get(evaluation.id)
-
-        # Nếu line theo evaluation đã được ghép cho bản ghi khác thì bỏ qua để tránh update trùng.
-        if matched_line and matched_line.id in used_line_ids:
-            matched_line = False
-
-        # Rơi về line cùng nhân viên để giữ dữ liệu nhập tay khi nguồn KPI được tạo lại.
-        if not matched_line:
-            employee_line = existing_lines_by_employee.get(evaluation.employee_id.id)
-            if employee_line and employee_line.id not in used_line_ids:
-                matched_line = employee_line
-
-        # Không có line cũ thì khởi tạo sẵn bộ giá trị tay mặc định cho bản ghi mới.
-        if not matched_line:
-            standard_amount_vals = self.env[
-                "hr.evaluation.3p.summary.line"
-            ]._build_standard_amount_vals(
-                job=evaluation.job_id,
-                employee=evaluation.employee_id,
-            )
-            return False, {
-                "p1_base_salary": standard_amount_vals.get("p1_base_salary", 0.0),
-                "p1_allowance": standard_amount_vals.get("p1_allowance", 0.0),
-                "p2_1_base_amount": standard_amount_vals.get("p2_1_base_amount", 0.0),
-                "p2_2_base_amount": standard_amount_vals.get("p2_2_base_amount", 0.0),
-                "p3_1_base_amount": standard_amount_vals.get("p3_1_base_amount", 0.0),
-                "p3_2_base_amount": standard_amount_vals.get("p3_2_base_amount", 0.0),
-                "p3_2_revenue": 0.0,
-            }
-
-        # Trả về nguyên bộ dữ liệu kế toán để aggregate chỉ làm mới điểm KPI mà không xóa input tay.
-        return matched_line, {
-            "p1_base_salary": matched_line.p1_base_salary,
-            "p1_allowance": matched_line.p1_allowance,
-            "p2_1_base_amount": matched_line.p2_1_base_amount,
-            "p2_2_base_amount": matched_line.p2_2_base_amount,
-            "p3_1_base_amount": matched_line.p3_1_base_amount,
-            "p3_2_base_amount": matched_line.p3_2_base_amount,
-            "p3_2_revenue": matched_line.p3_2_revenue,
-        }
+        return existing_lines_by_evaluation
 
     # Tổng hợp lại summary lines và chốt snapshot export theo bộ trọng số Settings hiện tại.
     def action_aggregate(self):
@@ -541,11 +504,8 @@ class HrEvaluation3PSummary(models.Model):
         p3_individual_weight, p3_department_weight = settings.get_p3_summary_weights()
 
         for summary in self:
-            # Lập chỉ mục line cũ trước khi aggregate để giữ nguyên dữ liệu kế toán đã nhập.
-            (
-                existing_lines_by_evaluation,
-                existing_lines_by_employee,
-            ) = summary._get_existing_line_match_maps()
+            # Lập chỉ mục line cũ theo evaluation để aggregate chỉ recompute trên đúng nguồn KPI.
+            existing_lines_by_evaluation = summary._get_existing_line_match_maps()
             used_line_ids = set()
 
             # Lấy phiếu KPI phòng ban của kỳ hiện tại để làm nguồn fallback chung.
@@ -559,47 +519,53 @@ class HrEvaluation3PSummary(models.Model):
                 order="employee_id, id",
             )
 
-            # Dùng command update/create/delete để đồng bộ snapshot mới mà không wipe dữ liệu kế toán.
-            commands = []
             for evaluation in evaluations:
                 linked_dept_evaluation = (
                     evaluation.dept_evaluation_id or dept_evaluation
                 )
-                existing_line, manual_input_vals = summary._get_preserved_manual_input(
-                    evaluation,
-                    existing_lines_by_evaluation,
-                    existing_lines_by_employee,
-                    used_line_ids,
-                )
-                summary_line_vals = summary._prepare_summary_line_vals(
+                existing_line = existing_lines_by_evaluation.get(evaluation.id)
+
+                # Chỉ recompute các field hệ thống phát sinh từ evaluation; tuyệt đối không
+                # truyền các field kế toán nhập tay vào update payload.
+                summary_line_vals = summary._prepare_summary_line_system_vals(
                     evaluation,
                     linked_dept_evaluation,
                     p3_individual_weight,
                     p3_department_weight,
-                    manual_input_vals=manual_input_vals,
                 )
 
-                # Update line cũ nếu tìm được, ngược lại tạo mới line cho nhân viên chưa có trong summary.
+                # Update line cũ nếu tìm được, ngược lại tạo line mới với default manual ban đầu.
                 if existing_line:
+                    # Mỗi evaluation chỉ được gắn với một line trong batch hiện tại để tránh delete nhầm.
                     used_line_ids.add(existing_line.id)
-                    commands.append(
-                        fields.Command.update(existing_line.id, summary_line_vals)
-                    )
+                    # Ghi trực tiếp lên line hiện hữu để aggregate chỉ update field hệ thống
+                    # và tránh side effect từ batch command của one2many.
+                    existing_line.write(summary_line_vals)
                 else:
-                    commands.append(fields.Command.create(summary_line_vals))
+                    # Tạo line mới riêng biệt để default manual ban đầu chỉ áp dụng cho record mới.
+                    new_line = self.env["hr.evaluation.3p.summary.line"].create(
+                        {
+                            "summary_id": summary.id,
+                            **summary._prepare_summary_line_create_vals(
+                                evaluation,
+                                linked_dept_evaluation,
+                                p3_individual_weight,
+                                p3_department_weight,
+                            ),
+                        }
+                    )
+                    used_line_ids.add(new_line.id)
 
             # Xóa các line không còn phiếu KPI nguồn trong kỳ hiện tại để summary luôn phản ánh dữ liệu mới nhất.
-            stale_lines = summary.line_ids.filtered(lambda line: line.id not in used_line_ids)
-            for stale_line in stale_lines:
-                commands.append(fields.Command.delete(stale_line.id))
-
-            # Ghi trạng thái done cùng batch line mới để summary phản ánh đúng lần aggregate này.
-            summary.write(
-                {
-                    "line_ids": commands,
-                    "state": "done",
-                }
+            stale_lines = summary.line_ids.filtered(
+                lambda line: line.id not in used_line_ids
             )
+            if stale_lines:
+                # Chỉ xóa line không còn evaluation nguồn sau khi toàn bộ update/create đã hoàn tất.
+                stale_lines.unlink()
+
+            # Chỉ cần chốt trạng thái summary sau khi line con đã được đồng bộ trực tiếp.
+            summary.write({"state": "done"})
         return True
 
     # Ghi một dòng nhân viên vào bảng tổng hợp chính cùng toàn bộ công thức Excel động.
@@ -1255,6 +1221,9 @@ class HrEvaluation3PSummaryLine(models.Model):
         store=True,
         readonly=True,
     )
+    can_edit_manual_inputs = fields.Boolean(
+        compute="_compute_can_edit_manual_inputs",
+    )
     p1_base_salary = fields.Float(
         string="P1.1 - Position Salary",
         digits=(16, 0),
@@ -1273,23 +1242,44 @@ class HrEvaluation3PSummaryLine(models.Model):
         default=0.0,
         help="Reusable standard amount copied from the job position and editable by accounting.",
     )
-    p2_1_score_raw = fields.Float(string="P2.1")
+    p2_1_score_raw = fields.Float(
+        string="P2.1",
+        help="Weighted P2.1 score aggregated from the employee evaluation.",
+    )
     p2_2_base_amount = fields.Float(
         string="P2.2 - Standard Amount",
         digits=(16, 0),
         default=0.0,
         help="Reusable standard amount copied from the job position and editable by accounting.",
     )
-    p2_2_score_raw = fields.Float(string="P2.2")
-    p3_individual_score = fields.Float(string="P3.1.1")
-    p3_department_score = fields.Float(string="P3.1.2")
+    p2_2_score_raw = fields.Float(
+        string="P2.2",
+        help="Weighted P2.2 score aggregated from the employee evaluation.",
+    )
+    p3_individual_score = fields.Float(
+        string="P3.1.1",
+        help="Employee KPI score used as the personal component of P3.1 before coefficient conversion.",
+    )
+    p3_department_score = fields.Float(
+        string="P3.1.2",
+        help="Department KPI score used as the team component of P3.1 before coefficient conversion.",
+    )
     p3_1_base_amount = fields.Float(
         string="P3.1 - Standard Amount",
         digits=(16, 0),
         default=0.0,
         help="Reusable standard amount copied from the job position and editable by accounting.",
     )
-    p3_1_score = fields.Float(string="P3.1", default=0.0)
+    p3_1_score = fields.Float(  
+        string="P3.1",
+        default=0.0,
+        help="""P3.1 Coefficient calculated based on Total Weight (Sum of P3.1.1 Individual KPI and P3.1.2 Department KPI):
+            - Total Weight >= 100%: 1.0
+            - Total Weight >= 90%: 0.8
+            - Total Weight >= 80%: 0.7
+            - Total Weight >= 70%: 0.5
+            - Total Weight < 70%: 0.0""",
+    )
     p3_2_base_amount = fields.Float(
         string="P3.2 - Standard Amount",
         digits=(16, 0),
@@ -1306,6 +1296,19 @@ class HrEvaluation3PSummaryLine(models.Model):
         string="Excel Export Snapshot",
         help="Stored JSON snapshot used by the Excel export to keep historical rows stable.",
     )
+
+    # Trả về snapshot các field nhập tay để aggregate có thể preserve ổn định qua các lần rebuild line.
+    def _get_manual_input_vals(self):
+        self.ensure_one()
+        return {
+            "p1_base_salary": self.p1_base_salary,
+            "p1_allowance": self.p1_allowance,
+            "p2_1_base_amount": self.p2_1_base_amount,
+            "p2_2_base_amount": self.p2_2_base_amount,
+            "p3_1_base_amount": self.p3_1_base_amount,
+            "p3_2_base_amount": self.p3_2_base_amount,
+            "p3_2_revenue": self.p3_2_revenue,
+        }
 
     # Xác định job nguồn ưu tiên theo job truyền vào, sau đó rơi về job trên nhân viên để tái sử dụng định mức.
     @api.model
@@ -1337,7 +1340,114 @@ class HrEvaluation3PSummaryLine(models.Model):
             "p3_2_base_amount": resolved_job.x_p32_standard_amount or 0.0,
         }
 
-    # Đồng bộ job nguồn và 4 định mức chuẩn khi người dùng đổi nhân viên hoặc vị trí trên giao diện.
+    # Xác định người dùng hiện tại có được sửa input tay và dùng nút refresh hay không.
+    def _compute_can_edit_manual_inputs(self):
+        # Tính một lần theo user hiện tại để toàn bộ dòng dùng chung cùng rule quyền.
+        can_edit = self.env.user.has_group(
+            "custom_adecsol_hr_performance_evaluator.group_accounting"
+        )
+        for line in self:
+            # Gán cờ vào từng dòng để view có thể readonly/invisible theo đúng user hiện tại.
+            line.can_edit_manual_inputs = can_edit
+
+    # Lấy job nguồn thực tế của dòng để các nút refresh luôn dùng đúng chuẩn dữ liệu từ hr.job.
+    def _get_standard_amount_source_job(self):
+        self.ensure_one()
+
+        # Ưu tiên job đang gắn trực tiếp trên dòng vì đây là nguồn business gần nhất.
+        source_job = self._resolve_standard_amount_job(
+            employee=self.employee_id,
+            job=self.job_id,
+        )
+        if source_job:
+            return source_job
+
+        # Chặn thao tác refresh khi chưa xác định được vị trí nguồn để tránh ghi sai dữ liệu.
+        raise UserError(
+            _(
+                "Please set a job position on the line or employee before refreshing standard amounts."
+            )
+        )
+
+    # Sao chép lại một field định mức từ hr.job sang field nhập liệu tương ứng trên summary line.
+    def _refetch_standard_amount_field(self, target_field_name, source_field_name):
+        self.ensure_one()
+
+        # Xác định job nguồn trước khi đọc standard amount để luôn bám đúng master data.
+        source_job = self._get_standard_amount_source_job()
+
+        # Chuẩn hóa lại job trên dòng nếu trước đây đang thiếu nhưng đã xác định được từ nhân viên.
+        vals = {
+            target_field_name: float(getattr(source_job, source_field_name, 0.0) or 0.0)
+        }
+        if not self.job_id:
+            vals["job_id"] = source_job.id
+
+        # Đồng bộ lại giá trị thủ công từ field cấu hình chuẩn của hr.job.
+        self.write(vals)
+        return True
+
+    # Refresh lại P1.1 từ standard amount của hr.job.
+    def action_refetch_p1_base_salary(self):
+        for line in self:
+            # Mỗi dòng tự refresh lại field P1.1 từ job nguồn tương ứng của chính nó.
+            line._refetch_standard_amount_field(
+                "p1_base_salary",
+                "x_p11_standard_amount",
+            )
+        return True
+
+    # Refresh lại P1.2 từ standard amount của hr.job.
+    def action_refetch_p1_allowance(self):
+        for line in self:
+            # Mỗi dòng tự refresh lại field P1.2 từ job nguồn tương ứng của chính nó.
+            line._refetch_standard_amount_field(
+                "p1_allowance",
+                "x_p12_standard_amount",
+            )
+        return True
+
+    # Refresh lại P2.1 từ standard amount của hr.job.
+    def action_refetch_p2_1_base_amount(self):
+        for line in self:
+            # Mỗi dòng tự refresh lại field P2.1 từ job nguồn tương ứng của chính nó.
+            line._refetch_standard_amount_field(
+                "p2_1_base_amount",
+                "x_p21_standard_amount",
+            )
+        return True
+
+    # Refresh lại P2.2 từ standard amount của hr.job.
+    def action_refetch_p2_2_base_amount(self):
+        for line in self:
+            # Mỗi dòng tự refresh lại field P2.2 từ job nguồn tương ứng của chính nó.
+            line._refetch_standard_amount_field(
+                "p2_2_base_amount",
+                "x_p22_standard_amount",
+            )
+        return True
+
+    # Refresh lại P3.1 từ standard amount của hr.job.
+    def action_refetch_p3_1_base_amount(self):
+        for line in self:
+            # Mỗi dòng tự refresh lại field P3.1 từ job nguồn tương ứng của chính nó.
+            line._refetch_standard_amount_field(
+                "p3_1_base_amount",
+                "x_p31_standard_amount",
+            )
+        return True
+
+    # Refresh lại P3.2 từ standard amount của hr.job.
+    def action_refetch_p3_2_base_amount(self):
+        for line in self:
+            # Mỗi dòng tự refresh lại field P3.2 từ job nguồn tương ứng của chính nó.
+            line._refetch_standard_amount_field(
+                "p3_2_base_amount",
+                "x_p32_standard_amount",
+            )
+        return True
+
+    # Đồng bộ job nguồn và 6 định mức chuẩn khi người dùng đổi nhân viên hoặc vị trí trên giao diện.
     @api.onchange("employee_id", "job_id")
     def _onchange_standard_amount_source(self):
         for line in self:
@@ -1374,8 +1484,16 @@ class HrEvaluation3PSummaryLine(models.Model):
         for vals in vals_list:
             # Sao chép vals để tránh mutate trực tiếp dữ liệu đầu vào từ caller.
             prepared_vals = dict(vals)
-            employee = self.env["hr.employee"].browse(prepared_vals["employee_id"]) if prepared_vals.get("employee_id") else self.env["hr.employee"]
-            job = self.env["hr.job"].browse(prepared_vals["job_id"]) if prepared_vals.get("job_id") else self.env["hr.job"]
+            employee = (
+                self.env["hr.employee"].browse(prepared_vals["employee_id"])
+                if prepared_vals.get("employee_id")
+                else self.env["hr.employee"]
+            )
+            job = (
+                self.env["hr.job"].browse(prepared_vals["job_id"])
+                if prepared_vals.get("job_id")
+                else self.env["hr.job"]
+            )
 
             # Tự gắn job từ nhân viên nếu caller chưa truyền nhưng hồ sơ nhân viên đã có vị trí.
             resolved_job = self._resolve_standard_amount_job(employee=employee, job=job)
