@@ -27,6 +27,11 @@
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.module_hr_performance_evaluation"/>
         </record>
 
+        <record id="group_accounting" model="res.groups">
+            <field name="name">Accounting</field>
+            <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.module_hr_performance_evaluation"/>
+        </record>
+
         <record id="group_admin" model="res.groups">
             <field name="name">Admin (Dev)</field>
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.module_hr_performance_evaluation"/>
@@ -263,6 +268,12 @@
             <field name="domain_force">[(1,'=',1)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_hr'))]"/>
         </record>
+        <record id="rule_3p_summary_accounting_all" model="ir.rule">
+            <field name="name">3P Summary: Accounting - All</field>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_evaluation_3p_summary"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_accounting'))]"/>
+        </record>
         <record id="rule_3p_summary_admin_all" model="ir.rule">
             <field name="name">3P Summary: Admin - Bypass</field>
             <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_evaluation_3p_summary"/>
@@ -281,6 +292,12 @@
             <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_evaluation_3p_summary_line"/>
             <field name="domain_force">[(1,'=',1)]</field>
             <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_hr'))]"/>
+        </record>
+        <record id="rule_3p_summary_line_accounting_all" model="ir.rule">
+            <field name="name">3P Summary Line: Accounting - All</field>
+            <field name="model_id" ref="custom_adecsol_hr_performance_evaluator.model_hr_evaluation_3p_summary_line"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('custom_adecsol_hr_performance_evaluator.group_accounting'))]"/>
         </record>
         <record id="rule_3p_summary_line_admin_all" model="ir.rule">
             <field name="name">3P Summary Line: Admin - Bypass</field>

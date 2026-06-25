@@ -95,7 +95,7 @@
                             <field name="kpi_line_ids" widget="kpi_template_tree_one2many"
                                 context="{'form_view_ref': 'custom_adecsol_hr_performance_evaluator.view_hr_kpi_department_line_form_popup', 'default_pillar_code': 'p3_department'}">
                                 <list editable="bottom" decoration-bf="is_section">
-                                    <field name="sequence" widget="kpi_template_tree_handle" invisible="is_section"/>
+                                    <field name="sequence" widget="kpi_template_tree_handle" />
                                     <field name="is_section" column_invisible="True" />
 
                                     <field name="name" string="Title" width="450px" />
@@ -110,6 +110,9 @@
                                         widget="kpi_description_icon"
                                         invisible="is_section"
                                         optional="show" width="100px" />
+                                    <field name="parent_line_id"
+                                        optional="hide"
+                                        width="150px" />
 
                                     <field name="kpi_type" invisible="is_section" width="100px" />
                                     <field name="manual_scoring_type"
@@ -126,9 +129,11 @@
 
                                     <field name="is_auto" column_invisible="1" />
                                     <field name="dept_source_type"
-                                        invisible="is_section or not is_auto" optional="hide" width="130px" />
+                                        invisible="is_section or not is_auto" optional="hide"
+                                        width="130px" />
                                     <field name="data_source_id"
-                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'" optional="hide" width="150px" />
+                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'"
+                                        optional="hide" width="150px" />
 
                                     <field name="target" string="Target"
                                         invisible="is_section or kpi_type != 'auto'" width="100px" />
@@ -182,9 +187,9 @@
                         <strong>- Auto KPI</strong><br />
                                         Score is calculated from <strong>Target</strong> and <strong>
                                         Actual</strong> based on the selected <strong>Scoring
-                                        Formula</strong>. If a data source is linked, the system can
-                                        auto-fill <strong>Actual</strong> before applying the
-                                        formula. </div>
+                                                        Formula</strong>. If a data source is
+                                        linked, the system can auto-fill <strong>Actual</strong>
+                                        before applying the formula. </div>
                                             </details>
                                         </div>
                                     </div>

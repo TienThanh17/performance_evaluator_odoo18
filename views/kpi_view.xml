@@ -122,6 +122,9 @@
                         widget="kpi_description_icon"
                         invisible="is_section"
                         optional="show" width="100px" />
+                    <field name="parent_line_id"
+                        optional="hide"
+                        width="150px" />
 
                     <field name="kpi_type" invisible="is_section" width="100px" />
                     <field name="manual_scoring_type"
@@ -345,6 +348,9 @@
                                             widget="kpi_description_icon"
                                             invisible="is_section"
                                             optional="show" width="100px" />
+                                        <field name="parent_line_id"
+                                            optional="hide"
+                                            width="150px" />
                                         <!-- <field name="pillar_id" options="{'no_create': True}"
                                             width="150px" /> -->
                                         <!-- <field name="parent_line_id"

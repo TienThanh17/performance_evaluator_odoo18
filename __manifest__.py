@@ -12,6 +12,7 @@
         "base",
         "mail",
         "contacts",
+        "payroll",
         "hr_attendance",
         "hr_holidays",
         "project_task_done_date",
@@ -67,6 +68,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         "views/hr_department.xml",
         "views/kpi_tree_dashboard_views.xml",
         "views/kpi_menu_views.xml",
+        "demo/hr_payroll_3p_demo.xml",
     ],
     "assets": {
         "web.assets_backend": [

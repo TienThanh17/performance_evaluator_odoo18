@@ -155,21 +155,6 @@ class HrEvaluation3PSummary(models.Model):
         if summary:
             return summary
 
-        # Tự nâng cấp dữ liệu cũ nếu trước đây summary chỉ lưu department/period mà chưa có link nguồn.
-        legacy_summary = self.search(
-            [
-                ("department_id", "=", department_evaluation.department_id.id),
-                ("period_id", "=", department_evaluation.period_id.id),
-            ],
-            order="id desc",
-            limit=1,
-        )
-        if legacy_summary:
-            legacy_summary.write(
-                {"department_evaluation_id": department_evaluation.id}
-            )
-            return legacy_summary
-
         # Chỉ tạo summary khi đã có phiếu KPI phòng ban thật sự, đúng với nghiệp vụ generate.
         return self.create(
             {
@@ -315,7 +300,10 @@ class HrEvaluation3PSummary(models.Model):
     def _build_manager_comment_texts(self, evaluation):
         comment_texts = []
         comment_lines = evaluation.evaluation_line_ids.filtered(
-            lambda line: not line.is_section and self._normalize_comment_text(line.manager_comment)
+            lambda line: (
+                not line.is_section
+                and self._normalize_comment_text(line.manager_comment)
+            )
         ).sorted(lambda line: (line.sequence or 0, line.id or 0))
 
         # Giữ đúng thứ tự KPI để comment trên Excel khớp với phiếu đánh giá trong Odoo.
@@ -432,7 +420,10 @@ class HrEvaluation3PSummary(models.Model):
         dept_evaluation,
         p3_individual_weight,
         p3_department_weight,
+        manual_input_vals=None,
     ):
+        # Chuẩn hóa bộ dữ liệu nhập tay để line mới luôn giữ được giá trị kế toán đã nhập trước đó.
+        manual_input_vals = manual_input_vals or {}
         linked_dept_eval = evaluation.dept_evaluation_id or dept_evaluation
         export_snapshot = self._build_excel_export_snapshot(
             evaluation, linked_dept_eval
@@ -460,14 +451,69 @@ class HrEvaluation3PSummary(models.Model):
             "job_id": evaluation.job_id.id,
             "evaluation_id": evaluation.id,
             "dept_evaluation_id": linked_dept_eval.id if linked_dept_eval else False,
-            "p1_base_salary": 0.0,
-            "p1_allowance": 0.0,
+            "p1_base_salary": manual_input_vals.get("p1_base_salary", 0.0),
+            "p1_allowance": manual_input_vals.get("p1_allowance", 0.0),
             "p2_1_score_raw": p2_1_score,
             "p2_2_score_raw": p2_2_score,
             "p3_individual_score": p3_individual_score,
             "p3_department_score": p3_department_score,
             "p3_1_score": p3_1_score,
+            "p3_2_revenue": manual_input_vals.get("p3_2_revenue", 0.0),
             "excel_export_snapshot": json.dumps(export_snapshot, ensure_ascii=False),
+        }
+
+    # Gom line hiện tại theo phiếu KPI và nhân viên để aggregate lại mà vẫn nhận diện đúng line cũ.
+    def _get_existing_line_match_maps(self):
+        self.ensure_one()
+        existing_lines_by_evaluation = {}
+        existing_lines_by_employee = {}
+
+        # Lập chỉ mục toàn bộ line hiện hữu để tái sử dụng khi cập nhật snapshot mới.
+        for line in self.line_ids:
+            # Ưu tiên map trực tiếp theo evaluation vì đây là khóa nghiệp vụ chính của line tổng hợp.
+            if line.evaluation_id:
+                existing_lines_by_evaluation[line.evaluation_id.id] = line
+
+            # Giữ thêm map theo nhân viên để cứu dữ liệu cũ khi evaluation bị thay thế hoặc trước đây chưa link đủ.
+            if line.employee_id:
+                existing_lines_by_employee[line.employee_id.id] = line
+
+        return existing_lines_by_evaluation, existing_lines_by_employee
+
+    # Tìm line cũ phù hợp nhất và lấy lại bộ dữ liệu kế toán cần giữ qua các lần aggregate.
+    def _get_preserved_manual_input(
+        self,
+        evaluation,
+        existing_lines_by_evaluation,
+        existing_lines_by_employee,
+        used_line_ids,
+    ):
+        self.ensure_one()
+        matched_line = existing_lines_by_evaluation.get(evaluation.id)
+
+        # Nếu line theo evaluation đã được ghép cho bản ghi khác thì bỏ qua để tránh update trùng.
+        if matched_line and matched_line.id in used_line_ids:
+            matched_line = False
+
+        # Rơi về line cùng nhân viên để giữ dữ liệu nhập tay khi nguồn KPI được tạo lại.
+        if not matched_line:
+            employee_line = existing_lines_by_employee.get(evaluation.employee_id.id)
+            if employee_line and employee_line.id not in used_line_ids:
+                matched_line = employee_line
+
+        # Không có line cũ thì khởi tạo sẵn bộ giá trị tay mặc định cho bản ghi mới.
+        if not matched_line:
+            return False, {
+                "p1_base_salary": 0.0,
+                "p1_allowance": 0.0,
+                "p3_2_revenue": 0.0,
+            }
+
+        # Trả về nguyên bộ dữ liệu kế toán để aggregate chỉ làm mới điểm KPI mà không xóa input tay.
+        return matched_line, {
+            "p1_base_salary": matched_line.p1_base_salary,
+            "p1_allowance": matched_line.p1_allowance,
+            "p3_2_revenue": matched_line.p3_2_revenue,
         }
 
     # Tổng hợp lại summary lines và chốt snapshot export theo bộ trọng số Settings hiện tại.
@@ -476,6 +522,13 @@ class HrEvaluation3PSummary(models.Model):
         p3_individual_weight, p3_department_weight = settings.get_p3_summary_weights()
 
         for summary in self:
+            # Lập chỉ mục line cũ trước khi aggregate để giữ nguyên dữ liệu kế toán đã nhập.
+            (
+                existing_lines_by_evaluation,
+                existing_lines_by_employee,
+            ) = summary._get_existing_line_match_maps()
+            used_line_ids = set()
+
             # Lấy phiếu KPI phòng ban của kỳ hiện tại để làm nguồn fallback chung.
             dept_evaluation = summary._get_department_evaluation()
             evaluations = self.env["hr.performance.evaluation"].search(
@@ -487,22 +540,39 @@ class HrEvaluation3PSummary(models.Model):
                 order="employee_id, id",
             )
 
-            # Rebuild toàn bộ line để giữ dữ liệu summary đồng bộ với snapshot mới nhất.
-            commands = [fields.Command.clear()]
+            # Dùng command update/create/delete để đồng bộ snapshot mới mà không wipe dữ liệu kế toán.
+            commands = []
             for evaluation in evaluations:
                 linked_dept_evaluation = (
                     evaluation.dept_evaluation_id or dept_evaluation
                 )
-                commands.append(
-                    fields.Command.create(
-                        summary._prepare_summary_line_vals(
-                            evaluation,
-                            linked_dept_evaluation,
-                            p3_individual_weight,
-                            p3_department_weight,
-                        )
-                    )
+                existing_line, manual_input_vals = summary._get_preserved_manual_input(
+                    evaluation,
+                    existing_lines_by_evaluation,
+                    existing_lines_by_employee,
+                    used_line_ids,
                 )
+                summary_line_vals = summary._prepare_summary_line_vals(
+                    evaluation,
+                    linked_dept_evaluation,
+                    p3_individual_weight,
+                    p3_department_weight,
+                    manual_input_vals=manual_input_vals,
+                )
+
+                # Update line cũ nếu tìm được, ngược lại tạo mới line cho nhân viên chưa có trong summary.
+                if existing_line:
+                    used_line_ids.add(existing_line.id)
+                    commands.append(
+                        fields.Command.update(existing_line.id, summary_line_vals)
+                    )
+                else:
+                    commands.append(fields.Command.create(summary_line_vals))
+
+            # Xóa các line không còn phiếu KPI nguồn trong kỳ hiện tại để summary luôn phản ánh dữ liệu mới nhất.
+            stale_lines = summary.line_ids.filtered(lambda line: line.id not in used_line_ids)
+            for stale_line in stale_lines:
+                commands.append(fields.Command.delete(stale_line.id))
 
             # Ghi trạng thái done cùng batch line mới để summary phản ánh đúng lần aggregate này.
             summary.write(
@@ -541,8 +611,12 @@ class HrEvaluation3PSummary(models.Model):
         # P1 hiện vẫn là placeholder kế toán nên giữ trống nếu chưa có dữ liệu thực.
         p1_base_salary = summary_line.p1_base_salary or ""
         p1_allowance = summary_line.p1_allowance or ""
-        sheet.write(row, 7, p1_base_salary, cell_num if p1_base_salary != "" else cell_center)
-        sheet.write(row, 8, p1_allowance, cell_num if p1_allowance != "" else cell_center)
+        sheet.write(
+            row, 7, p1_base_salary, cell_num if p1_base_salary != "" else cell_center
+        )
+        sheet.write(
+            row, 8, p1_allowance, cell_num if p1_allowance != "" else cell_center
+        )
 
         # Đổ các điểm thô của P2.1 vào đúng 5 cột TC cố định của layout Excel.
         p2_1_rows = snapshot.get("p2_1", [])
@@ -629,11 +703,11 @@ class HrEvaluation3PSummary(models.Model):
         # Viết công thức trọng số quy đổi theo % cấu hình P3 hiện tại.
         p3_individual_weight_cell = xl_rowcol_to_cell(row, 34)
         p3_department_weight_cell = xl_rowcol_to_cell(row, 37)
-        p3_individual_weight_value = (
-            p3_individual_score_value * (p3_individual_weight / 100.0)
+        p3_individual_weight_value = p3_individual_score_value * (
+            p3_individual_weight / 100.0
         )
-        p3_department_weight_value = (
-            p3_department_score_value * (p3_department_weight / 100.0)
+        p3_department_weight_value = p3_department_score_value * (
+            p3_department_weight / 100.0
         )
         sheet.write_formula(
             row,
@@ -652,9 +726,7 @@ class HrEvaluation3PSummary(models.Model):
 
         # Tổng trọng số là tổng 2 phần đóng góp của KPI cá nhân và KPI phòng ban.
         p3_total_weight_cell = xl_rowcol_to_cell(row, 38)
-        p3_total_weight_value = (
-            p3_individual_weight_value + p3_department_weight_value
-        )
+        p3_total_weight_value = p3_individual_weight_value + p3_department_weight_value
         sheet.write_formula(
             row,
             38,
@@ -678,8 +750,11 @@ class HrEvaluation3PSummary(models.Model):
             self._compute_p3_coefficient_value(p3_total_weight_value),
         )
 
-        # Cột P3.2 hiện chưa có rule nghiệp vụ riêng nên giữ trống.
-        sheet.write_blank(row, 40, None, cell_center)
+        # Ghi hệ số doanh thu do kế toán nhập để file export phản ánh đúng dữ liệu thủ công hiện tại.
+        p3_2_revenue = summary_line.p3_2_revenue or ""
+        sheet.write(
+            row, 40, p3_2_revenue, cell_num if p3_2_revenue != "" else cell_center
+        )
 
         # Cột đánh giá trên bảng chính dùng chung nội dung manager comment đã chuẩn hóa.
         if comment_text:
@@ -774,7 +849,9 @@ class HrEvaluation3PSummary(models.Model):
         sheet = workbook.add_worksheet("Kết Quả Đánh Giá 3P")
         settings = self.env["res.config.settings"]
         p3_individual_weight, p3_department_weight = settings.get_p3_summary_weights()
-        export_lines = self.line_ids.sorted(lambda line: (line.employee_id.name or "", line.id))
+        export_lines = self.line_ids.sorted(
+            lambda line: (line.employee_id.name or "", line.id)
+        )
         snapshots_by_line_id = {
             line.id: self._load_excel_export_snapshot(line) for line in export_lines
         }
@@ -986,16 +1063,37 @@ class HrEvaluation3PSummary(models.Model):
         sheet.merge_range(row_h2, 7, row_h3, 7, "P1.1\n(lương cơ bản)", format_gray)
         sheet.write(row_h4, 7, "Mức lương", format_gray)
 
-        sheet.merge_range(row_h2, 8, row_h3, 8, "P1.2\n(lương chuyên môn, chức vụ)\nĐánh giá theo định kỳ", format_gray)
+        sheet.merge_range(
+            row_h2,
+            8,
+            row_h3,
+            8,
+            "P1.2\n(lương chuyên môn, chức vụ)\nĐánh giá theo định kỳ",
+            format_gray,
+        )
         sheet.write(row_h4, 8, "Mức lương", format_gray)
 
         # --- TIÊU CHÍ P2 ---
-        sheet.merge_range(row_h2, 9, row_h3, 14, "P2.1\n(lương theo kiến thức công việc)\nĐánh giá theo định kỳ", format_white)
+        sheet.merge_range(
+            row_h2,
+            9,
+            row_h3,
+            14,
+            "P2.1\n(lương theo kiến thức công việc)\nĐánh giá theo định kỳ",
+            format_white,
+        )
         for i, col in enumerate(range(9, 14)):
             sheet.write(row_h4, col, f"TC{i + 1}", format_t4_blue)
         sheet.write(row_h4, 14, "Hệ số", format_t4_blue)
 
-        sheet.merge_range(row_h2, 15, row_h3, 31, "P2.2\n(lương theo kỹ năng, kinh nghiệm)\nĐánh giá theo định kỳ", format_white)
+        sheet.merge_range(
+            row_h2,
+            15,
+            row_h3,
+            31,
+            "P2.2\n(lương theo kỹ năng, kinh nghiệm)\nĐánh giá theo định kỳ",
+            format_white,
+        )
         for i, col in enumerate(range(15, 31)):
             sheet.write(row_h4, col, f"TC{i + 1}", format_t4_blue)
         sheet.write(row_h4, 31, "Hệ số", format_t4_blue)
@@ -1007,11 +1105,15 @@ class HrEvaluation3PSummary(models.Model):
         sheet.write(row_h4, 40, "Hệ số", format_gray)
 
         # Tầng 3
-        sheet.merge_range(row_h3, 32, row_h3, 34, "P3.1.1\nKPI CÁ NHÂN (1)", format_white)
+        sheet.merge_range(
+            row_h3, 32, row_h3, 34, "P3.1.1\nKPI CÁ NHÂN (1)", format_white
+        )
         sheet.merge_range(
             row_h3, 35, row_h3, 37, "P3.1.2\nKPI PHÒNG BAN (2)", format_white
         )
-        sheet.merge_range(row_h3, 38, row_h3, 39, "KPI NHÂN VIÊN=\n(1) X (2)", format_white)
+        sheet.merge_range(
+            row_h3, 38, row_h3, 39, "KPI NHÂN VIÊN=\n(1) X (2)", format_white
+        )
 
         # Tầng 4
         # Dưới P3.1.1
@@ -1100,9 +1202,26 @@ class HrEvaluation3PSummaryLine(models.Model):
         required=True,
         ondelete="restrict",
     )
+    employee_code = fields.Char(
+        related="employee_id.identification_id",
+        store=True,
+        readonly=True,
+    )
     job_id = fields.Many2one(
         "hr.job",
         ondelete="set null",
+    )
+    department_id = fields.Many2one(
+        "hr.department",
+        related="summary_id.department_id",
+        store=True,
+        readonly=True,
+    )
+    period_id = fields.Many2one(
+        "hr.kpi.period",
+        related="summary_id.period_id",
+        store=True,
+        readonly=True,
     )
     evaluation_id = fields.Many2one(
         "hr.performance.evaluation",
@@ -1111,6 +1230,11 @@ class HrEvaluation3PSummaryLine(models.Model):
     dept_evaluation_id = fields.Many2one(
         "hr.department.performance.evaluation",
         ondelete="set null",
+    )
+    summary_state = fields.Selection(
+        related="summary_id.state",
+        store=True,
+        readonly=True,
     )
     p1_base_salary = fields.Float(
         string="P1.1 - Position Salary",
@@ -1129,6 +1253,12 @@ class HrEvaluation3PSummaryLine(models.Model):
     p3_individual_score = fields.Float(string="P3.1.1")
     p3_department_score = fields.Float(string="P3.1.2")
     p3_1_score = fields.Float(string="P3.1", default=0.0)
+    p3_2_revenue = fields.Float(
+        string="P3.2 - Revenue",
+        digits=(16, 0),
+        default=0.0,
+        help="Revenue coefficient. Filled by accounting.",
+    )
     excel_export_snapshot = fields.Text(
         string="Excel Export Snapshot",
         help="Stored JSON snapshot used by the Excel export to keep historical rows stable.",

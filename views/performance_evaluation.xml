@@ -509,8 +509,18 @@
                                         <field name="key_performance_area" string="Title"
                                             width="500px"
                                             readonly="1" />
-                                        <!-- <field name="parent_line_id" optional="show"
-                                        width="150px" /> -->
+                                        <field name="description" readonly="1"
+                                            string="Info"
+                                            widget="kpi_description_icon"
+                                            invisible="is_section"
+                                            optional="hide" width="100px" />
+                                        <field name="parent_line_id"
+                                            domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
+                                            options="{'no_create': True}"
+                                            readonly="1"
+                                            invisible="is_section"
+                                            optional="hide"
+                                            width="150px" />
                                         <field name="kpi_type" invisible="is_section"
                                             readonly="1"
                                             width="130px" />
@@ -672,8 +682,18 @@
                                         <field name="key_performance_area" string="Title"
                                             width="500px"
                                             readonly="1" />
-                                        <!-- <field name="parent_line_id" optional="show"
-                                        width="150px" /> -->
+                                          <field name="description" readonly="1"
+                                            string="Info"
+                                            widget="kpi_description_icon"
+                                            invisible="is_section"
+                                            optional="hide" width="100px" />
+                                        <field name="parent_line_id"
+                                            domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
+                                            options="{'no_create': True}"
+                                            readonly="1"
+                                            invisible="is_section"
+                                            optional="hide"
+                                            width="150px" />
                                         <field name="kpi_type" invisible="is_section"
                                             readonly="1"
                                             width="130px" />
@@ -846,6 +866,13 @@
                                             widget="kpi_description_icon"
                                             invisible="is_section"
                                             optional="show" width="100px" />
+                                        <field name="parent_line_id"
+                                            domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
+                                            options="{'no_create': True}"
+                                            readonly="1"
+                                            invisible="is_section"
+                                            optional="hide"
+                                            width="150px" />
                                         <field name="kpi_type" invisible="is_section"
                                             readonly="1"
                                             width="130px" />

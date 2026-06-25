@@ -225,15 +225,15 @@
                                         width="100px"
                                         invisible="is_section"
                                         optional="show" />
-
-                                    <field name="pillar_id"
+                                    <field name="parent_line_id"
+                                        domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
                                         options="{'no_create': True}"
                                         readonly="1"
                                         invisible="is_section"
-                                        width="200px"
+                                        width="150px"
                                         optional="hide" />
-                                    <field name="parent_line_id"
-                                        domain="[('evaluation_id', '=', parent.id), ('id', '!=', id)]"
+
+                                    <field name="pillar_id"
                                         options="{'no_create': True}"
                                         readonly="1"
                                         invisible="is_section"

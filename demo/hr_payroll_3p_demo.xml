@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- ============================== PAYROLL CATEGORIES ============================== -->
+        <record id="contrib_register_p1" model="hr.salary.rule.category">
+            <field name="name">Lương 3P - P1 (Vị trí)</field>
+            <field name="code">P1_CAT</field>
+        </record>
+
+        <record id="contrib_register_p2" model="hr.salary.rule.category">
+            <field name="name">Lương 3P - P2 (Năng lực)</field>
+            <field name="code">P2_CAT</field>
+        </record>
+
+        <record id="contrib_register_p3" model="hr.salary.rule.category">
+            <field name="name">Lương 3P - P3 (Hiệu quả công việc)</field>
+            <field name="code">P3_CAT</field>
+        </record>
+
+        <record id="contrib_register_net" model="hr.salary.rule.category">
+            <field name="name">Lương 3P - Tổng thực nhận</field>
+            <field name="code">NET</field>
+        </record>
+
+        <!-- ============================== PAYROLL RULES ============================== -->
+        <record id="hr_rule_p1_1" model="hr.salary.rule">
+            <field name="name">P1.1 - Lương cơ bản</field>
+            <field name="code">P1_1</field>
+            <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.contrib_register_p1"/>
+            <field name="sequence" eval="10"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = inputs.dict.get('P1_BASE') and inputs.dict['P1_BASE'].amount or 0.0
+            </field>
+        </record>
+
+        <record id="hr_rule_p1_2" model="hr.salary.rule">
+            <field name="name">P1.2 - Lương chuyên môn, chức vụ</field>
+            <field name="code">P1_2</field>
+            <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.contrib_register_p1"/>
+            <field name="sequence" eval="11"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = inputs.dict.get('P1_ALLOW') and inputs.dict['P1_ALLOW'].amount or 0.0
+            </field>
+        </record>
+
+        <record id="hr_rule_p2_1" model="hr.salary.rule">
+            <field name="name">P2.1 - Lương theo kiến thức công việc</field>
+            <field name="code">P2_1</field>
+            <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.contrib_register_p2"/>
+            <field name="sequence" eval="20"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+p21_dinhmuc = 5000000
+he_so = inputs.dict.get('P21_SCORE') and inputs.dict['P21_SCORE'].amount or 0.0
+result = p21_dinhmuc * he_so
+            </field>
+        </record>
+
+        <record id="hr_rule_p2_2" model="hr.salary.rule">
+            <field name="name">P2.2 - lương theo kỹ năng, kinh nghiệm</field>
+            <field name="code">P2_2</field>
+            <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.contrib_register_p2"/>
+            <field name="sequence" eval="21"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+p22_dinhmuc = 3000000
+he_so = inputs.dict.get('P22_SCORE') and inputs.dict['P22_SCORE'].amount or 0.0
+result = p22_dinhmuc * he_so
+            </field>
+        </record>
+
+        <record id="hr_rule_p3_1" model="hr.salary.rule">
+            <field name="name">P3.1 - Thưởng Hiệu suất cá nhân</field>
+            <field name="code">P3_1</field>
+            <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.contrib_register_p3"/>
+            <field name="sequence" eval="30"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+p31_dinhmuc = 4000000
+he_so = inputs.dict.get('P31_SCORE') and inputs.dict['P31_SCORE'].amount or 0.0
+result = p31_dinhmuc * he_so
+            </field>
+        </record>
+
+        <record id="hr_rule_p3_2" model="hr.salary.rule">
+            <field name="name">P3.2 - Thưởng Doanh thu tổng</field>
+            <field name="code">P3_2</field>
+            <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.contrib_register_p3"/>
+            <field name="sequence" eval="31"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+p32_dinhmuc = 6000000
+he_so = inputs.dict.get('P32_REVENUE') and inputs.dict['P32_REVENUE'].amount or 0.0
+result = p32_dinhmuc * he_so
+            </field>
+        </record>
+
+        <record id="hr_rule_total_net" model="hr.salary.rule">
+            <field name="name">LƯƠNG THỰC NHẬN CUỐI CÙNG</field>
+            <field name="code">NET</field>
+            <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.contrib_register_net"/>
+            <field name="sequence" eval="100"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = P1_1 + P1_2 + P2_1 + P2_2 + P3_1 + P3_2
+            </field>
+        </record>
+
+        <!-- ============================== RULE INPUTS ============================== -->
+        <record id="salary_rule_input_3p_p1_base" model="hr.rule.input">
+            <field name="code">P1_BASE</field>
+            <field name="name">P1 Base Salary</field>
+            <field name="input_id" ref="custom_adecsol_hr_performance_evaluator.hr_rule_p1_1"/>
+        </record>
+
+        <record id="salary_rule_input_3p_p1_allowance" model="hr.rule.input">
+            <field name="code">P1_ALLOW</field>
+            <field name="name">P1 Allowance</field>
+            <field name="input_id" ref="custom_adecsol_hr_performance_evaluator.hr_rule_p1_2"/>
+        </record>
+
+        <record id="salary_rule_input_3p_p2_1_raw" model="hr.rule.input">
+            <field name="code">P21_SCORE</field>
+            <field name="name">P2.1 Score</field>
+            <field name="input_id" ref="custom_adecsol_hr_performance_evaluator.hr_rule_p2_1"/>
+        </record>
+
+        <record id="salary_rule_input_3p_p2_2_raw" model="hr.rule.input">
+            <field name="code">P22_SCORE</field>
+            <field name="name">P2.2 Score</field>
+            <field name="input_id" ref="custom_adecsol_hr_performance_evaluator.hr_rule_p2_2"/>
+        </record>
+
+        <record id="salary_rule_input_3p_p3_1_score" model="hr.rule.input">
+            <field name="code">P31_SCORE</field>
+            <field name="name">P3.1 Score</field>
+            <field name="input_id" ref="custom_adecsol_hr_performance_evaluator.hr_rule_p3_1"/>
+        </record>
+
+        <record id="salary_rule_input_3p_p3_2_revenue" model="hr.rule.input">
+            <field name="code">P32_REVENUE</field>
+            <field name="name">P3.2 Revenue</field>
+            <field name="input_id" ref="custom_adecsol_hr_performance_evaluator.hr_rule_p3_2"/>
+        </record>
+
+        <!-- ============================== PAYROLL STRUCTURE ============================== -->
+        <record id="payroll_structure_3p_demo" model="hr.payroll.structure">
+            <field name="code">ADEC3P</field>
+            <field name="name">ADEC 3P Payroll Demo</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="rule_ids" eval="[(6, 0, [
+                ref('custom_adecsol_hr_performance_evaluator.hr_rule_p1_1'),
+                ref('custom_adecsol_hr_performance_evaluator.hr_rule_p1_2'),
+                ref('custom_adecsol_hr_performance_evaluator.hr_rule_p2_1'),
+                ref('custom_adecsol_hr_performance_evaluator.hr_rule_p2_2'),
+                ref('custom_adecsol_hr_performance_evaluator.hr_rule_p3_1'),
+                ref('custom_adecsol_hr_performance_evaluator.hr_rule_p3_2'),
+                ref('custom_adecsol_hr_performance_evaluator.hr_rule_total_net')
+            ])]"/>
+        </record>
+
+        <!-- ============================== DEMO CONTRACT ============================== -->
+        <record id="payroll_contract_ktoan_3p_demo" model="hr.contract">
+            <field name="name">Accounting 3P Payroll Demo Contract</field>
+            <field name="employee_id" ref="custom_adecsol_hr_performance_evaluator.employee_ktoan_nguyen_ngoc_diep_3p_202604"/>
+            <field name="struct_id" ref="custom_adecsol_hr_performance_evaluator.payroll_structure_3p_demo"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
+            <field name="schedule_pay">monthly</field>
+            <field name="date_start">2026-06-01</field>
+            <field name="wage" eval="0.0"/>
+            <field name="notes">Payroll demo contract that computes salary from monthly 3P summary inputs.</field>
+        </record>
+
+    </data>
+</odoo>
