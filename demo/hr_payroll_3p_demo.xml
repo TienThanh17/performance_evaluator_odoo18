@@ -192,7 +192,7 @@ result = P1_1 + P1_2 + P2_1 + P2_2 + P3_1 + P3_2
         <!-- ============================== PAYROLL STRUCTURE ============================== -->
         <record id="payroll_structure_3p_demo" model="hr.payroll.structure">
             <field name="code">ADEC3P</field>
-            <field name="name">ADEC 3P Payroll Demo</field>
+            <field name="name">ADEC 3P Payroll</field>
             <field name="company_id" ref="base.main_company"/>
             <field name="rule_ids" eval="[(6, 0, [
                 ref('custom_adecsol_hr_performance_evaluator.hr_rule_p1_1'),
