@@ -89,10 +89,8 @@
                         <group invisible="kpi_type != 'auto' or is_section">
                             <field name="is_auto" readonly="1"
                                 invisible="kpi_type != 'auto'" />
-                            <field name="dept_source_type" invisible="kpi_type != 'auto'"
-                                readonly="1" />
                             <field name="data_source_id"
-                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'"
+                                invisible="kpi_type != 'auto'"
                                 readonly="1" />
                             <field name="scoring_formula_id"
                                 invisible="kpi_type != 'auto'"
@@ -215,7 +213,6 @@
                                     <field name="is_auto" column_invisible="1" />
                                     <field name="is_manager" column_invisible="1" />
                                     <field name="is_admin" column_invisible="1" />
-                                    <field name="dept_source_type" column_invisible="1" />
 
                                     <field name="name" string="Title" readonly="1"
                                         width="500px" />
@@ -247,10 +244,8 @@
                                         invisible="is_section or kpi_type != 'manual'"
                                         width="150px" optional="hide" />
 
-                                    <field name="dept_source_type" optional="hide" readonly="1"
-                                        invisible="is_section" width="200px" />
                                     <field name="data_source_id" optional="hide" readonly="1"
-                                        invisible="is_section or dept_source_type != 'data_source'"
+                                        invisible="is_section or not data_source_id"
                                         width="200px" />
                                     <field name="manager_comment" optional="hide" width="200px"
                                         invisible="is_section"

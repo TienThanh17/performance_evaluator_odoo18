@@ -41,15 +41,6 @@ class HrDepartmentKpiTemplateLine(models.Model):
         string="Unit",
         ondelete="restrict",
     )
-    dept_source_type = fields.Selection(
-        [
-            ("manual", "Manual Actual Input"),
-            ("data_source", "Automatic Data Source"),
-        ],
-        string="Department Source Type",
-        default="manual",
-        required=True,
-    )
     data_source_id = fields.Many2one(
         "hr.kpi.data.source",
         string="Data Source",
@@ -325,7 +316,7 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 continue
             scope_lines[:1]._normalize_hierarchy_sequence(scope_lines=scope_lines)
 
-    # Compute the default unit based on the department source type.
+    # Compute the default unit from the selected department data source.
     def _get_unit_by_code(self, code):
         return self.env["hr.kpi.unit"].search([("code", "=", code)], limit=1)
 
@@ -334,19 +325,18 @@ class HrDepartmentKpiTemplateLine(models.Model):
         self.ensure_one()
         return (self.unit.code or "") == "percent" if self.unit else False
 
-    # Resolve the default unit for automatic department lines.
+    # Resolve the default unit for department lines that use a data source.
     def _get_default_unit(self):
         self.ensure_one()
-        if self.dept_source_type == "data_source" and self.data_source_id:
-            code = self.data_source_id.get_unit_id()
-        else:
-            code = False
+        # Only data-source-backed KPI lines inherit the unit from the source.
+        code = self.data_source_id.get_unit_id() if self.data_source_id else False
         return self._get_unit_by_code(code) if code else False
 
-    # Đồng bộ lại unit hiển thị khi cấu hình nguồn dữ liệu của KPI phòng ban thay đổi.
-    @api.onchange("dept_source_type", "data_source_id")
+    # Đồng bộ lại unit hiển thị khi nguồn dữ liệu của KPI phòng ban thay đổi.
+    @api.onchange("data_source_id")
     def _onchange_unit(self):
         for rec in self:
+            # Clear the inherited unit when the line no longer points to a data source.
             rec.unit = rec._get_default_unit()
 
     # Return the formula configured on the department template line.
@@ -369,12 +359,12 @@ class HrDepartmentKpiTemplateLine(models.Model):
                 rec.target_display = f"{target} {unit_name}" if unit_name else target
 
     # Compute whether the department template line can auto-fill its actual value.
-    @api.depends("kpi_type", "dept_source_type", "data_source_id")
+    @api.depends("kpi_type", "data_source_id")
     def _compute_auto(self):
         for rec in self:
+            # Only auto KPI lines with a bound data source can be computed automatically.
             rec.is_auto = bool(
                 rec.kpi_type == "auto"
-                and rec.dept_source_type == "data_source"
                 and rec.data_source_id
             )
 

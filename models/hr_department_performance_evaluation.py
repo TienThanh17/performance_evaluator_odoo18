@@ -432,7 +432,6 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "wipeout_if_child_zero": bool(
                                 line.wipeout_if_child_zero
                             ),
-                            "dept_source_type": "manual",
                             "data_source_id": False,
                             "scoring_formula_id": False,
                             "is_auto": False,
@@ -456,7 +455,6 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "unit": line.unit.id or False,
                         "weight": line.weight,
                         "wipeout_if_child_zero": bool(line.wipeout_if_child_zero),
-                        "dept_source_type": line.dept_source_type or "manual",
                         "data_source_id": line.data_source_id.id or False,
                         "scoring_formula_id": line.scoring_formula_id.id or False,
                         "is_auto": bool(line.is_auto),

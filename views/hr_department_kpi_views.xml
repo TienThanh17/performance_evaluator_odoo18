@@ -36,9 +36,8 @@
                         <group string="Auto Compute" invisible="is_section or kpi_type != 'auto'">
                             <field name="is_auto" readonly="1"
                                 invisible="kpi_type != 'auto'" />
-                            <field name="dept_source_type" invisible="kpi_type != 'auto'" />
                             <field name="data_source_id"
-                                invisible="kpi_type != 'auto' or dept_source_type != 'data_source'" />
+                                invisible="kpi_type != 'auto'" />
                         </group>
                     </group>
 
@@ -128,11 +127,8 @@
                                         options="{'no_create': True}" width="320px" />
 
                                     <field name="is_auto" column_invisible="1" />
-                                    <field name="dept_source_type"
-                                        invisible="is_section or not is_auto" optional="hide"
-                                        width="130px" />
                                     <field name="data_source_id"
-                                        invisible="is_section or not is_auto or dept_source_type != 'data_source'"
+                                        invisible="is_section or kpi_type != 'auto'"
                                         optional="hide" width="150px" />
 
                                     <field name="target" string="Target"

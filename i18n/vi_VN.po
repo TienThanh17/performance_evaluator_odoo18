@@ -2664,7 +2664,7 @@ msgstr "Thông tin"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__is_auto
 msgid "Is Auto"
-msgstr "Là Tự động"
+msgstr "Tự động tính toán"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_performance_evaluation__is_current_user

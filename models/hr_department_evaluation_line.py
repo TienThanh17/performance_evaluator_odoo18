@@ -9,11 +9,6 @@ from .kpi_type_utils import (
     get_manual_scoring_type_required_message,
 )
 
-DEPARTMENT_SOURCE_TYPE_SELECTION = [
-    ("manual", "Manual Actual Input"),
-    ("data_source", "Automatic Data Source"),
-]
-
 
 class HrDepartmentEvaluationLine(models.Model):
     _name = "hr.department.evaluation.line"
@@ -95,12 +90,12 @@ class HrDepartmentEvaluationLine(models.Model):
         default=False,
         help="Stored snapshot of the template wipeout rule so historical department evaluations do not change when the template is updated later.",
     )
-    is_auto = fields.Boolean()
-    dept_source_type = fields.Selection(
-        DEPARTMENT_SOURCE_TYPE_SELECTION,
-        string="Department Source Type",
-        default="manual",
-        help="Stored snapshot of the department source mode used by this historical evaluation line.",
+    is_auto = fields.Boolean(
+        string="Auto Compute",
+        default=False,
+        compute="_compute_auto",
+        store=True,
+        help="Enable to let the system automatically compute Actual values from the selected Data Source.",
     )
     data_source_id = fields.Many2one(
         "hr.kpi.data.source",
@@ -314,7 +309,6 @@ class HrDepartmentEvaluationLine(models.Model):
                 "weight": template_line.weight,
                 "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
                 "is_auto": False,
-                "dept_source_type": "manual",
                 "data_source_id": False,
                 "scoring_formula_id": False,
                 "is_section": True,
@@ -332,7 +326,6 @@ class HrDepartmentEvaluationLine(models.Model):
             "weight": template_line.weight,
             "wipeout_if_child_zero": bool(template_line.wipeout_if_child_zero),
             "is_auto": bool(template_line.is_auto),
-            "dept_source_type": template_line.dept_source_type or "manual",
             "data_source_id": template_line.data_source_id.id or False,
             "scoring_formula_id": template_line.scoring_formula_id.id or False,
             "is_section": bool(template_line.is_section),
@@ -513,6 +506,12 @@ class HrDepartmentEvaluationLine(models.Model):
         ):
             return round(max(score, 0.0), 2)
         return round(max(0.0, min(score, score_base)), 2)
+
+    # Compute whether the evaluation line can auto-fill its actual value.
+    @api.depends("kpi_type", "data_source_id")
+    def _compute_auto(self):
+        for rec in self:
+            rec.is_auto = bool(rec.kpi_type == "auto" and rec.data_source_id)
 
     @api.depends(
         "actual",
