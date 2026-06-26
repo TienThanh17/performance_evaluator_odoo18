@@ -73,7 +73,7 @@
                     <notebook>
                         <page string="Summary Lines">
                             <field name="line_ids">
-                                <list create="0" delete="0" open_form_view="True" multi_edit="1">
+                                <list create="0" delete="0" open_form_view="True">
                                     <field name="can_edit_manual_inputs" column_invisible="1" />
                                     <field name="employee_id" />
                                     <field name="job_id" />
@@ -82,7 +82,7 @@
                                     <field name="p3_individual_score" readonly="1" optional="show" />
                                     <field name="p3_department_score" readonly="1" optional="show" />
                                     <field name="p3_1_score" readonly="1" optional="show" />
-                                    <field name="p3_2_revenue" readonly="1" optional="show" />
+                                    <field name="p3_2_revenue_list" widget="percentage" readonly="1" optional="show" />
                                 </list>
                                 <form string="3P Summary Line">
                                     <sheet>
@@ -111,7 +111,7 @@
                                                 <field name="p3_individual_score" readonly="1" />
                                                 <field name="p3_department_score" readonly="1" />
                                                 <field name="p3_1_score" readonly="1" />
-                                                <field name="p3_2_revenue" readonly="not can_edit_manual_inputs" />
+                                                <field name="p3_2_revenue" widget="percentage" readonly="not can_edit_manual_inputs" />
                                             </group>
                                         </group>
 

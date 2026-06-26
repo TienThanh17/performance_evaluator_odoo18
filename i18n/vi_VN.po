@@ -3227,7 +3227,7 @@ msgstr "Điểm KPI mới nhất của bộ phận từ các đánh giá hiệu 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.job,name:custom_adecsol_hr_performance_evaluator.job_it_leader_3p_202604
 msgid "Leader IT"
-msgstr "Người đứng đầu"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__department_ids
@@ -3723,7 +3723,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.job,name:custom_adecsol_hr_performance_evaluator.job_it_staff_3p_202604
 msgid "Nhân Viên IT"
-msgstr "Nhân Viên"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript

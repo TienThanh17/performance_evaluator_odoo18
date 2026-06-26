@@ -735,11 +735,9 @@ class HrEvaluation3PSummary(models.Model):
             self._compute_p3_coefficient_value(p3_total_weight_value),
         )
 
-        # Ghi hệ số doanh thu do kế toán nhập để file export phản ánh đúng dữ liệu thủ công hiện tại.
-        p3_2_revenue = summary_line.p3_2_revenue or ""
-        sheet.write(
-            row, 40, p3_2_revenue, cell_num if p3_2_revenue != "" else cell_center
-        )
+        # Ghi hệ số doanh thu theo semantics của percentage widget: giá trị nội bộ 1.2 sẽ hiển thị thành 120% trong Excel.
+        p3_2_revenue = float(summary_line.p3_2_revenue or 0.0)
+        sheet.write(row, 40, p3_2_revenue, cell_percent)
 
         # Cột đánh giá trên bảng chính dùng chung nội dung manager comment đã chuẩn hóa.
         if comment_text:
@@ -1288,14 +1286,27 @@ class HrEvaluation3PSummaryLine(models.Model):
     )
     p3_2_revenue = fields.Float(
         string="P3.2",
-        digits=(16, 0),
+        digits=(16, 4),
         default=0.0,
-        help="Revenue coefficient. Filled by accounting.",
+        help="Revenue ratio entered with the percentage widget. For example, enter 120% and Odoo stores 1.2 internally.",
+    )
+    p3_2_revenue_list = fields.Float(
+        string="P3.2",
+        digits=(16, 4),
+        compute="_compute_p3_2_revenue_list",
+        help="Display-only revenue ratio used on the summary list to avoid client-side cache conflicts.",
     )
     excel_export_snapshot = fields.Text(
         string="Excel Export Snapshot",
         help="Stored JSON snapshot used by the Excel export to keep historical rows stable.",
     )
+
+    # Dựng field mirror chỉ để list view hiển thị hệ số doanh thu mà không bind trực tiếp vào field edit thật.
+    @api.depends("p3_2_revenue")
+    def _compute_p3_2_revenue_list(self):
+        for line in self:
+            # Sao chép nguyên giá trị revenue hiện tại sang field hiển thị để list view luôn đọc cùng một nguồn dữ liệu.
+            line.p3_2_revenue_list = line.p3_2_revenue
 
     # Trả về snapshot các field nhập tay để aggregate có thể preserve ổn định qua các lần rebuild line.
     def _get_manual_input_vals(self):
