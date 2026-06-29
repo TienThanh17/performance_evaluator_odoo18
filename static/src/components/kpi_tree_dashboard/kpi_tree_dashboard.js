@@ -810,8 +810,10 @@ export class KpiTreeDashboard extends Component {
 
         // Hàm tính card width — nhận d object (dùng chung cho cả nodeSize lẫn vẽ node)
         const ORG_PAD = compactMode ? 8 : 10;
-        const ORG_ICON_W = compactMode ? 40 : 44;
-        const orgWidthCap = Math.max(132, Math.min(260, densityWidth * 1.7));
+        const ORG_ICON_RADIUS = compactMode ? 15 : 18;
+        const ORG_ICON_CENTER = ORG_PAD + ORG_ICON_RADIUS;
+        const ORG_ICON_W = compactMode ? 36 : 44;
+        const orgWidthCap = Math.max(164, Math.min(290, densityWidth * 1.9));
         const getOrgCardWidth = (d) => {
             const name = d.data
                 ? d.data.name || d.data.rawData?.name || ""
@@ -822,15 +824,15 @@ export class KpiTreeDashboard extends Component {
                 ORG_PAD * 2 +
                 16;
             return Math.max(
-                132,
+                164,
                 Math.min(orgWidthCap, naturalWidth),
             );
         };
 
-        const AVT = compactMode ? 28 : 32;
+        const AVT = compactMode ? 26 : 32;
         const PAD = compactMode ? 8 : 10;
         const GAP = compactMode ? 6 : 8;
-        const empWidthCap = Math.max(96, Math.min(220, densityWidth - 8));
+        const empWidthCap = Math.max(132, Math.min(248, densityWidth + 8));
         const getEmpCardWidth = (d) => {
             const name = d.data
                 ? d.data.rawData?.name || d.data.name || ""
@@ -842,9 +844,48 @@ export class KpiTreeDashboard extends Component {
                 PAD * 2 +
                 20;
             return Math.max(
-                96,
+                132,
                 Math.min(empWidthCap, naturalWidth),
             );
+        };
+        const getOrgTextAreaWidth = (d) =>
+            getOrgCardWidth(d) - ORG_ICON_W - ORG_PAD * 2;
+        const getEmpTextAreaWidth = (d) =>
+            getEmpCardWidth(d) - PAD * 2 - AVT - GAP;
+        const orgNameFontSize = compactMode ? 12 : 14;
+        const orgScoreFontSize = compactMode ? 16 : 18;
+        const empNameFontSize = compactMode ? 12 : 14;
+        const empScoreFontSize = compactMode ? 13 : 15;
+        const fitTextToWidth = (selection, getMaxWidth, minChars = 2) => {
+            selection.each(function (d) {
+                const textNode = this;
+                const textSelection = d3.select(textNode);
+                const fullText =
+                    textSelection.attr("data-full-text") ||
+                    textSelection.text() ||
+                    "—";
+                const maxWidth = Math.max(0, Number(getMaxWidth(d)) || 0);
+                textSelection.text(fullText);
+                if (
+                    !maxWidth ||
+                    typeof textNode.getComputedTextLength !== "function"
+                ) {
+                    return;
+                }
+                if (textNode.getComputedTextLength() <= maxWidth) {
+                    return;
+                }
+
+                let truncated = fullText.trim();
+                while (truncated.length > minChars) {
+                    truncated = truncated.slice(0, -1).trimEnd();
+                    textSelection.text(`${truncated}…`);
+                    if (textNode.getComputedTextLength() <= maxWidth) {
+                        return;
+                    }
+                }
+                textSelection.text("…");
+            });
         };
 
         let maxEmpW = 140;
@@ -1066,9 +1107,9 @@ export class KpiTreeDashboard extends Component {
         // Icon background circle (left side)
         orgNodes
             .append("circle")
-            .attr("cx", (d) => -getOrgCardWidth(d) / 2 + ORG_PAD + 18)
+            .attr("cx", (d) => -getOrgCardWidth(d) / 2 + ORG_ICON_CENTER)
             .attr("cy", 0)
-            .attr("r", 18)
+            .attr("r", ORG_ICON_RADIUS)
             .attr("fill", (d) =>
                 this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
             )
@@ -1077,11 +1118,11 @@ export class KpiTreeDashboard extends Component {
         // Icon symbol
         orgNodes
             .append("text")
-            .attr("x", (d) => -getOrgCardWidth(d) / 2 + ORG_PAD + 18)
+            .attr("x", (d) => -getOrgCardWidth(d) / 2 + ORG_ICON_CENTER)
             .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
             .attr("font-family", "FontAwesome")
-            .attr("font-size", "16px")
+            .attr("font-size", compactMode ? "14px" : "16px")
             .attr("fill", (d) =>
                 this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
             )
@@ -1089,41 +1130,41 @@ export class KpiTreeDashboard extends Component {
 
         // Tên node (trên, bên phải icon)
         const orgTextX = (d) => -getOrgCardWidth(d) / 2 + ORG_PAD + ORG_ICON_W;
-        orgNodes
+        const orgNameText = orgNodes
             .append("text")
             .attr("class", "kpi-name-text")
             .attr("x", orgTextX)
-            .attr("y", -10)
+            .attr("y", compactMode ? -8 : -10)
             .attr("text-anchor", "start")
-            .attr("font-size", "14px")
+            .attr("font-size", `${orgNameFontSize}px`)
             .attr("font-weight", 600)
             .attr("fill", "#6b7280")
-            .text((d) => {
-                const name = d.data.name || d.data.rawData?.name || "—";
-                // Tính max chars dựa trên width thực tế của text area
-                const textAreaW = getOrgCardWidth(d) - ORG_ICON_W - ORG_PAD * 2;
-                const maxChars = Math.floor(textAreaW / 7);
-                return name.length > maxChars
-                    ? name.slice(0, maxChars) + "…"
-                    : name;
-            });
+            .attr("data-full-text", (d) => d.data.name || d.data.rawData?.name || "—")
+            .text((d) => d.data.name || d.data.rawData?.name || "—");
+        fitTextToWidth(orgNameText, getOrgTextAreaWidth, 4);
+        orgNameText.append("title").text((d) => d.data.name || d.data.rawData?.name || "—");
 
         // Điểm (dưới, bên phải icon)
-        orgNodes
+        const orgScoreText = orgNodes
             .append("text")
             .attr("class", "kpi-score-text")
             .attr("x", orgTextX)
-            .attr("y", 14)
+            .attr("y", compactMode ? 12 : 14)
             .attr("text-anchor", "start")
-            .attr("font-size", "18px")
+            .attr("font-size", `${orgScoreFontSize}px`)
             .attr("font-weight", 800)
             .attr("fill", (d) =>
                 this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
             )
+            .attr("data-full-text", (d) => {
+                const score = this.nodeScore(d.data.rawData, d.data._type);
+                return score != null ? this.formatScore(score) : "—";
+            })
             .text((d) => {
                 const score = this.nodeScore(d.data.rawData, d.data._type);
                 return score != null ? this.formatScore(score) : "—";
             });
+        fitTextToWidth(orgScoreText, getOrgTextAreaWidth, 2);
 
         // === EMPLOYEE NODES ===
         const empNodes = node.filter((d) => d.data._type === "emp");
@@ -1211,36 +1252,44 @@ export class KpiTreeDashboard extends Component {
         const textX = (d) => -getEmpCardWidth(d) / 2 + PAD + AVT + GAP;
 
         // Tên nhân viên (trên)
-        empNodes
+        const empNameText = empNodes
             .append("text")
             .attr("class", "kpi-name-text")
             .attr("x", textX)
-            .attr("y", -7)
+            .attr("y", compactMode ? -6 : -7)
             .attr("text-anchor", "start")
-            .attr("font-size", "14px")
+            .attr("font-size", `${empNameFontSize}px`)
             .attr("font-weight", 600)
             .attr("fill", "#4b5563")
-            .text((d) => {
-                const name = d.data.rawData?.name || d.data.name || "—";
-                return name.length > 18 ? name.slice(0, 18) + "…" : name;
-            });
+            .attr(
+                "data-full-text",
+                (d) => d.data.rawData?.name || d.data.name || "—",
+            )
+            .text((d) => d.data.rawData?.name || d.data.name || "—");
+        fitTextToWidth(empNameText, getEmpTextAreaWidth, 4);
+        empNameText.append("title").text((d) => d.data.rawData?.name || d.data.name || "—");
 
         // Điểm (dưới tên)
-        empNodes
+        const empScoreText = empNodes
             .append("text")
             .attr("class", "kpi-score-text")
             .attr("x", textX)
-            .attr("y", 12)
+            .attr("y", compactMode ? 11 : 12)
             .attr("text-anchor", "start")
-            .attr("font-size", "15px")
+            .attr("font-size", `${empScoreFontSize}px`)
             .attr("font-weight", 800)
             .attr("fill", (d) =>
                 this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
             )
+            .attr("data-full-text", (d) => {
+                const score = this.nodeScore(d.data.rawData, d.data._type);
+                return score != null ? this.formatScore(score) : "—";
+            })
             .text((d) => {
                 const score = this.nodeScore(d.data.rawData, d.data._type);
                 return score != null ? this.formatScore(score) : "—";
             });
+        fitTextToWidth(empScoreText, getEmpTextAreaWidth, 2);
 
         // ── 4. Vẽ icon Toggle (+/-) cho Department Node ──────────────────────
         const deptNodes = node.filter(

@@ -851,7 +851,7 @@ msgstr "KPI phòng ban trung bình"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Average department KPI:"
-msgstr "KPI phòng ban trung bình:"
+msgstr "Trung bình KPI phòng ban:"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_dashboard_widget__micro_chart_type__bar
 msgid "Bar"

@@ -185,7 +185,7 @@
               <!-- ── Dept detail ── -->
           <t t-elif="state.selectedNode.type === 'dept'">
             <div class="panel-metric">
-              <span class="pm-label">Department KPI:</span>
+              <span class="pm-label">P3.1.2 Department KPI:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
             <div class="panel-metric">
@@ -213,19 +213,19 @@
               <span class="pm-value highlight" t-esc="formatScore(state.selectedNode.data.result_score)"/>
             </div>
             <div class="panel-metric">
-              <span class="pm-label">Individual KPI:</span>
+              <span class="pm-label">P3.1.1 Individual KPI:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.total_p3_individual)"/>
             </div>
             <div class="panel-metric">
-              <span class="pm-label">Department KPI:</span>
+              <span class="pm-label">P3.1.2 Department KPI:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.dept_kpi_score)"/>
             </div>
             <div class="panel-metric">
-              <span class="pm-label">Total P2.1:</span>
+              <span class="pm-label">P2.1:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.total_p2_1)"/>
             </div>
             <div class="panel-metric">
-              <span class="pm-label">Total P2.2:</span>
+              <span class="pm-label">P2.2:</span>
               <span class="pm-value" t-esc="formatScore(state.selectedNode.data.total_p2_2)"/>
             </div>
             <div class="panel-metric">

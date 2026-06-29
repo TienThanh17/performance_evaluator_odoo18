@@ -68,6 +68,9 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
         color: $tree-muted;
         text-transform: uppercase;
         letter-spacing: 0.04em;
+        min-width: 72px;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .o_kpi_tree_select {
@@ -394,7 +397,7 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 
 // ── Detail Panel ──────────────────────────────────────────────────────────────
 .o_kpi_tree_detail_panel {
-    width: 260px;
+    width: 320px;
     flex-shrink: 0;
     border-left: 1px solid $tree-border;
     display: flex;
@@ -454,15 +457,20 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 12px;
         margin-bottom: 10px;
         font-size: 0.82rem;
+        white-space: nowrap;
 
         .pm-label {
             color: $tree-muted;
+            flex: 0 0 170px;
         }
         .pm-value {
             font-weight: 700;
             color: $tree-text;
+            flex: 1 1 auto;
+            text-align: right;
             &.highlight {
                 color: $tree-primary;
                 font-size: 1rem;
