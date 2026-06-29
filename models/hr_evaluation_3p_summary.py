@@ -15,9 +15,6 @@ class HrEvaluation3PSummary(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "period_id desc, department_id, id desc"
 
-    P2_1_EXPORT_COLUMN_COUNT = 5
-    P2_2_EXPORT_COLUMN_COUNT = 16
-
     name = fields.Char(required=True, tracking=True, default="New")
     department_evaluation_id = fields.Many2one(
         "hr.department.performance.evaluation",
@@ -231,19 +228,6 @@ class HrEvaluation3PSummary(models.Model):
             lambda line: line.pillar_code == "p2_1" and not line.parent_line_id
         ).sorted(lambda line: (line.sequence or 0, line.id or 0))
 
-        # Chặn xuất sai layout cố định nếu dữ liệu vượt quá số cột TC của mẫu Excel.
-        if len(p2_1_lines) > self.P2_1_EXPORT_COLUMN_COUNT:
-            raise UserError(
-                _(
-                    "P2.1 export expects at most %(count)s top-level rows, but found %(found)s for %(employee)s."
-                )
-                % {
-                    "count": self.P2_1_EXPORT_COLUMN_COUNT,
-                    "found": len(p2_1_lines),
-                    "employee": evaluation.employee_id.display_name,
-                }
-            )
-
         rows = []
         for line in p2_1_lines:
             score = float(line.final_rating or 0.0)
@@ -265,19 +249,6 @@ class HrEvaluation3PSummary(models.Model):
         p2_2_lines = evaluation.evaluation_line_ids.filtered(
             lambda line: line.pillar_code == "p2_2" and not line.is_section
         ).sorted(lambda line: (line.sequence or 0, line.id or 0))
-
-        # Chặn xuất sai layout cố định nếu dữ liệu vượt quá số cột TC của mẫu Excel.
-        if len(p2_2_lines) > self.P2_2_EXPORT_COLUMN_COUNT:
-            raise UserError(
-                _(
-                    "P2.2 export expects at most %(count)s rows, but found %(found)s for %(employee)s."
-                )
-                % {
-                    "count": self.P2_2_EXPORT_COLUMN_COUNT,
-                    "found": len(p2_2_lines),
-                    "employee": evaluation.employee_id.display_name,
-                }
-            )
 
         rows = []
         for line in p2_2_lines:
@@ -381,6 +352,66 @@ class HrEvaluation3PSummary(models.Model):
                 )
                 % {"employee": summary_line.employee_id.display_name}
             ) from exc
+
+    # Tính layout cột động cho file Excel dựa trên số tiêu chí P2.1 và P2.2 thực tế lớn nhất trong snapshot.
+    def _get_export_column_layout(self, snapshots_by_line_id):
+        p2_1_count = 1
+        p2_2_count = 1
+
+        # Quét toàn bộ snapshot để lấy số cột lớn nhất cần render cho từng nhóm P2.
+        for snapshot in snapshots_by_line_id.values():
+            p2_1_count = max(p2_1_count, len(snapshot.get("p2_1", [])))
+            p2_2_count = max(p2_2_count, len(snapshot.get("p2_2", [])))
+
+        # Cố định phần đầu bảng rồi dời toàn bộ các nhóm phía sau theo số cột P2 thực tế.
+        p2_1_start_col = 9
+        p2_1_score_end_col = p2_1_start_col + p2_1_count - 1
+        p2_1_coefficient_col = p2_1_score_end_col + 1
+
+        p2_2_start_col = p2_1_coefficient_col + 1
+        p2_2_score_end_col = p2_2_start_col + p2_2_count - 1
+        p2_2_coefficient_col = p2_2_score_end_col + 1
+
+        # Nhóm P3 luôn giữ nguyên 9 cột nội bộ, chỉ thay đổi vị trí bắt đầu.
+        p3_start_col = p2_2_coefficient_col + 1
+        p3_individual_penalty_col = p3_start_col
+        p3_individual_score_col = p3_start_col + 1
+        p3_individual_weight_col = p3_start_col + 2
+        p3_department_penalty_col = p3_start_col + 3
+        p3_department_score_col = p3_start_col + 4
+        p3_department_weight_col = p3_start_col + 5
+        p3_total_weight_col = p3_start_col + 6
+        p3_coefficient_col = p3_start_col + 7
+        p3_revenue_col = p3_start_col + 8
+        comment_col = p3_revenue_col + 1
+
+        # Giữ khối doc_info rộng 3 cột ở mép phải như layout cũ.
+        doc_info_start_col = comment_col - 2
+        title_end_col = doc_info_start_col - 1
+
+        return {
+            "p2_1_count": p2_1_count,
+            "p2_1_start_col": p2_1_start_col,
+            "p2_1_score_end_col": p2_1_score_end_col,
+            "p2_1_coefficient_col": p2_1_coefficient_col,
+            "p2_2_count": p2_2_count,
+            "p2_2_start_col": p2_2_start_col,
+            "p2_2_score_end_col": p2_2_score_end_col,
+            "p2_2_coefficient_col": p2_2_coefficient_col,
+            "p3_start_col": p3_start_col,
+            "p3_individual_penalty_col": p3_individual_penalty_col,
+            "p3_individual_score_col": p3_individual_score_col,
+            "p3_individual_weight_col": p3_individual_weight_col,
+            "p3_department_penalty_col": p3_department_penalty_col,
+            "p3_department_score_col": p3_department_score_col,
+            "p3_department_weight_col": p3_department_weight_col,
+            "p3_total_weight_col": p3_total_weight_col,
+            "p3_coefficient_col": p3_coefficient_col,
+            "p3_revenue_col": p3_revenue_col,
+            "comment_col": comment_col,
+            "doc_info_start_col": doc_info_start_col,
+            "title_end_col": title_end_col,
+        }
 
     # Chuẩn hóa tên file export để không vướng ký tự cấm của hệ điều hành.
     def _sanitize_export_name_part(self, value):
@@ -586,6 +617,7 @@ class HrEvaluation3PSummary(models.Model):
         line_number,
         summary_line,
         snapshot,
+        column_layout,
         p3_individual_weight,
         p3_department_weight,
         cell_center,
@@ -613,11 +645,11 @@ class HrEvaluation3PSummary(models.Model):
             row, 8, p1_allowance, cell_num if p1_allowance != "" else cell_center
         )
 
-        # Đổ các điểm thô của P2.1 vào đúng 5 cột TC cố định của layout Excel.
+        # Đổ các điểm thô của P2.1 vào số cột động theo layout vừa tính từ snapshot.
         p2_1_rows = snapshot.get("p2_1", [])
         p2_1_raw_scores = []
-        for offset in range(self.P2_1_EXPORT_COLUMN_COUNT):
-            col = 9 + offset
+        for offset in range(column_layout["p2_1_count"]):
+            col = column_layout["p2_1_start_col"] + offset
             if offset < len(p2_1_rows):
                 raw_score = float(p2_1_rows[offset].get("raw_score", 0.0) or 0.0)
                 p2_1_raw_scores.append(raw_score)
@@ -625,23 +657,23 @@ class HrEvaluation3PSummary(models.Model):
             else:
                 sheet.write_blank(row, col, None, cell_center)
 
-        # Ghi công thức hệ số P2.1 theo đúng convention Excel cũ.
-        p2_1_start_cell = xl_rowcol_to_cell(row, 9)
-        p2_1_end_cell = xl_rowcol_to_cell(row, 13)
+        # Ghi công thức hệ số P2.1 theo đúng dải cột TC động của nhân sự hiện tại.
+        p2_1_start_cell = xl_rowcol_to_cell(row, column_layout["p2_1_start_col"])
+        p2_1_end_cell = xl_rowcol_to_cell(row, column_layout["p2_1_score_end_col"])
         p2_1_formula = f"=SUM({p2_1_start_cell}:{p2_1_end_cell})/100"
         sheet.write_formula(
             row,
-            14,
+            column_layout["p2_1_coefficient_col"],
             p2_1_formula,
             cell_heso_data,
             sum(p2_1_raw_scores) / 100.0,
         )
 
-        # Đổ các điểm thô của P2.2 vào đúng 16 cột TC cố định của layout Excel.
+        # Đổ các điểm thô của P2.2 vào số cột động theo layout vừa tính từ snapshot.
         p2_2_rows = snapshot.get("p2_2", [])
         p2_2_raw_scores = []
-        for offset in range(self.P2_2_EXPORT_COLUMN_COUNT):
-            col = 15 + offset
+        for offset in range(column_layout["p2_2_count"]):
+            col = column_layout["p2_2_start_col"] + offset
             if offset < len(p2_2_rows):
                 raw_score = float(p2_2_rows[offset].get("raw_score", 0.0) or 0.0)
                 p2_2_raw_scores.append(raw_score)
@@ -649,13 +681,13 @@ class HrEvaluation3PSummary(models.Model):
             else:
                 sheet.write_blank(row, col, None, cell_center)
 
-        # Ghi công thức hệ số P2.2 theo đúng convention Excel cũ.
-        p2_2_start_cell = xl_rowcol_to_cell(row, 15)
-        p2_2_end_cell = xl_rowcol_to_cell(row, 30)
+        # Ghi công thức hệ số P2.2 theo đúng dải cột TC động của nhân sự hiện tại.
+        p2_2_start_cell = xl_rowcol_to_cell(row, column_layout["p2_2_start_col"])
+        p2_2_end_cell = xl_rowcol_to_cell(row, column_layout["p2_2_score_end_col"])
         p2_2_formula = f"=SUM({p2_2_start_cell}:{p2_2_end_cell})/100"
         sheet.write_formula(
             row,
-            31,
+            column_layout["p2_2_coefficient_col"],
             p2_2_formula,
             cell_heso_data,
             sum(p2_2_raw_scores) / 100.0,
@@ -670,34 +702,56 @@ class HrEvaluation3PSummary(models.Model):
         )
         p3_individual_penalty_value = p3_individual_penalty / 100.0
         p3_department_penalty_value = p3_department_penalty / 100.0
-        sheet.write(row, 32, p3_individual_penalty_value, cell_percent)
-        sheet.write(row, 35, p3_department_penalty_value, cell_percent)
+        sheet.write(
+            row,
+            column_layout["p3_individual_penalty_col"],
+            p3_individual_penalty_value,
+            cell_percent,
+        )
+        sheet.write(
+            row,
+            column_layout["p3_department_penalty_col"],
+            p3_department_penalty_value,
+            cell_percent,
+        )
 
         # Viết công thức điểm sau khi trừ penalty cho P3.1.1 và P3.1.2.
-        p3_individual_penalty_cell = xl_rowcol_to_cell(row, 32)
-        p3_individual_score_cell = xl_rowcol_to_cell(row, 33)
-        p3_department_penalty_cell = xl_rowcol_to_cell(row, 35)
-        p3_department_score_cell = xl_rowcol_to_cell(row, 36)
+        p3_individual_penalty_cell = xl_rowcol_to_cell(
+            row, column_layout["p3_individual_penalty_col"]
+        )
+        p3_individual_score_cell = xl_rowcol_to_cell(
+            row, column_layout["p3_individual_score_col"]
+        )
+        p3_department_penalty_cell = xl_rowcol_to_cell(
+            row, column_layout["p3_department_penalty_col"]
+        )
+        p3_department_score_cell = xl_rowcol_to_cell(
+            row, column_layout["p3_department_score_col"]
+        )
         p3_individual_score_value = 1.0 - p3_individual_penalty_value
         p3_department_score_value = 1.0 - p3_department_penalty_value
         sheet.write_formula(
             row,
-            33,
+            column_layout["p3_individual_score_col"],
             f"=1-{p3_individual_penalty_cell}",
             cell_percent,
             p3_individual_score_value,
         )
         sheet.write_formula(
             row,
-            36,
+            column_layout["p3_department_score_col"],
             f"=1-{p3_department_penalty_cell}",
             cell_percent,
             p3_department_score_value,
         )
 
         # Viết công thức trọng số quy đổi theo % cấu hình P3 hiện tại.
-        p3_individual_weight_cell = xl_rowcol_to_cell(row, 34)
-        p3_department_weight_cell = xl_rowcol_to_cell(row, 37)
+        p3_individual_weight_cell = xl_rowcol_to_cell(
+            row, column_layout["p3_individual_weight_col"]
+        )
+        p3_department_weight_cell = xl_rowcol_to_cell(
+            row, column_layout["p3_department_weight_col"]
+        )
         p3_individual_weight_value = p3_individual_score_value * (
             p3_individual_weight / 100.0
         )
@@ -706,25 +760,27 @@ class HrEvaluation3PSummary(models.Model):
         )
         sheet.write_formula(
             row,
-            34,
+            column_layout["p3_individual_weight_col"],
             f"=({p3_individual_score_cell}*({p3_individual_weight}/100))",
             cell_percent,
             p3_individual_weight_value,
         )
         sheet.write_formula(
             row,
-            37,
+            column_layout["p3_department_weight_col"],
             f"=({p3_department_score_cell}*({p3_department_weight}/100))",
             cell_percent,
             p3_department_weight_value,
         )
 
         # Tổng trọng số là tổng 2 phần đóng góp của KPI cá nhân và KPI phòng ban.
-        p3_total_weight_cell = xl_rowcol_to_cell(row, 38)
+        p3_total_weight_cell = xl_rowcol_to_cell(
+            row, column_layout["p3_total_weight_col"]
+        )
         p3_total_weight_value = p3_individual_weight_value + p3_department_weight_value
         sheet.write_formula(
             row,
-            38,
+            column_layout["p3_total_weight_col"],
             f"={p3_individual_weight_cell}+{p3_department_weight_cell}",
             cell_num,
             p3_total_weight_value,
@@ -739,7 +795,7 @@ class HrEvaluation3PSummary(models.Model):
         )
         sheet.write_formula(
             row,
-            39,
+            column_layout["p3_coefficient_col"],
             p3_coefficient_formula,
             cell_heso_data,
             self._compute_p3_coefficient_value(p3_total_weight_value),
@@ -747,13 +803,13 @@ class HrEvaluation3PSummary(models.Model):
 
         # Ghi hệ số doanh thu theo semantics của percentage widget: giá trị nội bộ 1.2 sẽ hiển thị thành 120% trong Excel.
         p3_2_revenue = float(summary_line.p3_2_revenue or 0.0)
-        sheet.write(row, 40, p3_2_revenue, cell_percent)
+        sheet.write(row, column_layout["p3_revenue_col"], p3_2_revenue, cell_percent)
 
         # Cột đánh giá trên bảng chính dùng chung nội dung manager comment đã chuẩn hóa.
         if comment_text:
-            sheet.write(row, 41, comment_text, cell_left)
+            sheet.write(row, column_layout["comment_col"], comment_text, cell_left)
         else:
-            sheet.write_blank(row, 41, None, cell_left)
+            sheet.write_blank(row, column_layout["comment_col"], None, cell_left)
 
     # Render bảng III bằng comment manager đã chốt snapshot để nội dung nhất quán với sheet chính.
     def _write_export_comment_section(
@@ -763,6 +819,7 @@ class HrEvaluation3PSummary(models.Model):
         start_row,
         export_lines,
         snapshots_by_line_id,
+        column_layout,
         section_format,
     ):
         # Tiêu đề mục III.
@@ -797,7 +854,7 @@ class HrEvaluation3PSummary(models.Model):
             start_row + 1,
             7,
             start_row + 1,
-            31,
+            column_layout["comment_col"],
             "Đánh giá và ý kiến trưởng bộ phận",
             table_header,
         )
@@ -828,7 +885,7 @@ class HrEvaluation3PSummary(models.Model):
                 current_row,
                 7,
                 current_row,
-                31,
+                column_layout["comment_col"],
                 comment_text,
                 table_cell_left,
             )
@@ -848,6 +905,7 @@ class HrEvaluation3PSummary(models.Model):
         snapshots_by_line_id = {
             line.id: self._load_excel_export_snapshot(line) for line in export_lines
         }
+        column_layout = self._get_export_column_layout(snapshots_by_line_id)
 
         # ==========================================
         # 1. ĐỊNH DẠNG (FORMATS)
@@ -966,24 +1024,43 @@ class HrEvaluation3PSummary(models.Model):
         # 2. CẤU HÌNH CỘT (COLUMN WIDTH)
         # ==========================================
         # Set 3 cột đầu tiên A, B, C độ rộng nhỏ lại làm lề
-        sheet.set_column("A:C", 2)
+        sheet.set_column(0, 2, 2)
 
-        sheet.set_column("D:D", 5)  # STT (tịnh tiến A -> D)
-        sheet.set_column("E:E", 12)  # Mã NV (B -> E)
-        sheet.set_column("F:F", 25)  # Họ Tên (C -> F)
-        sheet.set_column("G:G", 25)  # Chức vụ (D -> G)
-        sheet.set_column("H:I", 30)  # P1.1, P1.2 (E:F -> H:I)
-        sheet.set_column("J:O", 7)  # P2.1 (G:L -> J:O)
-        sheet.set_column("P:AE", 7)  # P2.2 (M:AB -> P:AE)
-        sheet.set_column("AF:AF", 8)  # P2.2 Hệ số (AC -> AF)
-
-        # Cấu hình độ rộng cho toàn bộ các cột con của Tiêu chí P3
+        sheet.set_column(3, 3, 5)  # STT (tịnh tiến A -> D)
+        sheet.set_column(4, 4, 12)  # Mã NV (B -> E)
+        sheet.set_column(5, 5, 25)  # Họ Tên (C -> F)
+        sheet.set_column(6, 6, 25)  # Chức vụ (D -> G)
+        sheet.set_column(7, 8, 30)  # P1.1, P1.2 (E:F -> H:I)
         sheet.set_column(
-            "AG:AO", 18
-        )  # Từ cột P3.1.1 cho tới Hệ số của P3.2 (AD:AL -> AG:AO)
+            column_layout["p2_1_start_col"],
+            column_layout["p2_1_score_end_col"],
+            7,
+        )  # Các cột TC của P2.1
+        sheet.set_column(
+            column_layout["p2_1_coefficient_col"],
+            column_layout["p2_1_coefficient_col"],
+            7,
+        )  # Hệ số P2.1
+        sheet.set_column(
+            column_layout["p2_2_start_col"],
+            column_layout["p2_2_score_end_col"],
+            7,
+        )  # Các cột TC của P2.2
+        sheet.set_column(
+            column_layout["p2_2_coefficient_col"],
+            column_layout["p2_2_coefficient_col"],
+            8,
+        )  # Hệ số P2.2
 
-        # Tăng width cho cột "Đánh giá..." (Cột AM -> AP)
-        sheet.set_column("AP:AP", 20)
+        # Giữ nguyên độ rộng cụm P3, chỉ dời vị trí theo layout động.
+        sheet.set_column(
+            column_layout["p3_start_col"],
+            column_layout["p3_revenue_col"],
+            18,
+        )
+
+        # Tăng width cho cột "Đánh giá..." ở mép phải cùng của bảng động.
+        sheet.set_column(column_layout["comment_col"], column_layout["comment_col"], 20)
 
         # Đóng băng dòng header (tịnh tiến thêm 3 cột vào tham số thứ 2)
         sheet.freeze_panes(0, 7)
@@ -991,13 +1068,27 @@ class HrEvaluation3PSummary(models.Model):
         # ==========================================
         # 3. PHẦN THÔNG TIN CHUNG (HEADER BÁO CÁO)
         # ==========================================
-        # SỬA Ở ĐÂY: Merge từ D2 đến AM3 để dành không gian bên phải cho doc_info
-        sheet.merge_range("D2:AM3", "BẢNG ĐÁNH GIÁ THEO PHƯƠNG PHÁP 3P", title_format)
+        # Co giãn phần tiêu đề theo bề rộng bảng thực tế nhưng vẫn chừa 3 cột cuối cho doc_info.
+        sheet.merge_range(
+            1,
+            3,
+            2,
+            column_layout["title_end_col"],
+            "BẢNG ĐÁNH GIÁ THEO PHƯƠNG PHÁP 3P",
+            title_format,
+        )
 
-        # Dời doc_info sang lề phải cùng của bảng (AN2 đến AP4).
+        # Dời doc_info sang 3 cột cuối cùng của bảng động để giữ cách trình bày cũ.
         today_label = fields.Date.context_today(self).strftime("%d/%m/%Y")
         doc_info = f"No. {self.name or ''}\nDate: {today_label}\nPage: 01/01"
-        sheet.merge_range("AN2:AP4", doc_info, doc_info_format)
+        sheet.merge_range(
+            1,
+            column_layout["doc_info_start_col"],
+            3,
+            column_layout["comment_col"],
+            doc_info,
+            doc_info_format,
+        )
 
         sheet.write("D6", "I", section_format)
         sheet.write("E6", "THÔNG TIN CHUNG", section_format)
@@ -1011,7 +1102,14 @@ class HrEvaluation3PSummary(models.Model):
         sheet.write("G10", "Phương pháp 3P với trọng số", label_format)
 
         note_text = "Chú ý: đây là bảng tổng hợp Lương 3P của nhân viên phòng ban. Cuối mỗi tháng, trưởng bộ phận sẽ đánh giá nhân viên các tiêu chí P2.1; P2.2; P3.1.1; P3.1.2 tại các sheet tương ứng"
-        sheet.merge_range("D11:P11", note_text, note_format)
+        sheet.merge_range(
+            10,
+            3,
+            10,
+            max(15, column_layout["p2_2_start_col"]),
+            note_text,
+            note_format,
+        )
 
         sheet.write("D12", "II", section_format)
         sheet.write("E12", "BẢNG TỔNG HỢP KẾT QUẢ", section_format)
@@ -1040,17 +1138,29 @@ class HrEvaluation3PSummary(models.Model):
             row_h1, 7, row_h1, 8, "TIÊU CHÍ P1\n(lương theo vị trí)", format_p1
         )
         sheet.merge_range(
-            row_h1, 9, row_h1, 31, "TIÊU CHÍ P2\n(lương theo năng lực)", format_p2
+            row_h1,
+            9,
+            row_h1,
+            column_layout["p2_2_coefficient_col"],
+            "TIÊU CHÍ P2\n(lương theo năng lực)",
+            format_p2,
         )
         sheet.merge_range(
             row_h1,
-            32,
+            column_layout["p3_start_col"],
             row_h1,
-            40,
+            column_layout["p3_revenue_col"],
             "TIÊU CHÍ P3\n(lương theo hiệu quả công việc)",
             format_p3,
         )
-        sheet.merge_range(row_h1, 41, row_h4, 41, "Đánh giá", header_main)
+        sheet.merge_range(
+            row_h1,
+            column_layout["comment_col"],
+            row_h4,
+            column_layout["comment_col"],
+            "Đánh giá",
+            header_main,
+        )
 
         # --- TIÊU CHÍ P1 ---
         sheet.merge_range(row_h2, 7, row_h3, 7, "P1.1\n(lương cơ bản)", format_gray)
@@ -1069,57 +1179,136 @@ class HrEvaluation3PSummary(models.Model):
         # --- TIÊU CHÍ P2 ---
         sheet.merge_range(
             row_h2,
-            9,
+            column_layout["p2_1_start_col"],
             row_h3,
-            14,
+            column_layout["p2_1_coefficient_col"],
             "P2.1\n(lương theo kiến thức công việc)\nĐánh giá theo định kỳ",
             format_white,
         )
-        for i, col in enumerate(range(9, 14)):
+        for i, col in enumerate(
+            range(
+                column_layout["p2_1_start_col"],
+                column_layout["p2_1_score_end_col"] + 1,
+            )
+        ):
             sheet.write(row_h4, col, f"TC{i + 1}", format_t4_blue)
-        sheet.write(row_h4, 14, "Hệ số", format_t4_blue)
+        sheet.write(row_h4, column_layout["p2_1_coefficient_col"], "Hệ số", format_t4_blue)
 
         sheet.merge_range(
             row_h2,
-            15,
+            column_layout["p2_2_start_col"],
             row_h3,
-            31,
+            column_layout["p2_2_coefficient_col"],
             "P2.2\n(lương theo kỹ năng, kinh nghiệm)\nĐánh giá theo định kỳ",
             format_white,
         )
-        for i, col in enumerate(range(15, 31)):
+        for i, col in enumerate(
+            range(
+                column_layout["p2_2_start_col"],
+                column_layout["p2_2_score_end_col"] + 1,
+            )
+        ):
             sheet.write(row_h4, col, f"TC{i + 1}", format_t4_blue)
-        sheet.write(row_h4, 31, "Hệ số", format_t4_blue)
+        sheet.write(row_h4, column_layout["p2_2_coefficient_col"], "Hệ số", format_t4_blue)
 
         # --- TIÊU CHÍ P3 ---
         # Tầng 2
-        sheet.merge_range(row_h2, 32, row_h2, 39, "P3.1", format_white)
-        sheet.merge_range(row_h2, 40, row_h3, 40, "P3.2\n(theo doanh thu)", format_gray)
-        sheet.write(row_h4, 40, "Hệ số", format_gray)
+        sheet.merge_range(
+            row_h2,
+            column_layout["p3_start_col"],
+            row_h2,
+            column_layout["p3_coefficient_col"],
+            "P3.1",
+            format_white,
+        )
+        sheet.merge_range(
+            row_h2,
+            column_layout["p3_revenue_col"],
+            row_h3,
+            column_layout["p3_revenue_col"],
+            "P3.2\n(theo doanh thu)",
+            format_gray,
+        )
+        sheet.write(row_h4, column_layout["p3_revenue_col"], "Hệ số", format_gray)
 
         # Tầng 3
         sheet.merge_range(
-            row_h3, 32, row_h3, 34, "P3.1.1\nKPI CÁ NHÂN (1)", format_white
+            row_h3,
+            column_layout["p3_individual_penalty_col"],
+            row_h3,
+            column_layout["p3_individual_weight_col"],
+            "P3.1.1\nKPI CÁ NHÂN (1)",
+            format_white,
         )
         sheet.merge_range(
-            row_h3, 35, row_h3, 37, "P3.1.2\nKPI PHÒNG BAN (2)", format_white
+            row_h3,
+            column_layout["p3_department_penalty_col"],
+            row_h3,
+            column_layout["p3_department_weight_col"],
+            "P3.1.2\nKPI PHÒNG BAN (2)",
+            format_white,
         )
         sheet.merge_range(
-            row_h3, 38, row_h3, 39, "KPI NHÂN VIÊN=\n(1) X (2)", format_white
+            row_h3,
+            column_layout["p3_total_weight_col"],
+            row_h3,
+            column_layout["p3_coefficient_col"],
+            "KPI NHÂN VIÊN=\n(1) X (2)",
+            format_white,
         )
 
         # Tầng 4
         # Dưới P3.1.1
-        sheet.write(row_h4, 32, "Điểm thưởng\nbị trừ", format_t4_blue)
-        sheet.write(row_h4, 33, "Điểm", format_t4_blue)
-        sheet.write(row_h4, 34, "Trọng số", format_t4_blue)
+        sheet.write(
+            row_h4,
+            column_layout["p3_individual_penalty_col"],
+            "Điểm thưởng\nbị trừ",
+            format_t4_blue,
+        )
+        sheet.write(
+            row_h4,
+            column_layout["p3_individual_score_col"],
+            "Điểm",
+            format_t4_blue,
+        )
+        sheet.write(
+            row_h4,
+            column_layout["p3_individual_weight_col"],
+            "Trọng số",
+            format_t4_blue,
+        )
         # Dưới P3.1.2
-        sheet.write(row_h4, 35, "Điểm thưởng\nbị trừ", format_t4_blue)
-        sheet.write(row_h4, 36, "Điểm", format_t4_blue)
-        sheet.write(row_h4, 37, "Trọng số", format_t4_blue)
+        sheet.write(
+            row_h4,
+            column_layout["p3_department_penalty_col"],
+            "Điểm thưởng\nbị trừ",
+            format_t4_blue,
+        )
+        sheet.write(
+            row_h4,
+            column_layout["p3_department_score_col"],
+            "Điểm",
+            format_t4_blue,
+        )
+        sheet.write(
+            row_h4,
+            column_layout["p3_department_weight_col"],
+            "Trọng số",
+            format_t4_blue,
+        )
         # Dưới Tổng KPI (P3.1)
-        sheet.write(row_h4, 38, "Tổng trọng số", format_t4_blue)
-        sheet.write(row_h4, 39, "Hệ số", format_t4_blue)
+        sheet.write(
+            row_h4,
+            column_layout["p3_total_weight_col"],
+            "Tổng trọng số",
+            format_t4_blue,
+        )
+        sheet.write(
+            row_h4,
+            column_layout["p3_coefficient_col"],
+            "Hệ số",
+            format_t4_blue,
+        )
 
         row = 17
         for index, summary_line in enumerate(export_lines, start=1):
@@ -1132,6 +1321,7 @@ class HrEvaluation3PSummary(models.Model):
                 index,
                 summary_line,
                 snapshot,
+                column_layout,
                 p3_individual_weight,
                 p3_department_weight,
                 cell_center,
@@ -1151,6 +1341,7 @@ class HrEvaluation3PSummary(models.Model):
             start_row,
             export_lines,
             snapshots_by_line_id,
+            column_layout,
             section_format,
         )
 
