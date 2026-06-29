@@ -22,14 +22,14 @@
             <form string="Data Source">
                 <sheet>
                     <div class="oe_title">
-                        <label for="name" class="oe_edit_only" string="Tên Nguồn Dữ Liệu" />
+                        <label for="name" class="oe_edit_only" string="Data Source Name" />
                         <h1>
-                            <field name="name" placeholder="VD: Số ngày đi làm thực tế..." />
+                            <field name="name" placeholder="E.g.: Actual working days..." />
                         </h1>
                     </div>
 
                     <group>
-                        <group name="basic_info" string="Thông tin chung">
+                        <group name="basic_info" string="General Information">
                             <field name="code" readonly="source_type == 'system'"/>
                             <field name="unit_id" />
                             <field name="description" />
@@ -38,15 +38,15 @@
                     </group>
 
                     <hr />
-                    <group name="source_config" string="Logic Xử Lý">
+                    <group name="source_config" string="Processing Logic">
                         <field name="source_type" widget="radio" options="{'horizontal': true}" />
                     </group>
 
                     <div class="alert alert-warning text-center mt-3" role="alert"
                         invisible="source_type != 'system'">
-                        <strong><i class="fa fa-lock" /> Lưu ý:</strong> Nguồn dữ liệu này được tính
-                        toán tự động bởi hệ thống và không thể chỉnh sửa logic để đảm
-                        bảo tính chính xác. </div>
+                        <strong><i class="fa fa-lock" /> Note:</strong> This data source is calculated
+                        automatically by the system and its logic cannot be edited to ensure
+                        accuracy. </div>
 
                     <group invisible="source_type != 'domain'">
                         <group>
@@ -79,9 +79,9 @@
 
                 </sheet>
                 <footer>
-                    <button name="action_test_execute" type="object" string="Chạy thử"
+                    <button name="action_test_execute" type="object" string="Test Run"
                         class="btn-primary" icon="fa-play" />
-                    <button string="Đóng" class="btn-secondary" special="cancel" />
+                    <button string="Close" class="btn-secondary" special="cancel" />
                 </footer>
             </form>
         </field>

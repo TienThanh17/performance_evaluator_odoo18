@@ -10,6 +10,7 @@ import { Component, useState, onMounted, useRef, onPatched } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { loadJS } from "@web/core/assets";
+import { _t } from "@web/core/l10n/translation";
 import { formatScore as _formatScore } from "@custom_adecsol_hr_performance_evaluator/utils/kpi_helpers";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -125,10 +126,10 @@ export class KpiTreeDashboard extends Component {
 
     stateBadgeLabel(state) {
         const map = {
-            self_evaluation: "Tự đánh giá",
-            manager_evaluating: "Quản lý đánh giá",
-            completed: "Hoàn thành",
-            cancel: "Hủy",
+            self_evaluation: _t("Self Evaluation"),
+            manager_evaluating: _t("Manager Evaluating"),
+            completed: _t("Completed"),
+            cancel: _t("Canceled"),
         };
         return map[state] || state;
     }
@@ -397,7 +398,7 @@ export class KpiTreeDashboard extends Component {
         this.state.showFailedEvaluationModal = false;
         await this.actionService.doAction({
             type: "ir.actions.act_window",
-            name: item.evaluation_name || "Đánh giá không đạt",
+            name: item.evaluation_name || "Failed Evaluation",
             res_model: item.record_model,
             res_id: item.record_id,
             views: [[false, "form"]],
@@ -432,9 +433,9 @@ export class KpiTreeDashboard extends Component {
     failedEvaluationTitle(item) {
         if (!item) return "—";
         if (item.source_type === "department") {
-            return item.dept_name || item.evaluation_name || "Phiếu phòng ban";
+            return item.dept_name || item.evaluation_name || "Department Evaluation";
         }
-        return item.employee_name || item.evaluation_name || "Phiếu nhân viên";
+        return item.employee_name || item.evaluation_name || "Employee Evaluation";
     }
 
     sourceBadgeClass(item) {
@@ -526,7 +527,7 @@ export class KpiTreeDashboard extends Component {
 
         const rootNode = {
             id: "company",
-            name: "Công ty",
+            name: "Company",
             _type: "company",
             rawData: d.company,
             children: [],

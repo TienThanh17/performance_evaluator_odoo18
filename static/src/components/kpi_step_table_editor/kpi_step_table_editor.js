@@ -1,6 +1,7 @@
 /** @odoo-module */
 
 import { registry } from "@web/core/registry";
+import { _t } from "@web/core/l10n/translation";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { Component, onWillUpdateProps, useState } from "@odoo/owl";
 
@@ -54,7 +55,7 @@ export class KpiStepTableEditor extends Component {
                 : [];
             return { rows, error: "" };
         } catch {
-            return { rows: [], error: "JSON hiện tại không hợp lệ." };
+            return { rows: [], error: _t("The current JSON is invalid.") };
         }
     }
 
@@ -127,10 +128,10 @@ export class KpiStepTableEditor extends Component {
             const score = Number(row.score || 0);
             const upper = row.to === null ? null : Number(row.to);
             if (upper !== null && upper < lower) {
-                return "Giá trị 'Đến' phải lớn hơn 'Từ'.";
+                return _t("The 'To' value must be greater than 'From'.");
             }
             if (score < 0 || score > this.scoreBase) {
-                return `Điểm phải nằm trong khoảng 0 - ${this.scoreBase}.`;
+                return _t("Score must be in range 0 - %s").replace("%s", this.scoreBase);
             }
         }
         return "";

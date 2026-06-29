@@ -20,14 +20,14 @@ MICRO_CHART_TYPE_SELECTION = [
 ]
 
 KPI_BEHAVIOR_SELECTION = [
-    ("cumulative", "Tích lũy"),
-    ("maintenance", "Duy trì"),
+    ("cumulative", "Cumulative"),
+    ("maintenance", "Maintenance"),
 ]
 
 MACRO_WIDGET_TYPE_SELECTION = [
-    ("radar_chart", "Biểu đồ radar"),
-    ("trend_line", "Đường xu hướng (Biểu đồ dây)"),
-    ("distribution", "Phân phối (Biểu đồ cột)"),
+    ("radar_chart", "Radar Chart"),
+    ("trend_line", "Line Chart"),
+    ("distribution", "Bar Chart"),
 ]
 TARGET_MODEL_SELECTION = [
     ("evaluation", "Performance Evaluation"),
@@ -67,16 +67,16 @@ class HrKpiDashboardWidget(models.Model):
     name = fields.Char(required=True, translate=True)
     dashboard_kind = fields.Selection(
         [
-            ("individual", "Dashboard Cá Nhân"),
-            ("department", "Dashboard Phòng Ban"),
+            ("individual", "Individual Dashboard"),
+            ("department", "Department Dashboard"),
         ],
         required=True,
         default="individual",
     )
     widget_class = fields.Selection(
         [
-            ("macro", "Biểu đồ Tổng hợp"),
-            ("micro", "Biểu đồ Chi tiết KPI"),
+            ("macro", "Overview Chart"),
+            ("micro", "KPI Detail Chart"),
         ],
         required=True,
         default="micro",

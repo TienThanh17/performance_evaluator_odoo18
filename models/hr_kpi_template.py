@@ -52,16 +52,16 @@ class HrKpiTemplate(models.Model):
     )
     period_type = fields.Selection(
         [
-            ("monthly", "Hàng tháng"),
-            ("quarterly", "Hàng quý"),
-            ("biannual", "Nửa năm"),
-            ("yearly", "Hàng năm"),
+            ("monthly", "Monthly"),
+            ("quarterly", "Quarterly"),
+            ("biannual", "Biannual"),
+            ("yearly", "Yearly"),
         ],
-        string="Tần suất đánh giá",
+        string="Evaluation Frequency",
         required=True,
         default="monthly",
         tracking=True,
-        help="Quy định tần suất sử dụng bản mẫu này.",
+        help="Specifies the frequency of using this template.",
     )
     scoring_profile_id = fields.Many2one(
         "hr.kpi.scoring.profile",
@@ -80,13 +80,13 @@ class HrKpiTemplate(models.Model):
     )
     # Khai báo các field chứa tên động của từng Pillar
     pillar_p2_1_name = fields.Char(
-        compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.1"
+        compute="_compute_dynamic_pillar_names", string="Pillar P2.1 Name"
     )
     pillar_p2_2_name = fields.Char(
-        compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.2"
+        compute="_compute_dynamic_pillar_names", string="Pillar P2.2 Name"
     )
     pillar_p3_ind_name = fields.Char(
-        compute="_compute_dynamic_pillar_names", string="Tên Pillar P3"
+        compute="_compute_dynamic_pillar_names", string="Pillar P3 Name"
     )
     total_weight_p2_1 = fields.Float(
         compute="_compute_total_weight_by_pillar",

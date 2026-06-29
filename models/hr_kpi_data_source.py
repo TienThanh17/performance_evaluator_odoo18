@@ -17,13 +17,13 @@ class HrKpiDataSource(models.Model):
     name = fields.Char(required=True, translate=True)
     code = fields.Char(
         required=True,
-        help="Mã kỹ thuật duy nhất, không dấu, không khoảng trắng. Ví dụ: task_ontime_rate",
+        help="Unique technical code, no accents, no spaces. E.g. task_ontime_rate",
     )
     unit_id = fields.Many2one(
         "hr.kpi.unit",
         string="Unit",
         ondelete="set null",
-        help="Mã đơn vị mặc định sẽ tự gán cho KPI line khi chọn nguồn dữ liệu này.",
+        help="Default unit code to assign to KPI line when this data source is selected.",
     )
     active = fields.Boolean(default=True)
     source_type = fields.Selection(
@@ -45,39 +45,39 @@ class HrKpiDataSource(models.Model):
         tracking=True,
     )
     model_name = fields.Char(
-        related="model_id.model", string="Model dữ liệu", store=False
+        related="model_id.model", string="Data Model", store=False
     )
 
     aggregation = fields.Selection(
         [
-            ("count", "Đếm số bản ghi"),
-            ("ratio", "Tỷ lệ"),
-            ("sum", "Tổng"),
-            ("avg", "Trung bình"),
+            ("count", "Record Count"),
+            ("ratio", "Ratio"),
+            ("sum", "Sum"),
+            ("avg", "Average"),
         ],
         default="count",
     )
     user_field_id = fields.Many2one(
         "ir.model.fields",
-        string="Trường phân bổ (User/Employee)",
+        string="Allocation Field (User/Employee)",
         domain="[('model_id', '=', model_id), ('ttype', 'in', ['many2one', 'many2many']), ('relation', 'in', ['res.users', 'hr.employee'])]",
-        help="Chọn trường dữ liệu dùng để xác định KPI này thuộc về ai.",
+        help="Select the data field used to determine who this KPI belongs to.",
     )
     domain_numerator = fields.Char(default="[]")
     domain_denominator = fields.Char(default="[]")
     sum_avg_field_id = fields.Many2one(
         "ir.model.fields",
-        string="Trường tính toán (Sum/Avg)",
+        string="Calculation Field (Sum/Avg)",
         domain="[('model_id', '=', model_id), ('ttype', 'in', ['integer', 'float', 'monetary'])]",
         options="{'no_create': True}",
-        help="Chọn trường dữ liệu kiểu số (Integer, Float, Monetary) để thực hiện tính toán tổng hoặc trung bình.",
+        help="Select a numeric field (Integer, Float, Monetary) to perform sum or average calculations.",
     )
     date_field_id = fields.Many2one(
         "ir.model.fields",
-        string="Trường ngày lọc dữ liệu",
+        string="Date Filter Field",
         domain="[('model_id', '=', model_id), ('ttype', 'in', ['date', 'datetime'])]",
         options="{'no_create': True}",
-        help="Chọn trường ngày (Date hoặc Datetime) dùng để đối chiếu với Kỳ đánh giá KPI.",
+        help="Select a date field (Date or Datetime) to match with the KPI Evaluation Period.",
     )
 
     python_code = fields.Text(

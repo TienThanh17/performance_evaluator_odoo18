@@ -1288,13 +1288,13 @@ class HrEvaluation3PSummaryLine(models.Model):
         string="P3.2",
         digits=(16, 4),
         default=0.0,
-        help="Revenue ratio entered with the percentage widget. For example, enter 120% and Odoo stores 1.2 internally.",
+        help="Revenue ratio entered with the percentage widget. For example, enter 90% and Odoo stores 0.9 internally.",
     )
+    # Display-only revenue ratio used on the summary list to avoid client-side cache conflicts.
     p3_2_revenue_list = fields.Float(
         string="P3.2",
         digits=(16, 4),
         compute="_compute_p3_2_revenue_list",
-        help="Display-only revenue ratio used on the summary list to avoid client-side cache conflicts.",
     )
     excel_export_snapshot = fields.Text(
         string="Excel Export Snapshot",

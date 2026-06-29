@@ -55,9 +55,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     deadline = fields.Date(tracking=True)
     period_status = fields.Selection(
         [
-            ("upcoming", "Sắp diễn ra"),
-            ("ongoing", "Đang diễn ra"),
-            ("closed", "Đã kết thúc"),
+            ("upcoming", "Upcoming"),
+            ("ongoing", "Ongoing"),
+            ("closed", "Closed"),
         ],
         string="Period Status",
         compute="_compute_period_status",
@@ -82,7 +82,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
     dept_kpi_score = fields.Float(
         compute="_compute_dept_kpi_score",
         store=True,
-        help="Điểm KPI phòng ban",
+        help="Department KPI Score",
     )
 
     has_binary_kpi = fields.Boolean(compute="_compute_kpi_types", store=False)

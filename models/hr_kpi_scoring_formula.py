@@ -19,10 +19,10 @@ class HrKpiScoringFormula(models.Model):
     description = fields.Text()
     formula_type = fields.Selection(
         [
-            ("linear", "Tuyến tính"),
-            ("step_table", "Bảng bậc thang"),
-            ("penalty", "Trừ điểm"),
-            # ("expression", "Biểu thức tùy chỉnh"),
+            ("linear", "Linear"),
+            ("step_table", "Step Table"),
+            ("penalty", "Penalty"),
+            # ("expression", "Custom Expression"),
         ],
         required=True,
         default="linear",
@@ -30,51 +30,51 @@ class HrKpiScoringFormula(models.Model):
 
     linear_direction = fields.Selection(
         [
-            ("higher_better", "Càng cao càng tốt"),
-            ("lower_better", "Càng thấp càng tốt"),
+            ("higher_better", "Higher is better"),
+            ("lower_better", "Lower is better"),
         ],
         default="higher_better",
     )
     linear_allow_exceed = fields.Boolean(
         default=False,
-        string="Cho phép vượt điểm tối đa (bonus)",
+        string="Allow Exceeding Max Score (Bonus)",
     )
 
     step_table_json = fields.Text(default="[]")
     step_out_of_range = fields.Selection(
         [
-            ("zero", "Trả về 0 điểm"),
-            ("nearest", "Lấy điểm của bậc gần nhất"),
+            ("zero", "Return 0 points"),
+            ("nearest", "Use nearest step value"),
         ],
         default="zero",
         required=True,
-        string="Xử lý ngoài bảng",
+        string="Out of Range Handling",
     )
 
     penalty_deduct_per_unit = fields.Float(
         default=10.0,
-        string="Điểm trừ mỗi đơn vị vi phạm",
+        string="Deduction per Violation Unit",
     )
     penalty_floor = fields.Float(
         default=0.0,
-        string="Điểm tối thiểu",
+        string="Minimum Score Floor",
     )
 
     expression_code = fields.Char(
-        string="Biểu thức",
+        string="Expression",
         help=(
-            "Biểu thức Python một dòng. Biến dùng được: actual, target, max_score. "
-            "Ví dụ: min(actual / target * max_score, max_score) if target else 0"
+            "Single-line Python expression. Available variables: actual, target, max_score. "
+            "E.g., min(actual / target * max_score, max_score) if target else 0"
         ),
     )
 
     preview_expression = fields.Char(
         compute="_compute_preview_expression",
-        string="Biểu thức tổng hợp",
+        string="Preview Expression",
     )
     kpi_line_count = fields.Integer(
         compute="_compute_kpi_line_count",
-        string="KPI đang dùng",
+        string="KPI Lines Count",
     )
     score_scale_base = fields.Float(
         compute="_compute_score_scale_base",

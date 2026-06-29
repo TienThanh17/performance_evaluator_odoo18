@@ -225,7 +225,7 @@
                           <a t-if="ev.employee_id" href="#" 
                             class="pd-employee-link" 
                             t-on-click.prevent="() => this.openIndividualDashboard(ev.employee_id[0], ev.id)" 
-                            t-att-data-tooltip="'Click để mở Dashboard của ' + ev.employee_id[1]"> 
+                            t-att-data-tooltip="'Click to open the dashboard for ' + ev.employee_id[1]"> 
                             <t t-esc="ev.employee_id[1]"/>
                           </a>
                           <t t-else="">—</t>
@@ -308,7 +308,7 @@
                       <button 
                         t-attf-class="pd-action-btn #{ev.state === 'manager_evaluating' ? 'pd-btn-attention' : ''}"
                         t-on-click="() => this.openEvaluation(ev.id)"
-                        t-att-data-tooltip="'Click để mở Phiếu điểm của ' + ev.employee_id[1]"
+                        t-att-data-tooltip="'Click to open the evaluation form for ' + ev.employee_id[1]"
                       >
                         <i class="fa fa-chevron-right"/>
                       </button>

@@ -128,7 +128,7 @@
               <div class="o_kpi_card_header">
                 <span class="o_kpi_card_title">
                     <i t-attf-class="fa me-2 {{ chart.chart_type === 'doughnut' ? 'fa-pie-chart text-warning' : (chart.chart_type === 'radar' ? 'fa-bullseye text-danger' : 'fa-bar-chart text-primary') }}"/>
-                    <t t-esc="chart.title or chart.chart_meta?.title or 'Biểu đồ'"/>
+                    <t t-esc="chart.title or chart.chart_meta?.title or 'Chart'"/>
                 </span>
               </div>
               

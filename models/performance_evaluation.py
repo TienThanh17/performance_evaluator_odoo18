@@ -88,9 +88,9 @@ class PerformanceEvaluation(models.Model):
     )
     period_status = fields.Selection(
         [
-            ("upcoming", "Sắp diễn ra"),
-            ("ongoing", "Đang diễn ra"),
-            ("closed", "Đã kết thúc"),
+            ("upcoming", "Upcoming"),
+            ("ongoing", "Ongoing"),
+            ("closed", "Closed"),
         ],
         string="Period Status",
         compute="_compute_period_status",
@@ -262,13 +262,13 @@ class PerformanceEvaluation(models.Model):
 
     # Khai báo các field chứa tên động của từng Pillar
     pillar_p2_1_name = fields.Char(
-        compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.1"
+        compute="_compute_dynamic_pillar_names", string="Pillar P2.1 Name"
     )
     pillar_p2_2_name = fields.Char(
-        compute="_compute_dynamic_pillar_names", string="Tên Pillar P2.2"
+        compute="_compute_dynamic_pillar_names", string="Pillar P2.2 Name"
     )
     pillar_p3_ind_name = fields.Char(
-        compute="_compute_dynamic_pillar_names", string="Tên Pillar P3.1.1"
+        compute="_compute_dynamic_pillar_names", string="Pillar P3.1.1 Name"
     )
 
     def _compute_dynamic_pillar_names(self):

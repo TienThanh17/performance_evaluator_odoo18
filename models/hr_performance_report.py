@@ -36,9 +36,9 @@ class HrPerformanceReport(models.Model):
     deadline = fields.Date(string="Deadline", required=True)
     period_status = fields.Selection(
         [
-            ("upcoming", "Sắp diễn ra"),
-            ("ongoing", "Đang diễn ra"),
-            ("closed", "Đã kết thúc"),
+            ("upcoming", "Upcoming"),
+            ("ongoing", "Ongoing"),
+            ("closed", "Closed"),
         ],
         string="Period Status",
         compute="_compute_period_status",

@@ -10,10 +10,10 @@ class HrKpiPeriod(models.Model):
     name = fields.Char(required=True, translate=True)
     period_type = fields.Selection(
         [
-            ("monthly", "Hàng tháng"),
-            ("quarterly", "Hàng quý"),
-            ("biannual", "Nửa năm"),
-            ("yearly", "Hàng năm"),
+            ("monthly", "Monthly"),
+            ("quarterly", "Quarterly"),
+            ("biannual", "Biannual"),
+            ("yearly", "Yearly"),
         ],
         required=True,
         default="monthly",

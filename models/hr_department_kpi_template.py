@@ -10,16 +10,16 @@ class HrDepartmentKpiTemplate(models.Model):
     department_id = fields.Many2one("hr.department", ondelete="cascade")
     period_type = fields.Selection(
         [
-            ("monthly", "Hàng tháng"),
-            ("quarterly", "Hàng quý"),
-            ("biannual", "Nửa năm"),
-            ("yearly", "Hàng năm"),
+            ("monthly", "Monthly"),
+            ("quarterly", "Quarterly"),
+            ("biannual", "Biannual"),
+            ("yearly", "Yearly"),
         ],
-        string="Tần suất đánh giá",
+        string="Evaluation Frequency",
         required=True,
         default="monthly",
         tracking=True,
-        help="Quy định tần suất sử dụng bản mẫu này."
+        help="Specifies the frequency of using this template."
     )
     scoring_profile_id = fields.Many2one(
         "hr.kpi.scoring.profile",
