@@ -30,7 +30,14 @@
 
                     <group>
                         <group name="basic_info" string="General Information">
-                            <field name="code" readonly="source_type == 'system'"/>
+                            <label for="code" string="Code" />
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="code" readonly="source_type == 'system'" class="flex-grow-1" />
+                                <button name="action_generate_code_from_name" type="object"
+                                    icon="fa-refresh" class="btn btn-link"
+                                    title="Generate code from name"
+                                    invisible="source_type == 'system'" />
+                            </div>
                             <field name="unit_id" />
                             <field name="description" />
                             <field name="active" widget="boolean_toggle" />

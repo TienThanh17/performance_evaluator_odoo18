@@ -952,9 +952,23 @@ export class DeptKpiDashboard extends Component {
         if (!ctx) return null;
         const chartData = chartInfo.chart_data || {};
         const labels = chartData.labels || [];
+        const centerOverlay = canvas.parentElement?.querySelector(".o_kpi_doughnut_center");
+        const syncDoughnutCenter = {
+            id: "syncDoughnutCenter",
+            afterLayout: (chart) => {
+                if (!centerOverlay || !chart.chartArea) {
+                    return;
+                }
+                const { left, right, top, bottom } = chart.chartArea;
+                centerOverlay.style.left = `${(left + right) / 2}px`;
+                centerOverlay.style.top = `${(top + bottom) / 2}px`;
+            },
+        };
         return new Chart(ctx, {
             type: "doughnut",
-            plugins: ChartDataLabels ? [ChartDataLabels] : [],
+            plugins: [
+                syncDoughnutCenter, ...(ChartDataLabels ? [ChartDataLabels] : []),
+            ],
             data: {
                 labels,
                 datasets: chartData.datasets || [],
@@ -980,17 +994,17 @@ export class DeptKpiDashboard extends Component {
                         callbacks: {
                             label: (context) => {
                                 const label = labels[context.dataIndex] || context.label || "";
-                                return `${label}: ${context.parsed}`;
+                                return `${label}: ${formatChartMetric(context.parsed, 2)}`;
                             },
                         },
                     },
                     datalabels: {
                         display: true,
-                        color: "#ffffff",
+                        color: "#000000",
                         formatter: (value, ctx) => {
                             if (value === 0) return "";
                             const unit = ctx.dataset.unit || "";
-                            return `${value} ${unit}`.trim();
+                            return `${formatChartMetric(value, 2)} ${unit}`.trim();
                         },
                         font: {
                             weight: "bold",

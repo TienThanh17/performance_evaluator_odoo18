@@ -10,9 +10,12 @@ class TestHrKpiEngineAttendance(TransactionCase):
         super().setUp()
         self.Engine = self.env["hr.kpi.engine"]
         self.Employee = self.env["hr.employee"]
+        self.Department = self.env["hr.department"]
         self.Evaluation = self.env["hr.performance.evaluation"]
         self.Line = self.env["hr.performance.evaluation.line"]
         self.KpiTemplate = self.env["hr.kpi.template"]
+        self.DepartmentKpiTemplate = self.env["hr.department.kpi.template"]
+        self.DepartmentKpiLine = self.env["hr.department.kpi.template.line"]
         self.Pillar = self.env["hr.evaluation.pillar"]
 
         # Tạo nhân viên không có calendar để dễ test các nhánh zero-safe.
@@ -34,6 +37,14 @@ class TestHrKpiEngineAttendance(TransactionCase):
         self.kpi_template = self.KpiTemplate.create(
             {
                 "name": "Attendance KPI Template",
+                "period_type": "monthly",
+            }
+        )
+        self.department = self.Department.create({"name": "Attendance Department"})
+        self.department_kpi_template = self.DepartmentKpiTemplate.create(
+            {
+                "name": "Attendance Department KPI Template",
+                "department_id": self.department.id,
                 "period_type": "monthly",
             }
         )
@@ -72,6 +83,20 @@ class TestHrKpiEngineAttendance(TransactionCase):
             {
                 "evaluation_id": self.evaluation.id,
                 "key_performance_area": "Attendance KPI",
+                "kpi_type": "auto",
+                "pillar_id": self.pillar.id,
+                "weight": 100.0,
+                "data_source_id": source.id,
+                "unit": source.unit_id.id,
+            }
+        )
+
+    # Tạo line auto KPI phòng ban để test luồng aggregate theo nhân viên.
+    def _create_department_auto_line(self, source):
+        return self.DepartmentKpiLine.create(
+            {
+                "name": "Department Attendance KPI",
+                "department_kpi_id": self.department_kpi_template.id,
                 "kpi_type": "auto",
                 "pillar_id": self.pillar.id,
                 "weight": 100.0,
@@ -255,3 +280,28 @@ class TestHrKpiEngineAttendance(TransactionCase):
             )
 
         self.assertEqual(value, 3.0)
+
+    # Đảm bảo KPI phòng ban nguồn system cộng actual từ từng nhân viên active trong phòng.
+    def test_compute_for_department_aggregates_system_source_from_employees(self):
+        line = self._create_department_auto_line(self.present_source)
+        employee_a = self.Employee.create(
+            {"name": "Dept Employee A", "department_id": self.department.id}
+        )
+        employee_b = self.Employee.create(
+            {"name": "Dept Employee B", "department_id": self.department.id}
+        )
+
+        # Stub entrypoint compute() để khóa contract aggregate thay vì dựng attendance thật.
+        with patch.object(
+            type(self.Engine),
+            "compute",
+            side_effect=[2.5, 3.5],
+        ) as mocked_compute:
+            value = self.Engine.compute_for_department(
+                self.department, line, self.date_from, self.date_to
+            )
+
+        self.assertEqual(value, 6.0)
+        self.assertEqual(mocked_compute.call_count, 2)
+        self.assertEqual(mocked_compute.call_args_list[0].args[0], employee_a)
+        self.assertEqual(mocked_compute.call_args_list[1].args[0], employee_b)

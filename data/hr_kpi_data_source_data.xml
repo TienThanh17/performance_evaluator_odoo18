@@ -18,7 +18,7 @@
 
         <record id="source_task_on_time_rate" model="hr.kpi.data.source">
             <field name="name">Tỷ lệ task hoàn thành</field>
-            <field name="code">task_on_time_rate</field>
+            <field name="code">task_done_rate</field>
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent" />
             <field name="source_type">domain</field>
             <field name="description">Tính tỷ lệ task hoàn thành trong kỳ.</field>

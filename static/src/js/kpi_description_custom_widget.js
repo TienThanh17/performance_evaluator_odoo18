@@ -3,9 +3,11 @@
 import { registry } from "@web/core/registry";
 import { Component, xml, useRef } from "@odoo/owl";
 import { usePopover } from "@web/core/popover/popover_hook";
+import { _t } from "@web/core/l10n/translation";
+
 
 const WIPEOUT_WARNING_MESSAGE =
-    "When any KPI in this section scores 0, the entire section will also score 0.";
+    _t("When any KPI in this section scores 0, the entire section will also score 0.");
 
 // 1. Component con để hiển thị giao diện chứa nội dung HTML
 class HtmlPopoverContent extends Component {

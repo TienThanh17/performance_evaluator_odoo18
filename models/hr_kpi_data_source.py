@@ -1,4 +1,6 @@
 import logging
+import re
+import unicodedata
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -16,8 +18,8 @@ class HrKpiDataSource(models.Model):
 
     name = fields.Char(required=True, translate=True)
     code = fields.Char(
-        required=True,
         help="Unique technical code, no accents, no spaces. E.g. task_ontime_rate",
+        copy=False,
     )
     unit_id = fields.Many2one(
         "hr.kpi.unit",
@@ -92,6 +94,121 @@ class HrKpiDataSource(models.Model):
         ("code_unique", "UNIQUE(code)", "Mã kỹ thuật phải duy nhất."),
     ]
 
+    # Chuẩn hóa text tự do thành technical code kiểu snake_case không dấu.
+    @api.model
+    def _slugify_code_value(self, value):
+        # Chuẩn hóa input về text an toàn trước khi xử lý bỏ dấu và ký tự đặc biệt.
+        normalized_value = (value or "").strip()
+        if not normalized_value:
+            return ""
+
+        # Xử lý riêng chữ đ/Đ của tiếng Việt trước khi normalize Unicode.
+        normalized_value = normalized_value.replace("Đ", "D").replace("đ", "d")
+
+        # Bỏ dấu, chuyển về ASCII và hạ chữ thường để tạo technical code ổn định.
+        ascii_value = unicodedata.normalize("NFKD", normalized_value)
+        ascii_value = ascii_value.encode("ascii", "ignore").decode("ascii")
+        ascii_value = ascii_value.lower()
+
+        # Thay mọi cụm ký tự không phải chữ/số bằng underscore và loại bỏ underscore thừa.
+        slug_value = re.sub(r"[^a-z0-9]+", "_", ascii_value)
+        return slug_value.strip("_")
+
+    # Tạo technical code duy nhất từ một base code để tránh đụng unique constraint.
+    @api.model
+    def _ensure_unique_code(self, base_code, exclude_id=False):
+        # Nếu base code rỗng thì dùng prefix mặc định để người dùng vẫn có mã hợp lệ.
+        normalized_code = (base_code or "").strip() or "data_source"
+        candidate_code = normalized_code
+        suffix = 2
+
+        # Bỏ qua chính record hiện tại khi đang sửa để không tự xem là bị trùng mã.
+        domain = [("code", "=", candidate_code)]
+        if exclude_id:
+            domain.append(("id", "!=", exclude_id))
+
+        while self.search_count(domain):
+            candidate_code = "%s_%s" % (normalized_code, suffix)
+            suffix += 1
+            domain = [("code", "=", candidate_code)]
+            if exclude_id:
+                domain.append(("id", "!=", exclude_id))
+
+        return candidate_code
+
+    # Tạo technical code mới khi duplicate để không bị trống hoặc đụng unique constraint.
+    def _generate_copy_code(self, base_code):
+        self.ensure_one()
+
+        # Chuẩn hóa code gốc; nếu bản gốc thiếu code thì dùng prefix an toàn cho bản sao.
+        normalized_code = (base_code or "").strip() or "data_source"
+        candidate_code = "%s_copy" % normalized_code
+        suffix = 2
+
+        # Tăng hậu tố đến khi tìm được code chưa tồn tại trong model hiện tại.
+        while self.search_count([("code", "=", candidate_code)]):
+            candidate_code = "%s_copy_%s" % (normalized_code, suffix)
+            suffix += 1
+
+        return candidate_code
+
+    # Sinh technical code từ field name để người dùng không phải nhập tay.
+    def action_generate_code_from_name(self):
+        for rec in self:
+            # Chặn sớm trường hợp chưa có tên để tránh tạo ra mã mặc định ngoài ý muốn.
+            if not (rec.name or "").strip():
+                raise UserError(_("Please enter a name before generating the code."))
+
+            # Chuẩn hóa tên sang snake_case rồi ép uniqueness trên chính model này.
+            generated_code = rec._slugify_code_value(rec.name)
+            rec.code = rec._ensure_unique_code(generated_code, exclude_id=rec.id)
+
+    # Bổ sung code tự động từ name khi caller lưu record mà chưa nhập code.
+    @api.model
+    def _prepare_auto_generated_code_vals(self, vals, current_record=False):
+        normalized_vals = dict(vals or {})
+        incoming_code = (normalized_vals.get("code") or "").strip()
+        current_code = ((current_record and current_record.code) or "").strip()
+        effective_name = normalized_vals.get(
+            "name",
+            current_record.name if current_record else False,
+        )
+
+        # Chỉ tự sinh khi caller chưa truyền code, record hiện tại cũng chưa có code,
+        # và đã có name để suy ra technical code.
+        if incoming_code or current_code or not (effective_name or "").strip():
+            return normalized_vals
+
+        # Tạo code từ name và ép uniqueness theo record hiện tại nếu là write.
+        generated_code = self._slugify_code_value(effective_name)
+        normalized_vals["code"] = self._ensure_unique_code(
+            generated_code,
+            exclude_id=current_record.id if current_record else False,
+        )
+        return normalized_vals
+
+    # Tự sinh code trước khi create để form vẫn lưu được dù người dùng bỏ trống field code.
+    @api.model_create_multi
+    def create(self, vals_list):
+        prepared_vals_list = [
+            self._prepare_auto_generated_code_vals(vals) for vals in (vals_list or [])
+        ]
+        return super().create(prepared_vals_list)
+
+    # Tự sinh code khi write nếu record hiện tại đang rỗng code và người dùng chỉ cập nhật name/field khác.
+    def write(self, vals):
+        # Nếu caller đã truyền code rõ ràng thì giữ nguyên ý định của họ.
+        if (vals.get("code") or "").strip():
+            return super().write(vals)
+
+        # Mỗi record có name/code hiện tại khác nhau nên cần chuẩn hóa riêng trước khi ghi.
+        for rec in self:
+            normalized_vals = rec._prepare_auto_generated_code_vals(
+                vals, current_record=rec
+            )
+            super(HrKpiDataSource, rec).write(normalized_vals)
+        return True
+
     @api.constrains("code")
     def _check_code_format(self):
         for rec in self:
@@ -122,6 +239,15 @@ class HrKpiDataSource(models.Model):
     def get_unit_id(self):
         self.ensure_one()
         return (self.unit_id.name or "").strip() or False
+
+    # Duplicate data source và tự cấp code mới để bản sao luôn hợp lệ.
+    def copy(self, default=None):
+        self.ensure_one()
+        default = dict(default or {})
+
+        # Giữ hành vi đặt tên mặc định của Odoo, nhưng luôn ép code sang giá trị mới duy nhất.
+        default["code"] = self._generate_copy_code(default.get("code") or self.code)
+        return super().copy(default)
 
     def action_test_execute(self):
         self.ensure_one()
