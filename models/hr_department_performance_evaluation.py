@@ -1038,6 +1038,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 lambda record: (record.performance_level or "fail") == "fail"
             ):
                 score = float(ev.result_score or 0.0)
+                # Giữ ảnh đại diện nhân viên để frontend có thể hiển thị avatar trong popup.
                 failed_evaluation_lines.append(
                     {
                         "source_type": "employee",
@@ -1047,6 +1048,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "evaluation_name": ev.name or "",
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": ev.employee_id.name if ev.employee_id else "",
+                        "avatar_url": f"/web/image/hr.employee/{ev.employee_id.id}/image_128"
+                        if ev.employee_id
+                        else "",
                         "score": round(score, 2),
                         "score_label": "P3.1 result",
                         "state": ev.state or "",
@@ -1107,6 +1111,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             for line in employee_risk_line_records:
                 ev = line.evaluation_id
                 score = float(line.final_rating or 0.0)
+                # Đưa avatar nhân viên vào payload để popup risky KPI đồng bộ với popup đạt chỉ tiêu.
                 risk_lines.append(
                     {
                         "source_type": "employee",
@@ -1119,6 +1124,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "kpi_name": line.key_performance_area or "",
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": ev.employee_id.name if ev.employee_id else "",
+                        "avatar_url": f"/web/image/hr.employee/{ev.employee_id.id}/image_128"
+                        if ev.employee_id
+                        else "",
                         "score": round(score, 2),
                         "level": "fail",
                         "kpi_type": line.kpi_type or "",
@@ -1180,6 +1188,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             missing_data_lines = []
             for line in employee_missing_line_records:
                 ev = line.evaluation_id
+                # Giữ avatar để popup missing data phân biệt rõ dòng cá nhân với dòng phòng ban.
                 missing_data_lines.append(
                     {
                         "source_type": "employee",
@@ -1192,6 +1201,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "kpi_name": line.key_performance_area or "",
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": ev.employee_id.name if ev.employee_id else "",
+                        "avatar_url": f"/web/image/hr.employee/{ev.employee_id.id}/image_128"
+                        if ev.employee_id
+                        else "",
                         "kpi_type": line.kpi_type or "",
                         "manual_scoring_type": line.manual_scoring_type or "",
                     }

@@ -696,12 +696,12 @@ msgstr "Tất cả KPI đều thiếu dữ liệu"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "All failed evaluations"
-msgstr "Tất cả đánh giá không đạt"
+msgstr "Tất cả phiếu đánh giá không đạt"
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "All risky KPIs"
-msgstr "Tất cả KPI rủi ro"
+msgstr "Tất cả KPI chưa đạt"
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-python
 #: code:addons/custom_adecsol_hr_performance_evaluator/wizard/hr_kpi_generate_wizard.py:0
@@ -5341,7 +5341,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Top failed evaluations"
-msgstr "Đánh giá không đạt hàng đầu"
+msgstr "Phiếu đánh giá không đạt hàng đầu"
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
@@ -5428,26 +5428,7 @@ msgstr ""
 #: model:ir.model.fields,help:custom_adecsol_hr_performance_evaluator.field_hr_performance_report__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "Loại hoạt động ngoại lệ được ghi lại."
-#. module: custom_adecsol_hr_performance_evaluator
-#. odoo-javascript
-#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
-msgid "Tất cả KPI rủi ro"
-msgstr "Tất cả các rủi ro KPI"
-#. module: custom_adecsol_hr_performance_evaluator
-#. odoo-javascript
-#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
-msgid "Tất cả KPI thiếu dữ liệu"
-msgstr ""
-#. module: custom_adecsol_hr_performance_evaluator
-#. odoo-javascript
-#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
-msgid "Tất cả KPI đã có dữ liệu ✓"
-msgstr ""
-#. module: custom_adecsol_hr_performance_evaluator
-#. odoo-javascript
-#: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
-msgid "Tất cả đánh giá không đạt"
-msgstr ""
+
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0

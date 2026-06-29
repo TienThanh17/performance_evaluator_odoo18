@@ -78,7 +78,7 @@
       </div> -->
 
           <!-- Card 3: KPI Hoạt động (REAL DATA — số nhân viên đạt + xuất sắc) -->
-      <div class="o_kpi_tree_metric_card card-green" t-on-click="selectCompanyNode">
+      <div class="o_kpi_tree_metric_card card-green" t-on-click="openPassedEmployeesModal">
         <div class="metric-icon"><i class="fa fa-check-circle"/></div>
         <div class="metric-body">
           <div class="metric-label">EMPLOYEES MEETING TARGETS</div>
@@ -90,7 +90,7 @@
       </div>
 
           <!-- Card 4: KPI chưa đạt (REAL DATA) -->
-      <div class="o_kpi_tree_metric_card card-red" t-on-click="selectCompanyNode">
+      <div class="o_kpi_tree_metric_card card-red" t-on-click="openRiskModal">
         <div class="metric-icon"><i class="fa fa-exclamation-triangle"/></div>
         <div class="metric-body">
           <div class="metric-label">Underperforming KPIs</div>
@@ -100,7 +100,7 @@
       </div>
 
           <!-- Card 5: KPI Thiếu dữ liệu (REAL DATA) -->
-      <div class="o_kpi_tree_metric_card card-purple" t-on-click="selectCompanyNode">
+      <div class="o_kpi_tree_metric_card card-purple" t-on-click="openMissingDataModal">
         <div class="metric-icon"><i class="fa fa-database"/></div>
         <div class="metric-body">
           <div class="metric-label">KPIs Missing Data</div>
@@ -359,6 +359,53 @@
     </div><!--
         /o_kpi_tree_panels -->
 
+    <div t-if="state.showPassedEmployeesModal" class="o_kpi_tree_modal_backdrop">
+      <div class="o_kpi_tree_modal">
+        <div class="o_kpi_tree_modal_header">
+          <div>
+            <div class="modal-title">Employees meeting performance targets</div>
+            <div class="modal-subtitle"><t t-esc="passedEmployeeCount()"/> employees reached P3.1 in this period</div>
+          </div>
+          <button type="button" class="modal-close-btn" t-on-click="closePassedEmployeesModal">
+            <i class="fa fa-times"/>
+          </button>
+        </div>
+        <div class="o_kpi_tree_modal_body">
+          <t t-if="passedEmployeeCount() > 0">
+            <t t-foreach="allPassedEmployees()" t-as="item" t-key="item.record_id">
+              <div class="risk-modal-row passed-modal-row" t-on-click="() => this.openPassedEmployee(item)">
+                <div class="risk-modal-main">
+                  <div class="issue-avatar is-employee">
+                    <img t-if="item.avatar_url"
+                         t-att-src="item.avatar_url"
+                         t-att-alt="item.name"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                    />
+                    <span t-att-style="item.avatar_url ? 'display:none;' : ''" class="issue-avatar_fallback">
+                      <i class="fa fa-user"/>
+                    </span>
+                  </div>
+                  <div class="issue-main_text">
+                    <div class="issue-title-line">
+                      <span class="source-badge source-employee">Employee</span>
+                      <span class="risk-name" t-esc="item.name"/>
+                    </div>
+                    <span class="risk-meta" t-esc="passedEmployeeMeta(item)"/>
+                  </div>
+                </div>
+                <div class="risk-modal-right">
+                  <!-- <span class="kpi-state-badge" t-att-class="stateBadgeClass(item.state)" t-esc="stateBadgeLabel(item.state)"/> -->
+                  <span class="risk-score passed-score" t-esc="formatScore(item.score)"/>
+                  <span t-att-class="levelBadgeClass(item.level)" t-esc="item.level"/>
+                </div>
+              </div>
+            </t>
+          </t>
+          <div t-else="" class="panel-empty">No employees have reached P3.1 in this period</div>
+        </div>
+      </div>
+    </div>
+
     <div t-if="state.showRiskModal" class="o_kpi_tree_modal_backdrop">
       <div class="o_kpi_tree_modal">
         <div class="o_kpi_tree_modal_header">
@@ -374,11 +421,23 @@
           <t t-foreach="allRiskLines()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.line_id || item_index)">
             <div class="risk-modal-row" t-on-click="() => this.openRiskLine(item)">
               <div class="risk-modal-main">
-                <div class="issue-title-line">
-                  <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Individual'"/>
-                  <span class="risk-name" t-esc="item.kpi_name"/>
+                <div t-att-class="'issue-avatar ' + ((item.source_type || 'employee') === 'department' ? 'is-department' : 'is-employee')">
+                  <img t-if="(item.source_type || 'employee') === 'employee' and item.avatar_url"
+                       t-att-src="item.avatar_url"
+                       t-att-alt="item.employee_name || item.kpi_name"
+                       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                  <span t-att-style="(item.source_type || 'employee') === 'employee' and item.avatar_url ? 'display:none;' : ''" class="issue-avatar_fallback">
+                    <i t-att-class="(item.source_type || 'employee') === 'department' ? 'fa fa-building' : 'fa fa-user'"/>
+                  </span>
                 </div>
-                <span class="risk-meta" t-esc="issueMeta(item)"/>
+                <div class="issue-main_text">
+                  <div class="issue-title-line">
+                    <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Individual'"/>
+                    <span class="risk-name" t-esc="item.kpi_name"/>
+                  </div>
+                  <span class="risk-meta" t-esc="issueMeta(item)"/>
+                </div>
               </div>
               <div class="risk-modal-right">
                 <span class="risk-score" t-esc="formatScore(item.score)"/>
@@ -405,11 +464,23 @@
           <t t-foreach="allMissingDataLines()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.line_id || item_index)">
             <div class="missing-modal-row" t-on-click="() => this.openMissingDataLine(item)">
               <div class="missing-modal-main">
-                <div class="issue-title-line">
-                  <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Individual'"/>
-                  <span class="miss-name" t-esc="item.kpi_name"/>
+                <div t-att-class="'issue-avatar ' + ((item.source_type || 'employee') === 'department' ? 'is-department' : 'is-employee')">
+                  <img t-if="(item.source_type || 'employee') === 'employee' and item.avatar_url"
+                       t-att-src="item.avatar_url"
+                       t-att-alt="item.employee_name || item.kpi_name"
+                       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                  <span t-att-style="(item.source_type || 'employee') === 'employee' and item.avatar_url ? 'display:none;' : ''" class="issue-avatar_fallback">
+                    <i t-att-class="(item.source_type || 'employee') === 'department' ? 'fa fa-building' : 'fa fa-user'"/>
+                  </span>
                 </div>
-                <span class="miss-meta" t-esc="issueMeta(item)"/>
+                <div class="issue-main_text">
+                  <div class="issue-title-line">
+                    <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Individual'"/>
+                    <span class="miss-name" t-esc="item.kpi_name"/>
+                  </div>
+                  <span class="miss-meta" t-esc="issueMeta(item)"/>
+                </div>
               </div>
               <div class="missing-modal-right">
                 <span class="tag-missing">Missing data</span>
@@ -435,11 +506,23 @@
           <t t-foreach="allFailedEvaluations()" t-as="item" t-key="(item.source_type || 'employee') + '_' + (item.record_id || item_index)">
             <div class="risk-modal-row" t-on-click="() => this.openFailedEvaluation(item)">
               <div class="risk-modal-main">
-                <div class="issue-title-line">
-                  <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Individual'"/>
-                  <span class="risk-name" t-esc="failedEvaluationTitle(item)"/>
+                <div t-att-class="'issue-avatar ' + ((item.source_type || 'employee') === 'department' ? 'is-department' : 'is-employee')">
+                  <img t-if="(item.source_type || 'employee') === 'employee' and item.avatar_url"
+                       t-att-src="item.avatar_url"
+                       t-att-alt="item.employee_name || failedEvaluationTitle(item)"
+                       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                  <span t-att-style="(item.source_type || 'employee') === 'employee' and item.avatar_url ? 'display:none;' : ''" class="issue-avatar_fallback">
+                    <i t-att-class="(item.source_type || 'employee') === 'department' ? 'fa fa-building' : 'fa fa-user'"/>
+                  </span>
                 </div>
-                <span class="risk-meta" t-esc="issueMeta(item)"/>
+                <div class="issue-main_text">
+                  <div class="issue-title-line">
+                    <span t-att-class="sourceBadgeClass(item)" t-esc="item.source_label || 'Individual'"/>
+                    <span class="risk-name" t-esc="failedEvaluationTitle(item)"/>
+                  </div>
+                  <span class="risk-meta" t-esc="issueMeta(item)"/>
+                </div>
               </div>
               <div class="risk-modal-right">
                 <span class="risk-score" t-esc="formatScore(item.score)"/>

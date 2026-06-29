@@ -47,6 +47,7 @@ export class KpiTreeDashboard extends Component {
             selectedNode: null, // { type: 'company'|'dept'|'emp', id, data }
             expandedDepts: new Set(), // Set of department id đang mở employee
             selectedPeriod: null, // { start, end, label }
+            showPassedEmployeesModal: false,
             showRiskModal: false,
             showMissingDataModal: false,
             showFailedEvaluationModal: false,
@@ -400,7 +401,39 @@ export class KpiTreeDashboard extends Component {
         });
     };
 
+    openPassedEmployeesModal = () => {
+        this.state.showPassedEmployeesModal = true;
+        this.state.showRiskModal = false;
+        this.state.showMissingDataModal = false;
+        this.state.showFailedEvaluationModal = false;
+    };
+
+    closePassedEmployeesModal = () => {
+        this.state.showPassedEmployeesModal = false;
+    };
+
+    openPassedEmployee = async (item) => {
+        if (!item?.record_id || !item?.record_model) return;
+        this.state.showPassedEmployeesModal = false;
+        this.state.showRiskModal = false;
+        this.state.showMissingDataModal = false;
+        this.state.showFailedEvaluationModal = false;
+        await this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: item.name || "Employee Evaluation",
+            res_model: item.record_model,
+            res_id: item.record_id,
+            views: [[false, "form"]],
+            target: "current",
+            context: {
+                active_id: item.record_id,
+                active_model: item.record_model,
+            },
+        });
+    };
+
     openRiskModal = () => {
+        this.state.showPassedEmployeesModal = false;
         this.state.showRiskModal = true;
     };
 
@@ -410,6 +443,7 @@ export class KpiTreeDashboard extends Component {
 
     openRiskLine = async (riskLine) => {
         if (!riskLine?.line_id) return;
+        this.state.showPassedEmployeesModal = false;
         this.state.showRiskModal = false;
         this.state.showMissingDataModal = false;
         this.state.showFailedEvaluationModal = false;
@@ -429,6 +463,7 @@ export class KpiTreeDashboard extends Component {
     };
 
     openMissingDataModal = () => {
+        this.state.showPassedEmployeesModal = false;
         this.state.showMissingDataModal = true;
     };
 
@@ -438,6 +473,7 @@ export class KpiTreeDashboard extends Component {
 
     openMissingDataLine = async (missingLine) => {
         if (!missingLine?.line_id) return;
+        this.state.showPassedEmployeesModal = false;
         this.state.showRiskModal = false;
         this.state.showMissingDataModal = false;
         this.state.showFailedEvaluationModal = false;
@@ -457,6 +493,7 @@ export class KpiTreeDashboard extends Component {
     };
 
     openFailedEvaluationModal = () => {
+        this.state.showPassedEmployeesModal = false;
         this.state.showFailedEvaluationModal = true;
     };
 
@@ -466,6 +503,7 @@ export class KpiTreeDashboard extends Component {
 
     openFailedEvaluation = async (item) => {
         if (!item?.record_id || !item?.record_model) return;
+        this.state.showPassedEmployeesModal = false;
         this.state.showRiskModal = false;
         this.state.showMissingDataModal = false;
         this.state.showFailedEvaluationModal = false;
@@ -519,9 +557,45 @@ export class KpiTreeDashboard extends Component {
         return item.employee_name || item.evaluation_name || "Employee Evaluation";
     }
 
+    passedEmployeeMeta(item) {
+        const parts = [item?.dept_name, item?.job];
+        return parts.filter(Boolean).join(" · ");
+    }
+
     sourceBadgeClass(item) {
         const source = item?.source_type || "employee";
         return `source-badge source-${source}`;
+    }
+
+    allPassedEmployees() {
+        const departments = this.state.data?.departments || [];
+        return departments
+            .flatMap((dept) =>
+                (dept.employees || [])
+                    .filter((employee) => {
+                        return (employee.performance_level || "fail") !== "fail";
+                    })
+                    .map((employee) => ({
+                        ...employee,
+                        dept_name: dept.name || "",
+                        employee_name: employee.name || "",
+                        record_model: "hr.performance.evaluation",
+                        record_id: employee.evaluation_id || employee.id,
+                        score: employee.result_score || 0,
+                        level: employee.performance_level || "pass",
+                    })),
+            )
+            .sort((a, b) => {
+                return (
+                    (b.score || 0) - (a.score || 0) ||
+                    (a.dept_name || "").localeCompare(b.dept_name || "") ||
+                    (a.name || "").localeCompare(b.name || "")
+                );
+            });
+    }
+
+    passedEmployeeCount() {
+        return this.allPassedEmployees().length;
     }
 
     allRiskLines() {
@@ -1300,7 +1374,11 @@ export class KpiTreeDashboard extends Component {
 
         const toggleBtn = deptNodes
             .append("g")
-            .attr("class", "kpi-toggle-btn")
+            .attr(
+                "class",
+                (d) =>
+                    `kpi-toggle-btn ${d.children ? "is-expanded" : "is-collapsed"}`,
+            )
             .attr(
                 "transform",
                 (d) =>
@@ -1314,9 +1392,7 @@ export class KpiTreeDashboard extends Component {
         toggleBtn
             .append("circle")
             .attr("r", 9)
-            .attr("fill", (d) =>
-                this.levelColor(this.nodeScore(d.data.rawData, d.data._type)),
-            );
+            .attr("fill", (d) => (d.children ? "#D97706" : "#4F46E5"));
 
         toggleBtn
             .append("text")
