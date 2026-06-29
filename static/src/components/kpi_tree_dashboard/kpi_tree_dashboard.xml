@@ -314,7 +314,11 @@
                 </div>
                 <span class="miss-meta" t-esc="issueMeta(item)"/>
               </div>
-              <span class="tag-missing">Missing data</span>
+              <div class="miss-right">
+                <t t-foreach="missingFieldLabels(item)" t-as="fieldLabel" t-key="fieldLabel">
+                  <span class="tag-missing" t-esc="fieldLabel"/>
+                </t>
+              </div>
             </div>
           </t>
           <button t-if="missingDataLineCount() > 5"
@@ -483,7 +487,9 @@
                 </div>
               </div>
               <div class="missing-modal-right">
-                <span class="tag-missing">Missing data</span>
+                <t t-foreach="missingFieldLabels(item)" t-as="fieldLabel" t-key="fieldLabel">
+                  <span class="tag-missing" t-esc="fieldLabel"/>
+                </t>
               </div>
             </div>
           </t>

@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 import logging
+from odoo.tools import html2plaintext
 
 from .kpi_type_utils import NORMALIZED_3P_PILLAR_CODES
 
@@ -814,6 +815,25 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             # ── Thresholds theo thang điểm cấu hình ───────────────────────────
             threshold_excellent, threshold_pass = settings.get_thresholds()
 
+            # Chuẩn hóa danh sách field cấu hình còn thiếu để popup "missing data"
+            # có thể hiển thị chính xác phần nào của line đang cần bổ sung.
+            def _get_missing_config_fields(line):
+                missing_fields = []
+
+                # Thiếu đơn vị đo khi line chưa liên kết unit.
+                if not line.unit:
+                    missing_fields.append("unit")
+
+                # Html rỗng hoặc chỉ còn thẻ trắng được xem là chưa có description.
+                if not html2plaintext(line.description or "").strip():
+                    missing_fields.append("description")
+
+                # Weight bằng 0 được xem là chưa cấu hình trọng số có ý nghĩa.
+                if float(line.weight or 0.0) <= 0.0:
+                    missing_fields.append("weight")
+
+                return missing_fields
+
             def _empty_response(period=None):
                 """Tạo response rỗng nhưng đủ key để OWL không bị crash khi render."""
                 return {
@@ -1188,6 +1208,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             missing_data_lines = []
             for line in employee_missing_line_records:
                 ev = line.evaluation_id
+                missing_config_fields = _get_missing_config_fields(line)
                 # Giữ avatar để popup missing data phân biệt rõ dòng cá nhân với dòng phòng ban.
                 missing_data_lines.append(
                     {
@@ -1204,12 +1225,14 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "avatar_url": f"/web/image/hr.employee/{ev.employee_id.id}/image_128"
                         if ev.employee_id
                         else "",
+                        "missing_config_fields": missing_config_fields,
                         "kpi_type": line.kpi_type or "",
                         "manual_scoring_type": line.manual_scoring_type or "",
                     }
                 )
             for line in department_missing_line_records:
                 ev = line.evaluation_id
+                missing_config_fields = _get_missing_config_fields(line)
                 missing_data_lines.append(
                     {
                         "source_type": "department",
@@ -1222,6 +1245,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "kpi_name": line.name or "",
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": "",
+                        "missing_config_fields": missing_config_fields,
                         "kpi_type": line.kpi_type or "",
                         "manual_scoring_type": line.manual_scoring_type or "",
                     }

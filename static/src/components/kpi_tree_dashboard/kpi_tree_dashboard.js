@@ -562,6 +562,17 @@ export class KpiTreeDashboard extends Component {
         return parts.filter(Boolean).join(" · ");
     }
 
+    missingFieldLabels(item) {
+        const fieldLabels = {
+            unit: _t("Unit"),
+            description: _t("Description"),
+            weight: _t("Weight"),
+        };
+        return (item?.missing_config_fields || []).map(
+            (fieldKey) => fieldLabels[fieldKey] || fieldKey,
+        );
+    }
+
     sourceBadgeClass(item) {
         const source = item?.source_type || "employee";
         return `source-badge source-${source}`;

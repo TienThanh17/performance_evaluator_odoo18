@@ -691,7 +691,7 @@ msgstr "Tất cả KPI đều có dữ liệu ✓"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "All KPIs missing data"
-msgstr "Tất cả KPI đều thiếu dữ liệu"
+msgstr "Tất cả KPI thiếu dữ liệu"
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
