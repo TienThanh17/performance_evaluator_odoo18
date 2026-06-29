@@ -81,7 +81,8 @@ class TestPerformanceEvaluationLineRecompute(TransactionCase):
         self.assertAlmostEqual(child_line_1.manager_rating_score, 90.0, places=2)
         self.assertAlmostEqual(parent.final_rating, 85.0, places=2)
         self.assertAlmostEqual(evaluation.total_p3_individual, 85.0, places=2)
+        self.assertAlmostEqual(evaluation.result_score, 0.0, places=2)
         self.assertEqual(
             evaluation.performance_level,
-            evaluation._get_level_from_score(evaluation.total_p3_individual),
+            evaluation._get_level_from_score(evaluation.result_score),
         )

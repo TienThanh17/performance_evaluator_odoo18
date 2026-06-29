@@ -82,6 +82,10 @@
               <t t-esc="state.data.employee_name"/>
               <span t-att-class="levelClass" t-esc="levelLabel"/>
             </h2>
+            <div class="o_kpi_profile_result_meta">
+              <span class="o_kpi_profile_result_label" t-esc="resultScoreLabel"/>
+              <span class="o_kpi_profile_result_value" t-esc="resultScoreText"/>
+            </div>
 
           </div>
 

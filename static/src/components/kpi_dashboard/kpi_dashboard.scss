@@ -261,6 +261,31 @@ $shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     color: $text-muted;
 }
 
+.o_kpi_profile_result_meta {
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(79, 70, 229, 0.08);
+}
+
+.o_kpi_profile_result_label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6366f1;
+}
+
+.o_kpi_profile_result_value {
+    font-size: 1rem;
+    line-height: 1;
+    font-weight: 800;
+    color: $text-primary;
+}
+
 /* Typography cho Label, Score, Weight */
 .o_kpi_summary_label {
     font-size: 0.875em;

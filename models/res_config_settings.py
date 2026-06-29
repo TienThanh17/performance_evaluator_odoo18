@@ -87,26 +87,26 @@ class ResConfigSettings(models.TransientModel):
                 float(
                     icp.get_param(
                         'custom_adecsol_hr_performance_evaluator.p3_individual_weight_percent',
-                        default=str(self.P3_INDIVIDUAL_WEIGHT_DEFAULT),
+                        default=str(P3_INDIVIDUAL_WEIGHT_DEFAULT),
                     )
-                    or self.P3_INDIVIDUAL_WEIGHT_DEFAULT
+                    or P3_INDIVIDUAL_WEIGHT_DEFAULT
                 )
             )
         except (TypeError, ValueError):
-            individual_weight = self.P3_INDIVIDUAL_WEIGHT_DEFAULT
+            individual_weight = P3_INDIVIDUAL_WEIGHT_DEFAULT
 
         try:
             department_weight = int(
                 float(
                     icp.get_param(
                         'custom_adecsol_hr_performance_evaluator.p3_department_weight_percent',
-                        default=str(self.P3_DEPARTMENT_WEIGHT_DEFAULT),
+                        default=str(P3_DEPARTMENT_WEIGHT_DEFAULT),
                     )
-                    or self.P3_DEPARTMENT_WEIGHT_DEFAULT
+                    or P3_DEPARTMENT_WEIGHT_DEFAULT
                 )
             )
         except (TypeError, ValueError):
-            department_weight = self.P3_DEPARTMENT_WEIGHT_DEFAULT
+            department_weight = P3_DEPARTMENT_WEIGHT_DEFAULT
 
         # Nếu cấu hình đang ở trạng thái ngoài phạm vi hoặc tổng khác 100 thì
         # backend sẽ quay về bộ 60/40 an toàn thay vì làm sai công thức tổng hợp.
@@ -118,8 +118,8 @@ class ResConfigSettings(models.TransientModel):
             or individual_weight + department_weight != 100
         ):
             return (
-                self.P3_INDIVIDUAL_WEIGHT_DEFAULT,
-                self.P3_DEPARTMENT_WEIGHT_DEFAULT,
+                P3_INDIVIDUAL_WEIGHT_DEFAULT,
+                P3_DEPARTMENT_WEIGHT_DEFAULT,
             )
         return individual_weight, department_weight
 

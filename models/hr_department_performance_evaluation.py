@@ -251,7 +251,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     evaluation.start_date,
                     evaluation.end_date,
                 )
-                line.actual = actual
+                line.with_context(skip_3p_summary_refresh=True).actual = actual
+        self._refresh_linked_3p_summaries()
 
     def _cron_compute_auto_kpi(self):
         """Cron wrapper: tính toán KPI tự động cho tất cả department evaluation
@@ -365,6 +366,18 @@ class HrDepartmentPerformanceEvaluation(models.Model):
         if self.state == "cancel":
             return 0.0
         return self.dept_kpi_score or 0.0
+
+    # Làm mới summary 3P liên kết sau khi KPI phòng ban thay đổi để P3.1 luôn bám score mới nhất.
+    def _refresh_linked_3p_summaries(self):
+        if self.env.context.get("skip_3p_summary_refresh"):
+            return
+        active_evaluations = self.filtered(lambda evaluation: evaluation.state != "cancel")
+        active_evaluations = active_evaluations.exists().filtered("id")
+        if not active_evaluations:
+            return
+        self.env["hr.evaluation.3p.summary"].refresh_summaries_for_department_evaluations(
+            active_evaluations
+        )
 
     @api.onchange("department_kpi_id")
     def _onchange_kpi_id(self):
@@ -634,7 +647,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 {
                     "id": evaluation.employee_id.id if evaluation.employee_id else 0,
                     "name": evaluation.employee_id.name if evaluation.employee_id else "?",
-                    "score": round(float(evaluation.total_p3_individual or 0.0), 2),
+                    "score": round(float(evaluation.result_score or 0.0), 2),
                     "level": evaluation.performance_level or "fail",
                     "eval_id": evaluation.id,
                 }
@@ -653,6 +666,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         [evaluation.job_id.id, evaluation.job_id.name]
                         if evaluation.job_id
                         else False
+                    ),
+                    "result_score": round(
+                        float(evaluation.result_score or 0.0),
+                        2,
                     ),
                     "total_p3_individual": round(
                         float(evaluation.total_p3_individual or 0.0),
@@ -924,7 +941,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             # ── Build departments list ────────────────────────────────────────
             departments = []
             total_dept_kpi_scores = []
-            total_p3_individual_scores = []
+            total_result_scores = []
             total_pass_count = 0
             total_emp_count = 0
 
@@ -955,7 +972,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     total_p2_1 = float(ev.total_p2_1 or 0.0)
                     total_p2_2 = float(ev.total_p2_2 or 0.0)
                     total_p3_individual = float(ev.total_p3_individual or 0.0)
-                    total_p3_individual_scores.append(total_p3_individual)
+                    result_score = float(ev.result_score or 0.0)
+                    total_result_scores.append(result_score)
                     employees.append(
                         {
                             "id": ev.id,
@@ -967,6 +985,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             else "",
                             "total_p2_1": round(total_p2_1, 2),
                             "total_p2_2": round(total_p2_2, 2),
+                            "result_score": round(result_score, 2),
                             "total_p3_individual": round(total_p3_individual, 2),
                             "dept_kpi_score": round(float(emp_dept_kpi), 2),
                             "performance_level": ev.performance_level or "fail",
@@ -975,8 +994,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     )
 
                 # Điểm trung bình cấp phòng ban dùng cho detail panel, cùng thang điểm cấu hình.
-                avg_total_p3_individual = (
-                    sum(ev.total_p3_individual or 0.0 for ev in employee_evals)
+                avg_result_score = (
+                    sum(ev.result_score or 0.0 for ev in employee_evals)
                     / len(employee_evals)
                     if employee_evals
                     else 0.0
@@ -989,7 +1008,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "manager_name": dept.manager_id.name if dept.manager_id else "",
                         "dept_kpi_score": round(float(dept_kpi), 2),
                         "avg_total_p3_individual": round(
-                            float(avg_total_p3_individual), 2
+                            float(avg_result_score), 2
                         ),
                         "employee_count": len(employee_evals),
                         "employees": employees,
@@ -1006,19 +1025,17 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 else 0.0
             )
             company_avg_total_p3_individual = (
-                sum(total_p3_individual_scores) / len(total_p3_individual_scores)
-                if total_p3_individual_scores
+                sum(total_result_scores) / len(total_result_scores)
+                if total_result_scores
                 else 0.0
             )
 
-            # ── Failed evaluations: phiếu cá nhân/phòng ban không đạt theo threshold pass
-            # Nhân viên dùng total_p3_individual như điểm KPI cá nhân chuẩn.
+            # ── Failed evaluations: dùng score kết quả từ summary 3P để bám theo logic đậu/rớt mới.
             failed_evaluation_lines = []
             for ev in evals.filtered(
-                lambda record: float(record.total_p3_individual or 0.0)
-                < threshold_pass
+                lambda record: (record.performance_level or "fail") == "fail"
             ):
-                score = float(ev.total_p3_individual or 0.0)
+                score = float(ev.result_score or 0.0)
                 failed_evaluation_lines.append(
                     {
                         "source_type": "employee",
@@ -1029,7 +1046,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": ev.employee_id.name if ev.employee_id else "",
                         "score": round(score, 2),
-                        "score_label": "KPI cá nhân",
+                        "score_label": "P3.1 result",
                         "state": ev.state or "",
                         "level": "fail",
                     }

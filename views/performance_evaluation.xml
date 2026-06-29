@@ -198,7 +198,7 @@
                     <field name="job_id" />
                     <field name="kpi_id" />
                     <field name="period_id" />
-                    <field name="total_p3_individual" string="KPI Score" />
+                    <field name="result_score" string="Result Score" />
 
                     <field name="performance_level" widget="badge"
                         decoration-info="performance_level == 'excellent'"
@@ -223,6 +223,7 @@
                     quick_create="false">
                     <field name="name" />
                     <field name="employee_id" />
+                    <field name="result_score" />
                     <field name="total_p3_individual" />
                     <field name="performance_score_progress_pct" />
                     <field name="score_scale_suffix" />
@@ -267,7 +268,7 @@
                                                 style="position: absolute; font-size: 50px; color: rgba(255,255,255,0.4); z-index: 1;"></i>
                                             <strong
                                                 t-attf-style="font-size: 32px; font-weight: 800; color: #517ca4; z-index: 2;">
-                                                <field name="total_p3_individual" />
+                                                <field name="result_score" />
                                             </strong>
                                         </div>
                                     </div>
@@ -429,6 +430,16 @@
                                         <field name="total_p3_individual" readonly="1" nolabel="1"
                                             class="w-auto mb-0" />
                                     </div>
+                                    <div
+                                        class="score_value font-weight-bold d-flex align-items-baseline justify-content-center gap-2 mt-2"
+                                        style="font-size: 18px; color: #0f766e;">
+                                        <label for="result_score"
+                                            string="P3.1 Result"
+                                            class="text-uppercase small fw-bold mb-0 text-nowrap"
+                                            style="color: #0f766e;" />
+                                        <field name="result_score" readonly="1" nolabel="1"
+                                            class="w-auto mb-0" />
+                                    </div>
                                 </div>
                             </group>
 
@@ -475,6 +486,7 @@
 
                                 <field name="total_p2_1" invisible="1" />
                                 <field name="total_p2_2" invisible="1" />
+                                <field name="result_score" invisible="1" />
                                 <field name="total_p3_individual" invisible="1" />
                                 <field name="performance_score_progress_pct" invisible="1" />
                                 <field name="score_scale_suffix" invisible="1" />
@@ -1029,6 +1041,15 @@
                                         <div class="o_perf_summary_title">Evaluation Results</div>
                                         <div>
                                             <div class="o_perf_summary_score">
+                                                <span class="o_perf_label">P3.1 Result</span>
+                                                <span class="o_perf_value">
+                                                    <field name="result_score" />
+                                                </span>
+                                                <span class="o_perf_suffix">
+                                                    <field name="score_scale_suffix" />
+                                                </span>
+                                            </div>
+                                            <div class="o_perf_summary_score">
                                                 <span class="o_perf_label">P3.1.1 Total</span>
                                                 <span class="o_perf_value">
                                                     <field name="total_p3_individual" />
@@ -1067,6 +1088,7 @@
                     <field name="job_id" />
                     <field name="kpi_id" />
                     <field name="period_id" />
+                    <field name="result_score" />
                     <field name="total_p3_individual" />
                     <field name="performance_level" />
                     <field name="start_date" />

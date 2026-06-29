@@ -185,6 +185,16 @@ class HrEvaluation3PSummary(models.Model):
         summary.action_aggregate()
         return summary
 
+    # Làm mới toàn bộ summary 3P của các phiếu phòng ban bị ảnh hưởng trong cùng một batch.
+    @api.model
+    def refresh_summaries_for_department_evaluations(self, department_evaluations):
+        department_evaluations = department_evaluations.filtered(
+            lambda evaluation: evaluation and evaluation.state != "cancel"
+        )
+        for department_evaluation in department_evaluations:
+            self.ensure_summary_for_department_evaluation(department_evaluation)
+        return True
+
     # Ensure the summary exists and refresh its lines from current evaluations.
     @api.model
     def ensure_summary_for_period(self, department, period):
@@ -1523,4 +1533,38 @@ class HrEvaluation3PSummaryLine(models.Model):
             prepared_vals_list.append(prepared_vals)
 
         # Gọi super sau khi đã chuẩn hóa xong để ORM lưu record với bộ định mức đầy đủ.
-        return super().create(prepared_vals_list)
+        lines = super().create(prepared_vals_list)
+        lines._sync_linked_evaluation_result_fields()
+        return lines
+
+    # Đồng bộ lại score kết quả và level của các phiếu KPI cá nhân bị ảnh hưởng bởi line summary vừa đổi.
+    def _sync_linked_evaluation_result_fields(self):
+        evaluations = self.mapped("evaluation_id")
+        if not evaluations:
+            return
+
+        # Recompute score nguồn trước để level và badge luôn đọc đúng snapshot 3P mới nhất.
+        evaluations._compute_result_score()
+        evaluations._compute_performance_level()
+        evaluations._compute_performance_badge_class()
+
+    # Ghi line summary rồi đồng bộ lại kết quả trên phiếu KPI cá nhân liên quan.
+    def write(self, vals):
+        evaluations = self.mapped("evaluation_id")
+        result = super().write(vals)
+        affected_evaluations = evaluations | self.mapped("evaluation_id")
+        if affected_evaluations:
+            affected_evaluations._compute_result_score()
+            affected_evaluations._compute_performance_level()
+            affected_evaluations._compute_performance_badge_class()
+        return result
+
+    # Xóa line summary và làm mới score kết quả của các phiếu từng liên kết với line đó.
+    def unlink(self):
+        evaluations = self.mapped("evaluation_id")
+        result = super().unlink()
+        if evaluations:
+            evaluations._compute_result_score()
+            evaluations._compute_performance_level()
+            evaluations._compute_performance_badge_class()
+        return result

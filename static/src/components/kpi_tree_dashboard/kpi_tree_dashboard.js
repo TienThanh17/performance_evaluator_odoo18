@@ -59,7 +59,7 @@ export class KpiTreeDashboard extends Component {
 
     /**
      * Tính điểm gốc cho node theo thang điểm cấu hình.
-     * Quy tắc dashboard: company = avg dept KPI, dept = dept KPI, employee = total_p3_individual.
+     * Quy tắc dashboard: company = avg dept KPI, dept = dept KPI, employee = result_score.
      */
     nodeScore(nodeData, type) {
         const d = this.state.data;
@@ -71,7 +71,7 @@ export class KpiTreeDashboard extends Component {
             return nodeData.dept_kpi_score || 0;
         }
         if (type === "emp") {
-            return nodeData.total_p3_individual || 0;
+            return nodeData.result_score || 0;
         }
         // if (type === "company") {
         //     return this.roundScore(d.company.dept_kpi_score || 0);

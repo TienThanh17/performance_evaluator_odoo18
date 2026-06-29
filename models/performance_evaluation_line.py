@@ -629,6 +629,7 @@ class PerformanceEvaluationLine(models.Model):
         for evaluation in ordered_lines.mapped("evaluation_id"):
             evaluation._compute_pillar_totals()
             evaluation._compute_performance_level()
+        ordered_lines.mapped("evaluation_id")._refresh_linked_3p_summaries()
 
     def _get_child_score_aggregate(self):
         self.ensure_one()
@@ -1176,6 +1177,7 @@ class PerformanceEvaluationLine(models.Model):
         for evaluation in old_evaluations:
             evaluation._compute_pillar_totals()
             evaluation._compute_performance_level()
+        old_evaluations._refresh_linked_3p_summaries()
         if snapshot_by_line:
             self._post_parent_chatter_audit(tracked_fields, snapshot_by_line)
         return res
@@ -1192,6 +1194,7 @@ class PerformanceEvaluationLine(models.Model):
         else:
             evaluations._compute_pillar_totals()
             evaluations._compute_performance_level()
+            evaluations._refresh_linked_3p_summaries()
         return res
 
     def action_open_popup(self):

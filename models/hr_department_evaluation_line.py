@@ -488,6 +488,7 @@ class HrDepartmentEvaluationLine(models.Model):
         # Tính lại tổng điểm phiếu phòng ban sau khi từng line đã ổn định.
         for evaluation in ordered_lines.mapped("evaluation_id"):
             evaluation._compute_dept_kpi_score()
+        ordered_lines.mapped("evaluation_id")._refresh_linked_3p_summaries()
 
     def _compute_system_score_for_line(self, line, actual, target, score_base=None):
         score_base = float(
@@ -738,6 +739,7 @@ class HrDepartmentEvaluationLine(models.Model):
         old_evaluations = evaluations_before - self.mapped("evaluation_id")
         for evaluation in old_evaluations:
             evaluation._compute_dept_kpi_score()
+        old_evaluations._refresh_linked_3p_summaries()
         if snapshot_by_line:
             self._post_parent_chatter_audit(tracked_fields, snapshot_by_line)
         return res
@@ -766,6 +768,7 @@ class HrDepartmentEvaluationLine(models.Model):
             affected_lines._recompute_score_tree()
         else:
             evaluations._compute_dept_kpi_score()
+            evaluations._refresh_linked_3p_summaries()
         return res
 
     def action_open_popup(self):

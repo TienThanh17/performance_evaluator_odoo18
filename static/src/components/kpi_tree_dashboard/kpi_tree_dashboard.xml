@@ -198,8 +198,12 @@
               <!-- ── Employee detail ── -->
           <t t-elif="state.selectedNode.type === 'emp'">
             <div class="panel-metric">
+              <span class="pm-label">P3.1 Result:</span>
+              <span class="pm-value highlight" t-esc="formatScore(state.selectedNode.data.result_score)"/>
+            </div>
+            <div class="panel-metric">
               <span class="pm-label">Individual KPI:</span>
-              <span class="pm-value highlight" t-esc="formatScore(state.selectedNode.data.total_p3_individual)"/>
+              <span class="pm-value" t-esc="formatScore(state.selectedNode.data.total_p3_individual)"/>
             </div>
             <div class="panel-metric">
               <span class="pm-label">Department KPI:</span>

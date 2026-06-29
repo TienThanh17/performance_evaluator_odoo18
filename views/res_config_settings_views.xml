@@ -31,7 +31,7 @@
                                 </div>
                                 <div class="text-muted">
                                     Example: Excellent ≥ 90 and Pass ≥ 50 on the fixed 100-point KPI
-                                    scale.
+                                    scale (based on the criteria in section P3.1).
                                 </div>
                             </setting>
 
@@ -42,19 +42,28 @@
                                         <label for="p3_individual_weight_percent" />
                                         <div class="text-muted">Weight used for the <b>P3.1.1</b>
                                             individual KPI score.</div>
-                                        <field name="p3_individual_weight_percent"
-                                            class="w-100" />
+                                        <field name="p3_individual_weight_percent" class="w-100" />
                                     </div>
                                     <div class="mt-3">
                                         <label for="p3_department_weight_percent" />
                                         <div class="text-muted">Weight used for the <b>P3.1.2</b>
                                             department KPI score.</div>
-                                        <field name="p3_department_weight_percent"
-                                             class="w-100" />
+                                        <field name="p3_department_weight_percent" class="w-100" />
                                     </div>
                                 </div>
-                                <div class="text-muted">
-                                    P3.1.1 and P3.1.2 weights must total exactly 100%.
+                                <div class="text-muted mt-3">
+                                    Note: P3.1.1 and P3.1.2 weights must total exactly 100%.
+                                </div>
+                                <div class="text-muted mt-2">
+                                    <b>P3.1 Coefficient Rule:</b> The final coefficient is
+                                    determined by the total achieved weight (Sum of P3.1.1 and
+                                    P3.1.2): <ul class="mb-0 pl-4">
+                                        <li>Total Weight ≥ 100% → Coefficient: 1.0</li>
+                                        <li>Total Weight ≥ 90% → Coefficient: 0.8</li>
+                                        <li>Total Weight ≥ 80% → Coefficient: 0.7</li>
+                                        <li>Total Weight ≥ 70% → Coefficient: 0.5</li>
+                                        <li>Total Weight &lt; 70% → Coefficient: 0.0</li>
+                                    </ul>
                                 </div>
                             </setting>
 

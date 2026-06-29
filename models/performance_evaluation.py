@@ -146,6 +146,24 @@ class PerformanceEvaluation(models.Model):
         digits=(16, 1),
         help="Stored total score of the P3 individual pillar.",
     )
+    summary_line_ids = fields.One2many(
+        "hr.evaluation.3p.summary.line",
+        "evaluation_id",
+        string="3P Summary Lines",
+        help="3P summary lines linked to this evaluation.",
+    )
+    result_score = fields.Float(
+        string="Result Score",
+        compute="_compute_result_score",
+        store=True,
+        digits=(16, 1),
+        help="""P3.1 Coefficient calculated based on Total Weight (Sum of P3.1.1 Individual KPI and P3.1.2 Department KPI):
+            - Total Weight >= 100%: 1.0
+            - Total Weight >= 90%: 0.8
+            - Total Weight >= 80%: 0.7
+            - Total Weight >= 70%: 0.5
+            - Total Weight < 70%: 0.0""",
+    )
 
     performance_level = fields.Selection(
         selection=[
@@ -156,7 +174,7 @@ class PerformanceEvaluation(models.Model):
         string=_("Result"),
         compute="_compute_performance_level",
         store=True,
-        help="Result level derived from the Average Score and the KPI thresholds configured in Settings.",
+        help="Result level derived from the linked P3.1 result score and the KPI thresholds configured in Settings.",
     )
 
     performance_badge_class = fields.Char(
@@ -421,13 +439,40 @@ class PerformanceEvaluation(models.Model):
                 )
             )
 
-    @api.depends("total_p3_individual")
+    # Tính điểm kết quả dùng để xét đạt/rớt từ dòng summary 3P mới nhất của phiếu đánh giá.
+    @api.depends(
+        "summary_line_ids",
+        "summary_line_ids.p3_1_score",
+        "summary_line_ids.summary_state",
+    )
+    def _compute_result_score(self):
+        for rec in self:
+            # Ưu tiên dòng summary mới nhất để bám theo snapshot aggregate hiện hành.
+            summary_line = rec._get_current_summary_line()
+            rec.result_score = (
+                float(summary_line.p3_1_score or 0.0) if summary_line else 0.0
+            )
+
+    # Lấy dòng summary 3P hiệu lực để đồng bộ logic kết quả với snapshot aggregate gần nhất.
+    def _get_current_summary_line(self):
+        self.ensure_one()
+        # Trong nghiệp vụ hiện tại mỗi evaluation chỉ nên có một dòng summary hiệu lực;
+        # nếu phát sinh nhiều dòng, dùng dòng mới nhất để tránh lấy nhầm snapshot cũ.
+        return (
+            self.summary_line_ids.sorted(
+                key=lambda line: (line.summary_id.id or 0, line.id or 0)
+            )[-1:]
+            if self.summary_line_ids
+            else self.env["hr.evaluation.3p.summary.line"]
+        )
+
+    @api.depends("result_score")
     def _compute_score_scale_display(self):
         for rec in self:
             base = rec._get_evaluation_score_base()
             rec.performance_score_progress_pct = max(
                 0.0,
-                min(100.0, ((rec.total_p3_individual or 0.0) / base) * 100.0),
+                min(100.0, ((rec.result_score or 0.0) / base) * 100.0),
             )
             rec.score_scale_suffix = f" / {int(base)}"
 
@@ -445,14 +490,14 @@ class PerformanceEvaluation(models.Model):
             return profile.get_thresholds()
         return settings.get_thresholds()
 
-    @api.depends("total_p3_individual", "employee_id")
+    @api.depends("result_score", "employee_id")
     def _compute_performance_visual(self):
         for rec in self:
             score_base = rec._get_evaluation_score_base()
             # Quy đổi điểm theo score_base hiện tại sang phần trăm để vẽ vòng tròn.
             score_pct = max(
                 0.0,
-                min(100.0, ((rec.total_p3_individual or 0) / score_base) * 100.0),
+                min(100.0, ((rec.result_score or 0) / score_base) * 100.0),
             )
 
             # Lấy URL ảnh nhân viên
@@ -944,14 +989,16 @@ class PerformanceEvaluation(models.Model):
         """Manual refresh for stored pillar totals and derived performance level."""
         for rec in self:
             rec._compute_pillar_totals()
+            rec._compute_result_score()
             rec._compute_performance_level()
         return True
 
-    @api.depends("total_p3_individual")
+    # Tô màu badge theo cùng score kết quả đang được dùng để phân loại phiếu.
+    @api.depends("result_score")
     def _compute_performance_badge_class(self):
         for rec in self:
             excellent, passed = rec._get_thresholds_for_record()
-            score = rec.total_p3_individual or 0.0
+            score = rec.result_score or 0.0
             if score >= excellent:
                 rec.performance_badge_class = "o_kpi_badge_excellent"
             elif score >= passed:
@@ -959,11 +1006,12 @@ class PerformanceEvaluation(models.Model):
             else:
                 rec.performance_badge_class = "o_kpi_badge_fail"
 
-    @api.depends("total_p3_individual")
+    # Phân loại kết quả đánh giá theo score kết quả lấy từ summary 3P.
+    @api.depends("result_score")
     def _compute_performance_level(self):
         for rec in self:
             excellent, passed = rec._get_thresholds_for_record()
-            score = rec.total_p3_individual or 0.0
+            score = rec.result_score or 0.0
             if score >= excellent:
                 rec.performance_level = "excellent"
             elif score >= passed:
@@ -1073,7 +1121,9 @@ class PerformanceEvaluation(models.Model):
             return template_line.target
 
         # Dùng cùng engine metrics để target luôn khớp expected_work_days của kỳ đánh giá thực tế.
-        expected_work_days = self.env["hr.kpi.engine"].get_attendance_expected_work_days(
+        expected_work_days = self.env[
+            "hr.kpi.engine"
+        ].get_attendance_expected_work_days(
             self.employee_id,
             template_line,
             self.start_date,
@@ -1217,6 +1267,17 @@ class PerformanceEvaluation(models.Model):
                 )
 
                 line.write(vals)
+
+    # Làm mới summary 3P liên kết sau khi điểm nguồn trên phiếu cá nhân đã thay đổi.
+    def _refresh_linked_3p_summaries(self):
+        dept_evaluations = self.mapped("dept_evaluation_id").filtered(
+            lambda evaluation: evaluation and evaluation.state != "cancel"
+        )
+        if not dept_evaluations:
+            return
+        self.env["hr.evaluation.3p.summary"].refresh_summaries_for_department_evaluations(
+            dept_evaluations
+        )
 
     # ------------------------------------------------------------
     # Cron
@@ -1383,6 +1444,7 @@ class PerformanceEvaluation(models.Model):
                 "pass": threshold_pass,
             },
             "employee_name": evaluation.employee_id.name or "",
+            "result_score_label": _("P3.1 Result"),
             "pillar_p2_1_name": evaluation.pillar_p2_1_name or "P2.1",
             "pillar_p2_2_name": evaluation.pillar_p2_2_name or "P2.2",
             "pillar_p3_ind_name": evaluation.pillar_p3_ind_name or "P3 Individual",
@@ -1396,6 +1458,7 @@ class PerformanceEvaluation(models.Model):
             "end_date": str(evaluation.end_date) if evaluation.end_date else "",
             "total_p2_1": round(float(evaluation.total_p2_1 or 0.0), 2),
             "total_p2_2": round(float(evaluation.total_p2_2 or 0.0), 2),
+            "result_score": round(float(evaluation.result_score or 0.0), 2),
             "total_p3_individual": round(
                 float(evaluation.total_p3_individual or 0.0), 2
             ),

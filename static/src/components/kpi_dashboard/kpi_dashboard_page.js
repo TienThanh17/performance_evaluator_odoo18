@@ -298,6 +298,7 @@ export class KpiDashboard extends Component {
                 "period_id",
                 "start_date",
                 "end_date",
+                "result_score",
                 "total_p3_individual",
                 "performance_level",
                 "state",
@@ -512,12 +513,22 @@ export class KpiDashboard extends Component {
         return this.state.data?.pillar_p3_ind_name || "P3 Individual";
     }
 
+    get resultScoreLabel() {
+        return this.state.data?.result_score_label || "P3.1 Result";
+    }
+
+    get resultScoreText() {
+        return this.formatScore(
+            this.state.data ? this.state.data.result_score : 0,
+        );
+    }
+
     get p3DepartmentLabel() {
         return this.state.data?.pillar_p3_dept_name || "P3 Department";
     }
 
     get scoreRingStyle() {
-        const score = this.state.data ? this.state.data.total_p3_individual : 0;
+        const score = this.state.data ? this.state.data.result_score : 0;
         const pct = this.scorePct(score);
         const level = this.state.data ? this.state.data.performance_level : "fail";
         const color =
