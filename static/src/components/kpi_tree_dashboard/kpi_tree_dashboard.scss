@@ -281,38 +281,27 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     min-width: 0;
     width: 100%;
     max-width: 100%;
+
+    &.has-detail-panel {
+        @media (max-width: 1280px) {
+            flex-direction: column;
+        }
+    }
 }
 
-// SVG wrap: scrollable horizontal
+// SVG wrap: giữ cây vừa màn hình, không cần cuộn ngang
 .o_kpi_tree_svg_wrap {
     flex: 1 1 0;
     min-width: 0;
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: hidden;
     padding: 20px 16px;
-    scrollbar-gutter: stable;
-
-    /* 1. THÊM DÒNG NÀY: Để padding không làm phình width/height */
     box-sizing: border-box;
-
-    /* 2. THÊM GIỚI HẠN CHIỀU CAO: Xem giải thích ở mục 2 bên dưới */
     max-height: 100%;
-
-    width: 100%;             /* Đảm bảo khung bọc ngoài lấy theo chiều rộng màn hình/cột */
-    white-space: nowrap;     /* Tránh việc các element con bị rớt dòng (nếu có) */
-
-    /* Tuỳ chọn: Làm đẹp thanh cuộn trên Webkit (Chrome/Safari) */
-    &::-webkit-scrollbar {
-        height: 8px;
-    }
-    &::-webkit-scrollbar-thumb {
-        background: $tree-primary;
-        border-radius: 4px;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-        background: darken($tree-primary, 10%);
-    }
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
 
     &.skeleton-tree {
         display: flex;
@@ -510,6 +499,64 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
         color: #aab0bc;
         font-style: italic;
         margin-top: 6px;
+    }
+
+    .panel-nav_card {
+        margin-top: 16px;
+        display: flex;
+    }
+
+    .panel-nav_btn {
+        border: 0;
+        border-radius: 999px;
+        background: $tree-primary;
+        color: #ffffff;
+        padding: 9px 14px;
+        min-width: 88px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        box-shadow: 0 10px 20px rgba(55, 138, 221, 0.18);
+        transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease,
+            opacity 0.15s ease,
+            background 0.15s ease;
+
+        &:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(55, 138, 221, 0.24);
+            background: darken($tree-primary, 5%);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+            box-shadow: none;
+        }
+
+        &.panel-nav_btn_compact {
+            padding: 7px 12px;
+            min-width: 0;
+            font-size: 0.74rem;
+            gap: 6px;
+            box-shadow: 0 6px 14px rgba(55, 138, 221, 0.16);
+        }
+    }
+
+    @media (max-width: 1280px) {
+        width: 100%;
+        border-left: 0;
+        border-top: 1px solid $tree-border;
+    }
+
+    @media (max-width: 576px) {
+        .panel-nav_btn {
+            width: 100%;
+        }
     }
 }
 
@@ -1046,15 +1093,14 @@ $tree-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 
 // ── D3 KPI Node Styles ────────────────────────────────────────────────────────
 .d3-kpi-container {
-    // SVG được render theo chiều rộng thật của cây; khung cha sẽ hiện thanh cuộn ngang khi cây dài.
-    display: inline-block;
-    width: max-content;
-    min-width: 100%;
+    display: block;
+    width: 100%;
+    min-width: 0;
     min-height: 100%;
 
     svg {
         display: block;
-        max-width: none;
+        max-width: 100%;
         overflow: visible;
     }
 

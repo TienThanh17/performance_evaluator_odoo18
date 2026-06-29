@@ -41,7 +41,7 @@
       </t>
     </div>
         <!-- Skeleton tree placeholder -->
-    <div class="o_kpi_tree_main">
+    <div t-attf-class="o_kpi_tree_main #{state.selectedNode ? 'has-detail-panel' : ''}">
       <div class="o_kpi_tree_svg_wrap skeleton-tree">
         <div class="sk-tree-placeholder">
           <i class="fa fa-sitemap fa-3x"/>
@@ -112,7 +112,7 @@
     </div>
 
         <!-- ── Main: Tree + Detail Panel ── -->
-    <div class="o_kpi_tree_main">
+    <div t-attf-class="o_kpi_tree_main #{state.selectedNode ? 'has-detail-panel' : ''}">
 
           <!-- ── SVG Tree ── -->
       <div
@@ -192,6 +192,17 @@
               <span class="pm-label">Employees:</span>
               <span class="pm-value" t-esc="state.selectedNode.data.employee_count"/>
             </div>
+            <div class="panel-nav_card">
+              <button
+                type="button"
+                class="panel-nav_btn panel-nav_btn_compact"
+                t-att-disabled="!state.selectedNode.data.evaluation_id"
+                t-on-click="openDepartmentDashboard"
+              >
+                <span>View Dashboard</span>
+                <i class="fa fa-arrow-right"/>
+              </button>
+            </div>
                 <!-- <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div> -->
           </t>
 
@@ -221,6 +232,17 @@
               <span class="pm-label">Result:</span>
               <span t-att-class="levelBadgeClass(state.selectedNode.data.performance_level)"
                     t-esc="state.selectedNode.data.performance_level || 'fail'"/>
+            </div>
+            <div class="panel-nav_card">
+              <button
+                type="button"
+                class="panel-nav_btn panel-nav_btn_compact"
+                t-att-disabled="!state.selectedNode.data.employee_id or !state.selectedNode.data.evaluation_id"
+                t-on-click="openIndividualDashboard"
+              >
+                <span>View Dashboard</span>
+                <i class="fa fa-arrow-right"/>
+              </button>
             </div>
                 <!-- <div class="panel-note">Chưa có dữ liệu trend cho kỳ này</div> -->
           </t>

@@ -2641,7 +2641,7 @@ msgstr "Cây KPI"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "KPI Tree Dashboard"
-msgstr "Dashboard Cây KPI"
+msgstr "Dashboard"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_evaluation_line__kpi_type
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_department_kpi_template_line__kpi_type

@@ -977,6 +977,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                     employees.append(
                         {
                             "id": ev.id,
+                            "evaluation_id": ev.id,
                             "employee_id": emp.id,
                             "name": emp.name or "",
                             "job": emp.job_id.name if emp.job_id else "",
@@ -1004,6 +1005,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                 departments.append(
                     {
                         "id": dept_id,
+                        "evaluation_id": dept_eval.id if dept_eval else False,
                         "name": dept.name or "",
                         "manager_name": dept.manager_id.name if dept.manager_id else "",
                         "dept_kpi_score": round(float(dept_kpi), 2),

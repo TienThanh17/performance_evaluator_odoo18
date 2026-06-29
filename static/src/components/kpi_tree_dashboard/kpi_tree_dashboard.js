@@ -6,7 +6,14 @@
  * Template: static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml
  */
 
-import { Component, useState, onMounted, useRef, onPatched } from "@odoo/owl";
+import {
+    Component,
+    useState,
+    onMounted,
+    useRef,
+    onPatched,
+    onWillUnmount,
+} from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { loadJS } from "@web/core/assets";
@@ -24,11 +31,15 @@ export class KpiTreeDashboard extends Component {
     setup() {
         this.orm = useService("orm");
         this.actionService = useService("action");
+        this.notification = useService("notification");
         this.d3Container = useRef("d3_container");
         this.treeAnimationMs = 360;
         this.pendingToggleDeptId = null;
         this.pendingToggleMode = null;
         this._lastTreeRenderKey = null;
+        this._treeResizeObserver = null;
+        this._treeResizeRaf = null;
+        this._treeViewportWidth = 0;
 
         this.state = useState({
             loading: true,
@@ -45,12 +56,22 @@ export class KpiTreeDashboard extends Component {
             await loadJS(
                 "/custom_adecsol_hr_performance_evaluator/static/src/vendor/d3.v7.min.js",
             );
+            this.observeTreeContainer();
             this.loadData(); // Giữ nguyên logic gọi RPC của bạn
         });
 
         onPatched(() => {
             if (!this.state.loading && this.state.data && this.d3Container.el) {
                 this.renderD3Tree();
+            }
+        });
+
+        onWillUnmount(() => {
+            this._treeResizeObserver?.disconnect();
+            this._treeResizeObserver = null;
+            if (this._treeResizeRaf) {
+                cancelAnimationFrame(this._treeResizeRaf);
+                this._treeResizeRaf = null;
             }
         });
     }
@@ -296,24 +317,32 @@ export class KpiTreeDashboard extends Component {
     }
 
     toggleDept = (deptId) => {
-        const s = new Set(this.state.expandedDepts);
-        const isExpanded = s.has(deptId);
+        const currentExpandedIds = [...this.state.expandedDepts];
+        const isExpanded = this.state.expandedDepts.has(deptId);
         this.pendingToggleDeptId = deptId;
         this.pendingToggleMode = isExpanded ? "collapse" : "expand";
+
+        let s;
         if (isExpanded) {
-            s.delete(deptId);
+            s = new Set();
         } else {
-            s.add(deptId);
+            s = new Set([deptId]);
         }
         this.state.expandedDepts = s;
 
-        // Nếu đang xem employee của chính phòng ban bị collapse thì chuyển về node phòng ban.
-        if (isExpanded && this.state.selectedNode?.type === "emp") {
-            const ownerDept = this.getDepartmentById(deptId);
+        // Khi accordion đóng phòng ban đang chứa employee được chọn,
+        // trả focus về node phòng ban đó để panel chi tiết không bị "mồ côi".
+        if (this.state.selectedNode?.type === "emp") {
+            const collapsedDeptId = isExpanded
+                ? deptId
+                : currentExpandedIds.find((id) => id !== deptId);
+            const ownerDept = collapsedDeptId
+                ? this.getDepartmentById(collapsedDeptId)
+                : null;
             const containsSelectedEmployee = (ownerDept?.employees || []).some(
                 (emp) => emp.employee_id === this.state.selectedNode.id,
             );
-            if (containsSelectedEmployee) {
+            if (ownerDept && containsSelectedEmployee) {
                 this.state.selectedNode = {
                     type: "dept",
                     id: ownerDept.id,
@@ -325,6 +354,50 @@ export class KpiTreeDashboard extends Component {
 
     closePanel = () => {
         this.state.selectedNode = null;
+    };
+
+    openDepartmentDashboard = () => {
+        const selected = this.state.selectedNode;
+        const departmentId = selected?.data?.id;
+        const evaluationId = selected?.data?.evaluation_id;
+        if (!departmentId || !evaluationId) {
+            this.notification.add(
+                _t("No department dashboard is available for this evaluation period."),
+                { type: "warning" },
+            );
+            return;
+        }
+        this.actionService.doAction({
+            type: "ir.actions.client",
+            tag: "kpi_department_dashboard",
+            name: _t("Department KPI Dashboard"),
+            context: {
+                default_department_id: departmentId,
+                default_evaluation_id: evaluationId,
+            },
+        });
+    };
+
+    openIndividualDashboard = () => {
+        const selected = this.state.selectedNode;
+        const employeeId = selected?.data?.employee_id;
+        const evaluationId = selected?.data?.evaluation_id || selected?.data?.id;
+        if (!employeeId || !evaluationId) {
+            this.notification.add(
+                _t("No individual dashboard is available for this evaluation period."),
+                { type: "warning" },
+            );
+            return;
+        }
+        this.actionService.doAction({
+            type: "ir.actions.client",
+            tag: "kpi_individual_dashboard",
+            name: _t("Individual KPI Dashboard"),
+            context: {
+                default_employee_id: employeeId,
+                default_evaluation_id: evaluationId,
+            },
+        });
     };
 
     openRiskModal = () => {
@@ -423,6 +496,14 @@ export class KpiTreeDashboard extends Component {
     formatPct(val) {
         if (val == null) return "—";
         return (val * 100).toFixed(1) + "%";
+    }
+
+    currentPeriodLabel() {
+        return (
+            this.state.selectedPeriod?.label ||
+            this.state.data?.period?.label ||
+            _t("Current evaluation period")
+        );
     }
 
     issueMeta(item) {
@@ -527,7 +608,7 @@ export class KpiTreeDashboard extends Component {
 
         const rootNode = {
             id: "company",
-            name: "Company",
+            name: _t("Company"),
             _type: "company",
             rawData: d.company,
             children: [],
@@ -561,10 +642,40 @@ export class KpiTreeDashboard extends Component {
         return rootNode;
     }
 
+    observeTreeContainer() {
+        const wrapEl = this.d3Container.el?.parentElement;
+        if (!wrapEl || typeof ResizeObserver === "undefined") return;
+
+        this._treeResizeObserver?.disconnect();
+        this._treeViewportWidth = Math.round(wrapEl.clientWidth || 0);
+        this._treeResizeObserver = new ResizeObserver((entries) => {
+            const nextWidth = Math.round(entries[0]?.contentRect?.width || 0);
+            if (!nextWidth || Math.abs(nextWidth - this._treeViewportWidth) < 2) {
+                return;
+            }
+            this._treeViewportWidth = nextWidth;
+            if (this._treeResizeRaf) {
+                cancelAnimationFrame(this._treeResizeRaf);
+            }
+            this._treeResizeRaf = requestAnimationFrame(() => {
+                this._treeResizeRaf = null;
+                this._lastTreeRenderKey = null;
+                if (!this.state.loading && this.state.data && this.d3Container.el) {
+                    this.renderD3Tree();
+                }
+            });
+        });
+        this._treeResizeObserver.observe(wrapEl);
+    }
+
     // ── LOGIC VẼ D3.JS CHÍNH ──
     renderD3Tree() {
         const container = this.d3Container.el;
-        const renderKey = this.getTreeRenderKey();
+        const viewportWidth =
+            Math.round(container.parentElement?.clientWidth || 0) ||
+            this._treeViewportWidth ||
+            0;
+        const renderKey = `${this.getTreeRenderKey()}::${viewportWidth}`;
         const hasCurrentSvg = container.querySelector(
             "svg.o_kpi_tree_svg_current",
         );
@@ -690,35 +801,52 @@ export class KpiTreeDashboard extends Component {
 
         // Khởi tạo kích thước layout
         const root = d3.hierarchy(treeData);
+        const visibleLeafCount = Math.max(1, root.leaves().length);
+        const densityWidth =
+            viewportWidth > 0
+                ? Math.max(76, Math.floor((viewportWidth - 48) / visibleLeafCount))
+                : 180;
+        const compactMode = densityWidth < 132;
 
         // Hàm tính card width — nhận d object (dùng chung cho cả nodeSize lẫn vẽ node)
-        const ORG_PAD = 10;
-        const ORG_ICON_W = 44;
+        const ORG_PAD = compactMode ? 8 : 10;
+        const ORG_ICON_W = compactMode ? 40 : 44;
+        const orgWidthCap = Math.max(132, Math.min(260, densityWidth * 1.7));
         const getOrgCardWidth = (d) => {
             const name = d.data
                 ? d.data.name || d.data.rawData?.name || ""
                 : d || "";
+            const naturalWidth =
+                name.length * (compactMode ? 6.2 : 7) +
+                ORG_ICON_W +
+                ORG_PAD * 2 +
+                16;
             return Math.max(
-                160,
-                Math.min(260, name.length * 7 + ORG_ICON_W + ORG_PAD * 2 + 16),
+                132,
+                Math.min(orgWidthCap, naturalWidth),
             );
         };
 
-        const AVT = 32,
-            PAD = 10,
-            GAP = 8;
+        const AVT = compactMode ? 28 : 32;
+        const PAD = compactMode ? 8 : 10;
+        const GAP = compactMode ? 6 : 8;
+        const empWidthCap = Math.max(96, Math.min(220, densityWidth - 8));
         const getEmpCardWidth = (d) => {
             const name = d.data
                 ? d.data.rawData?.name || d.data.name || ""
                 : d || "";
+            const naturalWidth =
+                name.length * (compactMode ? 5.8 : 6.5) +
+                AVT +
+                GAP +
+                PAD * 2 +
+                20;
             return Math.max(
-                140,
-                Math.min(220, name.length * 6.5 + AVT + GAP + PAD * 2 + 20),
+                96,
+                Math.min(empWidthCap, naturalWidth),
             );
         };
 
-        // Tính max width để nodeSize không bị chật
-        // Tính max emp card width để nodeSize vừa đủ cho emp layer
         let maxEmpW = 140;
         root.each((d) => {
             if (d.data._type === "emp") {
@@ -726,10 +854,16 @@ export class KpiTreeDashboard extends Component {
             }
         });
 
-        const empSlotW = maxEmpW + 20; // khoảng cách tâm-tâm giữa các emp
-        const nodeHeight = 150;
-        const MIN_NODE_GAP = 24;
-        const DEPT_GROUP_GAP = 36;
+        const empSlotW = Math.max(
+            74,
+            Math.min(
+                maxEmpW + (compactMode ? 10 : 18),
+                densityWidth + (compactMode ? 8 : 16),
+            ),
+        );
+        const nodeHeight = compactMode ? 132 : 150;
+        const MIN_NODE_GAP = compactMode ? 12 : 24;
+        const DEPT_GROUP_GAP = compactMode ? 18 : 36;
         const getNodeCardWidth = (d) =>
             d.data._type === "emp" ? getEmpCardWidth(d) : getOrgCardWidth(d);
         const getMinSeparation = (a, b, gap = MIN_NODE_GAP) =>
@@ -740,7 +874,6 @@ export class KpiTreeDashboard extends Component {
             .tree()
             .nodeSize([empSlotW, nodeHeight])
             .separation((a, b) => {
-                // Emp cùng dept: 1 slot; emp khác dept chỉ nới vừa đủ theo width card.
                 if (a.data._type === "emp" && b.data._type === "emp") {
                     const base = a.parent === b.parent ? 1 : 1.2;
                     return Math.max(
@@ -782,35 +915,50 @@ export class KpiTreeDashboard extends Component {
         this.pendingToggleDeptId = null;
         this.pendingToggleMode = null;
 
-        // Tính toán bounding box để canvas luôn fit hoặc scroll
-        let x0 = Infinity,
-            x1 = -x0,
-            y1 = -x0;
+        const orgCardH = compactMode ? 68 : 72;
+        const cardH = compactMode ? 56 : 60;
+        const SIDE_PAD = compactMode ? 14 : 24;
+        const TOP_PAD = compactMode ? 28 : 36;
+        const BOTTOM_PAD = compactMode ? 26 : 34;
+        let left = Infinity,
+            right = -Infinity,
+            bottom = -Infinity;
         root.each((d) => {
-            if (d.x > x1) x1 = d.x;
-            if (d.x < x0) x0 = d.x;
-            if (d.y > y1) y1 = d.y;
+            const halfWidth = getNodeCardWidth(d) / 2;
+            const nodeHeightPx = d.data._type === "emp" ? cardH : orgCardH;
+            left = Math.min(left, d.x - halfWidth);
+            right = Math.max(right, d.x + halfWidth);
+            bottom = Math.max(bottom, d.y + nodeHeightPx / 2);
         });
 
-        const contentWidth = Math.ceil(x1 - x0 + empSlotW * 2);
-        const contentHeight = Math.ceil(y1 + nodeHeight * 2);
-        const viewportWidth = container.parentElement?.clientWidth || 0;
-        const svgWidth = Math.max(contentWidth, viewportWidth);
+        const contentWidth = Math.ceil(right - left + SIDE_PAD * 2);
+        const contentHeight = Math.ceil(bottom + TOP_PAD + BOTTOM_PAD);
+        const renderedWidth =
+            viewportWidth > 0 ? Math.min(contentWidth, viewportWidth) : contentWidth;
+        const scaleRatio = contentWidth ? renderedWidth / contentWidth : 1;
+        const renderedHeight = Math.max(
+            280,
+            Math.ceil(contentHeight * scaleRatio),
+        );
 
-        // Gán width thật vào container để .o_kpi_tree_svg_wrap tạo scroll ngang ổn định.
         container.style.position = "relative";
-        container.style.width = `${svgWidth}px`;
-        container.style.minWidth = `${svgWidth}px`;
-        container.style.minHeight = `${contentHeight}px`;
+        container.style.width = "100%";
+        container.style.minWidth = "0";
+        container.style.height = `${renderedHeight}px`;
+        container.style.minHeight = `${renderedHeight}px`;
 
         const svg = d3
             .select(container)
             .append("svg")
             .attr("class", "o_kpi_tree_svg_current")
-            .attr("width", svgWidth)
-            .attr("height", contentHeight)
+            .attr("width", renderedWidth)
+            .attr("height", renderedHeight)
+            .attr("viewBox", `0 0 ${contentWidth} ${contentHeight}`)
+            .attr("preserveAspectRatio", "xMidYMin meet")
             .style("position", "relative")
             .style("z-index", "1")
+            .style("display", "block")
+            .style("margin", "0 auto")
             .style("opacity", 0);
 
         svg.transition()
@@ -820,7 +968,7 @@ export class KpiTreeDashboard extends Component {
 
         const canvas = svg
             .append("g")
-            .attr("transform", `translate(${-(x0 - empSlotW)}, 60)`);
+            .attr("transform", `translate(${SIDE_PAD - left}, ${TOP_PAD})`);
 
         // 1. Vẽ Link (Đường nối)
         const link = canvas
@@ -898,8 +1046,6 @@ export class KpiTreeDashboard extends Component {
         //         Math.min(260, name.length * 7 + ORG_ICON_W + ORG_PAD * 2 + 16),
         //     );
         // };
-        const orgCardH = 72;
-
         // Card rect (company/dept)
         orgNodes
             .append("rect")
@@ -994,8 +1140,6 @@ export class KpiTreeDashboard extends Component {
         //         Math.min(220, name.length * 6.5 + AVT + GAP + PAD * 2 + 20),
         //     );
         // };
-        const cardH = 60;
-
         // Card rect
         empNodes
             .append("rect")
