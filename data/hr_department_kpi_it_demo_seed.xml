@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="dept_source_it_task_created_count_demo" model="hr.kpi.data.source">
+            <field name="name">[Phòng ban Demo] IT - Số nhiệm vụ được tạo trong kỳ</field>
+            <field name="code">dept_it_task_created_count_demo</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task" />
+            <field name="source_type">domain</field>
+            <field name="description">Đếm số lượng nhiệm vụ được tạo trong kỳ đánh giá cho tất cả người dùng đang hoạt động trong phòng ban.</field>
+            <field name="model_id" search="[('model', '=', 'project.task')]" />
+            <field name="aggregation">count</field>
+            <field name="user_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
+            <field name="domain_numerator">[('project_id', '!=', False)]</field>
+            <field name="date_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'create_date')]" />
+        </record>
+
+        <record id="dept_source_it_task_due_completion_rate_demo" model="hr.kpi.data.source">
+            <field name="name">[Phòng ban Demo] IT - Tỷ lệ hoàn thành nhiệm vụ đến hạn</field>
+            <field name="code">dept_it_task_due_completion_rate_demo</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent" />
+            <field name="source_type">domain</field>
+            <field name="description">Tính tỷ lệ phần trăm các nhiệm vụ của phòng ban có hạn chót trong kỳ hiện đã ở giai đoạn hoàn thành.</field>
+            <field name="model_id" search="[('model', '=', 'project.task')]" />
+            <field name="aggregation">ratio</field>
+            <field name="user_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
+            <field name="domain_numerator">[('project_id', '!=', False), ('stage_id.is_done_stage', '=', True)]</field>
+            <field name="domain_denominator">[('project_id', '!=', False)]</field>
+            <field name="date_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'date_deadline')]" />
+        </record>
+
+        <record id="dept_source_it_task_estimation_coverage_rate_demo" model="hr.kpi.data.source">
+            <field name="name">[Phòng ban Demo] IT - Tỷ lệ bao phủ ước lượng</field>
+            <field name="code">dept_it_task_estimation_coverage_rate_demo</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent" />
+            <field name="source_type">domain</field>
+            <field name="description">Tính tỷ lệ phần trăm các nhiệm vụ mới được tạo của phòng ban trong kỳ đã có số giờ kế hoạch.</field>
+            <field name="model_id" search="[('model', '=', 'project.task')]" />
+            <field name="aggregation">ratio</field>
+            <field name="user_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
+            <field name="domain_numerator">[('project_id', '!=', False), ('planned_hours', '>', 0)]</field>
+            <field name="domain_denominator">[('project_id', '!=', False)]</field>
+            <field name="date_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'create_date')]" />
+        </record>
+
+        <record id="dept_source_it_task_overdue_open_count_demo" model="hr.kpi.data.source">
+            <field name="name">[Phòng ban Demo] IT - Nhiệm vụ quá hạn đang mở</field>
+            <field name="code">dept_it_task_overdue_open_count_demo</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task" />
+            <field name="source_type">domain</field>
+            <field name="description">Đếm số lượng nhiệm vụ của phòng ban có hạn chót nằm trong kỳ đánh giá và vẫn chưa hoàn thành vào cuối kỳ.</field>
+            <field name="model_id" search="[('model', '=', 'project.task')]" />
+            <field name="aggregation">count</field>
+            <field name="user_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
+            <field name="domain_numerator">[('project_id', '!=', False), ('stage_id.is_done_stage', '=', False)]</field>
+            <field name="date_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'date_deadline')]" />
+        </record>
+
+        <record id="dept_source_it_task_unplanned_count_demo" model="hr.kpi.data.source">
+            <field name="name">[Phòng ban Demo] IT - Số nhiệm vụ không có kế hoạch được tạo</field>
+            <field name="code">dept_it_task_unplanned_count_demo</field>
+            <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task" />
+            <field name="source_type">domain</field>
+            <field name="description">Đếm số lượng nhiệm vụ của phòng ban được tạo trong kỳ không có số giờ kế hoạch.</field>
+            <field name="model_id" search="[('model', '=', 'project.task')]" />
+            <field name="aggregation">count</field>
+            <field name="user_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
+            <field name="domain_numerator">[('project_id', '!=', False), ('planned_hours', '=', 0)]</field>
+            <field name="date_field_id"
+                search="[('model', '=', 'project.task'), ('name', '=', 'create_date')]" />
+        </record>
+
+        <record id="tpl_dept_kpi_it_delivery_demo" model="hr.department.kpi.template">
+            <field name="name">Demo KPI Phòng ban - Bàn giao IT Odoo</field>
+            <field name="department_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_it_3p_202604" />
+            <field name="period_type">monthly</field>
+        </record>
+
+        <record id="line_dept_it_delivery_demo_section" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_delivery_demo" />
+            <field name="name">Bàn giao và Lập kế hoạch IT</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="is_section">True</field>
+            <field name="display_type">line_section</field>
+            <field name="wipeout_if_child_zero">False</field>
+            <field name="weight">100</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="line_dept_it_delivery_demo_created" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_delivery_demo" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_it_delivery_demo_section" />
+            <field name="name">Số nhiệm vụ được tạo trong kỳ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">30</field>
+            <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task" />
+            <field name="data_source_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_source_it_task_created_count_demo" />
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher" />
+            <field name="weight">15</field>
+            <field name="sequence">20</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu:</strong> Theo dõi lượng công việc tiếp nhận hàng tháng của phòng CNTT.</p>
+                    <p><strong>Quy tắc dữ liệu:</strong> Đếm tất cả các bản ghi <code>project.task</code> được tạo trong kỳ và được giao cho các thành viên đang hoạt động trong phòng ban.</p>
+                    <p><strong>Lưu ý:</strong> Nhân viên phải được liên kết với người dùng hệ thống và các nhiệm vụ phải được giao thông qua trường <code>user_ids</code>.</p>
+                </div>
+            </field>
+        </record>
+
+        <record id="line_dept_it_delivery_demo_done_rate" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_delivery_demo" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_it_delivery_demo_section" />
+            <field name="name">Tỷ lệ hoàn thành nhiệm vụ đến hạn</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">85</field>
+            <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent" />
+            <field name="data_source_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_source_it_task_due_completion_rate_demo" />
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher" />
+            <field name="weight">35</field>
+            <field name="sequence">30</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu:</strong> Đo lường số lượng nhiệm vụ của phòng ban có hạn chót trong kỳ hiện đã được hoàn thành.</p>
+                    <p><strong>Quy tắc dữ liệu:</strong> Tử số sử dụng các nhiệm vụ ở giai đoạn hoàn thành, mẫu số sử dụng tất cả các nhiệm vụ có trường <code>date_deadline</code> nằm trong kỳ.</p>
+                </div>
+            </field>
+        </record>
+
+        <record id="line_dept_it_delivery_demo_overdue_open" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_delivery_demo" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_it_delivery_demo_section" />
+            <field name="name">Nhiệm vụ quá hạn đang mở tại thời điểm cuối kỳ</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">3</field>
+            <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task" />
+            <field name="data_source_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_source_it_task_overdue_open_count_demo" />
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_linear_lower" />
+            <field name="weight">25</field>
+            <field name="sequence">40</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu:</strong> Hạn chế lượng công việc tồn đọng quá hạn vẫn chưa được hoàn thành khi kỳ đánh giá đóng lại.</p>
+                    <p><strong>Quy tắc dữ liệu:</strong> Đếm số lượng nhiệm vụ của phòng ban có hạn chót rơi vào trong kỳ và hiện vẫn chưa ở giai đoạn hoàn thành.</p>
+                </div>
+            </field>
+        </record>
+
+        <record id="line_dept_it_delivery_demo_estimation" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_delivery_demo" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_it_delivery_demo_section" />
+            <field name="name">Tỷ lệ bao phủ ước lượng</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">90</field>
+            <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent" />
+            <field name="data_source_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_source_it_task_estimation_coverage_rate_demo" />
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_linear_higher" />
+            <field name="weight">15</field>
+            <field name="sequence">50</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu:</strong> Khuyến khích đội ngũ sớm gán số giờ kế hoạch dự kiến cho các hạng mục công việc mới.</p>
+                    <p><strong>Quy tắc dữ liệu:</strong> Đo tỷ lệ phần trăm các nhiệm vụ mới được tạo trong kỳ có trường <code>planned_hours &gt; 0</code>.</p>
+                </div>
+            </field>
+        </record>
+
+        <record id="line_dept_it_delivery_demo_unplanned" model="hr.department.kpi.template.line">
+            <field name="department_kpi_id"
+                ref="custom_adecsol_hr_performance_evaluator.tpl_dept_kpi_it_delivery_demo" />
+            <field name="parent_line_id"
+                ref="custom_adecsol_hr_performance_evaluator.line_dept_it_delivery_demo_section" />
+            <field name="name">Số nhiệm vụ không có kế hoạch được tạo</field>
+            <field name="pillar_id"
+                ref="custom_adecsol_hr_performance_evaluator.hr_evaluation_pillar_p3_department" />
+            <field name="kpi_type">auto</field>
+            <field name="target">5</field>
+            <field name="unit" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_task" />
+            <field name="data_source_id"
+                ref="custom_adecsol_hr_performance_evaluator.dept_source_it_task_unplanned_count_demo" />
+            <field name="scoring_formula_id"
+                ref="custom_adecsol_hr_performance_evaluator.formula_linear_lower" />
+            <field name="weight">10</field>
+            <field name="sequence">60</field>
+            <field name="description" type="html">
+                <div>
+                    <p><strong>Mục tiêu:</strong> Giảm thiểu lượng công việc đưa vào đội ngũ mà không có kế hoạch nguồn lực cơ bản.</p>
+                    <p><strong>Quy tắc dữ liệu:</strong> Đếm số nhiệm vụ mới trong kỳ có trường <code>planned_hours = 0</code>.</p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

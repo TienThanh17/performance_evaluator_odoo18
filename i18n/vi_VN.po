@@ -2351,7 +2351,7 @@ msgstr "Tạo Đánh giá Hiệu suất của Phòng ban"
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_department_kpi_form
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_generate_wizard_form
 msgid "Generate Evaluations"
-msgstr "Tạo đánh giá"
+msgstr "Tạo phiếu đánh giá"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model,name:custom_adecsol_hr_performance_evaluator.model_hr_kpi_generate_wizard
@@ -5051,7 +5051,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_evaluation_3p_summary_line__summary_id
 msgid "Summary"
-msgstr "Kết Quả"
+msgstr "Kết Quả 3P"
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_evaluation_3p_summary__line_ids
@@ -5670,7 +5670,7 @@ msgstr "Tiêu đề KPI"
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Top KPI chưa đạt"
-msgstr "KPI hàng đầu chưa đạt được"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
@@ -5744,17 +5744,17 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_tree_dashboard/kpi_tree_dashboard.xml:0
 msgid "Trung bình KPI phòng ban:"
-msgstr "Trung bình KPI ban phòng:"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_data_source__date_field_id
 msgid "Trường ngày lọc dữ liệu"
-msgstr "Trường dữ liệu lọc"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_data_source__user_field_id
 msgid "Trường phân bổ (User/Employee)"
-msgstr "Trường phân tích bổ sung (Người dùng/Nhân viên)"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_data_source__sum_avg_field_id
@@ -5764,7 +5764,7 @@ msgstr "Trường tính toán (Tổng/Trung bình)"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.job,name:custom_adecsol_hr_performance_evaluator.job_it_manager_3p_202604
 msgid "Trưởng Phòng IT"
-msgstr "QTV đánh giá"
+msgstr ""
 
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:hr.job,name:custom_adecsol_hr_performance_evaluator.job_pkt_ltd_manager_202604

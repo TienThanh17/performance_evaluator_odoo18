@@ -37,6 +37,7 @@ Mô-đun này được thiết kế để tối ưu hóa quy trình đánh giá 
         # "demo/hr_kpi_it_3p_2026_04_seed(use_for_staging).xml",
         # commment hr_kpi_it_3p_2026_04_seed.xml để tránh bị trùng dữ liệu có sẵn của adecsol
         "data/hr_kpi_it_3p_2026_04_seed.xml",
+        "data/hr_department_kpi_it_demo_seed.xml",
         "data/hr_kpi_ktoan_3p_2026_04_seed.xml",
         "data/hr_kpi_auto_3p_2026_04_seed.xml",
         "data/hr_kpi_pkt_ltd_3p_2026_04_seed.xml",

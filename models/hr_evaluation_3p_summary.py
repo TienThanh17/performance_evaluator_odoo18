@@ -565,7 +565,7 @@ class HrEvaluation3PSummary(models.Model):
                 stale_lines.unlink()
 
             # Chỉ cần chốt trạng thái summary sau khi line con đã được đồng bộ trực tiếp.
-            summary.write({"state": "done"})
+            # summary.write({"state": "done"})
         return True
 
     # Ghi một dòng nhân viên vào bảng tổng hợp chính cùng toàn bộ công thức Excel động.

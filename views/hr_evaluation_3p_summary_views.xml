@@ -4,7 +4,7 @@
         <field name="name">hr.evaluation.3p.summary.list</field>
         <field name="model">hr.evaluation.3p.summary</field>
         <field name="arch" type="xml">
-            <list create="0">
+            <list create="0" delete="0">
                 <field name="name" />
                 <field name="department_id" />
                 <field name="period_id" />
@@ -36,7 +36,7 @@
         <field name="name">hr.evaluation.3p.summary.form</field>
         <field name="model">hr.evaluation.3p.summary</field>
         <field name="arch" type="xml">
-            <form create="0">
+            <form create="0" delete="0">
                 <header>
                     <button name="action_aggregate" type="object" string="Aggregate"
                         class="oe_highlight" />
@@ -44,14 +44,18 @@
                         invisible="state == 'draft'" />
                     <button name="action_export_excel" string="Xuất Excel" type="object"
                         class="btn-secondary" icon="fa-file-excel-o" />
-                    <field name="state" widget="statusbar" statusbar_visible="draft,done" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"
+                        options="{'clickable': '1'}" />
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" type="object"
                             name="action_open_department_dashboard"
                             icon="fa-bar-chart"
-                            invisible="not department_evaluation_id">
+                            invisible="not department_evaluation_id"
+                            groups="custom_adecsol_hr_performance_evaluator.group_admin,
+                                    custom_adecsol_hr_performance_evaluator.group_hr,
+                                    custom_adecsol_hr_performance_evaluator.group_manager">
                             <div class="o_field_widget o_stat_info">
                                 <span class="o_stat_text">Dashboard</span>
                             </div>
@@ -82,7 +86,8 @@
                                     <field name="p3_individual_score" readonly="1" optional="show" />
                                     <field name="p3_department_score" readonly="1" optional="show" />
                                     <field name="p3_1_score" readonly="1" optional="show" />
-                                    <field name="p3_2_revenue_list" widget="percentage" readonly="1" optional="show" />
+                                    <field name="p3_2_revenue_list" widget="percentage" readonly="1"
+                                        optional="show" />
                                 </list>
                                 <form string="3P Summary Line">
                                     <sheet>
@@ -111,7 +116,8 @@
                                                 <field name="p3_individual_score" readonly="1" />
                                                 <field name="p3_department_score" readonly="1" />
                                                 <field name="p3_1_score" readonly="1" />
-                                                <field name="p3_2_revenue" widget="percentage" readonly="not can_edit_manual_inputs" />
+                                                <field name="p3_2_revenue" widget="percentage"
+                                                    readonly="not can_edit_manual_inputs" />
                                             </group>
                                         </group>
 

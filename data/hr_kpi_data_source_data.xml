@@ -11,22 +11,22 @@
             <field name="aggregation">count</field>
             <field name="user_field_id"
                 search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
-            <field name="domain_numerator">[('state', '=', '1_done'), ('project_id', '!=', False)]</field>
+            <field name="domain_numerator">[('stage_id.is_done_stage', '=', True), ('project_id', '!=', False)]</field>
             <field name="date_field_id"
                 search="[('model', '=', 'project.task'), ('name', '=', 'date_deadline')]" />
         </record>
 
         <record id="source_task_on_time_rate" model="hr.kpi.data.source">
-            <field name="name">Tỷ lệ task đúng hạn</field>
+            <field name="name">Tỷ lệ task hoàn thành</field>
             <field name="code">task_on_time_rate</field>
             <field name="unit_id" ref="custom_adecsol_hr_performance_evaluator.kpi_unit_percent" />
             <field name="source_type">domain</field>
-            <field name="description">Tính tỷ lệ task hoàn thành đúng hạn trong kỳ.</field>
+            <field name="description">Tính tỷ lệ task hoàn thành trong kỳ.</field>
             <field name="model_id" search="[('model', '=', 'project.task')]" />
             <field name="aggregation">ratio</field>
             <field name="user_field_id"
                 search="[('model', '=', 'project.task'), ('name', '=', 'user_ids')]" />
-            <field name="domain_numerator">[('state', '=', '1_done'), ('project_id', '!=', False)]</field>
+            <field name="domain_numerator">[('stage_id.is_done_stage', '=', True), ('project_id', '!=', False)]</field>
             <field name="domain_denominator">[('project_id', '!=', False)]</field>
             <field name="date_field_id"
                 search="[('model', '=', 'project.task'), ('name', '=', 'date_deadline')]" />
