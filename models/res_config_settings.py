@@ -2,11 +2,10 @@ from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
+P3_INDIVIDUAL_WEIGHT_DEFAULT = 60
+P3_DEPARTMENT_WEIGHT_DEFAULT = 40
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
-
-    P3_INDIVIDUAL_WEIGHT_DEFAULT = 60
-    P3_DEPARTMENT_WEIGHT_DEFAULT = 40
 
     kpi_threshold_excellent = fields.Float(
         string="KPI Excellent Threshold",

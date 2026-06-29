@@ -675,7 +675,7 @@ msgstr "Tổng hợp"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_data_source__aggregation
 msgid "Aggregation"
-msgstr "Tổng hợp"
+msgstr "Phương pháp tổng hợp"
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/kpi_dashboard/kpi_dashboard_template.xml:0
@@ -714,7 +714,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_data_source__user_field_id
 msgid "Allocation Field (User/Employee)"
-msgstr "Trường phân tích bổ sung (Người dùng/Nhân viên)"
+msgstr "Trường dùng để phân bổ (Người dùng/Nhân viên)"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_scoring_formula__linear_allow_exceed
 msgid "Allow Exceeding Max Score (Bonus)"
@@ -1266,7 +1266,7 @@ msgstr "Ngày kết thúc"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_data_source__date_field_id
 msgid "Date Filter Field"
-msgstr "Trường dữ liệu lọc"
+msgstr "Trường ngày dùng để lọc"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__date_granularity
 msgid "Date Granularity"
@@ -1464,7 +1464,7 @@ msgstr "Số lượng mẫu phòng ban"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_dashboard_widget__department_template_line_ids
 msgid "Department Template Lines"
-msgstr "Dòng mẫu của bộ phận"
+msgstr "Dòng mẫu KPI của bộ phận"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model_terms:ir.ui.view,arch_db:custom_adecsol_hr_performance_evaluator.view_hr_kpi_form
 msgid "Department Templates"
@@ -1600,11 +1600,11 @@ msgstr "Phân phối"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_data_source__domain_denominator
 msgid "Domain Denominator"
-msgstr "Mẫu số tên miền"
+msgstr "Điều kiện lọc mẫu số"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_data_source__domain_numerator
 msgid "Domain Numerator"
-msgstr "Bộ đếm tên miền"
+msgstr "Điều kiện lọc"
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields.selection,name:custom_adecsol_hr_performance_evaluator.selection__hr_kpi_data_source__source_type__domain
 msgid "Domain builder"
@@ -4560,7 +4560,7 @@ msgstr ""
 #. module: custom_adecsol_hr_performance_evaluator
 #: model:ir.model.fields,field_description:custom_adecsol_hr_performance_evaluator.field_hr_kpi_data_source__source_type
 msgid "Source Type"
-msgstr "Loại nguồn"
+msgstr "Cách lấy dữ liệu"
 #. module: custom_adecsol_hr_performance_evaluator
 #. odoo-javascript
 #: code:addons/custom_adecsol_hr_performance_evaluator/static/src/components/dept_kpi_dashboard/dept_kpi_dashboard_template.xml:0
