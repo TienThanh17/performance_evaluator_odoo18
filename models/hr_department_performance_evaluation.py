@@ -636,20 +636,34 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
         return evaluations
 
+    # Lấy mapping nhãn mức kết quả theo ngôn ngữ hiện tại để frontend không phải tự dịch raw key.
+    def _get_performance_level_label_map(self):
+        # Đọc trực tiếp nhãn selection đã qua context ngôn ngữ hiện tại.
+        return dict(
+            self.env["hr.performance.evaluation"]
+            ._fields["performance_level"]
+            ._description_selection(self.env)
+        )
+
     # Chuẩn hóa danh sách nhân viên và roster rows cho report dashboard.
     def _get_report_dashboard_employee_rows(self, evaluations):
         self.ensure_one()
         employees = []
         evaluation_rows = []
+        level_labels = self._get_performance_level_label_map()
 
         for evaluation in evaluations:
+            perf_key = evaluation.performance_level or "fail"
+
+            # Đính kèm cả key và label để frontend dùng key cho CSS, label cho hiển thị.
             # Build payload gọn cho biểu đồ điểm KPI cá nhân.
             employees.append(
                 {
                     "id": evaluation.employee_id.id if evaluation.employee_id else 0,
                     "name": evaluation.employee_id.name if evaluation.employee_id else "?",
                     "score": round(float(evaluation.result_score or 0.0), 2),
-                    "level": evaluation.performance_level or "fail",
+                    "level": perf_key,
+                    "level_label": level_labels.get(perf_key, perf_key),
                     "eval_id": evaluation.id,
                 }
             )
@@ -676,7 +690,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         float(evaluation.total_p3_individual or 0.0),
                         2,
                     ),
-                    "performance_level": evaluation.performance_level or False,
+                    "performance_level": perf_key,
+                    "performance_level_label": level_labels.get(perf_key, perf_key),
                     "state": evaluation.state or False,
                     "name": evaluation.name or "",
                     "comment_count": evaluation.get_comment_count(),
@@ -811,6 +826,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             settings = self.env["res.config.settings"]
             score_scale = settings.get_score_scale_info()
             widgets = []
+            level_labels = self._get_performance_level_label_map()
 
             # ── Thresholds theo thang điểm cấu hình ───────────────────────────
             threshold_excellent, threshold_pass = settings.get_thresholds()
@@ -982,6 +998,8 @@ class HrDepartmentPerformanceEvaluation(models.Model):
 
                 employees = []
                 for ev in employee_evals:
+                    perf_key = ev.performance_level or "fail"
+
                     # Lấy dữ liệu nhân viên và KPI phòng ban tương ứng để build node detail panel.
                     emp = ev.employee_id
                     emp_dept_eval = ev.dept_evaluation_id or dept_eval
@@ -1009,7 +1027,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                             "result_score": round(result_score, 2),
                             "total_p3_individual": round(total_p3_individual, 2),
                             "dept_kpi_score": round(float(emp_dept_kpi), 2),
-                            "performance_level": ev.performance_level or "fail",
+                            "performance_level": perf_key,
+                            "performance_level_label": level_labels.get(
+                                perf_key, perf_key
+                            ),
                             "state": ev.state or "",
                         }
                     )
@@ -1057,7 +1078,9 @@ class HrDepartmentPerformanceEvaluation(models.Model):
             for ev in evals.filtered(
                 lambda record: (record.performance_level or "fail") == "fail"
             ):
+                perf_key = ev.performance_level or "fail"
                 score = float(ev.result_score or 0.0)
+
                 # Giữ ảnh đại diện nhân viên để frontend có thể hiển thị avatar trong popup.
                 failed_evaluation_lines.append(
                     {
@@ -1072,9 +1095,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         if ev.employee_id
                         else "",
                         "score": round(score, 2),
-                        "score_label": "P3.1 result",
+                        "score_label": _("P3.1 Result"),
                         "state": ev.state or "",
-                        "level": "fail",
+                        "level": perf_key,
+                        "level_label": level_labels.get(perf_key, perf_key),
                     }
                 )
             for ev in dept_evals.filtered(
@@ -1093,9 +1117,10 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "dept_name": ev.department_id.name if ev.department_id else "",
                         "employee_name": "",
                         "score": round(score, 2),
-                        "score_label": "KPI phòng ban",
+                        "score_label": _("Department KPI"),
                         "state": ev.state or "",
                         "level": "fail",
+                        "level_label": level_labels.get("fail", _("Fail")),
                     }
                 )
             failed_evaluation_lines.sort(
@@ -1149,6 +1174,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         else "",
                         "score": round(score, 2),
                         "level": "fail",
+                        "level_label": level_labels.get("fail", _("Fail")),
                         "kpi_type": line.kpi_type or "",
                         "manual_scoring_type": line.manual_scoring_type or "",
                     }
@@ -1170,6 +1196,7 @@ class HrDepartmentPerformanceEvaluation(models.Model):
                         "employee_name": "",
                         "score": round(score, 2),
                         "level": "fail",
+                        "level_label": level_labels.get("fail", _("Fail")),
                         "kpi_type": line.kpi_type or "",
                         "manual_scoring_type": line.manual_scoring_type or "",
                     }

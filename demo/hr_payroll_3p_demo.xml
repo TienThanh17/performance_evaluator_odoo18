@@ -69,7 +69,7 @@ result_rate = he_so
         </record>
 
         <record id="hr_rule_p2_2" model="hr.salary.rule">
-            <field name="name">P2.2 - lương theo kỹ năng, kinh nghiệm</field>
+            <field name="name">P2.2 - Lương theo kỹ năng, kinh nghiệm</field>
             <field name="code">P2_2</field>
             <field name="category_id" ref="custom_adecsol_hr_performance_evaluator.contrib_register_p2"/>
             <field name="sequence" eval="21"/>

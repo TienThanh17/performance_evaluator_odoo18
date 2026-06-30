@@ -160,7 +160,7 @@
                 <canvas t-att-data-chart-key="chart.key" height="180"/>
                 <div t-if="chart.chart_type === 'doughnut' and chart.chart_meta and chart.chart_meta.center_value" class="o_kpi_doughnut_center">
                   <div class="o_kpi_doughnut_val" t-esc="chart.chart_meta.center_value"/>
-                  <div class="o_kpi_dou ghnut_lbl" t-esc="chart.chart_meta.center_label"/>
+                  <div class="o_kpi_doughnut_lbl" t-esc="chart.chart_meta.center_label"/>
                 </div>
               </div>
               <p t-if="chart.chart_meta and chart.chart_meta.note" class="o_kpi_chart_note" t-esc="chart.chart_meta.note"/>
