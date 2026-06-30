@@ -231,7 +231,7 @@
             <div class="panel-metric">
               <span class="pm-label">Result:</span>
               <span t-att-class="levelBadgeClass(state.selectedNode.data.performance_level)"
-                    t-esc="state.selectedNode.data.performance_level || 'fail'"/>
+                    t-esc="state.selectedNode.data.performance_level_label || state.selectedNode.data.performance_level || 'fail'"/>
             </div>
             <div class="panel-nav_card">
               <button
@@ -271,7 +271,7 @@
               </div>
               <div class="risk-right">
                 <span class="risk-score" t-esc="formatScore(item.score)"/>
-                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.level"/>
+                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.level_label || item.level"/>
               </div>
             </div>
           </t>
@@ -346,7 +346,7 @@
               </div>
               <div class="risk-right">
                 <span class="risk-score" t-esc="formatScore(item.score)"/>
-                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.score_label || item.level"/>
+                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.score_label || item.level_label || item.level"/>
               </div>
             </div>
           </t>
@@ -400,7 +400,7 @@
                 <div class="risk-modal-right">
                   <!-- <span class="kpi-state-badge" t-att-class="stateBadgeClass(item.state)" t-esc="stateBadgeLabel(item.state)"/> -->
                   <span class="risk-score passed-score" t-esc="formatScore(item.score)"/>
-                  <span t-att-class="levelBadgeClass(item.level)" t-esc="item.level"/>
+                  <span t-att-class="levelBadgeClass(item.level)" t-esc="item.performance_level_label || item.level_label || item.level"/>
                 </div>
               </div>
             </t>
@@ -445,7 +445,7 @@
               </div>
               <div class="risk-modal-right">
                 <span class="risk-score" t-esc="formatScore(item.score)"/>
-                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.level"/>
+                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.level_label || item.level"/>
               </div>
             </div>
           </t>
@@ -532,7 +532,7 @@
               </div>
               <div class="risk-modal-right">
                 <span class="risk-score" t-esc="formatScore(item.score)"/>
-                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.score_label || item.level"/>
+                <span t-att-class="levelBadgeClass(item.level)" t-esc="item.score_label || item.level_label || item.level"/>
               </div>
             </div>
           </t>
